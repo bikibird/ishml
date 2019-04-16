@@ -1,5 +1,6 @@
 "use strict"
 var ISHML=ISHML || {}
+//test
 ISHML.Catalog= function Catalog()
 {
 	if (this instanceof ISHML.Catalog)
