@@ -1,5 +1,5 @@
-"use strict";
-var ISHML = ISHML || {};
+"use strict"
+var ISHML = ISHML || {}
 ISHML.Interpretation=function Interpretation(aGist=[],aRemainder=[])
 {
 	if (this instanceof ISHML.Interpretation)

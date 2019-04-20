@@ -6,8 +6,11 @@
         {
             "label": "make",
             "type": "shell",
-            "command": "cat src\\apex.js, src\\interpretation.js, src\\lexicon.js, src\\rule.js | sc build\\ishml.js "
-            ]
+            "command": "cat src\\apex.js, src\\interpretation.js, src\\lexicon.js, src\\rule.js | sc src\\ishml.js",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
     ]
 }
