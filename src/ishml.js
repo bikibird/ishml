@@ -1,16 +1,17 @@
 "use strict"
 var ISHML = ISHML || {}
-ISHML.Interpretation=function Interpretation(aGist=[],aRemainder=[])
+//TO DO: composer function
+ISHML.Interpretation=function Interpretation(gist=[],remainder=[])
 {
 	if (this instanceof ISHML.Interpretation)
 	{
-		this.gist=aGist.slice(0)
-		this.remainder=aRemainder.slice(0)
+		this.gist=gist.slice(0)
+		this.remainder=remainder.slice(0)
 		return this
 	}
 	else
 	{
-		return new Interpretation(aGist,aRemainder)
+		return new Interpretation(gist,remainder)
 	}
 }
 ISHML.Lexicon=function Lexicon() 
@@ -106,21 +107,23 @@ ISHML.Lexicon.prototype.register = function (...someTerms)
 	}	
 	return {as:_as.bind(this)}	
 }
-ISHML.Lexicon.prototype.search = function (aLexeme, aSeparator=/[\,|\.|;|\!|\?|\s]/) 
+ISHML.Lexicon.prototype.search = function (aLexeme, {aSeparator=/[\,|\.|;|\!|\?|\s]/, greedy=false}={}) 
 {
 	var _trie = this.trie
 	var _results = []
 	var j=0
+
 	//trim leading separators.
 	while(aSeparator.test(aLexeme[j])){j++}
+
 	for (let i=j; i < aLexeme.length; i++)
 	{
-	//	if (!aSeparator.test(aLexeme[i]))
-	//	{	
 			var character=aLexeme.charAt(i).toLowerCase()
 			if ( ! _trie[character])
 			{
-				return _results
+				if(greedy){return _results.slice(0,1)}
+				else{return _results}
+				
 			}
 			else
 			{	
@@ -146,12 +149,14 @@ ISHML.Lexicon.prototype.search = function (aLexeme, aSeparator=/[\,|\.|;|\!|\?|\
 			}
 	}
 	
-	return _results
+	if(greedy){return _results.slice(0,1)}
+	else{return _results}
 }
-ISHML.Lexicon.prototype.tokenize  = function* (aText, aSeparator=/[\,|\.|;|\!|\?|\s]/)
+
+
+ISHML.Lexicon.prototype.tokenize  = function* (aText, {aSeparator=/[\,|\.|;|\!|\?|\s]/, fuzzy=false,greedy=false}={})
 {
 	var candidates=[{tokens:[],remainder:aText}]
-	//var finalCandidates=[]
 	var revisedCandidates
 	while(candidates.length>0)
 	{
@@ -160,14 +165,14 @@ ISHML.Lexicon.prototype.tokenize  = function* (aText, aSeparator=/[\,|\.|;|\!|\?
 		{	
 			if (candidates[i].remainder.length>0)
 			{
-				var entries=this.search(candidates[i].remainder)
+				var entries=this.search(candidates[i].remainder,{greedy:greedy})
 				if (entries.length>0)
 				{	
 					for (var j =0; j < entries.length; j++)
 					{	
 
-						let result={}
-						let token={definitions:entries[j].definitions,lexeme:entries[j].lexeme}
+						var result={}
+						var token={definitions:entries[j].definitions,lexeme:entries[j].lexeme}
 
 						result.tokens=candidates[i].tokens.slice(0)
 						result.tokens.push(token)
@@ -183,58 +188,50 @@ ISHML.Lexicon.prototype.tokenize  = function* (aText, aSeparator=/[\,|\.|;|\!|\?
 							yield result
 						}	
 					}	
-				}//else candidate is thrown away.
+				}
+				else
+				{
+					if (fuzzy)
+					{
+						var result={}
+						var k=0
+						var fuzz=""
+
+						while( k < candidates[i].remainder.length && !aSeparator.test(candidates[i].remainder[k])  )
+						{
+							fuzz=+candidates[i].remainder[k]
+							k++
+						}
+
+						var definitions=[]
+						defintions[0]={fuzz:fuzz,lexeme:fuzz}
+						var token={definitions:definitions,lexeme:entries[j].lexeme}
+
+						result.tokens=candidates[i].tokens.slice(0)
+						result.tokens.push(token)
+						result.remainder=candidates[i].remainder.slice(k).replace(aSeparator,"")
+
+					}
+					//else throw away candidate
+				}
 			}
-		/*	else
-			{
-				delete result.remainder
-				yield result
-			}
-		*/	
 		}
-		candidates=revisedCandidates
-		if (candidates.length>=10000)  //safeguard
-		{
-			break
-		}
+
 	}	
 }
-ISHML.Rule=function Rule(aConfiguration={}) 
+ISHML.Rule=function Rule({minimum=1,maximum=1,skip=false,filter}={}) 
 {
 	if (this instanceof ISHML.Rule)
 	{
-		Object.defineProperty(this, "parser", {value:aConfiguration.parser || this.snip,writable: true})
-		
-		if(aConfiguration.minimum !== undefined)
-		{
-			Object.defineProperty(this, "minimum", {value:aConfiguration.minimum,writable: true})
-		}
-		else
-		{
-			Object.defineProperty(this, "minimum", {value:1,writable: true})
-		}
-		if(aConfiguration.maximum !== undefined)
-		{
-			Object.defineProperty(this, "maximum", {value:aConfiguration.maximum,writable: true})
-		}
-		else
-		{
-			Object.defineProperty(this, "maximum", {value:1,writable: true})
-		}
-		if(aConfiguration.skip !== undefined)
-		{
-			Object.defineProperty(this, "skip", {value:aConfiguration.skip,writable: true})
-		}
-		else
-		{
-			Object.defineProperty(this, "skip", {value:false,writable: true})
-		}
-		Object.defineProperty(this, "filter", {value:aConfiguration.filter,writable: true})
+		Object.defineProperty(this, "minimum", {value:minimum,writable: true})
+		Object.defineProperty(this, "maximum", {value:maximum,writable: true})
+		Object.defineProperty(this, "skip", {value:skip,writable: true})
+		Object.defineProperty(this, "filter", {value:filter,writable: true})
 		return this
 	}
 	else
 	{
-		return new Rule(aConfiguration)
+		return new Rule({minimum, maximum, skip, filter})
 	}
 }
 

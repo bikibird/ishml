@@ -91,21 +91,23 @@ ISHML.Lexicon.prototype.register = function (...someTerms)
 	}	
 	return {as:_as.bind(this)}	
 }
-ISHML.Lexicon.prototype.search = function (aLexeme, aSeparator=/[\,|\.|;|\!|\?|\s]/) 
+ISHML.Lexicon.prototype.search = function (aLexeme, {aSeparator=/[\,|\.|;|\!|\?|\s]/, greedy=false}={}) 
 {
 	var _trie = this.trie
 	var _results = []
 	var j=0
+
 	//trim leading separators.
 	while(aSeparator.test(aLexeme[j])){j++}
+
 	for (let i=j; i < aLexeme.length; i++)
 	{
-	//	if (!aSeparator.test(aLexeme[i]))
-	//	{	
 			var character=aLexeme.charAt(i).toLowerCase()
 			if ( ! _trie[character])
 			{
-				return _results
+				if(greedy){return _results.slice(0,1)}
+				else{return _results}
+				
 			}
 			else
 			{	
@@ -131,12 +133,14 @@ ISHML.Lexicon.prototype.search = function (aLexeme, aSeparator=/[\,|\.|;|\!|\?|\
 			}
 	}
 	
-	return _results
+	if(greedy){return _results.slice(0,1)}
+	else{return _results}
 }
-ISHML.Lexicon.prototype.tokenize  = function* (aText, aSeparator=/[\,|\.|;|\!|\?|\s]/)
+
+
+ISHML.Lexicon.prototype.tokenize  = function* (aText, {aSeparator=/[\,|\.|;|\!|\?|\s]/, fuzzy=false,greedy=false}={})
 {
 	var candidates=[{tokens:[],remainder:aText}]
-	//var finalCandidates=[]
 	var revisedCandidates
 	while(candidates.length>0)
 	{
@@ -145,14 +149,14 @@ ISHML.Lexicon.prototype.tokenize  = function* (aText, aSeparator=/[\,|\.|;|\!|\?
 		{	
 			if (candidates[i].remainder.length>0)
 			{
-				var entries=this.search(candidates[i].remainder)
+				var entries=this.search(candidates[i].remainder,{greedy:greedy})
 				if (entries.length>0)
 				{	
 					for (var j =0; j < entries.length; j++)
 					{	
 
-						let result={}
-						let token={definitions:entries[j].definitions,lexeme:entries[j].lexeme}
+						var result={}
+						var token={definitions:entries[j].definitions,lexeme:entries[j].lexeme}
 
 						result.tokens=candidates[i].tokens.slice(0)
 						result.tokens.push(token)
@@ -168,19 +172,34 @@ ISHML.Lexicon.prototype.tokenize  = function* (aText, aSeparator=/[\,|\.|;|\!|\?
 							yield result
 						}	
 					}	
-				}//else candidate is thrown away.
+				}
+				else
+				{
+					if (fuzzy)
+					{
+						var result={}
+						var k=0
+						var fuzz=""
+
+						while( k < candidates[i].remainder.length && !aSeparator.test(candidates[i].remainder[k])  )
+						{
+							fuzz=+candidates[i].remainder[k]
+							k++
+						}
+
+						var definitions=[]
+						defintions[0]={fuzz:fuzz,lexeme:fuzz}
+						var token={definitions:definitions,lexeme:entries[j].lexeme}
+
+						result.tokens=candidates[i].tokens.slice(0)
+						result.tokens.push(token)
+						result.remainder=candidates[i].remainder.slice(k).replace(aSeparator,"")
+
+					}
+					//else throw away candidate
+				}
 			}
-		/*	else
-			{
-				delete result.remainder
-				yield result
-			}
-		*/	
 		}
-		candidates=revisedCandidates
-		if (candidates.length>=10000)  //safeguard
-		{
-			break
-		}
+
 	}	
 }

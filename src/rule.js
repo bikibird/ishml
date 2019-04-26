@@ -1,39 +1,16 @@
-ISHML.Rule=function Rule(aConfiguration={}) 
+ISHML.Rule=function Rule({minimum=1,maximum=1,skip=false,filter}={}) 
 {
 	if (this instanceof ISHML.Rule)
 	{
-		Object.defineProperty(this, "parser", {value:aConfiguration.parser || this.snip,writable: true})
-		
-		if(aConfiguration.minimum !== undefined)
-		{
-			Object.defineProperty(this, "minimum", {value:aConfiguration.minimum,writable: true})
-		}
-		else
-		{
-			Object.defineProperty(this, "minimum", {value:1,writable: true})
-		}
-		if(aConfiguration.maximum !== undefined)
-		{
-			Object.defineProperty(this, "maximum", {value:aConfiguration.maximum,writable: true})
-		}
-		else
-		{
-			Object.defineProperty(this, "maximum", {value:1,writable: true})
-		}
-		if(aConfiguration.skip !== undefined)
-		{
-			Object.defineProperty(this, "skip", {value:aConfiguration.skip,writable: true})
-		}
-		else
-		{
-			Object.defineProperty(this, "skip", {value:false,writable: true})
-		}
-		Object.defineProperty(this, "filter", {value:aConfiguration.filter,writable: true})
+		Object.defineProperty(this, "minimum", {value:minimum,writable: true})
+		Object.defineProperty(this, "maximum", {value:maximum,writable: true})
+		Object.defineProperty(this, "skip", {value:skip,writable: true})
+		Object.defineProperty(this, "filter", {value:filter,writable: true})
 		return this
 	}
 	else
 	{
-		return new Rule(aConfiguration)
+		return new Rule({minimum, maximum, skip, filter})
 	}
 }
 
