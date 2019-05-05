@@ -1,0 +1,65 @@
+<html>
+    <head>
+
+    </head>
+    <body>
+        <script src="../src/ishml.js"></script>
+        <script>
+            var lexicon=ISHML.lexicon()
+            lexicon
+                .register("the","a","an").as({part:"article"})
+                .register("take").as({key:"take",part:"verb"})
+                .register("steal").as({key:"take",part:"verb"})
+                .register("grab").as({key:"take",part:"verb"})
+                .register("drop").as({key:"drop",part:"verb"})
+                .register("leave").as({key:"drop",part:"verb"})
+                .register("ring").as({key:"ring",part:"noun", role:"thing"})
+                .register("slipper").as({key:"slipper",part:"noun", role:"thing"})
+                .register("diamond").as({key:"ring",part:"adjective", role:"thing"})
+                .register("ruby").as({key:"ring",part:"adjective", role:"thing"})
+                .register("ruby").as({key:"ruby",part:"noun", role:"thing"})
+                .register("ruby").as({key:"slipper",part:"adjective", role:"thing"})
+                .register("glass").as({key:"slipper",part:"adjective", role:"thing"})
+                .register("glass").as({key:"tumbler",part:"noun", role:"thing"})
+                .register("tumbler").as({key:"tumbler",part:"noun", role:"thing"})
+                .register("ruby").as({key:"miss_ruby",part:"noun", role:"npc"})
+                .register("sam").as({key:"sam",part:"noun", role:"npc"})
+                .register("from").as({key:"from",part:"preposition", role:"preposition"})
+            
+            var nounPhrase=ISHML.Rule()
+            
+            nounPhrase
+                .sequence("article",{minimum:0, filter:(definition)=>definition.part==="article" })    
+                .sequence("adjectives",{minimum:0, maximum:5, filter:(definition)=>definition.part==="adjective" })
+                .sequence("noun",{minimum:0, maximum:5, filter:(definition)=>definition.part==="noun" })
+            
+            var grammar=ISHML.Rule()    
+      
+            grammar.choice("command",3)
+
+            grammar.command[0]
+                //.configure({minimum,maximum, etc})
+                .sequence("subject",{rule:nounPhrase, minimum:0})
+                .sequence("verb",{filter:(definition)=>definition.part==="verb"})
+                .sequence("directObject",{rule:nounPhrase, minimum:0})
+            
+            grammar.command[1]
+                //.configure({contentualization:aFunction})
+                .sequence("subject",{rule:nounPhrase, minimum:0})
+                .sequence("verb",{filter:(definition)=>definition.part==="verb"})
+                .sequence("directObject",{rule:nounPhrase})
+                .sequence("indirectObject",{rule:nounPhrase})
+            
+            grammar.command[1].indirectObject
+                .sequence("preposition",{filter:(definition)=>definition.part==="preposition"})
+                
+            grammar.command[2]
+                //.configure({contentualization:aFunction})
+                .sequence("subject",{rule:nounPhrase, minimum:0})
+                .sequence("verb",{filter:(definition)=>definition.part==="verb"})
+                .sequence("indirectObject",{rule:nounPhrase})
+                .sequence("directObject",{rule:nounPhrase})
+
+        </script>
+    </body>
+</html>

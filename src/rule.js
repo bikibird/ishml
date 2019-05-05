@@ -1,19 +1,75 @@
-ISHML.Rule=function Rule({minimum=1,maximum=1,skip=false,filter}={}) 
+ISHML.Rule=function Rule() 
 {
 	if (this instanceof ISHML.Rule)
 	{
-		Object.defineProperty(this, "minimum", {value:minimum,writable: true})
-		Object.defineProperty(this, "maximum", {value:maximum,writable: true})
-		Object.defineProperty(this, "skip", {value:skip,writable: true})
-		Object.defineProperty(this, "filter", {value:filter,writable: true})
+		Object.defineProperty(this, "minimum", {writable: true})
+		Object.defineProperty(this, "maximum", {writable: true})
+		Object.defineProperty(this, "skip", {writable: true})
+		Object.defineProperty(this, "filter", {writable: true})
 		return this
 	}
 	else
 	{
-		return new Rule({minimum, maximum, skip, filter})
+		return new Rule()
 	}
 }
 
+ISHML.Rule.prototype.choice =function(key,size,rule)
+{
+	this[key]=[]
+	for (let i = 0; i< size; i++)
+	{
+		if (rule instanceof ISHML.rule)
+		{
+			this[key].push(rule.clone())
+		}
+		else
+		{
+			this[key].push(new ISHML.rule())
+		}
+	}
+}
+ISHML.Rule.prototype.clone =function()
+{
+	var clonedRule= new ISHML.rule().configure({minimum=this.minimum,maximum=this.maximum,skip=this.skip,filter=this.filter})
+	var entries=Object.entries(this)
+	entries.forEach(([key,value])=>
+	{
+		if (value instanceof rule)
+		{
+			clonedRule[key]=value.clone()
+		}
+		else if (value instanceof Array)
+		{
+			clonedRule[key]=[]
+			value.forEach((rule)=>
+			{
+				clonedRule[key].push(this[key].value.clone)
+			})
+		} 
+	})
+	return clonedRule
+}	
+ISHML.Rule.prototype.configure =function({minimum,maximum,skip,filter}={})
+{
+	if(minimum !== undefined)
+	{
+		Object.defineProperty(this, "minimum", {value:minimum,writable: true})
+	}
+	if(maximum !== undefined)
+	{
+		Object.defineProperty(this, "maximum", {value:maximum,writable: true})
+	}
+	if(skip !== undefined)
+	{
+		Object.defineProperty(this, "skip", {value:skip,writable: true})
+	}
+	if(filter !== undefined)
+	{
+		Object.defineProperty(this, "filter", {value:filter,writable: true})
+	}
+	return this
+}
 ISHML.Rule.prototype.parse =function(someTokens)
 {
 	var counter
@@ -120,4 +176,16 @@ ISHML.Rule.prototype.parse =function(someTokens)
 		}
 		return candidates
 	}
+}
+ISHML.Rule.prototype.sequence =function(key,rule)
+{
+	if (rule instanceof ISHML.rule)
+	{
+		this[key]=rule.clone()
+	}
+	else
+	{
+		this[key]=new ISHML.rule()
+	}	
+	return this		
 }
