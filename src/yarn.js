@@ -12,6 +12,7 @@ ISHML.Yarn=function Yarn(aSeed)
 		this.grammar =new ISHML.Rule()
 		this.viewpoint="2nd person singular"
 		this.setting="present"
+		this.harkenings={}
 		ISHML.util.reseed(aSeed)
 	}
 	else
@@ -113,8 +114,8 @@ ISHML.Yarn.prototype.harken=function(aDocumentSelector)
 		if (element.classList.contains("ISHML-input")){eventString="keyup"}
 
    		element.addEventListener(eventString, handler)
-   		ISHML.util._harkenings[aDocumentSelector]={}
-   		ISHML.util._harkenings[aDocumentSelector][eventString]=handler
+   		yarn._harkenings[aDocumentSelector]={}
+   		yarn._harkenings[aDocumentSelector][eventString]=handler
 	}
 	return this
 }
@@ -126,9 +127,9 @@ ISHML.Yarn.prototype.ignore=function(aDocumentSelector)
 	if (element)
 	{
 		if (element.classList.contains("ISHML-input")){eventString="keyup"}
-		if(ISHML.util._harkenings[aDocumentSelector])
+		if(this._harkenings[aDocumentSelector])
 		{
-			var harkeningHandler=ISHML.util._harkenings[aDocumentSelector][eventString]
+			var harkeningHandler=this._harkenings[aDocumentSelector][eventString]
 			if (harkeningHandler)
 			{
 				element.removeEventListener(eventString,harkeningHandler)

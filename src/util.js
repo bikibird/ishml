@@ -1,4 +1,4 @@
-ISHML.util={_seed:undefined, _harkenings:{}}
+ISHML.util={_seed:undefined}
 
 ISHML.util.enumerator=function* (aStart =1)
 {
@@ -6,18 +6,9 @@ ISHML.util.enumerator=function* (aStart =1)
   while (true) yield i++
 }
 
-ISHML.util.formatKey=function(aTieKey)
+ISHML.util.formatKey=function(aKey)
 {
-	/*var tieKey=aTieKey.replace(/\s+/g, '_')  //friendship
-	if (!tieKey.startsWith("_"))
-	{
-		tieKey="_"+tieKey
-	}
-	if (!tieKey.endsWith("_"))
-	{
-		tieKey=tieKey+"_"
-	}*/
-	return aTieKey.replace(/\s+/g, '_')
+	return aKey.replace(/\s+/g, '_')
 }
 
 ISHML.util.random = function() 

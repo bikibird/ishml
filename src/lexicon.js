@@ -200,6 +200,6 @@ ISHML.Lexicon.prototype.tokenize  = function* (aText, {aSeparator=/[\,|\.|;|\!|\
 				}
 			}
 		}
-
+		candidates=revisedCandidates
 	}	
 }

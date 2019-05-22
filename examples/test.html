@@ -1,11 +1,10 @@
 <html>
     <head>
-
     </head>
     <body>
         <script src="../src/ishml.js"></script>
         <script>
-            var lexicon=ISHML.lexicon()
+            var lexicon=ISHML.Lexicon()
             lexicon
                 .register("the","a","an").as({part:"article"})
                 .register("take").as({key:"take",part:"verb"})
@@ -26,40 +25,62 @@
                 .register("sam").as({key:"sam",part:"noun", role:"npc"})
                 .register("from").as({key:"from",part:"preposition", role:"preposition"})
             
+            var adjectives=ISHML.Rule().configure({minimum:0, maximum:5, filter:(definition)=>definition.part==="adjective" })  
             var nounPhrase=ISHML.Rule()
             
             nounPhrase
-                .sequence("article",{minimum:0, filter:(definition)=>definition.part==="article" })    
-                .sequence("adjectives",{minimum:0, maximum:5, filter:(definition)=>definition.part==="adjective" })
-                .sequence("noun",{minimum:0, maximum:5, filter:(definition)=>definition.part==="noun" })
+                .add("article")    
+                .add("adjectives")
+                .add("noun")
+                .configure({mode:nounPhrase.enum.choice})
+            nounPhrase.article
+                .configure({minimum:0, filter:(definition)=>definition.part==="article" })
+            nounPhrase.adjectives
+                .configure({minimum:0, maximum:5, filter:(definition)=>definition.part==="adjective" })
+            nounPhrase.noun
+                .configure({filter:(definition)=>definition.part==="noun" })     
             
             var grammar=ISHML.Rule()    
       
             grammar.choice("command",3)
 
             grammar.command[0]
-                //.configure({minimum,maximum, etc})
-                .sequence("subject",{rule:nounPhrase, minimum:0})
-                .sequence("verb",{filter:(definition)=>definition.part==="verb"})
-                .sequence("directObject",{rule:nounPhrase, minimum:0})
-            
+                .sequence("subject",nounPhrase)
+                .sequence("verb")
+                .sequence("directObject",nounPhrase)
+            grammar.command[0].subject
+                .configure({minimum:0})
+            grammar.command[0].verb
+                .configure({filter:(definition)=>definition.part==="verb"})
+            grammar.command[0].directObject
+                .configure({minimum:0})
+
             grammar.command[1]
-                //.configure({contentualization:aFunction})
-                .sequence("subject",{rule:nounPhrase, minimum:0})
-                .sequence("verb",{filter:(definition)=>definition.part==="verb"})
-                .sequence("directObject",{rule:nounPhrase})
-                .sequence("indirectObject",{rule:nounPhrase})
-            
+                .sequence("subject",nounPhrase)
+                .sequence("verb")
+                .sequence("directObject",nounPhrase)
+                .sequence("indirectObject",nounPhrase)
+            grammar.command[1].subject
+                .configure({minimum:0})
+            grammar.command[1].verb
+                .configure({filter:(definition)=>definition.part==="verb"})
             grammar.command[1].indirectObject
-                .sequence("preposition",{filter:(definition)=>definition.part==="preposition"})
+                .sequence("preposition")
+                .sequence("nounPhrase",nounPhrase)
+            grammar.command[1].indirectObject.preposition
+                .configure({filter:(definition)=>definition.part==="preposition"})
                 
             grammar.command[2]
-                //.configure({contentualization:aFunction})
-                .sequence("subject",{rule:nounPhrase, minimum:0})
-                .sequence("verb",{filter:(definition)=>definition.part==="verb"})
-                .sequence("indirectObject",{rule:nounPhrase})
-                .sequence("directObject",{rule:nounPhrase})
+                .sequence("subject",nounPhrase)
+                .sequence("verb")
+                .sequence("indirectObject",nounPhrase)
+                .sequence("directObject",nounPhrase)
+            grammar.command[2].subject
+                .configure({minimum:0})
+            grammar.command[2].verb
+                .configure({filter:(definition)=>definition.part==="verb"})
 
+            
         </script>
     </body>
 </html>
