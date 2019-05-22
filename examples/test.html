@@ -32,7 +32,7 @@
                 .add("article")    
                 .add("adjectives")
                 .add("noun")
-                .configure({mode:nounPhrase.enum.choice})
+                .configure({mode:nounPhrase.enum.choice,maximum:3})
             nounPhrase.article
                 .configure({minimum:0, filter:(definition)=>definition.part==="article" })
             nounPhrase.adjectives

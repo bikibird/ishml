@@ -8,8 +8,6 @@ ISHML.interpret=function(text, lexicon, grammar)
 	var goodInterpretations=[]
 	while (!sequence.done)
 	{
-		interpretations.push(new ISHML.Interpretation([],sequence.value.tokens))
-		//var result=grammar.parse([{gist:{},remainder:sequence.value.tokens}])
 		var result=grammar.parse(sequence.value.tokens)
 		if (result)
 		{
@@ -17,7 +15,6 @@ ISHML.interpret=function(text, lexicon, grammar)
 		}
 		sequence = tokenizer.next()
 	}
-
 	interpretations.sort(function(first,second){return first.remainder.length - second.remainder.length})
 
 	var success=false
