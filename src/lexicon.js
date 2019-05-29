@@ -169,6 +169,7 @@ ISHML.Lexicon.prototype.tokenize  = function* (aText, {aSeparator=/[\,|\.|;|\!|\
 						else
 						{
 							delete result.remainder
+							console.log(result)
 							yield result
 						}	
 					}	
