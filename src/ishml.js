@@ -230,6 +230,7 @@ ISHML.Lexicon.prototype.tokenize  = function* (aText, {aSeparator=/[\,|\.|;|\!|\
 						else
 						{
 							delete result.remainder
+							console.log(result)
 							yield result
 						}	
 					}	
@@ -268,12 +269,11 @@ ISHML.Rule=function Rule(key)
 {
 	if (this instanceof ISHML.Rule)
 	{
-		Object.defineProperty(this, "key", {value:key||"gist", writable: true})
 		Object.defineProperty(this, "minimum", {value:1, writable: true})
 		Object.defineProperty(this, "maximum", {value:1, writable: true})
 		Object.defineProperty(this, "mode", {value:0, writable: true})
 		Object.defineProperty(this, "filter", {value:()=>true, writable: true})
-		Object.defineProperty(this, "semantics", {value:(phrase)=>prhase, writable: true})
+		Object.defineProperty(this, "semantics", {value:({gist,remainder})=>true, writable: true})
 		return this
 	}
 	else
@@ -281,53 +281,15 @@ ISHML.Rule=function Rule(key)
 		return new Rule(key)
 	}
 }
-ISHML.Rule.prototype.add =function(key,rule)
-{
-	if (rule instanceof ISHML.Rule)
-	{
-		this[key]=rule.clone()
-	}
-	else
-	{
-		this[key]=new ISHML.Rule()
-	}	
-	return this		
-}
-ISHML.Rule.prototype.enum={sequence:0,choose:1,skip:2}
-ISHML.Rule.prototype.choice =function(key,size,rule)
-{
-	this[key]=[]
-	for (let i = 0; i< size; i++)
-	{
-		if (rule instanceof ISHML.Rule)
-		{
-			this[key].push(rule.clone())
-		}
-		else
-		{
-			this[key].push(new ISHML.Rule())
-		}
-	}
-}
+
+ISHML.Rule.prototype.enum={snap:0,pick:1,skip:2}
+
 ISHML.Rule.prototype.clone =function()
 {
-	var clonedRule= new ISHML.Rule().configure({minimum:this.minimum,maximum:this.maximum,filter:this.filter})
+	var clonedRule= new ISHML.Rule().configure({minimum:this.minimum,maximum:this.maximum,
+		mode:this.mode,filter:this.filter, semantics:this.semantics})
 	var entries=Object.entries(this)
-	entries.forEach(([key,value])=>
-	{
-		if (value instanceof ISHML.Rule)
-		{
-			clonedRule[key]=value.clone()
-		}
-		else if (value instanceof Array)
-		{
-			clonedRule[key]=[]
-			value.forEach((rule)=>
-			{
-				clonedRule[key].push(rule.clone())
-			})
-		} 
-	})
+	entries.forEach(([key,value])=>{clonedRule[key]=value.clone()})
 	return clonedRule
 }	
 ISHML.Rule.prototype.configure =function({minimum,maximum,mode,filter,semantics}={})
@@ -341,60 +303,44 @@ ISHML.Rule.prototype.configure =function({minimum,maximum,mode,filter,semantics}
 }
 ISHML.Rule.prototype.parse =function(someTokens)
 {
-	//var interpretations=someInterpretations.slice(0)
+	var snip=(phrases,key,counter,gist,remainder)=>
+	{
+		//snip updates phrases with results of parsing remainder against key
+		//if (this[key].minimum===0){phrases.push({gist:gist,remainder:remainder.slice(0)})}
+		if (remainder.length>0)
+		{
+			var snippets=this[key].parse(remainder.slice(0)) 
+			snippets.forEach((snippet)=>
+			{
+				var phrase={}
+				if (this.maximum ===1 )
+				{
+					phrase.gist=Object.assign({},gist)
+					phrase.gist[key]=snippet.gist
+					phrase.remainder=snippet.remainder.slice(0)
+				}
+				else 
+				{
+					phrase.gist=gist.slice(0)
+					if(phrase.gist.length===counter){phrase.gist.push({})}
+					phrase.gist[counter][key]=snippet.gist
+					phrase.remainder=snippet.remainder.slice(0)
+				}
+				phrases.push(phrase)
+			})
+		}	
+	}
 	var remainder=someTokens.slice(0)
 	var results=[]
 	var keys=Object.keys(this)
-	if (keys.length===0)
-	{
-	//terminal
-/*	if (this.minimum===0)
-	{
-		if(this.maximum===1)
-		{
-			results.push({gist:{},remainder:remainder.slice(0)})
-		}
-		else
-		{
-			results.push({gist:[],remainder:remainder.slice(0)})
-		}
-	}*/
-		var counter=1
-		var repetitions=[]
-		while (counter<=this.maximum)
-		{
-			var token =	{definitions:remainder[0].definitions.filter(this.filter), lexeme:remainder[0].lexeme.slice(0)}
-			if (token.definitions.length>0)
-			{
-				repetitions.push(token)
-				if (counter>=this.minimum)
-				{
-					if (this.maximum===1)
-					{
-						results.push({gist:token,remainder:remainder.slice(1)})
-					}
-					else
-					{
-						results.push({gist:repetitions.slice(0),remainder:remainder.slice(1)})
-					}	
-				}
-				remainder=remainder.slice(1)
-			}
-			else {break}
-			counter++
-		}
-	//if (results.length ===0){results=[false]}
-
-console.log("terminal",results)
-	return results
-	}	
-	else
+	if (keys.length>0)
 	//non-terminal
 	{
 		switch (this.mode) 
 		{
-			case this.enum.sequence:
-				var candidates=[{gist:{},remainder:remainder.slice(0)}]
+			case this.enum.snap:
+				if (this.maximum ===1 ){var candidates=[{gist:{},remainder:remainder.slice(0)}]}
+				else {var candidates=[{gist:[],remainder:remainder.slice(0)}]}
 				var counter = 0
 				var phrases=[]
 				if (this.minimum===0)
@@ -407,38 +353,10 @@ console.log("terminal",results)
 					{
 						candidates.forEach(({gist,remainder})=>
 						{	
-							if (remainder.length>0)
-							{
-								var snippets=this[key].parse(remainder.slice(0))  //snippet={gist, remainder}
-								if (snippets.length===0 && this[key].minimum===0)
-								{
-									phrases.push({gist:gist,remainder:remainder.slice(0)})
-								}
-								else
-								{
-									snippets.forEach((snippet)=>
-									{
-										var phrase={}
-										phrase.gist=Object.assign({},gist)
-										if (this.maximum===1)
-										{
-											
-											phrase.gist[key]=Object.assign({},snippet.gist)
-											phrase.remainder=snippet.remainder.slice(0)
-											phrases.push(phrase)
-										}
-										else
-										{
-											if(!phrase.gist[counter]){phrase.gist[counter]={}}
-											phrase.gist[counter][key]=Object.assign({},snippet.gist)
-											phrase.remainder=snippet.remainder.slice(0)
-											phrases.push(phrase)
-										}
-									})
-								}	
-							}	
-						})
-						candidates=phrases
+							snip(phrases,key,counter,gist,remainder)  //snip updates phrases with results of parsing remainder against key
+							//if (this[key].minimum===0){phrases.push({gist:gist,remainder:remainder.slice(0)})}
+							})
+						candidates=phrases.slice(0)
 						phrases=[]
 					})
 					counter++
@@ -454,63 +372,88 @@ console.log("terminal",results)
 						}
 					}
 				}	
+				break
 				
-				console.log("non terminal",results)
+			case this.enum.pick:
+				if (this.maximum ===1 ){var candidates=[{gist:{},remainder:remainder.slice(0)}]}
+				else {var candidates=[{gist:[],remainder:remainder.slice(0)}]}
+
+				if (this.minimum===0){results=results.concat(candidates)}
+				
+				keys.forEach((key)=>
+				{
+					var counter = 0
+					var phrases=[]
+					var revisedCandidates=candidates.slice(0)
+					while (counter<this.maximum)
+					{
+						revisedCandidates.forEach(({gist,remainder})=>snip(phrases,key,counter,gist,remainder))
+						revisedCandidates=phrases.slice(0)
+						phrases=[]
+						counter++
+						if (revisedCandidates.length===0){break}
+						else
+						{
+							if (counter >= this.minimum){results=results.concat(revisedCandidates)}
+						}
+					}	
+				})	
 				break
 		}
-//for each result do semantic processing
-
-		return results
+	}
+	else
+	{
+	//terminal
+		var counter=1
+		var repetitions=[]
+		while (counter<=this.maximum)
+		{
+			if (remainder.length>0)
+			{
+				var token =	{definitions:remainder[0].definitions.filter(this.filter), lexeme:remainder[0].lexeme.slice(0)}
+				if (token.definitions.length>0)
+				{
+					repetitions.push(token)
+					if (counter>=this.minimum)
+					{
+						if (this.maximum===1)
+						{
+							results.push({gist:token,remainder:remainder.slice(1)})
+						}
+						else
+						{
+							results.push({gist:repetitions.slice(0),remainder:remainder.slice(1)})
+						}	
+					}
+					remainder=remainder.slice(1)
+				}
+				else {break}
+				counter++
+			}
+			else {break}	
+		}
 	}	
 	
-}
-
-ISHML.Rule.prototype.snip =function(interpretations=[])
-{
-	var keys=Object.keys(this)
-	var candidates=[]
-	interpretations.forEach(({gist,remainder})=>{
-		var result
-		if (keys.length===0)
-		//terminal
+	return results.reduce((revisedResults, interpretation) =>
+	{
+		var revisedInterpretation=this.semantics(interpretation)
+		if (revisedInterpretation)
 		{
-			var token =	{definitions:remainder[0].definitions.filter(this.filter), lexeme:remainder[0].lexeme.slice(0)}
-			if (token.definitions.length>0)
+			if (revisedInterpretation === true)
 			{
-				result={gist:token,remainder:remainder.slice(1)}
+				revisedResults.push(interpretation)
+			}
+			else
+			{
+				revisedResults.push(revisedInterpretation)
 			}
 		}
-		else
-		//non-terminal
-		{
-			keys.forEach((key)=>
-			{
-				var snippet=this[key].parse(remainder)  //snippet=gist, remainder
-				if (snippet)
-				{
-					switch (this.mode) 
-					{
-						case this.enum.sequence:
-							result[key]={gist:snippet.gist,remainder:snippet.remainder.slice(0)}
-							remainder=snippet.remainder.slice(0)
-							break
-						case this.enum.choose:
-						//does not advance remainder
-							result[key]={gist:snippet.gist,remainder:snippet.remainder.slice(0)}
-							break
-						case this.enum.skip:
-							result.remainder=snippet.remainder.slice(0)
-							remainder=snippet.remainder.slice(0)
-						break	
-					}
-				}
-			})
+		return revisedResults
 
-		}
-	})
-	return candidates
+	},[])
+	
 }
-ISHML.Rule.prototype.sequence =function(key,rule)
+ISHML.Rule.prototype.part =function(key,rule)
 {
 	if (rule instanceof ISHML.Rule)
 	{
