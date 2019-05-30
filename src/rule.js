@@ -5,7 +5,7 @@ ISHML.Rule=function Rule(key)
 		Object.defineProperty(this, "minimum", {value:1, writable: true})
 		Object.defineProperty(this, "maximum", {value:1, writable: true})
 		Object.defineProperty(this, "mode", {value:0, writable: true})
-		Object.defineProperty(this, "mode", {value:0, writable: true})
+		Object.defineProperty(this, "keep", {value:true, writable: true})
 		Object.defineProperty(this, "filter", {value:()=>true, writable: true})
 		Object.defineProperty(this, "semantics", {value:({gist,remainder})=>true, writable: true})
 		return this
@@ -21,16 +21,17 @@ ISHML.Rule.prototype.enum={snap:0,pick:1}
 ISHML.Rule.prototype.clone =function()
 {
 	var clonedRule= new ISHML.Rule().configure({minimum:this.minimum,maximum:this.maximum,
-		mode:this.mode,filter:this.filter, semantics:this.semantics})
+		mode:this.mode,keep:this.keep,filter:this.filter, semantics:this.semantics})
 	var entries=Object.entries(this)
 	entries.forEach(([key,value])=>{clonedRule[key]=value.clone()})
 	return clonedRule
 }	
-ISHML.Rule.prototype.configure =function({minimum,maximum,mode,filter,semantics}={})
+ISHML.Rule.prototype.configure =function({minimum,maximum,mode,keep,filter,semantics}={})
 {
 	if(minimum !== undefined){this.minimum=minimum}
 	if(maximum !== undefined){this.maximum=maximum}
 	if(mode !== undefined){this.mode=mode}
+	if(keep !== undefined){this.keep=keep}
 	if(filter !== undefined){this.filter=filter}
 	if(semantics !== undefined){this.semantics=semantics}
 	return this
@@ -50,14 +51,14 @@ ISHML.Rule.prototype.parse =function(someTokens)
 				if (this.maximum ===1 )
 				{
 					phrase.gist=Object.assign({},gist)
-					phrase.gist[key]=snippet.gist
+					if(this[key].keep){phrase.gist[key]=snippet.gist}
 					phrase.remainder=snippet.remainder.slice(0)
 				}
 				else 
 				{
 					phrase.gist=gist.slice(0)
 					if(phrase.gist.length===counter){phrase.gist.push({})}
-					phrase.gist[counter][key]=snippet.gist
+					if(this[key].keep){phrase.gist[counter][key]=snippet.gist}
 					phrase.remainder=snippet.remainder.slice(0)
 				}
 				phrases.push(phrase)
@@ -88,8 +89,8 @@ ISHML.Rule.prototype.parse =function(someTokens)
 						candidates.forEach(({gist,remainder})=>
 						{	
 							snip(phrases,key,counter,gist,remainder)  //snip updates phrases with results of parsing remainder against key
-							//if (this[key].minimum===0){phrases.push({gist:gist,remainder:remainder.slice(0)})}
-							})
+							if (this[key].minimum===0){phrases.push({gist:Object.assign({},gist),remainder:remainder.slice(0)})}
+						})
 						candidates=phrases.slice(0)
 						phrases=[]
 					})
