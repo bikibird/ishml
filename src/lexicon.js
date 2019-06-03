@@ -12,14 +12,14 @@ ISHML.Lexicon=function Lexicon()
 	}
 }
 
-ISHML.Lexicon.prototype.unregister=function(aTerm,aDefinition)
+ISHML.Lexicon.prototype.unregister=function(term,definition)
 {
-	var term=aTerm.toLowerCase()
+	var _term=term.toLowerCase()
 	var _trie = this.trie
 	var j=0
-	for (let i=0; i < term.length; i++)
+	for (let i=0; i < _term.length; i++)
 	{
-		var character=term.charAt(i)
+		var character=_term.charAt(i)
 		if ( ! _trie[character])
 		{
 			return []
@@ -33,7 +33,7 @@ ISHML.Lexicon.prototype.unregister=function(aTerm,aDefinition)
 	{
 		_trie.definitions=_trie.definitions.filter((def)=>
 		{
-			var mismatch=Object.entries(aDefinition).some(([key,value])=>
+			var mismatch=Object.entries(definition).some(([key,value])=>
 			{
 				if(def[key]!==value)
 				{
@@ -50,13 +50,13 @@ ISHML.Lexicon.prototype.unregister=function(aTerm,aDefinition)
 	}	
 }
 
-ISHML.Lexicon.prototype.lookup = function (aTerm) 
+ISHML.Lexicon.prototype.lookup = function (term) 
 {
 	var _trie = this.trie
 	var j=0
-	for (let i=0; i < aTerm.length; i++)
+	for (let i=0; i < term.length; i++)
 	{
-		var character=aTerm.charAt(i).toLowerCase()
+		var character=term.charAt(i).toLowerCase()
 		if ( ! _trie[character])
 		{
 			return []
@@ -71,7 +71,7 @@ ISHML.Lexicon.prototype.lookup = function (aTerm)
 ISHML.Lexicon.prototype.register = function (...someTerms) 
 {
 	var terms=someTerms
-	var _as =function(aDefinition)
+	var _as =function(definition)
 	{
 		terms.forEach((term)=>
 		{
@@ -85,24 +85,24 @@ ISHML.Lexicon.prototype.register = function (...someTerms)
 			{
 				_trie.definitions= []
 			}
-			_trie.definitions.push(aDefinition)
+			_trie.definitions.push(definition)
 		})	
 		return this
 	}	
 	return {as:_as.bind(this)}	
 }
-ISHML.Lexicon.prototype.search = function (aLexeme, {aSeparator=/[\,|\.|;|\!|\?|\s]/, greedy=false}={}) 
+ISHML.Lexicon.prototype.search = function (lexeme, {separator=/[\,|\.|;|\!|\?|\s]/, greedy=false}={}) 
 {
 	var _trie = this.trie
 	var _results = []
 	var j=0
 
 	//trim leading separators.
-	while(aSeparator.test(aLexeme[j])){j++}
+	while(separator.test(lexeme[j])){j++}
 
-	for (let i=j; i < aLexeme.length; i++)
+	for (let i=j; i < lexeme.length; i++)
 	{
-			var character=aLexeme.charAt(i).toLowerCase()
+			var character=lexeme.charAt(i).toLowerCase()
 			if ( ! _trie[character])
 			{
 				if(greedy){return _results.slice(0,1)}
@@ -113,19 +113,19 @@ ISHML.Lexicon.prototype.search = function (aLexeme, {aSeparator=/[\,|\.|;|\!|\?|
 			{	
 				if (_trie[character].definitions)
 				{
-					if (i<aLexeme.length-1 && aSeparator.test(aLexeme.substring(i+1)))
+					if (i<lexeme.length-1 && separator.test(lexeme.substring(i+1)))
 					{	
 						var result={definitions:_trie[character].definitions.slice(0)}
-						result.remainder=aLexeme.substring(i+1).slice(0)
-						result.lexeme=aLexeme.substring(0,i+1).slice(0)
+						result.remainder=lexeme.substring(i+1).slice(0)
+						result.lexeme=lexeme.substring(0,i+1).slice(0)
 						_results.unshift(result)
 					}
-					else if (i===aLexeme.length-1)
+					else if (i===lexeme.length-1)
 					{
 						var result={}
 						result.definitions=_trie[character].definitions.slice(0)
 						result.remainder=""
-						result.lexeme=aLexeme.slice(0)
+						result.lexeme=lexeme.slice(0)
 						_results.unshift(result)
 					}
 				}
@@ -138,10 +138,15 @@ ISHML.Lexicon.prototype.search = function (aLexeme, {aSeparator=/[\,|\.|;|\!|\?|
 }
 
 
-ISHML.Lexicon.prototype.tokenize  = function* (aText, {aSeparator=/[\,|\.|;|\!|\?|\s]/, fuzzy=false,greedy=false}={})
+ISHML.Lexicon.prototype.tokenize  = function (text, {separator=/[\,|\.|;|\!|\?|\s]/, fuzzy=false,greedy=false}={})
 {
-	var candidates=[{tokens:[],remainder:aText}]
+	var candidates=[{tokens:[],remainder:text}]
 	var revisedCandidates
+	var results={}
+	results.complete=[]
+	results.partial=[]
+
+	
 	while(candidates.length>0)
 	{
 		revisedCandidates=[]
@@ -160,7 +165,7 @@ ISHML.Lexicon.prototype.tokenize  = function* (aText, {aSeparator=/[\,|\.|;|\!|\
 
 						result.tokens=candidates[i].tokens.slice(0)
 						result.tokens.push(token)
-						result.remainder=entries[j].remainder.replace(aSeparator,"")
+						result.remainder=entries[j].remainder.replace(separator,"")
 						
 						if (result.remainder.length>0)
 						{
@@ -168,9 +173,7 @@ ISHML.Lexicon.prototype.tokenize  = function* (aText, {aSeparator=/[\,|\.|;|\!|\
 						}
 						else
 						{
-							delete result.remainder
-							console.log(result)
-							yield result
+							results.complete.push(result)
 						}	
 					}	
 				}
@@ -182,25 +185,40 @@ ISHML.Lexicon.prototype.tokenize  = function* (aText, {aSeparator=/[\,|\.|;|\!|\
 						var k=0
 						var fuzz=""
 
-						while( k < candidates[i].remainder.length && !aSeparator.test(candidates[i].remainder[k])  )
+						while( k < candidates[i].remainder.length && !separator.test(candidates[i].remainder[k])  )
 						{
-							fuzz=+candidates[i].remainder[k]
+							fuzz=`${fuzz}${candidates[i].remainder[k]}`
 							k++
 						}
 
-						var definitions=[]
-						defintions[0]={fuzz:fuzz,lexeme:fuzz}
-						var token={definitions:definitions,lexeme:entries[j].lexeme}
+						var token={definitions:[{fuzz:fuzz}],lexeme:fuzz}
 
 						result.tokens=candidates[i].tokens.slice(0)
 						result.tokens.push(token)
-						result.remainder=candidates[i].remainder.slice(k).replace(aSeparator,"")
+						result.remainder=candidates[i].remainder.slice(k).replace(separator,"")
+
+						if (result.remainder.length>0)
+						{
+							revisedCandidates.push(result)
+						}
+						else
+						{
+							results.complete.push(result)
+						}
 
 					}
-					//else throw away candidate
+					else
+					{
+						var result={}
+						
+						result.tokens=candidates[i].tokens.slice(0)
+						result.remainder=candidates[i].remainder.slice(0)
+						results.partial.push(result)
+					}
 				}
 			}
 		}
 		candidates=revisedCandidates
 	}	
+	return results
 }

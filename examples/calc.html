@@ -1,0 +1,170 @@
+<html>
+    <head>
+    </head>
+    <body>
+        <script src="../src/ishml.js"></script>
+        <script>
+            var lexicon=ISHML.Lexicon()
+            lexicon
+                .register("0","1","2","3","4","5","6","7","8","9").as({part:"digit"})
+                .register(".").as({part:"point"})
+                .register("(").as({part:"open"})
+                .register(")").as({part:"close"})
+                .register("+").as({part:"binary",precedence:1,operation:(a,b)=>a+b})
+                .register("+").as({part:"unary",precedence:1,operation:(a)=>a})
+                .register("-").as({part:"binary",precedence:1,operation:(a,b)=>a-b})
+                .register("-").as({part:"uniary",precedence:1,operation:(a)=>-a})
+                .register("*").as({part:"binary",precedence:2,operation:(a,b)=>a*b})
+                .register("/").as({part:"binary",precedence:2,operation:(a,b)=>a/b})
+                .register("^").as({part:"binary",precedence:2,operation:(a,b)=>Math.pow(a,b)})
+                
+            //    < expression > ::= < term > + < expression > | < term > - < expression > | < term >
+
+
+
+//< factor > ::= (< expression >) | number
+            var expression=ISHML.Rule()
+            var term=ISHML.Rule()
+            var factor=ISHML.Rule()
+            var number=ISHML.Rule()
+            expression
+                .configure({mode:expression.enum.any,greedy:true})
+                .part("addition")
+                .part("subtraction")
+                .part("term",term)
+                
+            expression.addition
+                .part("term",term)
+                .part("add")
+                .part("expression",expression)
+            
+            expression.subtraction
+                .part("term",term)
+                .part("subtract")
+                .part("expression",expression) 
+                
+            expression.term
+                .part("term",term)
+                
+            term
+                .configure({mode:expression.enum.any,greedy:true})
+                .part("multiplication")
+                .part("division")
+                .part("factor",factor)
+            
+            term.multiplication
+                .part("factor",factor)
+                .part("multiply")
+                .part("term",term)    
+            
+            term.division
+                .part("factor",factor)
+                .part("divide")
+                .part("term",term)    
+
+
+
+//< term > ::= < factor > * < term > | < factor > / < term > | < factor >
+
+            var number=ISHML.Rule()
+            number
+                .part("sign")
+                .part("integer")
+                .part("point")
+                .part("fraction")
+                .configure(
+                {
+                    semantics:(interpretation)=>
+                    {
+                        var {gist}=interpretation
+                        interpretation.gist=parseFloat(`${gist.sign||""}${gist.integer||""}${gist.point||""}${gist.fraction||""}`)
+                        return interpretation
+                    }
+                })
+            number.sign
+                .configure({minimum:0, filter:(definition)=>definition.part==="sign" })
+            number.integer        
+            var nounPhrase=ISHML.Rule()
+            
+            nounPhrase
+                .configure
+                (
+                    {  mode:nounPhrase.enum.snap /*,
+                        semantics:function({gist,remainder}={}) 
+                        {
+                            gist.np="Hello"
+                            return {gist,remainder}
+                        }*/
+                    }
+                )
+                .part("article")    
+                .part("adjectives")
+                .part("noun")
+                
+            nounPhrase.article
+                .configure({minimum:0, filter:(definition)=>definition.part==="article" })
+            nounPhrase.adjectives
+                .configure
+                (
+                    {   minimum:0,
+                        maximum:3,
+                        keep:true,
+                       filter:(definition)=>definition.part==="adjective" /*,
+                        semantics:function({gist,remainder}={}) 
+                        {
+                            gist.adj="Hello"
+                            return {gist,remainder}
+                        }*/
+                    }
+                )
+            nounPhrase.noun
+                .configure({filter:(definition)=>definition.part==="noun" })     
+            
+            var grammar=ISHML.Rule()    
+      
+            grammar.part("command")
+
+            grammar.command
+                .configure({mode:grammar.enum.pick})
+                .part("option1")
+                .part("option2")
+                .part("option3")
+            
+                grammar.command.option1
+                .part("subject",nounPhrase)
+                .part("verb")
+                .part("directObject",nounPhrase)
+            grammar.command.option1.subject
+                .configure({minimum:0})
+            grammar.command.option1.verb
+                .configure({filter:(definition)=>definition.part==="verb"})
+            grammar.command.option1.directObject
+                .configure({minimum:0})
+            
+                grammar.command.option2
+                .part("subject",nounPhrase)
+                .part("verb")
+                .part("directObject",nounPhrase)
+                .part("indirectObject",nounPhrase)
+            grammar.command.option2.subject
+                .configure({minimum:0})
+            grammar.command.option2.verb
+                .configure({filter:(definition)=>definition.part==="verb"})
+            grammar.command.option2.indirectObject
+                .part("preposition")
+                .part("nounPhrase",nounPhrase)
+            grammar.command.option2.indirectObject.preposition
+                .configure({filter:(definition)=>definition.part==="preposition"})
+            
+            grammar.command.option3
+                .part("subject",nounPhrase)
+                .part("verb")
+                .part("indirectObject",nounPhrase)
+                .part("directObject",nounPhrase)
+            grammar.command.option3.subject
+                .configure({minimum:0})
+            grammar.command.option3.verb
+                .configure({filter:(definition)=>definition.part==="verb"})
+        </script>
+    </body>
+</html>

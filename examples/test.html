@@ -15,25 +15,30 @@
                 .register("ring").as({key:"ring",part:"noun", role:"thing"})
                 .register("slipper").as({key:"slipper",part:"noun", role:"thing"})
                 .register("diamond").as({key:"ring",part:"adjective", role:"thing"})
+                .register("diamond jim").as({key:"jim",part:"noun", role:"npc"})
+                .register("jim").as({key:"james",part:"noun", role:"npc"})
                 .register("ruby").as({key:"ring",part:"adjective", role:"thing"})
                 .register("ruby").as({key:"ruby",part:"noun", role:"thing"})
                 .register("ruby").as({key:"slipper",part:"adjective", role:"thing"})
                 .register("glass").as({key:"slipper",part:"adjective", role:"thing"})
                 .register("glass").as({key:"tumbler",part:"noun", role:"thing"})
+                .register("looking glass").as({key:"mirror",part:"noun", role:"thing"})
+                .register("good looking").as({key:"tumbler",part:"adjective", role:"thing"})
+                .register("good").as({key:"mirror",part:"adjective", role:"thing"})
                 .register("tumbler").as({key:"tumbler",part:"noun", role:"thing"})
                 .register("ruby").as({key:"miss_ruby",part:"noun", role:"npc"})
                 .register("sam").as({key:"sam",part:"noun", role:"npc"})
                 .register("from").as({key:"from",part:"preposition", role:"preposition"})
             
             var adjectives=ISHML.Rule()
-                .configure({minimum:0, maximum:5, filter:(definition)=>definition.part==="adjective" })  
+                .configure({minimum:0, maximum:Infinity, filter:(definition)=>definition.part==="adjective" })  
             var nounPhrase=ISHML.Rule()
             
             nounPhrase
                 .configure
                 (
-                    {  mode:nounPhrase.enum.pick /*,
-                        semantics:function({gist,remainder}={}) 
+                    {  mode:nounPhrase.enum.pick,
+                       /* semantics:function({gist,remainder}={}) 
                         {
                             gist.np="Hello"
                             return {gist,remainder}
@@ -51,6 +56,7 @@
                 (
                     {   minimum:0,
                         maximum:3,
+                        keep:true,
                        filter:(definition)=>definition.part==="adjective" /*,
                         semantics:function({gist,remainder}={}) 
                         {
@@ -73,9 +79,9 @@
                 .part("option3")
             
                 grammar.command.option1
-                .part("subject",nounPhrase)
+                .part("subject",nounPhrase.clone())
                 .part("verb")
-                .part("directObject",nounPhrase)
+                .part("directObject",nounPhrase.clone())
             grammar.command.option1.subject
                 .configure({minimum:0})
             grammar.command.option1.verb
@@ -84,29 +90,31 @@
                 .configure({minimum:0})
             
                 grammar.command.option2
-                .part("subject",nounPhrase)
+                .part("subject",nounPhrase.clone())
                 .part("verb")
-                .part("directObject",nounPhrase)
-                .part("indirectObject",nounPhrase)
+                .part("directObject",nounPhrase.clone())
+                .part("indirectObject",nounPhrase.clone())
             grammar.command.option2.subject
                 .configure({minimum:0})
             grammar.command.option2.verb
                 .configure({filter:(definition)=>definition.part==="verb"})
             grammar.command.option2.indirectObject
                 .part("preposition")
-                .part("nounPhrase",nounPhrase)
+                .part("nounPhrase",nounPhrase.clone())
             grammar.command.option2.indirectObject.preposition
                 .configure({filter:(definition)=>definition.part==="preposition"})
             
             grammar.command.option3
-                .part("subject",nounPhrase)
+                .part("subject",nounPhrase.clone())
                 .part("verb")
-                .part("indirectObject",nounPhrase)
-                .part("directObject",nounPhrase)
+                .part("indirectObject",nounPhrase.clone())
+                .part("directObject",nounPhrase.clone())
             grammar.command.option3.subject
                 .configure({minimum:0})
             grammar.command.option3.verb
                 .configure({filter:(definition)=>definition.part==="verb"})
+
+            var parser=ISHML.Parser({lexicon:lexicon,grammar:nounPhrase})    
         </script>
     </body>
 </html>
