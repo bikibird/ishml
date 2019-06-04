@@ -10,9 +10,9 @@ ISHML.Parser=function Parser({lexicon,grammar}={})
 		return new Parser({lexicon:lexicon,grammar:grammar})
 	}
 }
-ISHML.Parser.prototype.analyze=function(text, {fuzzy=false,greedy=false}={})
+ISHML.Parser.prototype.analyze=function(text, {fuzzy=false,greedy=false,smooth=false}={})
 {    
-	var tokenizations = this.lexicon.tokenize(text,{fuzzy:fuzzy,greedy:greedy})
+	var tokenizations = this.lexicon.tokenize(text,{fuzzy:fuzzy,greedy:greedy,smooth:smooth})
 	var interpretations=[]
 	var partialInterpretations=[]
 	var completeInterpretations=[]

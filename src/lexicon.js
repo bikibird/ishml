@@ -138,7 +138,7 @@ ISHML.Lexicon.prototype.search = function (lexeme, {separator=/[\,|\.|;|\!|\?|\s
 }
 
 
-ISHML.Lexicon.prototype.tokenize  = function (text, {separator=/[\,|\.|;|\!|\?|\s]/, fuzzy=false,greedy=false}={})
+ISHML.Lexicon.prototype.tokenize  = function (text, {separator=/[\,|\.|;|\!|\?|\s]/, fuzzy=false,greedy=false,smooth=false}={})
 {
 	var candidates=[{tokens:[],remainder:text}]
 	var revisedCandidates
@@ -179,7 +179,7 @@ ISHML.Lexicon.prototype.tokenize  = function (text, {separator=/[\,|\.|;|\!|\?|\
 				}
 				else
 				{
-					if (fuzzy)
+					if (fuzzy || smooth)
 					{
 						var result={}
 						var k=0
@@ -190,11 +190,12 @@ ISHML.Lexicon.prototype.tokenize  = function (text, {separator=/[\,|\.|;|\!|\?|\
 							fuzz=`${fuzz}${candidates[i].remainder[k]}`
 							k++
 						}
-
-						var token={definitions:[{fuzz:fuzz}],lexeme:fuzz}
-
 						result.tokens=candidates[i].tokens.slice(0)
-						result.tokens.push(token)
+						if(fuzzy)
+						{
+							var token={definitions:[{fuzz:fuzz}],lexeme:fuzz}
+							result.tokens.push(token)
+						}
 						result.remainder=candidates[i].remainder.slice(k).replace(separator,"")
 
 						if (result.remainder.length>0)
