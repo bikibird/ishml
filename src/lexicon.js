@@ -91,46 +91,52 @@ ISHML.Lexicon.prototype.register = function (...someTerms)
 	}	
 	return {as:_as.bind(this)}	
 }
-ISHML.Lexicon.prototype.search = function (lexeme, {separator=/[\,|\.|;|\!|\?|\s]/, greedy=false}={}) 
+ISHML.Lexicon.prototype.search = function (lexeme, {separator=/[\,|\.|;|\!|\?|\s]/, lax=false, caseSensitive=false, greedy=false}={}) 
 {
 	var _trie = this.trie
 	var _results = []
 	var j=0
 
 	//trim leading separators.
-	while(separator.test(lexeme[j])){j++}
+	if (separator){while(separator.test(lexeme[j])){j++}}
 
 	for (let i=j; i < lexeme.length; i++)
 	{
-			var character=lexeme.charAt(i).toLowerCase()
-			if ( ! _trie[character])
+		if (caseSensitive){var character=lexeme.charAt(i)}
+		else{var character=lexeme.charAt(i).toLowerCase()}	
+
+		if ( ! _trie[character])
+		{
+			if(greedy){return _results.slice(0,1)}
+			else{return _results}
+		}
+		else
+		{	
+			if (_trie[character].definitions)
 			{
-				if(greedy){return _results.slice(0,1)}
-				else{return _results}
-				
-			}
-			else
-			{	
-				if (_trie[character].definitions)
-				{
-					if (i<lexeme.length-1 && separator.test(lexeme.substring(i+1)))
-					{	
+
+
+
+				if (i<lexeme.length-1)
+				{	
+					if (lax || (separator===false) || (separator && separator.test(lexeme.substring(i+1))))
+					{
 						var result={definitions:_trie[character].definitions.slice(0)}
 						result.remainder=lexeme.substring(i+1).slice(0)
 						result.lexeme=lexeme.substring(0,i+1).slice(0)
 						_results.unshift(result)
 					}
-					else if (i===lexeme.length-1)
-					{
-						var result={}
-						result.definitions=_trie[character].definitions.slice(0)
-						result.remainder=""
-						result.lexeme=lexeme.slice(0)
-						_results.unshift(result)
-					}
 				}
-				_trie = _trie[character]
+				else // if (i===lexeme.length-1) 
+				{
+					var result={definitions:_trie[character].definitions.slice(0)}
+					result.remainder=""
+					result.lexeme=lexeme.slice(0)
+					_results.unshift(result)
+				}
 			}
+			_trie = _trie[character]
+		}
 	}
 	
 	if(greedy){return _results.slice(0,1)}
@@ -138,7 +144,7 @@ ISHML.Lexicon.prototype.search = function (lexeme, {separator=/[\,|\.|;|\!|\?|\s
 }
 
 
-ISHML.Lexicon.prototype.tokenize  = function (text, {separator=/[\,|\.|;|\!|\?|\s]/, fuzzy=false,greedy=false,smooth=false}={})
+ISHML.Lexicon.prototype.tokenize  = function (text, {separator=/[\,|\.|;|\!|\?|\s]/, lax=false, caseSensitive=false, fuzzy=false,greedy=false,smooth=false}={})
 {
 	var candidates=[{tokens:[],remainder:text}]
 	var revisedCandidates
@@ -146,7 +152,6 @@ ISHML.Lexicon.prototype.tokenize  = function (text, {separator=/[\,|\.|;|\!|\?|\
 	results.complete=[]
 	results.partial=[]
 
-	
 	while(candidates.length>0)
 	{
 		revisedCandidates=[]
@@ -154,7 +159,7 @@ ISHML.Lexicon.prototype.tokenize  = function (text, {separator=/[\,|\.|;|\!|\?|\
 		{	
 			if (candidates[i].remainder.length>0)
 			{
-				var entries=this.search(candidates[i].remainder,{greedy:greedy})
+				var entries=this.search(candidates[i].remainder,{greedy:greedy, lax:lax, caseSensitive:caseSensitive,separator:separator})
 				if (entries.length>0)
 				{	
 					for (var j =0; j < entries.length; j++)
@@ -165,7 +170,8 @@ ISHML.Lexicon.prototype.tokenize  = function (text, {separator=/[\,|\.|;|\!|\?|\
 
 						result.tokens=candidates[i].tokens.slice(0)
 						result.tokens.push(token)
-						result.remainder=entries[j].remainder.replace(separator,"")
+						if(separator){result.remainder=entries[j].remainder.replace(separator,"")}
+						else{result.remainder=entries[j].remainder}
 						
 						if (result.remainder.length>0)
 						{
@@ -184,11 +190,19 @@ ISHML.Lexicon.prototype.tokenize  = function (text, {separator=/[\,|\.|;|\!|\?|\
 						var result={}
 						var k=0
 						var fuzz=""
-
-						while( k < candidates[i].remainder.length && !separator.test(candidates[i].remainder[k])  )
+						if (separator)
 						{
-							fuzz=`${fuzz}${candidates[i].remainder[k]}`
-							k++
+							while( k < candidates[i].remainder.length && !separator.test(candidates[i].remainder[k])  )
+							{
+								
+								fuzz=`${fuzz}${candidates[i].remainder[k]}`
+								k++
+							}
+						}
+						else 
+						{
+							fuzz=candidates[i].remainder[k]
+							k=1
 						}
 						result.tokens=candidates[i].tokens.slice(0)
 						if(fuzzy)
@@ -196,7 +210,8 @@ ISHML.Lexicon.prototype.tokenize  = function (text, {separator=/[\,|\.|;|\!|\?|\
 							var token={definitions:[{fuzz:fuzz}],lexeme:fuzz}
 							result.tokens.push(token)
 						}
-						result.remainder=candidates[i].remainder.slice(k).replace(separator,"")
+						if(separator){result.remainder=candidates[i].remainder.slice(k).replace(separator,"")}
+						else {result.remainder=candidates[i].remainder.slice(k)}
 
 						if (result.remainder.length>0)
 						{
@@ -221,5 +236,6 @@ ISHML.Lexicon.prototype.tokenize  = function (text, {separator=/[\,|\.|;|\!|\?|\
 		}
 		candidates=revisedCandidates
 	}	
+
 	return results
 }
