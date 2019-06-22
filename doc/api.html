@@ -11,11 +11,11 @@
         <div class="navbar bg-info text-white sticky-top" >White Whale Stories</div>
         
     <div class="container-fluid"><div class="row">
-        <div class="col-md-2">
-            <nav id="api" class="sidebar-sticky" >
-                <div class="border-bottom"><a href="#">API</a></div>
+        <div class="col-md-2 scroll">
+            <nav>
+                <div class="border-bottom">API</div>
                 <details>
-                        <summary><a href="#Interpretation">Interpretation</a></summary>
+                        <summary><a href="#interpretation">Interpretation</a></summary>
                         <div class="ml-3">
                             <strong>Properties</strong>
                             <div class="ml-3">    
@@ -36,56 +36,167 @@
                             <a class="d-block" href="#lexicon-unregister">unregister()</a>
                         </div>
                     </div>    
-                </details><br>    
+                </details>
+                <details>
+                    <summary><a href="#parser">Parser</a></summary>
+                    <div class="ml-3">
+                        <strong>Properties</strong>
+                        <div class="ml-3">    
+                            <a class="d-block" href="#parser-grammar">grammar</a>
+                            <a class="d-block" href="#parser-lexicon">lexicon</a>
+                        </div>
+                        <strong>Methods</strong>
+                        <div class="ml-3">    
+                            <a class="d-block" href="#parser-analyze">analyze()</a>
+                        </div>    
+                    </div>    
+                </details>
+                <details>
+                    <summary><a href="#rule">Rule</a></summary>
+                    <div class="ml-3">
+                        <strong>Properties</strong>
+                        <div class="ml-3">
+                            <a class="d-block" href="#rule-filter">filter</a>
+                            <a class="d-block" href="#rule-greedy">greedy</a>
+                            <a class="d-block" href="#rule-keep">keep</a>    
+                            <a class="d-block" href="#rule-maximum">maximum</a>
+                            <a class="d-block" href="#rule-minimum">minimum</a>
+                            <a class="d-block" href="#rule-mode">mode</a>
+                            <a class="d-block" href="#rule-semantics">semantics</a>
+                        </div>
+                        <strong>Methods</strong>
+                        <div class="ml-3">    
+                            <a class="d-block" href="#rule-clone">clone()</a>
+                            <a class="d-block" href="#rule-configure">configure()</a>
+                            <a class="d-block" href="#rule-parse">parse()</a>
+                        </div>    
+                    </div>    
+                </details>
+                <details>
+                        <summary><a href="#token">Token</a></summary>
+                        <div class="ml-3">
+                            <strong>Properties</strong>
+                            <div class="ml-3">    
+                                <a class="d-block" href="#token-lexeme">lexeme</a>
+                                <a class="d-block" href="#token-definitions">definitions</a>
+                            </div>
+                        </div>    
+                </details>    
             </nav>
         </div>
-      
-        <div class="col " data-spy="scroll" data-target="#api" data-offset="0">
- 
-        <h1 id="Interpretation">Interpretation</h1>
-        <p>..dfffffffffffffffffffffffffffffffffffffff kfd; gkdf;k gsdgk;dfkg;ldfgksl;df g;dfl gk;dflkgl;dfkg;sdfk g;sr'k'gdl; k;dfkg;dfgkdf gsdk'f g dsf gs;fgk ;df gks'fffff.</p>
-        <h5 id="item-1-1">Item 1-1</h5>
-        <p>...</p>
-        <h5 id="item-1-2">Item 1-2</h5>
-        <p>...</p>
-        <h4 id="item-2">Item 2</h4>
-        <p>...</p>
-        <h4 id="item-3">Item 3</h4>
-        <p>...</p>
-        <h5 id="item-3-1">Item 3-1</h5>
-        <p>...</p>
-        <h5 id="item-3-2">Item 3-2</h5>
-        <p>...</p>
-        <h1 id="Interpretation">Interpretation</h1>
-        <p>..dfffffffffffffffffffffffffffffffffffffff kfd; gkdf;k gsdgk;dfkg;ldfgksl;df g;dfl gk;dflkgl;dfkg;sdfk g;sr'k'gdl; k;dfkg;dfgkdf gsdk'f g dsf gs;fgk ;df gks'fffff.</p>
-        <h5 id="item-1-1">Item 1-1</h5>
-        <p>...</p>
-        <h5 id="item-1-2">Item 1-2</h5>
-        <p>...</p>
-        <h4 id="item-2">Item 2</h4>
-        <p>...</p>
-        <h4 id="item-3">Item 3</h4>
-        <p>...</p>
-        <h5 id="item-3-1">Item 3-1</h5>
-        <p>...</p>
-        <h5 id="item-3-2">Item 3-2</h5>
-        <p>...
-                <h1 id="Interpretation">Interpretation</h1>
-                <p>..dfffffffffffffffffffffffffffffffffffffff kfd; gkdf;k gsdgk;dfkg;ldfgksl;df g;dfl gk;dflkgl;dfkg;sdfk g;sr'k'gdl; k;dfkg;dfgkdf gsdk'f g dsf gs;fgk ;df gks'fffff.</p>
-                <h5 id="item-1-1">Item 1-1</h5>
-                <p>...</p>
-                <h5 id="item-1-2">Item 1-2</h5>
-                <p>...</p>
-                <h4 id="item-2">Item 2</h4>
-                <p>...</p>
-                <h4 id="item-3">Item 3</h4>
-                <p>...</p>
-                <h5 id="item-3-1">Item 3-1</h5>
-                <p>...</p>
-                <h5 id="item-3-2">Item 3-2</h5>
-                <p>...
+        <div class="col scroll" >
+            <div class="card mt-4" id="interpretation">
+                <div class="card-header">
+                    <h1 class="text-info">Interpretation</h1>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">An Interpretation is an object representing one possible parsing of a string of characters
+                        in the context of a specific lexicon and grammar.</p>  
+                    <h2 class="card-title">Constructor</h2>
+                    <p class="card-text"><code>ISHML.Interpretation()</code></p>
+                    <p class="card-text">Returns a new Interpretation object instance.  Use of new operator is optional. 
+                        Takes no parameters.</p>
+                    <p class="card-text">Usually, there is no need to explicitly create Interpretation objects since they are generated through calls to <code><a href="#parser-anaylze">Parser.analyze()</a></code>.</p>
+                    <h2 class="card-title">Properties</h2>
+                    <p class="card-text"><code id="interpretation-gist">gist</code></p>
+
+                    <p class="card-text"><code id="interpretation-remainder">remainder</code></p>
+                    <p>See also <a href="parsing.html">parsing tutorial</a>.</p>
+                </div>
+            </div>
+            <div class="card mt-4" id="lexicon">
+                <div class="card-header">
+                    <h1 class="text-info">Lexicon</h1>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">A Lexicon is an object that stores a list of valid tokens.  Each token is comprised of a string of characters to be matched (the lexeme) and one or more definitions for that lexeme.</p>  
+                    <h2 class="card-title">Constructor</h2>
+                    <p class="card-text"><code>ISHML.Lexicon()</code></p>
+                    <p class="card-text">Returns a new Interpretation object instance.  Use of new operator is optional. 
+                        Takes no parameters.</p>
+                    <p class="card-text">Required by <code><a href="#parser-anaylze">Parser.analyze()</a></code>.</p>
+                    <h2 class="card-title">Methods</h2>
+                    <p class="card-text"><code id="lexicon-lookup">lookup()</code></p>
+                    <p class="card-text"><code id="lexicon-register">register(text).as({definition})</code></p>
+                    <p class="card-text">Returns <code>this</code>.</p>
+                    <h6 "card-subtitle">Example</h6>
+                    <pre class="prettyprint lang-js pre-scrollable">
+var lexicon=ISHML.Lexicon()
+lexicon
+    .register("the","a","an").as({part:"article"})
+    .register("take","grab").as({key:"take",part:"verb"})
+    .register("ring").as({key:"ring",part:"noun", role:"thing"})
+    .register("slipper").as({key:"slipper",part:"noun", role:"thing"})
+    .register("ruby").as({key:"ring",part:"adjective", role:"thing"})
+    .register("ruby").as({key:"ruby",part:"noun", role:"thing"})
+    .register("ruby").as({key:"slipper",part:"adjective", role:"thing"})
+    .register("glass").as({key:"slipper",part:"adjective", role:"thing"})
+    .register("glass").as({key:"tumbler",part:"noun", role:"thing"})
+</pre>
+                    <p class="card-text"><code id="lexicon-search">search()</code></p>
+                    <p class="card-text"><code id="lexicon-tokenize">register()</code></p>
+                    <p class="card-text"><code id="lexicon-unregister">unregister()</code></p>
+                    <p class="card-text">Returns <code>this</code>.</p>
+                    <p>See also <a href="parsing.html">parsing tutorial</a>.</p>
+                </div>
+            </div>
+            <div class="card mt-4" id="parser">
+                <div class="card-header">
+                    <h1 class="text-info">Parser</h1>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">An Interpretation is an object representing one possible parsing of a string 
+                        in the context of a specific lexicon and grammar.</p>  
+                    <h2 class="card-title">Constructor</h2>
+                    <p class="card-text"><code>ISHML.Interpretation()</code></p>
+                    <p class="card-text">Returns a new Interpretation object instance.  Use of new operator is optional. 
+                        Takes no parameters.</p>
+                    <p class="card-text">Normally, there is no need to explicitly create Interpretation objects since they are generated through calls to Parser.analyze().</p>
+                    <h2 class="card-title">Properties</h2>
+                    <p class="card-text"><code>gist</code></p>
+                    <p class="card-text"><code>remainder</code></p>
+                    <p>See also <a href="parsing.html">parsing tutorial</a>.</p>
+                </div>
+            </div>
+            <div class="card mt-4" id="rule">
+                <div class="card-header">
+                    <h1 class="text-info">Rule</h1>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">An Interpretation is an object representing one possible parsing of a string 
+                        in the context of a specific lexicon and grammar.</p>  
+                    <h2 class="card-title">Constructor</h2>
+                    <p class="card-text"><code>ISHML.Interpretation()</code></p>
+                    <p class="card-text">Returns a new Interpretation object instance.  Use of new operator is optional. 
+                        Takes no parameters.</p>
+                    <p class="card-text">Normally, there is no need to explicitly create Interpretation objects since they are generated through calls to Parser.analyze().</p>
+                    <h2 class="card-title">Properties</h2>
+                    <p class="card-text"><code>gist</code></p>
+                    <p class="card-text"><code>remainder</code></p>
+                    <p>See also <a href="parsing.html">parsing tutorial</a>.</p>
+                </div>
+            </div>
+            <div class="card mt-4" id=token">
+                <div class="card-header">
+                    <h1 class="text-info">Token</h1>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">An Interpretation is an object representing one possible parsing of a string of characters
+                        in the context of a specific lexicon and grammar.</p>  
+                    <h2 class="card-title">Constructor</h2>
+                    <p class="card-text"><code>ISHML.Interpretation()</code></p>
+                    <p class="card-text">Returns a new Interpretation object instance.  Use of new operator is optional. 
+                        Takes no parameters.</p>
+                    <p class="card-text">Usually, there is no need to explicitly create Interpretation objects since they are generated through calls to <code><a href="#parser-anaylze">Parser.analyze()</a></code>.</p>
+                    <h2 class="card-title">Properties</h2>
+                    <p class="card-text"><code id="token-lexeme">lexeme</code></p>
+
+                    <p class="card-text"><code id="token-definitions">definitions</code></p>
+                    <p>See also <a href="parsing.html">parsing tutorial</a>.</p>
+                </div>
         </div>
     </div></div>
+    <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>

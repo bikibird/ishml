@@ -12,17 +12,17 @@ ISHML.Lexicon=function Lexicon()
 	}
 }
 
-ISHML.Lexicon.prototype.unregister=function(term,definition)
+ISHML.Lexicon.prototype.unregister=function(lexeme,definition)
 {
-	var _term=term.toLowerCase()
+	var _lexeme=lexeme.toLowerCase()
 	var _trie = this.trie
 	var j=0
-	for (let i=0; i < _term.length; i++)
+	for (let i=0; i < _lexeme.length; i++)
 	{
-		var character=_term.charAt(i)
+		var character=_lexeme.charAt(i)
 		if ( ! _trie[character])
 		{
-			return []
+			return this
 		}
 		else
 		{	
@@ -47,16 +47,17 @@ ISHML.Lexicon.prototype.unregister=function(term,definition)
 		{
 			delete _trie.definitions
 		}
-	}	
+	}
+	return this	
 }
 
-ISHML.Lexicon.prototype.lookup = function (term) 
+ISHML.Lexicon.prototype.lookup = function (lexeme) 
 {
 	var _trie = this.trie
 	var j=0
-	for (let i=0; i < term.length; i++)
+	for (let i=0; i < lexeme.length; i++)
 	{
-		var character=term.charAt(i).toLowerCase()
+		var character=lexeme.charAt(i).toLowerCase()
 		if ( ! _trie[character])
 		{
 			return []
@@ -68,17 +69,17 @@ ISHML.Lexicon.prototype.lookup = function (term)
 	}
 	return _trie.definitions||[]
 }
-ISHML.Lexicon.prototype.register = function (...someTerms) 
+ISHML.Lexicon.prototype.register = function (...someLexemes) 
 {
-	var terms=someTerms
+	var lexemes=someLexemes
 	var _as =function(definition)
 	{
-		terms.forEach((term)=>
+		lexemes.forEach((lexeme)=>
 		{
 			var _trie = this.trie
-			for (let i = 0, length =term.length; i < length; i++)
+			for (let i = 0, length =lexeme.length; i < length; i++)
 			{
-				var character = term.charAt(i)
+				var character = lexeme.charAt(i)
 				_trie = (_trie[character] =_trie[character] || {})
 			}
 			if (!_trie.definitions)
@@ -166,7 +167,7 @@ ISHML.Lexicon.prototype.tokenize  = function (text, {separator=/[\,|\.|;|\!|\?|\
 					{	
 
 						var result={}
-						var token={definitions:entries[j].definitions,lexeme:entries[j].lexeme}
+						var token=new ISHML.Token(entries[j].lexeme,entries[j].definitions)
 
 						result.tokens=candidates[i].tokens.slice(0)
 						result.tokens.push(token)
@@ -207,7 +208,7 @@ ISHML.Lexicon.prototype.tokenize  = function (text, {separator=/[\,|\.|;|\!|\?|\
 						result.tokens=candidates[i].tokens.slice(0)
 						if(fuzzy)
 						{
-							var token={definitions:[{fuzz:fuzz}],lexeme:fuzz}
+							var token=new ISHML.Token(fuzz,[{fuzz:fuzz}])
 							result.tokens.push(token)
 						}
 						if(separator){result.remainder=candidates[i].remainder.slice(k).replace(separator,"")}

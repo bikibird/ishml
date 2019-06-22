@@ -124,13 +124,11 @@ ISHML.Rule.prototype.parse =function(someTokens)
 										var phrase=new ISHML.Interpretation(gist,snippet.remainder)
 										if (this.maximum ===1 )
 										{
-											//if(this[key].keep){phrase.gist[key]=snippet.gist}
 											if(this[key].keep){phrase.gist=snippet.gist}
 										}
 										else 
 										{
 											if(phrase.gist.length===counter){phrase.gist.push({})}
-											//if(this[key].keep){phrase.gist[counter][key]=snippet.gist}
 											if(this[key].keep){phrase.gist[counter]=snippet.gist}
 										}
 										phrases.push(phrase)
