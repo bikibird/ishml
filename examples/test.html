@@ -58,44 +58,14 @@
                 command.object[1].indirectObject.snip("preposition").snip("nounPhrase",nounPhrase.clone())
                 command.object[1].indirectObject.preposition.configure({filter:(definition)=>definition.part==="preposition"})
                 command.object[2].snip("indirectObject",nounPhrase.clone()).snip("directObject",nounPhrase.clone())
-                   
-            /*var grammar=ISHML.Rule()    
-      
-            grammar.snip("command")
-
-            grammar.command
-                .configure({mode:ISHML.enum.mode.any})
-                .snip(1)
-                .snip(2)
-                .snip(3)
-            
-            grammar.command[1].snip("subject",nounPhrase.clone()).snip("verb").snip("directObject",nounPhrase.clone())
-            grammar.command[1].subject.configure({minimum:0})
-            grammar.command[1].verb.configure({filter:(definition)=>definition.part==="verb"})
-            grammar.command[1].directObject.configure({minimum:0})
-            
-            grammar.command[2].snip("subject",nounPhrase.clone()).snip("verb").snip("directObject",nounPhrase.clone()).snip("indirectObject",nounPhrase.clone())
-            grammar.command[2].subject.configure({minimum:0})
-            grammar.command[2].verb.configure({filter:(definition)=>definition.part==="verb"})
-            grammar.command[2].indirectObject
-                .snip("preposition").snip("nounPhrase",nounPhrase.clone())
-            grammar.command[2].indirectObject.preposition
-                .configure({filter:(definition)=>definition.part==="preposition"})
-            
-            grammar.command[3]
-                .snip("subject",nounPhrase.clone()).snip("verb").snip("indirectObject",nounPhrase.clone()).snip("directObject",nounPhrase.clone())
-            grammar.command[3].subject
-                .configure({minimum:0})
-            grammar.command[3].verb
-                .configure({filter:(definition)=>definition.part==="verb"})
-*/
+ 
             var parser=ISHML.Parser({lexicon:lexicon,grammar:command})    
 /*
     parser.analyze("take ruby glass slipper")
     parser.analyze("take ruby glass slipper to ruby")
     parser.analyze("take ruby ruby glass slipper to ruby")
 */
-
+// /[\,|\.|;|\!|\?|\s]/
         </script>
     </body>
 </html> 

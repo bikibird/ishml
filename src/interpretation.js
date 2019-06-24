@@ -8,7 +8,14 @@ ISHML.Interpretation=function Interpretation(gist={},remainder=[])
 		}
 		else
 		{
-			this.gist=Object.assign({},gist)
+			if(gist instanceof ISHML.Token)
+			{
+				this.gist=gist.clone()
+			}
+			else
+			{
+				this.gist=Object.assign({},gist)
+			}	
 		}
 		this.remainder=remainder.slice(0)
 		return this

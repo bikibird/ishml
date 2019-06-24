@@ -13,7 +13,7 @@
     <div class="container-fluid"><div class="row">
         <div class="col-md-2 scroll">
             <nav>
-                <div class="border-bottom">API</div>
+                <div class="border-bottom">ISHML API</div>
                 <details>
                         <summary><a href="#interpretation">Interpretation</a></summary>
                         <div class="ml-3">
@@ -87,39 +87,87 @@
         <div class="col scroll" >
             <div class="card mt-4" id="interpretation">
                 <div class="card-header">
-                    <h1 class="text-info">Interpretation</h1>
+                    <h1 class="text-info">Interpretation</h1><h6 class="text-info">ishml.js, ishml-nlp.js</h6>
                 </div>
                 <div class="card-body">
                     <p class="card-text">An Interpretation is an object representing one possible parsing of a string of characters
                         in the context of a specific lexicon and grammar.</p>  
                     <h2 class="card-title">Constructor</h2>
-                    <p class="card-text"><code>ISHML.Interpretation()</code></p>
+                    <h3 class="card-subtitle"><code>ISHML.Interpretation()</code></h3>
                     <p class="card-text">Returns a new Interpretation object instance.  Use of new operator is optional. 
                         Takes no parameters.</p>
                     <p class="card-text">Usually, there is no need to explicitly create Interpretation objects since they are generated through calls to <code><a href="#parser-anaylze">Parser.analyze()</a></code>.</p>
                     <h2 class="card-title">Properties</h2>
-                    <p class="card-text"><code id="interpretation-gist">gist</code></p>
-
-                    <p class="card-text"><code id="interpretation-remainder">remainder</code></p>
-                    <p>See also <a href="parsing.html">parsing tutorial</a>.</p>
+                    <h3 id="interpretation-gist" class="card-subtitle"><code>ISHML.Interpretation.gist</code></h3>
+                    <p class="card-text">The gist contains the parse tree resulting from parsing. The structure of the object
+                        follows the structure of the grammar <a href="#rule">rule</a> used to create it. Non-terminals
+                        in the grammar create properties named after the sub-rules that define them. These properties may in 
+                        turn have other properties defined on them all the way down the parse tree to the terminal properties.  
+                        A terminal property contains the matching <a href="#token">token</a>. In the case where a sub-rule 
+                        defines the maximum number of tokens to match to be more than one, the value stored in the terminal property is
+                         an array of <a href="#token">tokens</a>.</p> 
+                    <p class="card-text"> For example,
+                        consider a grammar that defines a subject and a verb and further breaks down the subject as 
+                        an indeterminate number of adjectives followed by a noun. It would produce a gist with the 
+                        following properties and sub-properties:</p>
+                        <pre class="class="prettyprint lang-js">subject
+subject.adjectives
+subject.noun
+verb</pre>
+                    <p class="card-text">The values of <code>gist.subject.noun</code> and <code>gist.verb</code> 
+                        are each a <a href="#token">token</a>. The value of <code>gist.subject.adjectives</code>
+                        is an array of <a href="#token">tokens</a>.</p>
+                    <p class="alert alert-warning" role="alert">Note: the above is generally correct, but grammar
+                        <a href="#rule">rules</a> may also be defined with additional semantic processing that can potentially alter 
+                    the structure of the gist.</p>
+  
+                    <h3 id="interpretation-remainder" class="card-subtitle"><code>ISHML.Interpretation.remainder</code></h3>
+                    <p class="card-text">The remainder contains an array of tokens, if any, that fail to match the grammar rule used when parsed. Successful parsing will result in a remainder with an array length of zero.</p>
+                    <p class="card-text">See also <a href="parsing.html">parsing tutorial</a>.</p>
                 </div>
             </div>
             <div class="card mt-4" id="lexicon">
                 <div class="card-header">
-                    <h1 class="text-info">Lexicon</h1>
+                    <h1 class="text-info">Lexicon</h1><h6 class="text-info">ishml.js, ishml-nlp.js</h6>
                 </div>
                 <div class="card-body">
-                    <p class="card-text">A Lexicon is an object that stores a list of valid tokens.  Each token is comprised of a string of characters to be matched (the lexeme) and one or more definitions for that lexeme.</p>  
+                    <p class="card-text">A Lexicon is an object that stores a collection of <a href="#token">tokens</a>.</p>  
                     <h2 class="card-title">Constructor</h2>
-                    <p class="card-text"><code>ISHML.Lexicon()</code></p>
-                    <p class="card-text">Returns a new Interpretation object instance.  Use of new operator is optional. 
+                    <h3 class="card-subtitle"><code>ISHML.Lexicon()</code></h3>
+                    <p class="card-text">Returns a new Lexicon object instance.  Use of new operator is optional. 
                         Takes no parameters.</p>
-                    <p class="card-text">Required by <code><a href="#parser-anaylze">Parser.analyze()</a></code>.</p>
+                    <p class="card-text">Required by <code><a href="#parser-anaylze">ISHML.Parser.analyze()</a></code>.</p>
                     <h2 class="card-title">Methods</h2>
-                    <p class="card-text"><code id="lexicon-lookup">lookup()</code></p>
-                    <p class="card-text"><code id="lexicon-register">register(text).as({definition})</code></p>
+                    <h3 class="card-subtitle"><code id="lexicon-lookup">ISHML.Lexicon.prototype.lookup(<i>lexeme</i>[,{caseInsensitive:<i>boolean</i>}])</code></h3>
+                    <p class="card-text">Looks up definitions from a lexicon.</p> 
+                    <p class="card-text">The <i>lexeme</i> is a string of characters to be matched.</p>
+                    <h4 class="card-subtitle">Options</h4> 
+                    <h5 class="card-subtitle"><code>caseInsensitve</code></h5>
+                    <p class="card-text">Defaults to <code>true</code>. Set to <code>false</code> for case sensitive look ups.</p>
+                    <h4 "card-subtitle">Example</h4>  
+                        <pre class="prettyprint lang-js pre-scrollable">
+var lexicon=ISHML.Lexicon()
+lexicon
+    .register("ruby").as({key:"ring",part:"adjective", role:"thing"})
+    .register("RUBY").as({key:"ruby",part:"noun", role:"thing"})
+    .register("Ruby").as({key:"slipper",part:"adjective", role:"thing"})
+
+console.log(lexicon.lookup("ruby")) //returns three definitions.
+console.log(lexicon.lookup("Ruby",{caseInsensitive:false})) //returns one definition.    
+                        </pre>
+                    <p class="card-text">Returns an array of definitions if the <i>lexeme</i> is in the lexicon. 
+                        Otherwise, an empty array is returned.</p>
+                    <h3 class="card-subtitle"><code id="lexicon-register">ISHML.Lexicon.prototype.register(<i>lexeme...</i>).as(<i>definition</i>)</code></h3>
+                    <p class="card-text">Adds <a href="#token">tokens</a> to the lexicon.</p>
+                    <p class="card-text">The <i>lexeme</i> is the string of characters to be matched. 
+                        More than one lexeme may be specified for the same definition.  The same lexeme may have multiple definitions.</p>
+                    <p class="card-text">The <i>definition</i> may be a simple value or a complex object.  
+                        It is an arbitrary payload to be retrieved when the lexeme is matched.  
+                        A definition typically holds one or more references to objects and functions defined elsewhere
+                         in the application.</p>
+
                     <p class="card-text">Returns <code>this</code>.</p>
-                    <h6 "card-subtitle">Example</h6>
+                    <h4 "card-subtitle">Example</h4>
                     <pre class="prettyprint lang-js pre-scrollable">
 var lexicon=ISHML.Lexicon()
 lexicon
@@ -133,16 +181,33 @@ lexicon
     .register("glass").as({key:"slipper",part:"adjective", role:"thing"})
     .register("glass").as({key:"tumbler",part:"noun", role:"thing"})
 </pre>
-                    <p class="card-text"><code id="lexicon-search">search()</code></p>
-                    <p class="card-text"><code id="lexicon-tokenize">register()</code></p>
-                    <p class="card-text"><code id="lexicon-unregister">unregister()</code></p>
-                    <p class="card-text">Returns <code>this</code>.</p>
+                <p class="card-text"><i>Take</i> and <i>grab</i> both share the same definition.  <i>Ruby</i> has multiple definitions. 
+                    This example is simplified for clarity. Typically, some properties of the 
+                    definitions will point to objects and functions defined in the application, not simple strings. </p>
+                    
+                    <h3 class="card-subtitle"><code id="lexicon-search">ISHML.Lexicon.prototype.search(<i>lexeme</i>[, {separator:<i>regex</i>, lax:<i>boolean</i>, caseSensitive:<i>boolean</i>, greedy:<i>boolean</i>}])</code></h3>
+                    <p class="card-text">Searches for all full and partial matches in the lexicon.</p> 
+                    <p class="card-text">The <i>lexeme</i> is a string of characters to be matched against the entries in the lexicon.  A partial match is a match of the entry's full lexeme against the initial characters of the <i>lexeme</i> argument, but not the other way around. Wildcard matching is not supported.</p> 
+                    <h4 class="card-subtitle">Options</h4> 
+                    <h5 class="card-subtitle"><code>caseInsensitve</code></h5>
+                    <p class="card-text">Defaults to <code>true</code>. Set to <code>false</code> for case sensitive look ups.</p>
+                    <h5 class="card-subtitle"><code>greedy</code></h5>
+                    <p class="card-text">Defaults to <code>false</code>. Set to <code>true</code> to return the longest match.</p>
+                    <h5 class="card-subtitle"><code>lax</code></h5>
+                    <p class="card-text">Defaults to <code>false</code>. Set to <code>true</code> to return the longest match.</p>
+                    <h5 class="card-subtitle"><code>separator</code></h5>
+                    <p class="card-text">Defaults to <code>false</code>. Set to <code>true</code> to return the longest match.</p>
+                        {separator=/\s/, lax=false, caseSensitive=false, greedy=false}={}
+                    
+                    <h3 class="card-subtitle"><code id="lexicon-tokenize">ISHML.Lexicon.prototype.tokenize()</code></h3>
+                    <h3 class="card-subtitle"><code id="lexicon-unregister">ISHML.Lexicon.prototype.unregister()</code></h3>
+                    <p>Returns <code>this</code>.</p>
                     <p>See also <a href="parsing.html">parsing tutorial</a>.</p>
                 </div>
             </div>
             <div class="card mt-4" id="parser">
                 <div class="card-header">
-                    <h1 class="text-info">Parser</h1>
+                    <h1 class="text-info">Parser</h1><h6 class="text-info">ishml.js, ishml-nlp.js</h6>
                 </div>
                 <div class="card-body">
                     <p class="card-text">An Interpretation is an object representing one possible parsing of a string 
@@ -160,7 +225,7 @@ lexicon
             </div>
             <div class="card mt-4" id="rule">
                 <div class="card-header">
-                    <h1 class="text-info">Rule</h1>
+                    <h1 class="text-info">Rule</h1><h6 class="text-info">ishml.js, ishml-nlp.js</h6>
                 </div>
                 <div class="card-body">
                     <p class="card-text">An Interpretation is an object representing one possible parsing of a string 
@@ -178,11 +243,10 @@ lexicon
             </div>
             <div class="card mt-4" id=token">
                 <div class="card-header">
-                    <h1 class="text-info">Token</h1>
+                    <h1 class="text-info">Token</h1><h6 class="text-info">ishml.js, ishml-nlp.js</h6>
                 </div>
                 <div class="card-body">
-                    <p class="card-text">An Interpretation is an object representing one possible parsing of a string of characters
-                        in the context of a specific lexicon and grammar.</p>  
+                    <p class="card-text">A token is an object comprised of a string of characters to be matched (the lexeme) and one or more definitions for that lexeme.</p>  
                     <h2 class="card-title">Constructor</h2>
                     <p class="card-text"><code>ISHML.Interpretation()</code></p>
                     <p class="card-text">Returns a new Interpretation object instance.  Use of new operator is optional. 

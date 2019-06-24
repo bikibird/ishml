@@ -10,7 +10,7 @@ ISHML.Parser=function Parser({lexicon,grammar}={})
 		return new Parser({lexicon:lexicon,grammar:grammar})
 	}
 }
-ISHML.Parser.prototype.analyze=function(text, {caseSensitive=false, fuzzy=false, greedy=false, lax=false, smooth=false,separator=/[\,|\.|;|\!|\?|\s]/}={})
+ISHML.Parser.prototype.analyze=function(text, {caseSensitive=false, fuzzy=false, greedy=false, lax=false, smooth=false,separator=/\s/}={})
 {    
 	var tokenizations = this.lexicon.tokenize(text,{caseSensitive:caseSensitive, fuzzy:fuzzy, greedy:greedy, lax:lax, smooth:smooth, separator:separator})
 	var interpretations=[]

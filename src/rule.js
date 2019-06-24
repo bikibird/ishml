@@ -206,7 +206,7 @@ ISHML.Rule.prototype.parse =function(someTokens)
 		{
 			if (remainder.length>0)
 			{
-				var token =	{definitions:remainder[0].definitions.filter(this.filter), lexeme:remainder[0].lexeme.slice(0)}
+				var token =	new ISHML.Token(remainder[0].lexeme, remainder[0].definitions.filter(this.filter))
 				if (token.definitions.length>0)
 				{
 					repetitions.push(token)
@@ -216,7 +216,7 @@ ISHML.Rule.prototype.parse =function(someTokens)
 						{
 							if (this.maximum===1)
 							{
-								results.push(new ISHML.Interpretation(token,remainder.slice(1)))//{gist:token,remainder:remainder.slice(1)})
+								results.push(new ISHML.Interpretation(token,remainder.slice(1)))
 							}
 							else
 							{
