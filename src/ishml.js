@@ -127,7 +127,7 @@ ISHML.Lexicon.prototype.search = function (lexeme, {separator=/\s/, lax=false, c
 }
 ISHML.Lexicon.prototype.tokenize  = function (text, {separator=/\s/, lax=false, caseSensitive=false, full=false, fuzzy=false,greedy=false,smooth=false}={})
 {
-	var candidates=[{tokens:[],remainder:text}]
+	var candidates=[new ISHML.Tokenization([],text)]
 	var revisedCandidates
 	var results={}
 	results.complete=[]
@@ -146,10 +146,8 @@ ISHML.Lexicon.prototype.tokenize  = function (text, {separator=/\s/, lax=false, 
 					for (var j =0; j < entries.length; j++)
 					{	
 
-						var result={}
+						var result=new ISHML.Tokenization(candidates[i].tokens)
 						var token=entries[j].token
-
-						result.tokens=candidates[i].tokens.slice(0)
 						result.tokens.push(token)
 						if(separator){result.remainder=entries[j].remainder.replace(separator,"")}
 						else{result.remainder=entries[j].remainder}
@@ -168,7 +166,6 @@ ISHML.Lexicon.prototype.tokenize  = function (text, {separator=/\s/, lax=false, 
 				{
 					if (fuzzy || smooth)
 					{
-						var result={}
 						var k=0
 						var fuzz=""
 						if (separator)
@@ -185,7 +182,7 @@ ISHML.Lexicon.prototype.tokenize  = function (text, {separator=/\s/, lax=false, 
 							fuzz=candidates[i].remainder[k]
 							k=1
 						}
-						result.tokens=candidates[i].tokens.slice(0)
+						var result=new ISHML.Tokenization(candidates[i].tokens)
 						if(fuzzy)
 						{
 							var token=new ISHML.Token(fuzz,[{fuzz:fuzz}])
@@ -206,10 +203,7 @@ ISHML.Lexicon.prototype.tokenize  = function (text, {separator=/\s/, lax=false, 
 					}
 					else
 					{
-						var result={}
-						
-						result.tokens=candidates[i].tokens.slice(0)
-						result.remainder=candidates[i].remainder.slice(0)
+						var result=new ISHML.Tokenization(candidates[i].tokens,candidates[i].remainder)
 						results.partial.push(result)
 					}
 				}
@@ -237,24 +231,31 @@ ISHML.Lexicon.prototype.unregister=function(lexeme,definition)
 			_trie = _trie[character]
 		}
 	}
-	if (_trie.hasOwnProperty("definitions"))
+	if (definition !== undefined)
 	{
-		_trie.definitions=_trie.definitions.filter((def)=>
+		if (_trie.hasOwnProperty("definitions"))
 		{
-			var mismatch=Object.entries(definition).some(([key,value])=>
+			_trie.definitions=_trie.definitions.filter((def)=>
 			{
-				if(def[key]!==value)
+				var mismatch=Object.entries(definition).some(([key,value])=>
 				{
-					return true
-				}
+					if(def[key]!==value)
+					{
+						return true
+					}
+				})
+				if (mismatch){return true}
+				else {return false}	
 			})
-			if (mismatch){return true}
-			else {return false}	
-		})
-		if (_trie.definitions.length===0)
-		{
-			delete _trie.definitions
+			if (_trie.definitions.length===0 )
+			{
+				delete _trie.definitions
+			}
 		}
+	}
+	else
+	{
+		delete _trie.definitions
 	}
 	return this	
 }
@@ -612,4 +613,17 @@ ISHML.Token=function Token(lexeme="",definitions=[])
 ISHML.Token.prototype.clone=function() 
 {
 	return new ISHML.Token(this.lexeme,this.definitions)
+}
+ISHML.Tokenization=function Tokenization(tokens=[],remainder="")
+{
+   if (this instanceof ISHML.Tokenization)
+	{
+		this.tokens=tokens.slice(0)
+		this.remainder=remainder.slice(0)
+		return this
+	}
+	else
+	{
+		return new Tokenization(tokens,remainder)
+	}
 }

@@ -1,4 +1,4 @@
-ISHML.Interpretation=function Interpretation(gist={},remainder=[])
+ISHML.Interpretation=function Interpretation(gist={},remainder=new ISHML Tokenization)
 {
 	if (this instanceof ISHML.Interpretation)
 	{
