@@ -6,7 +6,7 @@
 var ISHML = ISHML || {}
 ISHML.enum=ISHML.enum || {}
 ISHML.enum.mode={all:0,any:1,apt:2} 
-ISHML.Interpretation=function Interpretation(gist={},remainder=[])
+ISHML.Interpretation=function Interpretation(gist={},remainder)
 {
 	if (this instanceof ISHML.Interpretation)
 	{
@@ -25,7 +25,12 @@ ISHML.Interpretation=function Interpretation(gist={},remainder=[])
 				this.gist=Object.assign({},gist)
 			}	
 		}
-		this.remainder=remainder.slice(0)
+		if(remainder)
+		{
+			this.remainder=remainder.clone()
+		}
+		else
+		this.remainder=new ISHML.Tokenization()
 		return this
 	}
 	else
@@ -281,7 +286,7 @@ ISHML.Parser.prototype.analyze=function(text, {caseSensitive=false, fuzzy=false,
 	{
 		tokenizations.complete.forEach((sequence)=>
 		{
-			var result=this.grammar.parse(sequence.tokens)
+			var result=this.grammar.parse(sequence)
 			if (result)
 			{
 				interpretations=interpretations.concat(result)
@@ -290,7 +295,7 @@ ISHML.Parser.prototype.analyze=function(text, {caseSensitive=false, fuzzy=false,
 
 		interpretations.forEach((interpretation)=>
 		{
-			if (interpretation.remainder.length>0)
+			if (interpretation.remainder.tokens.length>0)
 			{
 				partialInterpretations.push(interpretation)
 			}
@@ -305,7 +310,7 @@ ISHML.Parser.prototype.analyze=function(text, {caseSensitive=false, fuzzy=false,
 		}
 		else
 		{
-			partialInterpretations.sort(function(first,second){return first.remainder.length - second.remainder.length})
+			partialInterpretations.sort(function(first,second){return first.remainder.tokens.length - second.remainder.tokens.length})
 			const error=new Error("Incomplete interpretation.")
 			error.interpretations=partialInterpretations
 			throw error
@@ -356,10 +361,10 @@ ISHML.Rule.prototype.configure =function({minimum,maximum,mode,greedy,keep,filte
 	if(semantics !== undefined){this.semantics=semantics}
 	return this
 }
-ISHML.Rule.prototype.parse =function(someTokens)
+ISHML.Rule.prototype.parse =function(tokenization)
 {
 	
-	var remainder=someTokens.slice(0)
+	var someTokens=tokenization.clone()
 	var results=[]
 	var keys=Object.keys(this)
 	if (keys.length>0)
@@ -368,8 +373,8 @@ ISHML.Rule.prototype.parse =function(someTokens)
 		switch (this.mode) 
 		{
 			case ISHML.enum.mode.all:
-				if (this.maximum ===1 ){var candidates=[new ISHML.Interpretation({},remainder)]}
-				else {var candidates=[new ISHML.Interpretation([],remainder)]}
+				if (this.maximum ===1 ){var candidates=[new ISHML.Interpretation({},someTokens)]}
+				else {var candidates=[new ISHML.Interpretation([],someTokens)]}
 				var counter = 0
 				var phrases=[]
 				var revisedCandidates=candidates.slice(0)
@@ -380,9 +385,9 @@ ISHML.Rule.prototype.parse =function(someTokens)
 						revisedCandidates.forEach(({gist,remainder})=>
 						{	
 							//SNIP
-							if (remainder.length>0)
+							if (remainder.tokens.length>0)
 							{
-								var snippets=this[key].parse(remainder.slice(0)) 
+								var snippets=this[key].parse(remainder.clone()) 
 								snippets.forEach((snippet)=>
 								{
 									var phrase=new ISHML.Interpretation(gist,snippet.remainder)
@@ -423,8 +428,8 @@ ISHML.Rule.prototype.parse =function(someTokens)
 				}
 				break
 			case ISHML.enum.mode.any:
-					if (this.maximum ===1 ){var candidates=[new ISHML.Interpretation({},remainder)]}
-					else {var candidates=[new ISHML.Interpretation([],remainder)]}
+					if (this.maximum ===1 ){var candidates=[new ISHML.Interpretation({},someTokens)]}
+					else {var candidates=[new ISHML.Interpretation([],someTokens)]}
 					var revisedCandidates=candidates.slice(0)
 					for (let key of keys)
 					{
@@ -436,9 +441,9 @@ ISHML.Rule.prototype.parse =function(someTokens)
 							revisedCandidates.forEach(({gist,remainder})=>
 							{
 							//SNIP
-								if (remainder.length>0)
+								if (remainder.tokens.length>0)
 								{
-									var snippets=this[key].parse(remainder.slice(0)) 
+									var snippets=this[key].parse(remainder.clone()) 
 									snippets.forEach((snippet)=>
 									{
 										var phrase=new ISHML.Interpretation(gist,snippet.remainder)
@@ -469,8 +474,8 @@ ISHML.Rule.prototype.parse =function(someTokens)
 					}
 					break
 			case ISHML.enum.mode.apt:
-				if (this.maximum ===1 ){var candidates=[new ISHML.Interpretation({},remainder)]}
-				else {var candidates=[new ISHML.Interpretation([],remainder)]}
+				if (this.maximum ===1 ){var candidates=[new ISHML.Interpretation({},someTokens)]}
+				else {var candidates=[new ISHML.Interpretation([],someTokens)]}
 				var revisedCandidates=candidates.slice(0)
 				for (let key of keys)
 				{
@@ -482,9 +487,9 @@ ISHML.Rule.prototype.parse =function(someTokens)
 						revisedCandidates.forEach(({gist,remainder})=>
 						{
 							//SNIP
-							if (remainder.length>0)
+							if (remainder.tokens.length>0)
 							{
-								var snippets=this[key].parse(remainder.slice(0)) 
+								var snippets=this[key].parse(remainder.clone()) 
 								snippets.forEach((snippet)=>
 								{
 									var phrase=new ISHML.Interpretation(gist,snippet.remainder)
@@ -524,9 +529,9 @@ ISHML.Rule.prototype.parse =function(someTokens)
 		var repetitions=[]
 		while (counter<=this.maximum)
 		{
-			if (remainder.length>0)
+			if (someTokens.tokens.length>0)
 			{
-				var token =	new ISHML.Token(remainder[0].lexeme, remainder[0].definitions.filter(this.filter))
+				var token =	new ISHML.Token(someTokens.tokens[0].lexeme, someTokens.tokens[0].definitions.filter(this.filter))
 				if (token.definitions.length>0)
 				{
 					repetitions.push(token)
@@ -536,15 +541,15 @@ ISHML.Rule.prototype.parse =function(someTokens)
 						{
 							if (this.maximum===1)
 							{
-								results.push(new ISHML.Interpretation(token,remainder.slice(1)))
+								results.push(new ISHML.Interpretation(token,new ISHML.Tokenization(someTokens.tokens.slice(1),someTokens.remainder)))
 							}
 							else
 							{
-								results.push(new ISHML.Interpretation(repetitions, remainder.slice(1)))//{gist:repetitions.slice(0),remainder:remainder.slice(1)})
+								results.push(new ISHML.Interpretation(repetitions,new ISHML.Tokenization(someTokens.tokens.slice(1),someTokens.remainder)))//{gist:repetitions.slice(0),remainder:remainder.slice(1)})
 							}	
 						}
 					}	
-					remainder=remainder.slice(1)
+					someTokens.tokens=someTokens.tokens.slice(1)
 				}
 				else {break}
 				counter++
@@ -557,11 +562,11 @@ ISHML.Rule.prototype.parse =function(someTokens)
 			{
 				if (this.maximum===1)
 				{
-					results.push(new ISHML.Interpretation(repetitions[0],remainder))
+					results.push(new ISHML.Interpretation(repetitions[0],someTokens))
 				}
 				else
 				{
-					results.push(new ISHML.Interpretation(repetitions, remainder))
+					results.push(new ISHML.Interpretation(repetitions, someTokens))
 				}	
 			}
 		}
@@ -626,4 +631,8 @@ ISHML.Tokenization=function Tokenization(tokens=[],remainder="")
 	{
 		return new Tokenization(tokens,remainder)
 	}
+}
+ISHML.Tokenization.prototype.clone=function() 
+{
+	return new ISHML.Tokenization(this.tokens,this.remainder)
 }

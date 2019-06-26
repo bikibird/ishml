@@ -20,7 +20,7 @@ ISHML.Parser.prototype.analyze=function(text, {caseSensitive=false, fuzzy=false,
 	{
 		tokenizations.complete.forEach((sequence)=>
 		{
-			var result=this.grammar.parse(sequence.tokens)
+			var result=this.grammar.parse(sequence)
 			if (result)
 			{
 				interpretations=interpretations.concat(result)
@@ -29,7 +29,7 @@ ISHML.Parser.prototype.analyze=function(text, {caseSensitive=false, fuzzy=false,
 
 		interpretations.forEach((interpretation)=>
 		{
-			if (interpretation.remainder.length>0)
+			if (interpretation.remainder.tokens.length>0)
 			{
 				partialInterpretations.push(interpretation)
 			}
@@ -44,7 +44,7 @@ ISHML.Parser.prototype.analyze=function(text, {caseSensitive=false, fuzzy=false,
 		}
 		else
 		{
-			partialInterpretations.sort(function(first,second){return first.remainder.length - second.remainder.length})
+			partialInterpretations.sort(function(first,second){return first.remainder.tokens.length - second.remainder.tokens.length})
 			const error=new Error("Incomplete interpretation.")
 			error.interpretations=partialInterpretations
 			throw error

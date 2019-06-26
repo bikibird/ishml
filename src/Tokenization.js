@@ -11,3 +11,7 @@ ISHML.Tokenization=function Tokenization(tokens=[],remainder="")
 		return new Tokenization(tokens,remainder)
 	}
 }
+ISHML.Tokenization.prototype.clone=function() 
+{
+	return new ISHML.Tokenization(this.tokens,this.remainder)
+}

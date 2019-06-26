@@ -1,4 +1,4 @@
-ISHML.Interpretation=function Interpretation(gist={},remainder=new ISHML Tokenization)
+ISHML.Interpretation=function Interpretation(gist={},remainder)
 {
 	if (this instanceof ISHML.Interpretation)
 	{
@@ -17,7 +17,12 @@ ISHML.Interpretation=function Interpretation(gist={},remainder=new ISHML Tokeniz
 				this.gist=Object.assign({},gist)
 			}	
 		}
-		this.remainder=remainder.slice(0)
+		if(remainder)
+		{
+			this.remainder=remainder.clone()
+		}
+		else
+		this.remainder=new ISHML.Tokenization()
 		return this
 	}
 	else
