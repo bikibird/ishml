@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="whitewhale.css">
+    <title>ISHML API Documentation</title>
+  </head>
+  <body>
+
+  Introduction
+ISHML stands for Interactive Story grapH Management Library, but you can call it "Ishmael." It is a Javascript library that functions as a Domain Specific Language (DSL) for creating Interactive Fiction (IF). Combine ISHML with custom HTML and CSS to create an amazing user experience that runs in a web browser with no awkward interpreters to download. ISHML gracefully handles a wide variety of input from the user. Hyperlinks are of course supported, but there is also support for drag and drop actions and text input. ISHML features a powerful and fully customizable parser.
+
+You can be successful with ISHML even if you are a Javascript novice. ISHML uses the vocabulary of storytelling. You concentrate on plot points, not programming.
+
+Story World
+The state of your story world is held in a collection of data called the net. The net is composed of data objects called knots. Knots are connected to each other via ties. For example to access the knot that represents the room the player is currently in, you would write story.net.player.in.knot.
+
+The net is fully searchable with a simple query language and supports pathfinding. Want to figure out which of the player's friends is also friends with the player's enemy? Just query the net.
+
+Plot
+The plot is composed of plot points, small sections of code that narrate your story based on user input and changes to the story net.
+
+<p>The ISHML API is a JavaScript library to facilitate writing <a href="https://iftechfoundation.org/frequently-asked-questions/">interactive fiction</a> 
+                in Javascript.recursive descent parser that works with  
+            ambiguously defined grammars and tokens to provide lexical, syntactic, and semantic analysis 
+            of input.  ISHML returns potentially multiple interpretations for a given input, lexicon, and 
+            grammar.  It is suitable for parsing small amounts of text and was designed with 
+                <a href="https://en.wikipedia.org/wiki/Interactive_fiction">interactive fiction</a> applications in mind, athough there may be other uses, too.</p> 
+
+                <p class="card-text"> For example,
+                    consider a grammar that defines a subject and a verb and further breaks down the subject as
+                    an unlimited number of adjectives followed by a noun. It produces a gist with the
+                    following properties and sub-properties:</p>
+                <pre class="class=" prettyprint lang-js">subject
+subject.adjectives
+subject.noun
+verb</pre>
+                <p class="card-text">The values of <code>gist.subject.noun</code> and <code>gist.verb</code>
+                    are each a <a href="#token">token</a>. The value of <code>gist.subject.adjectives</code>
+                    is an array of <a href="#token">tokens</a>.</p>
+                <p class="alert alert-warning" role="alert">Note: the above is generally correct, but grammar
+                    <a href="#rule">rules</a> may also be defined with additional semantic processing that can
+                    potentially alter
+                    the structure of the gist.</p>
+                    <h4 "card-subtitle">Example</h4>
+                    <pre class="prettyprint lang-js pre-scrollable">
+var lexicon=ISHML.Lexicon()
+lexicon
+.register("the","a","an").as({part:"article"})
+.register("take","grab").as({key:"take",part:"verb"})
+.register("ring").as({key:"ring",part:"noun", role:"thing"})
+.register("slipper").as({key:"slipper",part:"noun", role:"thing"})
+.register("ruby").as({key:"ring",part:"adjective", role:"thing"})
+.register("ruby").as({key:"ruby",part:"noun", role:"thing"})
+.register("ruby").as({key:"slipper",part:"adjective", role:"thing"})
+.register("glass").as({key:"slipper",part:"adjective", role:"thing"})
+.register("glass").as({key:"tumbler",part:"noun", role:"thing"})
+</pre>
+                    <p class="card-text"><i>Take</i> and <i>grab</i> both share the same definition. <i>Ruby</i> has
+                        multiple definitions.
+                        This example is simplified for clarity. Typically, some properties of the
+                        definitions will point to objects and functions defined in the application, not simple
+                        strings. </p>
+                        <h4 "card-subtitle">Example</h4>
+                        <pre class="prettyprint lang-js pre-scrollable">
+var lexicon=ISHML.Lexicon()
+lexicon
+    .register("ruby").as({key:"ring",part:"adjective", role:"thing"})
+    .register("RUBY").as({key:"ruby",part:"noun", role:"thing"})
+    .register("Ruby").as({key:"slipper",part:"adjective", role:"thing"})
+
+console.log(lexicon.search("ruby")) //returns three definitions.
+console.log(lexicon.search("Ruby",{caseInsensitive:false})) //returns one definition.    
+                        </pre>
+                Take and grab both share the same definition. Ruby has multiple definitions. This example is simplified for clarity. Typically, some properties of the definitions will point to objects and functions defined in the application, not simple strings.
+                Several methods have options defined as a parameter. This is a plain JavaScript object with properties that override default behavior. For example, {fuzzy:true, greedy:true}.
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+</body>
+</html>

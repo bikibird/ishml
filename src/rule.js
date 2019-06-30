@@ -1,4 +1,4 @@
-ISHML.Rule=function Rule(key) 
+ISHML.Rule=function Rule() 
 {
 	if (this instanceof ISHML.Rule)
 	{
@@ -7,13 +7,13 @@ ISHML.Rule=function Rule(key)
 		Object.defineProperty(this, "mode", {value:0, writable: true})
 		Object.defineProperty(this, "greedy", {value:false, writable: true})
 		Object.defineProperty(this, "keep", {value:true, writable: true})
-		Object.defineProperty(this, "filter", {value:()=>true, writable: true})
-		Object.defineProperty(this, "semantics", {value:({gist,remainder})=>true, writable: true})
+		Object.defineProperty(this, "filter", {value:(definition)=>true, writable: true})
+		Object.defineProperty(this, "semantics", {value:(interpretation)=>true, writable: true})
 		return this
 	}
 	else
 	{
-		return new Rule(key)
+		return new Rule()
 	}
 }
 
