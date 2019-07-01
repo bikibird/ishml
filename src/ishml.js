@@ -1,9 +1,16 @@
 "use strict"
-// Copyright 2018, Jennifer L Schmidt               
-// Licensed under MIT license                       
-// https://whitewhalestories.com/ishml/license.html 
+/*
+ISC License
+
+Copyright 2019, Jennifer L Schmidt
+
+Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+*/
 
 var ISHML = ISHML || {}
+var Ishmael = Ishmael || ISHML  //Call me Ishmael.
 ISHML.enum=ISHML.enum || {}
 ISHML.enum.mode={all:0,any:1,apt:2} 
 ISHML.Interpretation=function Interpretation(gist={},remainder)
@@ -276,9 +283,9 @@ ISHML.Parser=function Parser({lexicon,grammar}={})
 		return new Parser({lexicon:lexicon,grammar:grammar})
 	}
 }
-ISHML.Parser.prototype.analyze=function(text, {caseSensitive=false, fuzzy=false, greedy=false, lax=false, smooth=false,separator=/\s/}={})
+ISHML.Parser.prototype.analyze=function(text, {caseSensitive=false, full=false, fuzzy=false, greedy=false, lax=false, smooth=false,separator=/\s/}={})
 {    
-	var tokenizations = this.lexicon.tokenize(text,{caseSensitive:caseSensitive, fuzzy:fuzzy, greedy:greedy, lax:lax, smooth:smooth, separator:separator})
+	var tokenizations = this.lexicon.tokenize(text,{caseSensitive:caseSensitive, full:full, fuzzy:fuzzy, greedy:greedy, lax:lax, smooth:smooth, separator:separator})
 	var interpretations=[]
 	var partialInterpretations=[]
 	var completeInterpretations=[]
@@ -323,7 +330,7 @@ ISHML.Parser.prototype.analyze=function(text, {caseSensitive=false, fuzzy=false,
 		throw error
 	}	
 }
-ISHML.Rule=function Rule(key) 
+ISHML.Rule=function Rule() 
 {
 	if (this instanceof ISHML.Rule)
 	{
@@ -332,13 +339,13 @@ ISHML.Rule=function Rule(key)
 		Object.defineProperty(this, "mode", {value:0, writable: true})
 		Object.defineProperty(this, "greedy", {value:false, writable: true})
 		Object.defineProperty(this, "keep", {value:true, writable: true})
-		Object.defineProperty(this, "filter", {value:()=>true, writable: true})
-		Object.defineProperty(this, "semantics", {value:({gist,remainder})=>true, writable: true})
+		Object.defineProperty(this, "filter", {value:(definition)=>true, writable: true})
+		Object.defineProperty(this, "semantics", {value:(interpretation)=>true, writable: true})
 		return this
 	}
 	else
 	{
-		return new Rule(key)
+		return new Rule()
 	}
 }
 
@@ -592,13 +599,22 @@ ISHML.Rule.prototype.parse =function(tokenization)
 }
 ISHML.Rule.prototype.snip =function(key,rule)
 {
-	if (rule instanceof ISHML.Rule)
+	if (typeof key !== "number")
 	{
-		this[key]=rule
+		var formattedKey=ISHML.util.formatKey(key)
 	}
 	else
 	{
-		this[key]=new ISHML.Rule()
+		var formattedKey=key
+	}
+
+	if (rule instanceof ISHML.Rule)
+	{
+		this[formattedKey]=rule.clone()
+	}
+	else
+	{
+		this[formattedKey]=new ISHML.Rule()
 	}	
 	return this		
 }
@@ -635,4 +651,42 @@ ISHML.Tokenization=function Tokenization(tokens=[],remainder="")
 ISHML.Tokenization.prototype.clone=function() 
 {
 	return new ISHML.Tokenization(this.tokens,this.remainder)
+}
+ISHML.util={_seed:undefined}
+
+ISHML.util.enumerator=function* (aStart =1)
+{
+  let i = aStart;
+  while (true) yield i++
+}
+
+ISHML.util.formatKey=function(aKey)
+{
+	return aKey.replace(/\s+/g, '_')
+}
+
+ISHML.util.random = function() 
+{
+	this._seed = this._seed * 16807 % 2147483647
+	return (this._seed-1)/2147483646
+}
+ISHML.util.reseed = function(aSeed=Math.floor(Math.random() * 2147483648)) 
+{
+	var seed=aSeed % 2147483647
+	if (seed <= 0){seed += 2147483646}
+	this._seed=seed	
+}
+ISHML.util.shuffle=function(anArray,aCount=undefined)
+{
+	var array=anArray.slice(0)
+	var m = array.length
+	var count=aCount||array.length
+	for (let i=0; i < count; i++)
+	{
+		let randomIndex = Math.floor(this.random() * m--)
+		let item = array[m]
+		array[m] = array[randomIndex]
+		array[randomIndex] = item
+	}
+	return array.slice(-count)
 }

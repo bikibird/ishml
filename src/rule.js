@@ -267,13 +267,22 @@ ISHML.Rule.prototype.parse =function(tokenization)
 }
 ISHML.Rule.prototype.snip =function(key,rule)
 {
-	if (rule instanceof ISHML.Rule)
+	if (typeof key !== "number")
 	{
-		this[key]=rule
+		var formattedKey=ISHML.util.formatKey(key)
 	}
 	else
 	{
-		this[key]=new ISHML.Rule()
+		var formattedKey=key
+	}
+
+	if (rule instanceof ISHML.Rule)
+	{
+		this[formattedKey]=rule.clone()
+	}
+	else
+	{
+		this[formattedKey]=new ISHML.Rule()
 	}	
 	return this		
 }
