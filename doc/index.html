@@ -5,25 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel="stylesheet" href="whitewhale.css">
-    <title>ISHML API Documentation</title>
+    <title>Interactive Story grapH Management Library</title>
   </head>
   <body>
+  <div class="navbar bg-info text-white sticky-top"<script src="whitewhale.js"></script>></div>
+<h1>Introduction</h1>
+<p>ISHML stands for Interactive Story grapH Management Library, but you can call it "Ishmael." The ISHML API is a JavaScript library for the browser that facilitates writing <a href="https://iftechfoundation.org/frequently-asked-questions/">interactive fiction</a> in Javascript.</p>
 
-  Introduction
-ISHML stands for Interactive Story grapH Management Library, but you can call it "Ishmael." It is a Javascript library that functions as a Domain Specific Language (DSL) for creating Interactive Fiction (IF). Combine ISHML with custom HTML and CSS to create an amazing user experience that runs in a web browser with no awkward interpreters to download. ISHML gracefully handles a wide variety of input from the user. Hyperlinks are of course supported, but there is also support for drag and drop actions and text input. ISHML features a powerful and fully customizable parser.
+<h1>Getting Started</h1>
+<p>Eventually, ISHML will address all aspects of creating interactive fiction.  For now, though, it is just a really flexible and powerful parser that you can quickly and easily drop into your Javascript applications. </p>
 
-You can be successful with ISHML even if you are a Javascript novice. ISHML uses the vocabulary of storytelling. You concentrate on plot points, not programming.
+<pre class="class=" prettyprint lang-html">https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js</pre>
 
-Story World
-The state of your story world is held in a collection of data called the net. The net is composed of data objects called knots. Knots are connected to each other via ties. For example to access the knot that represents the room the player is currently in, you would write story.net.player.in.knot.
+<h1>Coming Soon</h1>
+<p>ISHML is being released </p>
+<h2>Story Net</h2>
+<p>The state of your story world is held in a collection of data called the net. The net is composed of data objects called knots. Knots are connected to each other via ties. For example to access the knot that represents the room the player is currently in, you would write story.net.player.in.knot.</p>
 
-The net is fully searchable with a simple query language and supports pathfinding. Want to figure out which of the player's friends is also friends with the player's enemy? Just query the net.
+<h2>The net is fully searchable with a simple query language and supports pathfinding. Want to figure out which of the player's friends is also friends with the player's enemy? Just query the net.</h2>
 
 Plot
 The plot is composed of plot points, small sections of code that narrate your story based on user input and changes to the story net.
 
-<p>The ISHML API is a JavaScript library to facilitate writing <a href="https://iftechfoundation.org/frequently-asked-questions/">interactive fiction</a> 
-                in Javascript.recursive descent parser that works with  
+<p>recursive descent parser that works with  
             ambiguously defined grammars and tokens to provide lexical, syntactic, and semantic analysis 
             of input.  ISHML returns potentially multiple interpretations for a given input, lexicon, and 
             grammar.  It is suitable for parsing small amounts of text and was designed with 
