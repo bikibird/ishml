@@ -1,0 +1,86 @@
+<html>
+    <head>
+    </head>
+    <body>
+        <script src="../src/ishml.js"></script>
+        <script>
+            var lexicon=ISHML.Lexicon()
+            lexicon
+                .register("0","1","2","3","4","5","6","7","8","9").as({part:"digit"})
+                .register("(").as({part:"begin"})
+                .register(")").as({part:"end"})
+                .register("+").as({part:"termOp", operation:(a,b)=>a+b})
+                .register("-").as({part:"termOp",operation:(a,b)=>a-b})
+                .register("*").as({part:"factorOp",operation:(a,b)=>a*b})
+                .register("/").as({part:"factorOp",operation:(a,b)=>a/b})
+
+            var number=ISHML.Rule()
+            var grouping=ISHML.Rule()
+            var term=ISHML.Rule()
+            var factor=ISHML.Rule()
+            var expression=ISHML.Rule()
+            
+            number.configure({maximum:Infinity,greedy:true,filter:(definition)=>definition.part==="digit"})
+                .semantics=({gist,remainder})=>
+                {
+                    return {gist:Number(gist.map(({lexeme})=>lexeme).join()),remainder:remainder}
+                }    
+
+            expression.snip("operand",term).snip("operations")
+            expression.operations.snip("operator").snip("operand",term)
+                .configure({minimum:0, maximum:Infinity})
+            expression.operations.operator.configure({filter:(definition)=>definition.part==="termOp"})
+
+            term.configure({mode:ISHML.enum.mode.all})
+            term.snip("operand",factor).snip("operations")
+            term.operations.snip("operator").snip("operand",factor)
+                .configure({minimum:0, maximum:Infinity})
+            term.operations.operator.configure({filter:(definition)=>definition.part==="factorOp"})
+
+            factor.configure({mode:ISHML.enum.mode.apt})
+                .snip(1)
+                .snip(2,number)
+            factor[1].snip("begin").snip("expression",expression).snip("end")
+            factor[1].begin.configure({keep:false,filter:(definition)=>definition.part==="begin"})         
+            factor[1].end.configure({keep:false,filter:(definition)=>definition.part==="end"})   
+           
+            calculate=(interpretation)=>
+            {
+                var {gist} = interpretation
+                var {expression,operand,operations}=gist
+                var result=expression || operand || gist
+                if (operations)
+                {
+                   
+                    operations.forEach(function(operation)
+                    {
+                    result=operation.operator(result,operation.operand)  
+                    })
+                    
+                }
+                interpretation.gist=result
+                return interpretation
+            }
+
+            expression.semantics=calculate
+            expression.operations.operator.semantics=(interpretation)=>
+                {
+                    interpretation.gist=interpretation.gist.definitions[0].operation
+                    return interpretation
+                } 
+            
+            term.semantics=calculate    
+            term.operations.operator.semantics=(interpretation)=>
+            {
+                interpretation.gist=interpretation.gist.definitions[0].operation
+                return interpretation
+            }
+
+           factor.semantics=calculate
+
+            var parser=ISHML.Parser({lexicon:lexicon,grammar:expression})   
+            
+ 
+        </script>
+    </body>
+</html>

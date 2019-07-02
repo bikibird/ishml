@@ -1,0 +1,71 @@
+<html>
+    <head>
+    </head>
+    <body>
+        <script src="../src/ishml.js"></script>
+        <script>
+            var lexicon=ISHML.Lexicon()
+            lexicon
+                .register("the","a","an").as({part:"article"})
+                .register("take").as({key:"take",part:"verb"})
+                .register("steal").as({key:"take",part:"verb"})
+                .register("grab").as({key:"take",part:"verb"})
+                .register("drop").as({key:"drop",part:"verb"})
+                .register("leave").as({key:"drop",part:"verb"})
+                .register("ring").as({key:"ring",part:"noun", role:"thing"})
+                .register("slipper").as({key:"slipper",part:"noun", role:"thing"})
+                .register("diamond").as({key:"ring",part:"adjective", role:"thing"})
+                .register("diamond jim").as({key:"jim",part:"noun", role:"npc"})
+                .register("jim").as({key:"james",part:"noun", role:"npc"})
+                .register("ruby").as({key:"ring",part:"adjective", role:"thing"})
+                .register("ruby").as({key:"ruby",part:"noun", role:"thing"})
+                .register("ruby").as({key:"slipper",part:"adjective", role:"thing"})
+                .register("glass").as({key:"slipper",part:"adjective", role:"thing"})
+                .register("glass").as({key:"tumbler",part:"noun", role:"thing"})
+                .register("looking glass").as({key:"mirror",part:"noun", role:"thing"})
+                .register("good looking").as({key:"tumbler",part:"adjective", role:"thing"})
+                .register("good").as({key:"mirror",part:"adjective", role:"thing"})
+                .register("tumbler").as({key:"tumbler",part:"noun", role:"thing"})
+                .register("ruby").as({key:"miss_ruby",part:"noun", role:"npc"})
+                .register("sam").as({key:"sam",part:"noun", role:"npc"})
+                .register("from").as({key:"from",part:"preposition"})
+                .register("to").as({key:"to",part:"preposition"})
+            
+            var nounPhrase=ISHML.Rule()
+            
+            nounPhrase
+                .snip("article").snip("adjectives").snip("noun")
+                
+            nounPhrase.article
+                .configure({minimum:0, filter:(definition)=>definition.part==="article" })
+            nounPhrase.adjectives
+                .configure(
+                    {   minimum:0, maximum:Infinity, keep:true,
+                        filter:(definition)=>definition.part==="adjective" ,
+                    })
+                
+            nounPhrase.noun.configure({filter:(definition)=>definition.part==="noun" })     
+            
+            var command=ISHML.Rule()
+                command.snip("subject",nounPhrase.clone()).snip("verb").snip("object")
+                command.subject.configure({minimum:0})
+                command.verb.configure({filter:(definition)=>definition.part==="verb"})
+                command.object.configure({minimum:0,mode:ISHML.enum.mode.any})
+                    .snip(1)
+                    .snip(2)
+                command.object[1].snip("directObject",nounPhrase.clone()).snip("indirectObject")
+                command.object[1].indirectObject.configure({minimum:0})
+                command.object[1].indirectObject.snip("preposition").snip("nounPhrase",nounPhrase.clone())
+                command.object[1].indirectObject.preposition.configure({filter:(definition)=>definition.part==="preposition"})
+                command.object[2].snip("indirectObject",nounPhrase.clone()).snip("directObject",nounPhrase.clone())
+ 
+            var parser=ISHML.Parser({lexicon:lexicon,grammar:command})    
+/*
+    parser.analyze("take ruby glass slipper")
+    parser.analyze("take ruby glass slipper to ruby")
+    parser.analyze("take ruby ruby glass slipper to ruby")
+*/
+// /[\,|\.|;|\!|\?|\s]/
+        </script>
+    </body>
+</html> 

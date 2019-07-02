@@ -1,0 +1,26 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "make ishml",
+            "dependsOn": [ "make ishml-lp"],
+            "type": "shell",
+            "command": ["cat src\\apex.js, src\\interpretation.js, src\\lexicon.js, src\\parser.js, src\\rule.js, src\\token.js, src\\tokenization.js, src\\util.js | sc src\\ishml.js"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "make ishml-lp",
+            "type": "shell",
+            "command": ["cat src\\apex.js, src\\interpretation.js, src\\lexicon.js, src\\parser.js, src\\rule.js, src\\token.js, src\\tokenization.js, src\\util.js | sc src\\ishml-lp.js"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}

@@ -1,0 +1,1 @@
+document.querySelector(".navbar.sticky-top").innerHTML=`White Whale Stories`
