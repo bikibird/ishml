@@ -1,88 +1,51 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <link rel="stylesheet" href="whitewhale.css">
-    <title>Interactive Story grapH Management Library</title>
-  </head>
-  <body>
-  <div class="navbar bg-info text-white sticky-top"<script src="whitewhale.js"></script>></div>
-<h1>Introduction</h1>
-<p>ISHML stands for Interactive Story grapH Management Library, but you can call it "Ishmael." The ISHML API is a JavaScript library for the browser that facilitates writing <a href="https://iftechfoundation.org/frequently-asked-questions/">interactive fiction</a> in Javascript.</p>
 
-<h1>Getting Started</h1>
-<p>Eventually, ISHML will address all aspects of creating interactive fiction.  For now, though, it is just a really flexible and powerful parser that you can quickly and easily drop into your Javascript applications. </p>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <link rel="stylesheet" href="whitewhale.css">
+  <title>Interactive Story grapH Management Library</title>
+</head>
 
-<pre class="class=" prettyprint lang-html">https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js</pre>
+<body>
+  <nav id="navbar" class="navbar navbar-expand-lg navbar-light bg-info sticky-top"></nav>
+  <section class="jumbotron mt-4 bg-jumbotron">
+    <div class="container">
+      <h1 class="text-center display-4">ISHML for Interactive Fiction</h1>
+      <p class="lead">ISHML stands for Interactive Story grapH Management Library, but call it "Ishmael." It's a JavaScript library that facilitates writing <a href="https://iftechfoundation.org/frequently-asked-questions/">interactive fiction</a> applications for modern web browsers. The ISHML library has straightforwardly named properties and methods, many of which are chainable. Code written with ISHML is highly readable and intuitive.</p>
+      <p>Eventually, ISHML will address all aspects of creating interactive fiction. For now, though, ISHML is just a really flexible and powerful parser that integrates easily into your projects.</p>
+      <p>It's <a href="https://github.com/bikibird/ishml">open source</a> and licensed under the <a href="https://raw.githubusercontent.com/bikibird/ishml/master/LICENSE">ISC license.</a></p>
+    </div>
+  </section>
+  <section>
+    <div class="container mt-4" id="quickstart">
+      <h1>Getting Started</h1>
+      <p>Place the following script near the end of the HTML document, before the closing <code>&lt;/body&gt;</code> tag. Then add your own script below this script.</p>
+      <p><code>&lt;script src="https://cdn.jsdelivr.net/gh/bikibird/ishml@1.0.0/src/ishml.js"&gt;&lt;/script&gt;</code></p>
+      <p>The <a href="parsing.html">parsing tutorial</a> explains how to use the library. </P>
+      <p>The <a href="api.html">API reference</a> documents all features.</p>
+    </div>
+  </section>
 
-<h1>Coming Soon</h1>
-<p>ISHML is being released </p>
-<h2>Story Net</h2>
-<p>The state of your story world is held in a collection of data called the net. The net is composed of data objects called knots. Knots are connected to each other via ties. For example to access the knot that represents the room the player is currently in, you would write story.net.player.in.knot.</p>
+<section>
+  <p class="font-weight-lighter text-info text-right">No whales were harmed in the making of this website.</p>
+</section>
+  <script src="whitewhale.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+    integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+    integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+    crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+    crossorigin="anonymous"></script>
+  
 
-<h2>The net is fully searchable with a simple query language and supports pathfinding. Want to figure out which of the player's friends is also friends with the player's enemy? Just query the net.</h2>
-
-Plot
-The plot is composed of plot points, small sections of code that narrate your story based on user input and changes to the story net.
-
-<p>recursive descent parser that works with  
-            ambiguously defined grammars and tokens to provide lexical, syntactic, and semantic analysis 
-            of input.  ISHML returns potentially multiple interpretations for a given input, lexicon, and 
-            grammar.  It is suitable for parsing small amounts of text and was designed with 
-                <a href="https://en.wikipedia.org/wiki/Interactive_fiction">interactive fiction</a> applications in mind, athough there may be other uses, too.</p> 
-
-                <p class="card-text"> For example,
-                    consider a grammar that defines a subject and a verb and further breaks down the subject as
-                    an unlimited number of adjectives followed by a noun. It produces a gist with the
-                    following properties and sub-properties:</p>
-                <pre class="class=" prettyprint lang-js">subject
-subject.adjectives
-subject.noun
-verb</pre>
-                <p class="card-text">The values of <code>gist.subject.noun</code> and <code>gist.verb</code>
-                    are each a <a href="#token">token</a>. The value of <code>gist.subject.adjectives</code>
-                    is an array of <a href="#token">tokens</a>.</p>
-                <p class="alert alert-warning" role="alert">Note: the above is generally correct, but grammar
-                    <a href="#rule">rules</a> may also be defined with additional semantic processing that can
-                    potentially alter
-                    the structure of the gist.</p>
-                    <h4 "card-subtitle">Example</h4>
-                    <pre class="prettyprint lang-js pre-scrollable">
-var lexicon=ISHML.Lexicon()
-lexicon
-.register("the","a","an").as({part:"article"})
-.register("take","grab").as({key:"take",part:"verb"})
-.register("ring").as({key:"ring",part:"noun", role:"thing"})
-.register("slipper").as({key:"slipper",part:"noun", role:"thing"})
-.register("ruby").as({key:"ring",part:"adjective", role:"thing"})
-.register("ruby").as({key:"ruby",part:"noun", role:"thing"})
-.register("ruby").as({key:"slipper",part:"adjective", role:"thing"})
-.register("glass").as({key:"slipper",part:"adjective", role:"thing"})
-.register("glass").as({key:"tumbler",part:"noun", role:"thing"})
-</pre>
-                    <p class="card-text"><i>Take</i> and <i>grab</i> both share the same definition. <i>Ruby</i> has
-                        multiple definitions.
-                        This example is simplified for clarity. Typically, some properties of the
-                        definitions will point to objects and functions defined in the application, not simple
-                        strings. </p>
-                        <h4 "card-subtitle">Example</h4>
-                        <pre class="prettyprint lang-js pre-scrollable">
-var lexicon=ISHML.Lexicon()
-lexicon
-    .register("ruby").as({key:"ring",part:"adjective", role:"thing"})
-    .register("RUBY").as({key:"ruby",part:"noun", role:"thing"})
-    .register("Ruby").as({key:"slipper",part:"adjective", role:"thing"})
-
-console.log(lexicon.search("ruby")) //returns three definitions.
-console.log(lexicon.search("Ruby",{caseInsensitive:false})) //returns one definition.    
-                        </pre>
-                Take and grab both share the same definition. Ruby has multiple definitions. This example is simplified for clarity. Typically, some properties of the definitions will point to objects and functions defined in the application, not simple strings.
-                Several methods have options defined as a parameter. This is a plain JavaScript object with properties that override default behavior. For example, {fuzzy:true, greedy:true}.
-        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 </body>
+
 </html>

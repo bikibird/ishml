@@ -11,10 +11,10 @@
 </head>
 
 <body>
-    <div class="navbar bg-info text-white sticky-top"></div>
+    <nav id="navbar" class="navbar navbar-expand-lg navbar-light bg-info sticky-top"></nav>
     <div class="container-fluid">
         <div class="row">
-            <div class="col-md-2 scroll">
+            <div class="col-md-2 scroll sticky-left">
                 <nav>
                     <div class="border-bottom"><a href="#api">ISHML API</a></div>
                     <details>
@@ -70,6 +70,7 @@
                             <div class="ml-3">
                                 <a class="d-block" href="#rule-configure">configure()</a>
                                 <a class="d-block" href="#rule-parse">parse()</a>
+                                <a class="d-block" href="#rule-snip">snip()</a>
                             </div>
                         </div>
                     </details>
@@ -149,8 +150,8 @@
                         <p class="card-text">Returns an array of search results. Each search result is a plain JavaScript object with a <code>token</code> property containing the matching <a href="#token">token</a> and, a <code>remainder</code> property containing the remaining unmatched string of characters from the <i>lexeme</i> argument.</p>
                         <p class="card-text">The <i>lexeme</i> argument is a string of characters to be matched against the entries in the lexicon.</p>
                         <p class="card-text">The <i>options</i> argument is a plain javaScript object with properties listed below that override the default behavior of search.</p>
-                        <h4 class="card-subtitle"><code>.caseInsensitve <i class="text-info">Boolean</i></code></h4>
-                        <p class="card-text">Defaults to <code>true</code>. Set to <code>false</code> for case sensitive searches.</p>
+                        <h4 class="card-subtitle"><code>.caseSensitve <i class="text-info">Boolean</i></code></h4>
+                        <p class="card-text">Defaults to <code>false</code>. Set to <code>true</code> for case sensitive searches.</p>
                         <h4 class="card-subtitle"><code>.full <i class="text-info">Boolean</i></code></h4>
                         <p class="card-text">Defaults to <code>false</code> for partial matching. Set to <code>true</code> for full matching.</p>
                         <p class="card-text">A partial match is a match of the lexicon entry's full lexeme against the initial characters of the <i>lexeme</i> argument, but not the other way around.</p>
@@ -199,21 +200,21 @@
                         <p class="card-text">The <i>rule</i> argument is an instance of the <a href="#ISHML-Rule">ISHML.Rule</a> object that should be used for syntactic parsing and semantic analysis.</p>
 
                         <h2 class="card-title">Properties</h2>
-                        <h3 class="card-subtitle"><code><b>.lexicon</b></code></h3>
+                        <h3 class="card-subtitle" id="parser-lexicon"><code><b>.lexicon</b></code></h3>
                         <p class="card-text">The <a href="#ISHML-Lexicon">ISHML.Lexicon</a> object that was specified in the constructor.</p>
 
-                        <h3 class="card-subtitle"><code><b>.grammar</b></code></h3>
+                        <h3 class="card-subtitle" id="parser-grammar"><code><b>.grammar</b></code></h3>
                         <p class="card-text">The <a href="#ISHML-Rule">ISHML.Rule</a> object that was specified in the constructor.</p>
 
                         <h2 class="card-title">Methods</h2>
-                        <h3 class="card-subtitle"><code><b>.analyze(<i>text</i>, <i>options</i>)</b></code></h3>
+                        <h3 class="card-subtitle" id="parser-analyze"><code><b>.analyze(<i>text</i>, <i>options</i>)</b></code></h3>
                         <p class="card-text"><a href="#lexicon-tokenize">Tokenizes</a> and <a href="#rule-parse">parses</a> the <i>text</i> argument and return an array of <a href="#interpretation">ISHML.Interpretation</a>.</p>
                          
                         <p class="card-text">The <i>text</i> argument is a string of characters to be analyzed.</p>
                         <p class="card-text">The <i>options</i> argument is a plain javaScript object with properties that affect how the <i>text</i> argument is tokenized.</p>
 
-                        <h4 class="card-subtitle"><code>caseInsensitve:<i class="text-info">Boolean</i></code></h4>
-                        <p class="card-text">Defaults to <code>true</code>. Set to <code>false</code> for case sensitive tokenization.</p>
+                        <h4 class="card-subtitle"><code>caseSensitve:<i class="text-info">Boolean</i></code></h4>
+                        <p class="card-text">Defaults to <code>false</code>. Set to <code>true</code> for case sensitive tokenization.</p>
 
                         <h4 class="card-subtitle"><code>full <i class="text-info">Boolean</i></code></h4>
                         <p class="card-text">Defaults to <code>false</code> for partial matching. Set to <code>true</code> for full matching.</p>
