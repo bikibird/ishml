@@ -1,6 +1,11 @@
 .scroll{
-    height: calc(100vh - 48px);  
+    height: calc(100vh - 56px);  
   overflow-x: hidden;
   overflow-y: auto;
 }
-
+.bg-jumbotron{background-color: rgba(23, 162, 184, 0.075); }
+pre.prettyprint{
+    border:none !important;
+    padding: 2em !important;
+    
+}

@@ -2,6 +2,7 @@
     <head>
     </head>
     <body>
+        <!--<script src="https://cdn.jsdelivr.net/gh/bikibird/ishml@1.0.0/src/ishml.js"></script>-->
         <script src="../src/ishml.js"></script>
         <script>
             var lexicon=ISHML.Lexicon()
@@ -40,8 +41,8 @@
                 .configure({minimum:0, filter:(definition)=>definition.part==="article" })
             nounPhrase.adjectives
                 .configure(
-                    {   minimum:0, maximum:Infinity, keep:true,
-                        filter:(definition)=>definition.part==="adjective" ,
+                    {   minimum:0, maximum:Infinity, 
+                        filter:(definition)=>definition.part==="adjective"
                     })
                 
             nounPhrase.noun.configure({filter:(definition)=>definition.part==="noun" })     

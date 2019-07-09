@@ -5,18 +5,25 @@
     "tasks": [
         {
             "label": "make ishml",
-            "dependsOn": [ "make ishml-lp"],
+            "dependsOn": [
+                "make ishml-lp"
+            ],
             "type": "shell",
-            "command": ["cat src\\apex.js, src\\interpretation.js, src\\lexicon.js, src\\parser.js, src\\rule.js, src\\token.js, src\\tokenization.js, src\\util.js | sc src\\ishml.js"],
+            "command": [
+                "cat src\\apex.js, src\\interpretation.js, src\\lexicon.js, src\\parser.js, src\\rule.js, src\\token.js, src\\tokenization.js, src\\util.js | sc src\\ishml.js"
+            ],
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
+            "problemMatcher": []
         },
         {
             "label": "make ishml-lp",
             "type": "shell",
-            "command": ["cat src\\apex.js, src\\interpretation.js, src\\lexicon.js, src\\parser.js, src\\rule.js, src\\token.js, src\\tokenization.js, src\\util.js | sc src\\ishml-lp.js"],
+            "command": [
+                "cat src\\apex.js, src\\interpretation.js, src\\lexicon.js, src\\parser.js, src\\rule.js, src\\token.js, src\\tokenization.js, src\\util.js | sc src\\ishml-lp.js"
+            ],
             "group": {
                 "kind": "build",
                 "isDefault": true

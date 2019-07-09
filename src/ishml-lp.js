@@ -313,21 +313,19 @@ ISHML.Parser.prototype.analyze=function(text, {caseSensitive=false, full=false, 
 		})
 		if (completeInterpretations.length>0)
 		{	
-			return completeInterpretations
+			return {success:true, interpretations:completeInterpretations}
 		}
 		else
 		{
-			partialInterpretations.sort(function(first,second){return first.remainder.tokens.length - second.remainder.tokens.length})
-			const error=new Error("Incomplete interpretation.")
-			error.interpretations=partialInterpretations
-			throw error
+			return {success:false, interpretations: partialInterpretations.sort(function(first,second){return first.remainder.tokens.length - second.remainder.tokens.length})}
+			
 		}
 	}
 	else
 	{
-		const error=new Error("Incomplete tokenization.")
-		error.tokenizations=tokenizations.partial
-		throw error
+
+		return {success:false, tokenizations:tokenizations.partial}
+		
 	}	
 }
 ISHML.Rule=function Rule() 
