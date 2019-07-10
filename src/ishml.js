@@ -317,15 +317,19 @@ ISHML.Parser.prototype.analyze=function(text, {caseSensitive=false, full=false, 
 		}
 		else
 		{
-			return {success:false, interpretations: partialInterpretations.sort(function(first,second){return first.remainder.tokens.length - second.remainder.tokens.length})}
-			
+			if (partialInterpretations.length>0)
+			{
+				return {success:false, interpretations: partialInterpretations.sort(function(first,second){return first.remainder.tokens.length - second.remainder.tokens.length})}
+			}
+			else
+			{
+				return { success: false, tokenizations: tokenizations.complete }
+			}
 		}
 	}
 	else
 	{
-
 		return {success:false, tokenizations:tokenizations.partial}
-		
 	}	
 }
 ISHML.Rule=function Rule() 

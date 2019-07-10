@@ -60,4 +60,6 @@ var example2 = parser.analyze("Take ruby slipper.", { separator: /[\.|\s]/ })
 
 var example3 = parser.analyze("Take take ruby slipper.", { separator: /[\.|\s]/ })
 
-var example4 = parser.analyze("Take the really pretty ruby slipper.", { separator: /[\.|\s]/ })
+var example4 = parser.analyze("Take ruby slipper take.", { separator: /[\.|\s]/ })
+
+var example5 = parser.analyze("Take the really pretty ruby slipper.", { separator: /[\.|\s]/ })

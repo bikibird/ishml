@@ -2,12 +2,12 @@
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
     integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-  <link rel="stylesheet" href="whitewhale.css">
-  <title>Interactive Story grapH Management Library</title>
+    <link rel="stylesheet" href="whitewhale.css">
+    <title>Interactive Story grapH Management Library</title>
 </head>
 
 <body>
@@ -24,7 +24,7 @@
         <p class="lead">Note: All code listings are included as scripts for this web page which you can also examine with your <a href="https://developer.mozilla.org/en-US/docs/Learn/Common_questions/What_are_browser_developer_tools">browser's developer tools</a>.</p>
         <p>Let's start by defining a collection of tokens to match against the input text. This is done be creating a lexicon and registering some tokens.  Think of the lexicon as a dictionary. Each entry in a dictionary consists of a word and one or more definitions. Each entry in the lexicon is a lexeme paired with one or more definitions.  Just as synonyms are allowed in a dictionary, multiple lexemes may share the same definition.</p>
         <div class="clearfix">
-            <pre class="prettyprint bg-jumbotron shadow lang-js float-left mr-4" title="Code Listing 1">
+            <pre "codelisting1" class="prettyprint bg-jumbotron shadow lang-js float-left mr-4" title="Code Listing 1">
 //Code Listing 1-- Definining a lexicon; registering tokens.    
 var lexicon=ISHML.Lexicon()
 lexicon
@@ -58,23 +58,22 @@ lexicon
         </div>
         <div class="card mt-4 mb-4">
             <div class="card-header" id="q1">
-                <p class="text-info">
-                    Referring to Code Listing 1, answer the following questions:
-                    <ol>
-                        <li>What is the definition for "take"?</li>
-                        <li>What other lexemes share the same definition as "take"?</li>
-                        <li>How many definitions does "ruby" have?</li>
-                        <li>Open your web browser's developer tools. A lexicon identical to Code Listing 1 was created when this page was loaded. Register a token in the lexicon by entering a statement in the command console. What is returned? Why? What are the requirements for the argument passed in <code>.as()</code>?</li>
-                    </ol>
-                    <button class="btn btn-link text-info collapsed " type="button" data-toggle="collapse" data-target="#a1"
-                        aria-expanded="false" aria-controls="a1">
-                        Answers
-                    </button>
-                </p>
+                <p class="text-info">Referring to Code Listing 1, answer the following questions:</p>
+                <ol>
+                    <li>What is the definition for "take"?</li>
+                    <li>What other lexemes share the same definition as "take"?</li>
+                    <li>How many definitions does "ruby" have?</li>
+                    <li>Open your web browser's developer tools. A lexicon identical to Code Listing 1 was created when this page was loaded. Register a token in the lexicon by entering a statement in the command console. What is returned? Why? What are the requirements for the argument passed in <code>.as()</code>?</li>
+                </ol>
+                <button class="btn btn-link text-info collapsed " type="button" data-toggle="collapse" data-target="#a1"
+                    aria-expanded="false" aria-controls="a1">
+                    Answers
+                </button>
+                
             </div>
             <div id="a1" class="collapse" aria-labelledby="q1" data-parent="#q1">
                 <div class="card-body">
-                    <ol>
+                    <ol class="card-text"> 
                         <li>The definition of "take" is <code>{key:"take",part:"verb"}</code></li>
                         <li>"steal" and "grab" share the same definition as take.</li>
                         <li>"ruby" has three different definitions (ruby, ring, slipper.)</li>
@@ -97,7 +96,7 @@ commmand.nounPhrase.noun // token for "slipper"</pre>
             <p>Let's design syntax tree for a simple command like "take the ruby slipper."  First, we'll snip that command into a verb followed by a noun phrase. Then, we snip the noun phrase into article, adjectives, and noun.</p>
         </div>
         <div class="clearfix">       
-            <pre class="prettyprint bg-jumbotron shadow lang-js float-left mr-4">
+            <pre id="codelisting2"class="prettyprint bg-jumbotron shadow lang-js float-left mr-4">
 //Code Listing 2
 
 //Create a set of nested rules which mirror the wanted syntax tree.
@@ -133,27 +132,25 @@ command.nounPhrase.noun.filter=(definition) => definition.part === "noun"
         </div>
         <div class="card mt-4 mb-4">
             <div class="card-header" id="q2">
-                <p class="text-info">
-                    Referring to Code Listing 2, answer the following questions:
-                    <ol>
-                        <li>Which rule is the root rule? Why?</li>
-                        <li>Which rules generate terminal nodes and which generate non-terminal nodes? Why?</li>
-                        <li>How would you write a statement to make the nounPhrase rule optional?</li>
-                        <li>How would you write a statement to allow the nounPhrase to appear an indefinite number of times?</li>
-                        <li>Why is it preferrable to use <code>.configure</code> to set the rules options, rather than setting them directly?
-                        </li>
-                        <li>How would you write a filter function to limit noun rule matches to just "things?"</li>
-                        <li>Can you write a filter for the nounPhrase rule? Why or why not?</li>
-                    </ol>
-                    <button class="btn btn-link text-info collapsed " type="button" data-toggle="collapse" data-target="#a2"
-                        aria-expanded="false" aria-controls="a1">
-                        Answers
-                    </button>
-                </p>
+                <p class="text-info">Referring to Code Listing 2, answer the following questions:</p>
+                <ol>
+                    <li>Which rule is the root rule? Why?</li>
+                    <li>Which rules generate terminal nodes and which generate non-terminal nodes? Why?</li>
+                    <li>How would you write a statement to make the nounPhrase rule optional?</li>
+                    <li>How would you write a statement to allow the nounPhrase to appear an indefinite number of times?</li>
+                    <li>Why is it preferrable to use <code>.configure</code> to set the rules options, rather than setting them directly?
+                    </li>
+                    <li>How would you write a filter function to limit noun rule matches to just "things?"</li>
+                    <li>Can you write a filter for the nounPhrase rule? Why or why not?</li>
+                </ol>
+                <button class="btn btn-link text-info collapsed " type="button" data-toggle="collapse" data-target="#a2"
+                    aria-expanded="false" aria-controls="a2">
+                    Answers
+                </button>
             </div>
             <div id="a2" class="collapse" aria-labelledby="q2" data-parent="#q2">
                 <div class="card-body">
-                    <ol>
+                    <ol class="card-text">
                         <li>The <code>command</code> rule is a root rule.  It was created with <code>ISHML.Rule()</code>, not <code>.snip()</code> and that's a pretty good sign that we intead it to be the root rule.  The more accurate answer is that root rule can be any rule that we use to configure the parser, but we haven't talked about that yet...</li>
                         <li>The <code>command.nounPhrase</code> and also <code>command</code> rules are non-terminal rules because they have sub-rules defined for them with <code>.snip()</code>.  The other rules are not "snipped" and therefore are terminal rules. The output of a non-terminal rule is a branch of the syntax tree.  The output of a terminal rule is one or more tokens.</li>
                         <li><code>command.nounPhrase.configure{minimum:0}</code> Or, <code>command.nounPhrase.minimum=0</code></li>
@@ -168,12 +165,12 @@ command.nounPhrase.noun.filter=(definition) => definition.part === "noun"
         <h2>The Parser</h2>
         <div class="clearfix">
             <div class="float-left">
-                <pre class="prettyprint bg-jumbotron shadow lang-js mr-4">
+                <pre "codelisting3" class="prettyprint bg-jumbotron shadow lang-js mr-4">
 //Code Listing 3
 
 //Create a parser 
 var parser=ISHML.Parser({lexicon:lexicon,grammar:command})</pre>
-<pre class="prettyprint bg-jumbotron shadow lang-js  mr-4">
+<pre "codelisting4" class="prettyprint bg-jumbotron shadow lang-js  mr-4">
 //Code Listing 4
 
 var example1 = parser.analyze("take the ruby slipper")
@@ -182,7 +179,9 @@ var example2 = parser.analyze("Take ruby slipper.",{separator:/[\.|\s]/})
 
 var example3 = parser.analyze("Take take ruby slipper.",{separator:/[\.|\s]/})
 
-var example4 = parser.analyze("Take the really pretty ruby slipper.",{separator:/[\.|\s]/})
+var example4 = parser.analyze("Take ruby slipper take.",{separator:/[\.|\s]/})
+
+var example5 = parser.analyze("Take the really pretty ruby slipper.",{separator:/[\.|\s]/})
 
 </pre>
             </div>
@@ -198,15 +197,74 @@ var example4 = parser.analyze("Take the really pretty ruby slipper.",{separator:
             <p>If tokenization was successful, but parsing was not, the <code>.tokenizations</code> property is <code>undefined</code> and the <code>.interprations</code> property contains an array of partial interpretations, which can be used to give feedback on why and where parsing failed.
             </p>
             <p>There are many options for <code>.analyze()</code>. We'll just cover a few of them.  See the <a href="api.html#parser-analyze">API</a> for the complete list.</p>
-            <p>Example 1 shows the most basic use. By default, the tokenizer expects whitespace between lexemes and ignores it.  In example 2 the <code>separateor</code> option has been changed to ignore whitespace and periods.  Any <code>RegExp</code> may be used as a separator. For no separation at all, set the separator to the empty string.</p>
+            <p>Example 1 shows the most basic use. By default, the tokenizer expects whitespace between lexemes and ignores it.  In example 2 the <code>separator</code> option has been changed to ignore whitespace and periods.  Any <code>RegExp</code> may be used as a separator. For no separation at all, set the separator to the empty string.</p>
             <p>Example 3 is lexically correct, but syntactically incorrect, due to the doubled verb.  The result is a partial interpretation as discussed above.</p>
             <p>Example 4 is lexically incorrect because "really pretty" is not registered in the lexicon. The result is a partial tokenization as discussed above.</p>  
+        </div>
+        <div class="card mt-4 mb-4">
+            <div class="card-header" id="q3">
+                <p class="text-info">Open your <a href="https://developer.mozilla.org/en-US/docs/Learn/Common_questions/What_are_browser_developer_tools">browser's developer tools</a>, refer to Code Listing 4, and try the following exercises:</p>
+                <ol class="card-text">
+                    <li>Enter <code>console.log(example1)</code> in the command console. Did <code>example1</code> parse successfully? How many interpretations were returned?
+                        <ol>
+                            <li>Why does <code>example1.interpretations[0].remainder.tokens</code> contain an empty array?</li>
+                            <li>What is <code>example1.interpretations[0].gist</code>?
+                                <ol>
+                                    <li>Enter <code>console.log(example1.interpretations[0].gist)</code>. In what order are the properties of <code>.gist</code> listed?</li>
+                                    <li>Enter <code>Object.keys(example1.interpretations[0].gist)</code>. In what order are the properties of <code>.gist</code> listed?</li>
+                                </ol>
+                            </li>
+                            <li>Why is the value of <code>example1.interpretations[0].gist.nounPhrase.adjectives</code> an array containing a token instead of just the token itself? (Hint: review <a href="#codelisting2">Code Listing 2</a>.)</li>
+                        </ol>
+                    </li>
+                    <li>Enter <code>console.log(example2)</code> in the command console.
+                        <ol>
+                            <li>Why was the period character in the input text accepted as valid?</li>
+                            <li>Why was it valid to omit the word "the" in the input text?</li>
+                            <li>How was the syntax tree impacted by the missing article in the input text?</li>
+                        </ol>
+                    </li>
+                    <li>Enter <code>console.log(example3)</code> in the command console.
+                        <ol>
+                            <li>Is the input text valid?  Why or why not? </li>
+                            <li>why was it valid to omit the word "the" in the input text?</li>
+                            <li>How was the syntax tree impacted by the missing article in the input text?</li>
+                        </ol>
+                    </li>
+                    <li>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque
+                        corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in
+                        culpa qui officia deserunt mollitia animi.</li>
+                </ol>
+                    <button class="btn btn-link text-info collapsed " type="button" data-toggle="collapse" data-target="#a3"
+                        aria-expanded="false" aria-controls="a3">
+                        Answers
+                    </button>
+
+            </div>
+            <div id="a3" class="collapse" aria-labelledby="q3" data-parent="#q3">
+                <div class="card-body">
+                    <ol class="card-text">
+                        <li>Yes, the value of <code>example1.success</code> is <code>true</code>. One interpretation was returned in the array, <code>example1.interpretations</code>
+                            <ol>
+                                <li>A successful interpretation consumes all the tokens in the tokenization.</li>
+                                <li>The syntax tree is contained in <code>example1.interpretations[0].gist</code>. The <code>.gist</code> property of the interpretation is the root node of the syntax tree.
+                                    <ol>
+                                        <li>Alphabetically.</li>
+                                        <li>all modern browsers <a href="http://www.ecma-international.org/ecma-262/7.0/#sec-ordinaryownpropertykeys">iterate an object's own enumerable properties</a> by starting with integer keys in numerical order followed by the order in which the properties are created. Oddly, <code>console.log()</code>, as implemented in browsers, still insists on alphabetizing object properties for your convenience, which is confusing, but harmless.)</li>
+                                    </ol>
+                                </li>
+                                <li>The <code>maximum</code> option for the <code>.adjectives</code> rule was set to more than 1.</li>
+                            </ol>
+                        </li>
+                    </ol>
+                </div>
+            </div>
         </div>
     </div>
 </body>
 
 <script src="whitewhale.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/bikibird/ishml@1.0.0/src/ishml.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/bikibird/ishml@master/src/ishml.js"></script>
 <script src="ParsingCodeListing.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
