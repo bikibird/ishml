@@ -103,6 +103,10 @@ ISHML.Lexicon.prototype.search = function (lexeme, {separator=/\s/, lax=false, c
 				if(full && _results[0].remainder.length>0 ){_results=[]}
 				else { return _results}
 			}
+			else
+			{
+				return _results
+			}
 		}
 		else
 		{	
