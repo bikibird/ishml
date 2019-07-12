@@ -2,8 +2,9 @@
 var lexicon = ISHML.Lexicon()
 lexicon
     .register("the", "a", "an").as({ part: "article" })
-    .register("take", "steal", "grab").as({ key: "take", part: "verb" })
-    .register("drop", "leave").as({ key: "drop", part: "verb" })
+    .register("take", "steal", "grab")
+        .as({ key: "take", part: "verb", prepositions: ["to", "from"] })
+    .register("drop", "leave").as({ key: "drop", part: "verb", prepositions: [] })
     .register("ring").as({ key: "ring", part: "noun", role: "thing" })
     .register("slipper").as({ key: "slipper", part: "noun", role: "thing" })
     .register("diamond").as({ key: "ring", part: "adjective", role: "thing" })

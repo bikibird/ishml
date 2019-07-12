@@ -7,7 +7,8 @@ document.querySelector("#navbar").innerHTML =`<a class="navbar-brand text-white-
     <div class="nav-item dropdown">
         <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Tutorials</a>
         <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-          <a class="dropdown-item" href="parsing.html">Parsing</a>
+          <a class="dropdown-item" href="parsing.html">Parsing Part One</a>
+          <a class="dropdown-item" href="parsing2.html">Parsing Part Two</a>
         </div>
     </div>
     <a class="nav-link text-white" href="http://patreon.com/bikibird">Sponsorship</a>

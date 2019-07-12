@@ -14,50 +14,103 @@
     <nav id="navbar" class="navbar navbar-expand-lg navbar-light bg-info sticky-top"></nav>
 
     <div class="container mt-4">
-        <h1>Parsing Tutorial Part One</h1>
-        <p class="lead">Prerequisites: You should have a <a href="https://developer.mozilla.org/en-US/docs/Learn">basic working knowledge</a> of JavaScript and HTML and have read about <a href="index.html">getting started</a>.</p>
-        <p>The ISHML parser is a recursive descent parser with backtracking, which is capable of returning multiple interpretation of an input text. This tutorial provides an introduction to parsing with ISHML.</p>
-        <p>At the heart of it, parsing is about breaking up a larger piece of text into smaller pieces of text and organizing those small pieces in some manner so that they can be used by an application.  The smallest possible unit of meaningful text is called a <i>lexeme</i>. A lexeme is often a single word, but might be as small as a single character, or might be a longer string containing spaces.  A lexeme along with its definition is called a <i>token</i>. A <i>syntax tree</i>, also sometimes called a <i>parse tree</i>, orgainzes the tokens into a hierarchical structure according to a set of rules called a <i>grammar</i>. If this sounds like diagramming a sentence, you have the right idea.</p>
-        <p>Analyzing text is a multi-step process.  The first step, called <i>lexing</i> or <i>tokenization</i>, breaks up the input text into an array of tokens. The second step, <i>syntactic analysis</i>, applies grammar rules to the tokenization, which results in a syntax tree.  The third step, <i>semantic analysis</i>, modifies the branches of the syntax tree to change results that are syntactically correct, but not meaningful, into something meaningful, or to discard non-meaningful alternatives.</p>
-        <p>Now that we have a general notion of parsing, let's look at parsing in the context of the ISHML API. The API exposes its methods and properties via a global variable, ISHML.  This tutorial will examine  four ISHML objects: <code>.Lexicon</code>, <code>.Rule</code>, <code>.Parser</code>, and <code>.Interpretation</code>.</p> 
-        <h2>The Lexicon</h2>
-        <p class="lead">Note: All code listings are included as scripts for this web page which you can also examine with your <a href="https://developer.mozilla.org/en-US/docs/Learn/Common_questions/What_are_browser_developer_tools">browser's developer tools</a>.</p>
-        <p>Let's start by defining a collection of tokens to match against the input text. This is done be creating a lexicon and registering some tokens.  Think of the lexicon as a dictionary. Each entry in a dictionary consists of a word and one or more definitions. Each entry in the lexicon is a lexeme paired with one or more definitions.  Just as synonyms are allowed in a dictionary, multiple lexemes may share the same definition.</p>
+        <h1>Parsing Tutorial Part Two</h1>
+        <p class="lead">Prerequisites: You should have read <a href="parsing.html">Parsing Tutorial Part One</a>.</p>
+        <p>This tutorial examines more complex grammars and covers rule cloning, choice rules, and semantic analysis.</p>
+        <p>We'll learn by example and create a more complex grammar than the grammar covered in <a href="parsing.html">part one</a>. The grammar will allow parsing of commands that contain a subject, verb, direct object and indirect object. Subject, direct object, and indirect object are optional, but if the indirect object is present, the direct object must be present.  Also, we'll allow direct object and indirect object to appear in either order.  If the indirect object appears first there is no preposition.  If the direct object appears first, there must be a preposition.</p>
         <div class="clearfix">
             <pre id="codelisting1" class="prettyprint bg-jumbotron shadow lang-js float-left mr-4" title="Code Listing 1">
-//Code Listing 1-- Definining a lexicon; registering tokens.    
-var lexicon=ISHML.Lexicon()
-lexicon
-lexicon
-    .register("the", "a", "an").as({ part: "article" })
-    .register("take", "steal", "grab")
-        .as({ key: "take", part: "verb", prepositions: ["to", "from"] })
-    .register("drop", "leave").as({ key: "drop", part: "verb", prepositions: [] })
-    .register("ring").as({ key: "ring", part: "noun", role: "thing" })
-    .register("slipper").as({ key: "slipper", part: "noun", role: "thing" })
-    .register("diamond").as({ key: "ring", part: "adjective", role: "thing" })
-    .register("diamond jim").as({ key: "jim", part: "noun", role: "npc" })
-    .register("jim").as({ key: "james", part: "noun", role: "npc" })
-    .register("ruby").as({ key: "ring", part: "adjective", role: "thing" })
-    .register("ruby").as({ key: "ruby", part: "noun", role: "thing" })
-    .register("ruby").as({ key: "slipper", part: "adjective", role: "thing" })
-    .register("glass").as({ key: "slipper", part: "adjective", role: "thing" })
-    .register("glass").as({ key: "tumbler", part: "noun", role: "thing" })
-    .register("looking glass").as({ key: "mirror", part: "noun", role: "thing" })
-    .register("good looking").as({ key: "tumbler", part: "adjective", role: "thing" })
-    .register("good").as({ key: "mirror", part: "adjective", role: "thing" })
-    .register("tumbler").as({ key: "tumbler", part: "noun", role: "thing" })
-    .register("ruby").as({ key: "miss_ruby", part: "noun", role: "npc" })
-    .register("sam").as({ key: "sam", part: "noun", role: "npc" })
-    .register("from").as({ key: "from", part: "preposition" })
-    .register("to").as({ key: "to", part: "preposition" })
+//Code Listing 1
+var nounPhrase=ISHML.Rule()
+
+nounPhrase
+    .snip("article").snip("adjectives").snip("noun")
+
+nounPhrase.article
+    .configure({minimum:0, filter:(definition)=>definition.part==="article" })
+nounPhrase.adjectives
+    .configure(
+    { minimum:0, maximum:Infinity,
+            filter:(definition)=>definition.part==="adjective"
+    })
+
+nounPhrase.noun.configure({filter:(definition)=>definition.part==="noun" })
+
+nounPhrase.semantics=(interpretation)=>
+{
+    var {gist, remainder}=interpretation
+    if (gist.article)
+    {
+        gist.noun.definitions=gist.noun.definitions.filter((definition)=>
+        {
+            return !(definition.role==="npc")
+        })
+        if(gist.noun.definitions.length===0){return false}
+    }
+    return true
+}
+
+var command=ISHML.Rule()
+
+command.snip("subject",nounPhrase).snip("verb").snip("object")
+command.subject.configure({minimum:0})
+command.verb.configure({filter:(definition)=>definition.part==="verb"})
+command.object.configure({minimum:0,mode:ISHML.enum.mode.any})
+    .snip(1)
+    .snip(2)
+
+command.object[1].snip("directObject",nounPhrase).snip("indirectObject")
+command.object[1].indirectObject.snip("preposition").snip("nounPhrase",nounPhrase)
+command.object[1].indirectObject
+    .configure({minimum:0})
+command.object[1].indirectObject.preposition
+    .configure({filter:(definition)=>definition.part==="preposition"})
+
+command.object[2].snip("indirectObject",nounPhrase).snip("directObject",nounPhrase)
+
+command.semantics=(interpretation)=>
+{
+    var {gist}=interpretation
+    var prepositions=new Set(gist.verb.prepositions)
+    if (gist.object)
+    {
+        if(gist.object.indirectObject)
+        {
+            if (gist.object.indirectObject.preposition)
+            {
+                if (!prepositions.has(gist.object.indirectObject.preposition))
+                {
+                    return false 
+                }
+                else
+                {
+                    gist.verb.prepositions=[gist.object.indirectObject.preposition]
+                }
+            }
+            gist.indirectObject=gist.object.indirectObject.nounPhrase
+        }
+        gist.directObject=gist.object.directObject.nounPhrase
+        delete gist.object
+    }
+    return true
+}
             </pre>
- 
-            <p>Study Code Listing 1. The first line creates an instance of ISHML.Lexicon. Notice that the <code>new</code> operator was omitted. The new operator is optional. ISHML constructors always return a new object instance when called.</p>
-            <p>To add a token to the lexicon, the <code>.register()</code> method is used. The <code>.register()</code> method takes one or more lexemes as its arguments and returns the <code>.as()</code> function. The <code>.as() </code>function argument is the definition of the lexeme(s) and may be anything&mdash; a simple value or complex object. The <code>.as()</code> function returns the instance of the lexicon so that you can chain the <code>.register()</code> method multiple times.</p>
-            <p>The definition should be thought of as an arbitrary payload to be retrieved when the lexeme is matched. The definitions in Code Listing 1 are highly simplified.  <span class="font-weight-bold">In practice, a definition will typically hold one or more references to objects and functions from your application.</span> </p>
-            <p>For typical parsing applications, knowing how to register tokens is all you need to know about the lexicon.  However, the <a href="api.html#lexicon">API</a> discusses many additional features of the lexicon for other, more advanced uses.</p>
+            <h2>Rule Cloning</h2>
+            <p>Study Code Listing 1. Let's create a <code>nounPhrase</code> rule that we can use in the <code>subject</code>, <code>directObject</code>, and <code>indirectObject</code> rules.  This way we won't repeat ourselves too much and the code will be more readable. You should recognize the code from the <code>nounPhrase</code> rule from <a href="parsing.html">part one</a>.</p>
+            <p>(We'll skip over the definition of <code>nounPhrase.semantics</code> for now and come back to it when we discuss semantics.)</p>
+            <p>Now that we have a <code>nounPhrase rule</code>, let's look at our root rule, <code>command</code>.  We use <code>.snip()</code> to create sub-rules, <code>subject</code>, <code>verb</code> and <code>object</code>. The <code>verb</code> rule is defined just as it was in <a href="parsing.html">part one</a>. However, the <code>subject</code> rule was created by passing in the <a>nounPhrase</a> as the second argument of <code>.snip()</code>. This creates a deep copy of <code>nounPhrase</code> as the <code>subject</code> rule.</p>
+            <h2>Choice Rules</h2>
+            <p>The <code>object</code> rule contains the <code>directObject</code> and <code>indirectObject</code>.  By default all sub-rules created with <code>.snip()</code> are treated as a sequence of snippets when parsed. In the resulting syntax tree, all the snippets are child nodes of the parent node.  However, we can change the mode that the parent rule operates under so that it treats the sub-rules as alternatives to choose among.</p>
+            <p>The <code>object</code> rule is configured with the <code>mode</code> option set to <code>ISHML.enum.mode.any</code>, which means that the sub-rules of <code>object</code> should be treated as different choices.  Next, we <code>.snip()</code> two sub-rules, which we call <code>1</code> and <code>2</code>. By convention, we list each <code>.snip()</code> on a separate line to visually clue that they are choice sub-rules, not sequence sub-rules.</p>
+            <p>The names we give choice sub-rules are unimportant, because in the resulting syntax tree these choice nodes won't be stored under the object node, just the sub-tree generated by the chosen sub-rule. 
+            <p>The <code>ISHML.enum.mode.any</code> mode for rules allows the parser to generate alternative interpretations when provided with ambiguous input text.  For example, "take ruby slipper" can be interpreted as "take the slipper to Ruby," or as "take the red slipper." During parsing, rules with the <code>mode</code> option set to <code>ISHML.enum.mode.any</code> will generate an alternative interpretation for each sub-rule that parses sucessfully. (To stop considering choice rules after the first rule that parses successfully, use <code>ISHML.enum.mode.apt</code> and create the choice sub-rules in priority order.)</p>
+       
+
+            <h2>Semantics</h2>
+            <p>We now have rules that define a syntax tree, this allows to validate input as having the correct phrase structure, or syntax, but the rules, as yet, cannot determine if the input is meaningful or simply well structured nonsense.  For example, "take "</p>
+            
         </div>
+
         <div class="card mt-4 mb-4">
             <div class="card-header" id="q1">
                 <p class="text-info">Referring to Code Listing 1, answer the following questions:</p>
@@ -294,7 +347,7 @@ var example5 = parser.analyze("Take the really pretty ruby slipper.",{separator:
 
 <script src="whitewhale.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/bikibird/ishml@0f4c5e5/src/ishml.js"></script>
-<script src="ParsingCodeListing.js"></script>
+<script src="Parsing2CodeListing.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
     integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
