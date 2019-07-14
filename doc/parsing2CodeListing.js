@@ -1,19 +1,18 @@
-//Code Listing 1 Phrase Structure Grammar
-var nounPhrase = ISHML.Rule()
+//Code Listing 1
+var nounPhrase=ISHML.Rule()
 
 nounPhrase
     .snip("article").snip("adjectives").snip("noun")
 
 nounPhrase.article
-    .configure({ minimum: 0, filter: (definition) => definition.part === "article" })
+    .configure({minimum:0, filter:(definition)=>definition.part==="article" })
 nounPhrase.adjectives
     .configure(
-        {
-            minimum: 0, maximum: Infinity,
-            filter: (definition) => definition.part === "adjective"
-        })
+    { minimum:0, maximum:Infinity,
+            filter:(definition)=>definition.part==="adjective"
+    })
 
-nounPhrase.noun.configure({ filter: (definition) => definition.part === "noun" })
+nounPhrase.noun.configure({filter:(definition)=>definition.part==="noun" })
 
 nounPhrase.semantics=(interpretation)=>
 {
@@ -29,25 +28,23 @@ nounPhrase.semantics=(interpretation)=>
     return true
 }
 
-var command = ISHML.Rule()
+var command=ISHML.Rule()
 
-command.snip("subject", nounPhrase).snip("verb").snip("object")
-command.subject.configure({ minimum: 0 })
-command.verb.configure({ filter: (definition) => definition.part === "verb" })
-command.object.configure({ minimum: 0, mode: ISHML.enum.mode.any })
+command.snip("subject",nounPhrase).snip("verb").snip("object")
+command.subject.configure({minimum:0})
+command.verb.configure({filter:(definition)=>definition.part==="verb"})
+command.object.configure({minimum:0,mode:ISHML.enum.mode.any})
     .snip(1)
     .snip(2)
 
-command.object[1].snip("directObject", nounPhrase).snip("indirectObject")
-command.object[1].indirectObject.snip("preposition").snip("nounPhrase", nounPhrase)
+command.object[1].snip("directObject",nounPhrase).snip("indirectObject")
+command.object[1].indirectObject.snip("preposition").snip("nounPhrase",nounPhrase)
 command.object[1].indirectObject
-    .configure({ minimum: 0 })
+    .configure({minimum:0})
 command.object[1].indirectObject.preposition
-    .configure({ filter: (definition) => definition.part === "preposition" })
+    .configure({filter:(definition)=>definition.part==="preposition"})
 
-command.object[2].snip("indirectObject", nounPhrase).snip("directObject", nounPhrase)
-
-//Code Listing 2-- Semantics
+command.object[2].snip("indirectObject",nounPhrase).snip("directObject",nounPhrase)
 
 command.semantics=(interpretation)=>
 {
@@ -68,24 +65,20 @@ command.semantics=(interpretation)=>
                     gist.verb.prepositions=[gist.object.indirectObject.preposition]
                 }
             }
-            gist.indirectObject=gist.object.indirectObject
+            gist.indirectObject=gist.object.indirectObject.nounPhrase
         }
-        gist.directObject=gist.object.directObject
+        gist.directObject=gist.object.directObject.nounPhrase
         delete gist.object
     }
     return true
 }
 
-
-
-
-//Lexicon    
 var lexicon = ISHML.Lexicon()
 lexicon
     .register("the", "a", "an").as({ part: "article" })
     .register("take", "steal", "grab")
-        .as({ key: "take", part: "verb", prepositions:["to","from"]})
-    .register("drop", "leave").as({ key: "drop", part: "verb" })
+        .as({ key: "take", part: "verb", prepositions: ["to", "from"] })
+    .register("drop", "leave").as({ key: "drop", part: "verb", prepositions: [] })
     .register("ring").as({ key: "ring", part: "noun", role: "thing" })
     .register("slipper").as({ key: "slipper", part: "noun", role: "thing" })
     .register("diamond").as({ key: "ring", part: "adjective", role: "thing" })
@@ -105,18 +98,9 @@ lexicon
     .register("from").as({ key: "from", part: "preposition" })
     .register("to").as({ key: "to", part: "preposition" })
 
-
 //Create Parser 
 var parser = ISHML.Parser({ lexicon: lexicon, grammar: command })
 
-//Code Listing 4
+var example1 = parser.analyze("take ruby slipper")
+var example2 = parser.analyze("take ruby slipper to ruby")
 
-var example1 = parser.analyze("take the ruby slipper")
-
-var example2 = parser.analyze("Take ruby slipper.", { separator: /[\.|\s]/ })
-
-var example3 = parser.analyze("Take take ruby slipper.", { separator: /[\.|\s]/ })
-
-var example4 = parser.analyze("Take ruby slipper take.", { separator: /[\.|\s]/ })
-
-var example5 = parser.analyze("Take the really pretty ruby slipper.", { separator: /[\.|\s]/ })

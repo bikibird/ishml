@@ -16,8 +16,8 @@
     <div class="container mt-4">
         <h1>Parsing Tutorial Part Two</h1>
         <p class="lead">Prerequisites: You should have read <a href="parsing.html">Parsing Tutorial Part One</a>.</p>
-        <p>This tutorial examines more complex grammars and covers rule cloning, choice rules, and semantic analysis.</p>
-        <p>We'll learn by example and create a more complex grammar than the grammar covered in <a href="parsing.html">part one</a>. The grammar will allow parsing of commands that contain a subject, verb, direct object and indirect object. Subject, direct object, and indirect object are optional, but if the indirect object is present, the direct object must be present.  Also, we'll allow direct object and indirect object to appear in either order.  If the indirect object appears first there is no preposition.  If the direct object appears first, there must be a preposition.</p>
+        <p>Part two of the parsing tutorial covers rule cloning, choice rules, and semantic analysis.</p>
+        <p>Let's look at a more complex grammar than the grammar covered in <a href="parsing.html">part one</a>.  We'll continue to use the same lexicon. The grammar allows parsing of commands that contain a subject, verb, direct object and indirect object. Subject, direct object, and indirect object are each optional, but if the indirect object is present, the direct object must be present as well.  Also, we allow a choice of two sequences for objects: [directObject][preposition][indirectObject] or [indirectObject][directObject].</p>
         <div class="clearfix">
             <pre id="codelisting1" class="prettyprint bg-jumbotron shadow lang-js float-left mr-4" title="Code Listing 1">
 //Code Listing 1
@@ -96,257 +96,29 @@ command.semantics=(interpretation)=>
 }
             </pre>
             <h2>Rule Cloning</h2>
-            <p>Study Code Listing 1. Let's create a <code>nounPhrase</code> rule that we can use in the <code>subject</code>, <code>directObject</code>, and <code>indirectObject</code> rules.  This way we won't repeat ourselves too much and the code will be more readable. You should recognize the code from the <code>nounPhrase</code> rule from <a href="parsing.html">part one</a>.</p>
-            <p>(We'll skip over the definition of <code>nounPhrase.semantics</code> for now and come back to it when we discuss semantics.)</p>
-            <p>Now that we have a <code>nounPhrase rule</code>, let's look at our root rule, <code>command</code>.  We use <code>.snip()</code> to create sub-rules, <code>subject</code>, <code>verb</code> and <code>object</code>. The <code>verb</code> rule is defined just as it was in <a href="parsing.html">part one</a>. However, the <code>subject</code> rule was created by passing in the <a>nounPhrase</a> as the second argument of <code>.snip()</code>. This creates a deep copy of <code>nounPhrase</code> as the <code>subject</code> rule.</p>
+            <p>Refer to Code Listing 1. First, we create the <code>nounPhrase</code> rule that we can re-use in the <code>subject</code>, <code>directObject</code>, and <code>indirectObject</code> rules.  You should recognize the code for the <code>nounPhrase</code> rule from <a href="parsing.html">part one</a>.</p>
+            <p>(The version of <code>nounPhrase</code> shown here also defines a  <code>.semantics</code> property, which will be explained toward the end of this tutorial.)</p>
+            <p>Now that we have a <code>nounPhrase rule</code>, let's put it to work in our root rule, <code>command</code>.  We use <code>.snip()</code> to create sub-rules, <code>subject</code>, <code>verb</code> and <code>object</code>. The <code>verb</code> rule is defined just as it was in <a href="parsing.html">part one</a>. However, the <code>subject</code> rule is created by passing in <code>nounPhrase</code> as the second argument of <code>.snip()</code>. This creates a deep copy of <code>nounPhrase</code> as the <code>subject</code> rule.  Similarly, <code>nounPhrase</code> appears as a sub-rule of <code>indirectObject</code> and <code>directObject</code>.  In both cases, they are entirely new instances of <code>ISHML.Rule</code>, which are identical to the original <code>nounPhrase</code> rule. Any subsequent changes to the orginal <code>nounPhrase</code> rule will not affect the cloned rules. Conversely, changes to the cloned rules will not affect the original rule.</p>
             <h2>Choice Rules</h2>
-            <p>The <code>object</code> rule contains the <code>directObject</code> and <code>indirectObject</code>.  By default all sub-rules created with <code>.snip()</code> are treated as a sequence of snippets when parsed. In the resulting syntax tree, all the snippets are child nodes of the parent node.  However, we can change the mode that the parent rule operates under so that it treats the sub-rules as alternatives to choose among.</p>
-            <p>The <code>object</code> rule is configured with the <code>mode</code> option set to <code>ISHML.enum.mode.any</code>, which means that the sub-rules of <code>object</code> should be treated as different choices.  Next, we <code>.snip()</code> two sub-rules, which we call <code>1</code> and <code>2</code>. By convention, we list each <code>.snip()</code> on a separate line to visually clue that they are choice sub-rules, not sequence sub-rules.</p>
-            <p>The names we give choice sub-rules are unimportant, because in the resulting syntax tree these choice nodes won't be stored under the object node, just the sub-tree generated by the chosen sub-rule. 
-            <p>The <code>ISHML.enum.mode.any</code> mode for rules allows the parser to generate alternative interpretations when provided with ambiguous input text.  For example, "take ruby slipper" can be interpreted as "take the slipper to Ruby," or as "take the red slipper." During parsing, rules with the <code>mode</code> option set to <code>ISHML.enum.mode.any</code> will generate an alternative interpretation for each sub-rule that parses sucessfully. (To stop considering choice rules after the first rule that parses successfully, use <code>ISHML.enum.mode.apt</code> and create the choice sub-rules in priority order.)</p>
-       
-
+            <p>By default all sub-rules created with <code>.snip()</code> are treated as a sequence of snippets when parsed. In the resulting syntax tree, all the snippets are child nodes of the parent node.  However, we can change the mode that the parent rule operates under so that it treats the sub-rules as alternatives to choose among instead of a sequence.</p>
+            <p>The <code>object</code> rule is configured with the <code>mode</code> option set to <code>ISHML.enum.mode.any</code>, which means that the sub-rules of <code>object</code> are treated as alternative choices.  Next, we <code>.snip()</code> two sub-rules, which we call <code>1</code> and <code>2</code>. By convention, we list each <code>.snip()</code> on a separate line to visually cue that they are choice sub-rules, not sequence sub-rules.</p>
+            <p>The names we give choice sub-rules are unimportant, because only the resulting child nodes from one these choices, not the choice node itself,  is attached to the syntax tree.  Therefore, the syntax tree may contain <code>command.object.indirectObject</code>, but will never contain <code><s>command.object[1].indirectObject</s></code> or <code><s>command.object[2].indirectObject</s></code>.</p>
+            <p>The <code>ISHML.enum.mode.any</code> mode for rules allows the parser to generate alternative interpretations when provided with ambiguous input text.  For example, "take ruby slipper" can be interpreted as "take the slipper to Ruby," or as "take the red slipper."  To stop considering choice rules after the first alternative is generated, use <code>ISHML.enum.mode.apt</code> and create the choice sub-rules in priority order.</p>
+  
             <h2>Semantics</h2>
-            <p>We now have rules that define a syntax tree, this allows to validate input as having the correct phrase structure, or syntax, but the rules, as yet, cannot determine if the input is meaningful or simply well structured nonsense.  For example, "take "</p>
-            
+            <p>So far, we have only discussed rules as defining a syntax tree.  The rules validate the input text as having the correct phrase structure, but syntax alone cannot determine if the input is meaningful or simply well structured nonsense. </p>
+            <p>To discard interpretations that are nonsensical, we define a rule's <code>.semantics</code> property with a function that will return <code>true</code> for meainingful or <code>false</code> false for nonsensical. After a rule's syntactic processing is complete, the function defined by the <code>.semantics</code> property is called with the branch of the syntax tree currently under consideration, an instance of <code>ISHML.Interpretation</code>, passed as the argument. This allows us to compare nodes in the branch and render judgements about the interpretation.  It is also possible to alter the structure of the branch by editing the interpretation's <code>.gist</code> property. </p>
+            <p>Study the definition for <code>nounPhrase.semantics</code> in <a href="#codeListing1">Code Listing 1</a>.  If the <code>article</code> node is present in the branch, then we want throw away all definitions in the <code>noun</code> node where the definition's <code>.role</code> property is set to "npc" since people are not referred to with an article.  If, after cleaning up the definitions, there are no definitions left for the noun, then we discard the branch as nonsense and return <code>false</code>.</p>
+            <p>The <code>command</code> rule also has <code>.semantics</code> defined.  In this case we're not checking for nonsense.  Instead, we're flattening out the tree structure to make easier to work with and more consistent.  Without the semantics function, the noun of the subject is pretty easily accessed: <code>.gist.subject.noun</code>. However, the noun of the direct object is not: <code>.gist.object.directObject.nounPhrase.noun</code>.  The semantics function for <code>command</code> moves the <code>directObject</code> and <code>indirectObject</code> node to directly below the root node, becoming siblings to <code>subject</code>. The function always returns <code>true</code> because it makes no judgements about the meaning of the interpretation, just restructures it.  You may argue that we're stretching the meaning of term semantics past its limits and you might be right, but in the context of the ISHML API, semantics encompasses any sort of processing that is done after syntactic analysis.</p>
+            <h2>Next Steps</h2>
+            <p>This has been a brief tour of parsing using the ISHML API. We did not cover all the configure options for rules and parsing.  See the <a href=API>API Reference</a> for complete documentation. The lexicon and grammar discussed in this tutorial is attached as a script for this web page.  Open your browser's developer tools and experiment. </p>
+  
         </div>
-
-        <div class="card mt-4 mb-4">
-            <div class="card-header" id="q1">
-                <p class="text-info">Referring to Code Listing 1, answer the following questions:</p>
-                <ol>
-                    <li>What is the definition for "take"?</li>
-                    <li>What other lexemes share the same definition as "take"?</li>
-                    <li>How many definitions does "ruby" have?</li>
-                    <li>Open your web browser's developer tools. A lexicon identical to Code Listing 1 was created when this page was loaded. Register a token in the lexicon by entering a statement in the command console. What is returned? Why? What are the requirements for the argument passed in <code>.as()</code>?</li>
-                </ol>
-                <button class="btn btn-link text-info collapsed " type="button" data-toggle="collapse" data-target="#a1"
-                    aria-expanded="false" aria-controls="a1">
-                    Answers
-                </button>
-                
-            </div>
-            <div id="a1" class="collapse" aria-labelledby="q1" data-parent="#q1">
-                <div class="card-body">
-                    <ol class="card-text"> 
-                        <li>The definition of "take" is <code>{key:"take",part:"verb"}</code></li>
-                        <li>"steal" and "grab" share the same definition as take.</li>
-                        <li>"ruby" has three different definitions (ruby, ring, slipper.)</li>
-                        <li>Entering <code>lexicon.register("banana").as({food:"fruit",name:"banana"})</code> returns the lexicon so that methods may be chained. The argument of <code>.as()</code> is the definition of the token and may be a simple value or a complex object. It is the arbitrary payload of the token.</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-        <h2>The Grammar</h2>
-        <div class="clearfix">
-            <pre class="prettyprint bg-jumbotron lang-js float-right ml-4 shadow">
-//How do we struture the input text to look similar to this?
-command //root of syntax tree (JavaScript object)
-command.verb //token for "take"
-command.nounPhrase //non-terminal
-commmand.nounPhrase.article // token for "the"
-commmand.nounPhrase.adjectives // token for "ruby"
-commmand.nounPhrase.noun // token for "slipper"</pre>
-            <p>We created tokens in the lexicon, but we also need to define the structure of the syntax tree to be returned after parsing. In ISHML, a plain JavaScript object represents the root of the syntax tree. The object's properties are the child nodes of the tree.  Child nodes may have children of their own. In other words, the value of a property may also be a plain JavaScript object if the property represents a branch of the tree (a <i>non-terminal</i> node.) All branches of the tree eventually end with the actual token(s) in the <i>terminal</i> nodes.</p>
-            <p>Let's design syntax tree for a simple command like "take the ruby slipper."  First, we'll snip that command into a verb followed by a noun phrase. Then, we snip the noun phrase into article, adjectives, and noun.</p>
-        </div>
-        <div class="clearfix">       
-            <pre id="codelisting2"class="prettyprint bg-jumbotron shadow lang-js float-left mr-4">
-//Code Listing 2
-
-//Create a set of nested rules which mirror the wanted syntax tree.
-var command = ISHML.Rule()
-command.snip("verb").snip("nounPhrase")
-command.nounPhrase.snip("article").snip("adjectives").snip("noun")
-
-//Configure behavior of some of the rules with .configure().
-
-command.verb.configure({ filter: (definition) => definition.part === "verb" })
-
-command.nounPhrase.article
-.configure({ minimum: 0, filter: (definition) => definition.part === "article" })
-
-command.nounPhrase.adjectives
-.configure(
-{
-minimum: 0, maximum: Infinity,
-filter: (definition) => definition.part === "adjective"
-})
-
-//alternatively the rule's options may be set directly.
-command.nounPhrase.noun.filter=(definition) => definition.part === "noun"
-            </pre>
-            <p>Now that we know what we are aiming for, we can design the grammar.  A grammar is a set of nested rules that describes the syntax tree to be generated during parsing. The structure of the grammar mirrors the structure of the syntax tree. Rules are, in spirit, a JavaScript adaptation of <a href="https://en.wikipedia.org/wiki/Backus–Naur_form">BNF
-                notation</a>.</p>
-            <p>Study Code Listing 2.  It defines a variable, <code>command</code>, as an <code>ISHML.Rule</code>.  This will be our root rule.  The <code>.snip()</code> method is used to create two sub-rules, <code>verb</code> and <code>nounPhrase</code>. These are also instances of <code>ISHML.Rule</code>. The <code>command.nounPhrase</code> rule is further sub-divided into <code>article</code>, <code>adjective</code>, and <code>noun</code> rules.</p>
-            <p>Now that we have a set of nested rules that mirrors the basic structure of the syntax tree we want, we can configure the rules. By default, the rules return one and only one instance of a branch or token. In the case of tokens, the default is to return the next token in the tokenization (token list), regardless of how that token is defined. </p>
-            <p>The default a behavior a rule may be modified with the <code>.configure()</code> method. The <code>.configure()</code> method takes an options object as its argument. It is a plain JavaScript object with properties that are the same as the <a href="api.html#rule-non-enum">non-enumerable properties</a> of ISHML.Rule.</p>
-            <p>We'll look at just a few of the available options. Study the <a href="api.html#rule">API</a> for more.  Let's start with <code>filter</code>.  Recall that a single lexeme may be defined multiple ways in the lexicon.  When a token is retrieved from the lexicon, the definitions are exposed as an array in the <code>.definitions</code> property of the token. We use the <code>filter</code> option to specify a function that will return <code>true</code> for valid definitions, filtering out the unwanted definitions from the token during parsing.  If the filter returns <code>false</code> for all the definitions of the token, the rule has failed and the input text is not valid. </p>
-            <p>The <code>minimum</code> option specifies the mininum number of times to repeat the rule when parsing the input.  It defaults to 1.  Set to 0 to make the rule optional.  The <code>maximum</code> option specifies the maximum number of times to repeat a rule. It defaults to 1.  Set to <code>Infinity</code> to repeat the rule an indefinite number of times.  If the parser is able to repeat a rule anywhere between the <code>minimum</code> and <code>maximum</code> inclusively the rule is deemed successful and the input text is accepted as valid.</p>
-            
-        </div>
-        <div class="card mt-4 mb-4">
-            <div class="card-header" id="q2">
-                <p class="text-info">Referring to Code Listing 2, answer the following questions:</p>
-                <ol>
-                    <li>Which rule is the root rule? Why?</li>
-                    <li>Which rules generate terminal nodes and which generate non-terminal nodes? Why?</li>
-                    <li>How would you write a statement to make the nounPhrase rule optional?</li>
-                    <li>How would you write a statement to allow the nounPhrase to appear an indefinite number of times?</li>
-                    <li>Why is it preferrable to use <code>.configure</code> to set the rules options, rather than setting them directly?
-                    </li>
-                    <li>How would you write a filter function to limit noun rule matches to just "things?"</li>
-                    <li>Can you write a filter for the nounPhrase rule? Why or why not?</li>
-                </ol>
-                <button class="btn btn-link text-info collapsed " type="button" data-toggle="collapse" data-target="#a2"
-                    aria-expanded="false" aria-controls="a2">
-                    Answers
-                </button>
-            </div>
-            <div id="a2" class="collapse" aria-labelledby="q2" data-parent="#q2">
-                <div class="card-body">
-                    <ol class="card-text">
-                        <li>The <code>command</code> rule is a root rule.  It was created with <code>ISHML.Rule()</code>, not <code>.snip()</code> and that's a pretty good sign that we intead it to be the root rule.  The more accurate answer is that root rule can be any rule that we use to configure the parser, but we haven't talked about that yet...</li>
-                        <li>The <code>command.nounPhrase</code> and also <code>command</code> rules are non-terminal rules because they have sub-rules defined for them with <code>.snip()</code>.  The other rules are not "snipped" and therefore are terminal rules. The output of a non-terminal rule is a branch of the syntax tree.  The output of a terminal rule is one or more tokens.</li>
-                        <li><code>command.nounPhrase.configure{minimum:0}</code> Or, <code>command.nounPhrase.minimum=0</code></li>
-                        <li><code>command.nounPhrase.maximum=Infinity</code> Or, to make the nounPhrase also optional: <code>command.nounPhrase.configure{minimum:0,maximum:Infinity}</code></li>
-                        <li>Either way works, but using <code>.configure()</code> lets you set multiple options in one statement.  It also returns the instance of <code>ISHML.Rule</code> so you can use method chaining.</li>
-                        <li><code>command.nounPhrase.noun.filter=(definition) => definition.part === "noun" && definition.role="thing"</code></li>
-                        <li>No, filters only apply to tokens in terminal nodes.  The <code>command.nounPhrase</code> rule defines a non-terminal node. Part two of this tutorial covers setting a rule's semantics option for validation of non-terminal nodes.</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-        <h2>The Parser</h2>
-        <div class="clearfix">
-            <div class="float-left">
-                <pre "codelisting3" class="prettyprint bg-jumbotron shadow lang-js mr-4">
-//Code Listing 3
-
-//Create a parser 
-var parser=ISHML.Parser({lexicon:lexicon,grammar:command})</pre>
-<pre "codelisting4" class="prettyprint bg-jumbotron shadow lang-js  mr-4">
-//Code Listing 4
-
-var example1 = parser.analyze("take the ruby slipper")
-
-var example2 = parser.analyze("Take ruby slipper.",{separator:/[\.|\s]/})
-
-var example3 = parser.analyze("Take take ruby slipper.",{separator:/[\.|\s]/})
-
-var example4 = parser.analyze("Take ruby slipper take.",{separator:/[\.|\s]/})
-
-var example5 = parser.analyze("Take the really pretty ruby slipper.",{separator:/[\.|\s]/})
-
-</pre>
-            </div>
-            <p>Study Code Listing 3. Now that we've gone through the hard work of making a lexicon and grammar, we are ready to define the parser. The constructor for <code>ISHML.Parser</code> takes an options argument.  The lexicon we created in Code Listing 1 is used for the <code>lexicon</code> option and the command rule we created in Code Listing 2 for the <code>grammar</code> option. We are now finally ready to do some parsing.</p>
-            <p>Code Listing 4 shows the parser in action. The <code>.analyze()</code> method applies the grammar rule and the lexicon to the input text and returns the result of the parsing. It takes the input text as the first argument.  The second argument is an options object.</p>
-            <p>The input text is first tokenized using the lexicon specified when the parser was constructed.  Depending on the lexemes in the lexicon and the content of the input text, it may be possible that tokenizing may result in more than one valid tokenization.  That's OK. The ISHML parser is designed to handle multiple alternative tokenizations.  After tokenization, the grammar rules are applied and the results are returned as a plain JavaScript object. The properies of this object are dependent on the results of tokenization and parsing.</p> 
-            <p>If the input text was successfully tokenized and parsed, the <code>.success</code> property has a value of <code>true</code>. The <code>.interpretations</code> property contains an array of <code>ISHML.Interpretation</code>.  The <code>.gist</code> property of each interpretation contains the syntax tree generated from parsing.  The structure of <code>.gist</code> follows the structure of the grammar rule used to create it. The nodes of the syntax tree are
-            properties named after the sub-rules that define them. These properties may in turn have other properties defined on
-            them all the way down the syntax tree to the terminal nodes of the tree. A terminal property contains the matching token
-            for the sub-rule. In the case where a sub-rule defines the maximum number of tokens to match to be more than one, the
-            value stored in the terminal property is an array of tokens.  The <code>.remainder</code> property is an empty array because a successful parsing consumes all the tokens in the tokenization.</p>
-            <p>If the input text failed tokenization or parsing, the <code>.success</code> property has a value of <code>false</code>.  If tokenization failed, the <code>.tokenizations</code> property contains an array of partial tokenizations, which can be used to give feedback on why and where tokenization failed.  The <code>.interpretations</code> property is <code>undefined</code>.</p>
-            <p>If tokenization was successful, but parsing was not, the <code>.tokenizations</code> property is <code>undefined</code> and the <code>.interprations</code> property contains an array of partial interpretations, which can be used to give feedback on why and where parsing failed.
-            </p>
-            <p>There are many options for <code>.analyze()</code>. We'll just cover a few of them.  See the <a href="api.html#parser-analyze">API</a> for the complete list.</p>
-            <p>Example 1 shows the most basic use. By default, the tokenizer expects whitespace between lexemes and ignores it.  In example 2 the <code>separator</code> option has been changed to ignore whitespace and periods.  Any <code>RegExp</code> may be used as a separator. For no separation at all, set the separator to the empty string.</p>
-            <p>Example 3 is lexically correct, but syntactically incorrect, due to the doubled verb.  The result is a partial interpretation as discussed above.</p>
-            <p>Example 4 is lexically incorrect because "really pretty" is not registered in the lexicon. The result is a partial tokenization as discussed above.</p>  
-        </div>
-        <div class="card mt-4 mb-4">
-            <div class="card-header" id="q3">
-                <p class="text-info">Open your <a href="https://developer.mozilla.org/en-US/docs/Learn/Common_questions/What_are_browser_developer_tools">browser's developer tools</a>, refer to Code Listing 4, and try the following exercises:</p>
-                <ol class="card-text">
-                    <li>Enter <code>console.log(example1)</code> in the command console. Did <code>example1</code> parse successfully? How many interpretations were returned?
-                        <ol>
-                            <li>Why does <code>example1.interpretations[0].remainder.tokens</code> contain an empty array?</li>
-                            <li>What is <code>example1.interpretations[0].gist</code>?
-                                <ol>
-                                    <li>Enter <code>console.log(example1.interpretations[0].gist)</code>. In what order are the properties of <code>.gist</code> listed?</li>
-                                    <li>Enter <code>Object.keys(example1.interpretations[0].gist)</code>. In what order are the properties of <code>.gist</code> listed?</li>
-                                </ol>
-                            </li>
-                            <li>Why is the value of <code>example1.interpretations[0].gist.nounPhrase.adjectives</code> an array containing a token instead of just the token itself? (Hint: review <a href="#codelisting2">Code Listing 2</a>.)</li>
-                        </ol>
-                    </li>
-                    <li>Enter <code>console.log(example2)</code> in the command console. Did <code>example2</code> parse successfully? How many interpretations were returned?
-                        <ol>
-                            <li>Why is the period character in the input text accepted as valid?</li>
-                            <li>Why is it valid to omit the word "the" in the input text?</li>
-                            <li>How is the syntax tree impacted by the missing article in the input text?</li>
-                        </ol>
-                    </li>
-                    <li>Enter <code>console.log(example3)</code> in the command console. Did <code>example3</code> parse successfully? Why or why not?
-                        <ol>
-                            <li>Did the input text generate any interpretations?</li>
-                            <li>Did the input text successfully tokenize?</li>
-                         </ol>
-                    </li>
-                    <li>Enter <code>console.log(example4)</code> in the command console. Did <code>example4</code> parse successfully? Why
-                        or why not?
-                        <ol>
-                            <li>How many interpretations were generated? Why?</li>
-                            <li>In the case of a partial interpretation, are the leftover tokens available?</li>
-                        </ol>
-                    </li>
-                    <li>Enter <code>console.log(example5)</code> in the command console. Did <code>example5</code> parse successfully? Why
-                        or why not?
-                    </li>
-                </ol>
-                    <button class="btn btn-link text-info collapsed " type="button" data-toggle="collapse" data-target="#a3"
-                        aria-expanded="false" aria-controls="a3">
-                        Answers
-                    </button>
-            </div>
-            <div id="a3" class="collapse" aria-labelledby="q3" data-parent="#q3">
-                <div class="card-body">
-                    <ol class="card-text">
-                        <li>Yes, the value of <code>example1.success</code> is <code>true</code>. One interpretation was returned in the array, <code>example1.interpretations</code>
-                            <ol>
-                                <li>A successful interpretation consumes all the tokens in the tokenization.</li>
-                                <li>The syntax tree is contained in <code>example1.interpretations[0].gist</code>. The <code>.gist</code> property of the interpretation is the root node of the syntax tree.
-                                    <ol>
-                                        <li>Alphabetically.</li>
-                                        <li>all modern browsers <a href="http://www.ecma-international.org/ecma-262/7.0/#sec-ordinaryownpropertykeys">iterate an object's own enumerable properties</a> by starting with integer keys in numerical order followed by the order in which the properties are created. Oddly, <code>console.log()</code>, as implemented in browsers, still insists on alphabetizing object properties for your convenience, which is confusing, but harmless.)</li>
-                                    </ol>
-                                </li>
-                                <li>The <code>maximum</code> option for the <code>.adjectives</code> rule was set to more than 1.</li>
-                            </ol>
-                        </li>
-                        <li>Yes, the value of <code>example2.success</code> is <code>true</code>. One interpretation was returned in the array,
-                            <code>example2.interpretations</code>
-                            <ol>
-                                <li>The period was part of the regular expression assigned to the <code>separator</code> option when <code>parser.analyze()</code> was called.</li>
-                                <li>The <code>minimum</code> option for the article rule was set to 0.</li>
-                                <li>There is no article property in the syntax tree. <code>example3.interpretations[0].gist.article</code> is <code>undefined</code>.</li>
-                            </ol>
-                        </li>
-                        <li>No, the value of <code>example3.success</code> is <code>false</code>. 
-                            <ol>
-                                <li>No, The value of <code>example3.interpretations</code> is undefined.  </li>
-                                <li>Yes, <code>example3.tokenizations</code> contains an array (length 1) of tokenizations.  The list of tokens is in <code>example3.tokenizations[0].tokens</code>.</li>
-                            </ol>
-                        </li>
-                        <li>No, the value of <code>example4.success</code> is <code>false</code>.
-                            <ol>
-                                <li>Two partial interpretations were generated: "take ruby slipper", where ruby is an adjective, and "take ruby", where ruby is a noun.  These interpretations fit the grammar, but they only partially consome the list of tokens in the tokenization. </li>
-                                <li>The leftover tokens remaining are available as a tokenization in an interpretation's <code>.remainder</code> property.  For example, <code>example4.interpretations[0].remainder</code>.</li>
-                            </ol>
-                        </li>
-                        <li>No, the value of <code>example5.success</code> is <code>false</code>.  The attempts at tokenization are available in <code>example5.tokenizations</code>.  For instance, <code>example5.tokenizations[0].tokens</code> contains an array of tokens for the partially tokenized input text and <code>example5.tokenizations[0].remainder</code> contains the portion of the input text that could not be tokenized.  By the way,  <a href="aph.html#parser"><code>smooth</code> and <code>fuzzy</code></a> options could have been used to handle lexemes not found in lexicon.  The <code>smooth</code> option skips over lexemes not found in the lexcion.  The <code>fuzzy</code> option creates a token with a definition of "fuzz".</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-        <p>Continue to <a href="parsing2.html">part two</a> to learn about more complex grammars, including choice rules and semantic analysis.</p>
     </div>
 </body>
 
 <script src="whitewhale.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/bikibird/ishml@0f4c5e5/src/ishml.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/bikibird/ishml@1.1.1/src/ishml.js"></script>
 <script src="Parsing2CodeListing.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"

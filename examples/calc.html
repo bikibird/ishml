@@ -100,20 +100,18 @@
                 return interpretation
             }
 
-           expression.semantics=calculate
-            expression.operations.operator.semantics=(interpretation)=>
-                {
-                    interpretation.gist=interpretation.gist.definitions[0].operation
-                    return interpretation
-                } 
-            
-            term.semantics=calculate    
-            term.operations.operator.semantics=(interpretation)=>
+            getOperation=(interpretation)=>
             {
                 interpretation.gist=interpretation.gist.definitions[0].operation
                 return interpretation
             }
 
+            expression.semantics=calculate
+            expression.operations.operator.semantics=getOperation
+
+            term.semantics=calculate    
+            term.operations.operator.semantics=getOperation
+            
             factor.semantics=calculate
 
             var parser=ISHML.Parser({lexicon:lexicon,grammar:expression})   
