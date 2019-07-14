@@ -1,3 +1,4 @@
+[![](https://data.jsdelivr.com/v1/package/gh/bikibird/ishml/badge)](https://www.jsdelivr.com/package/gh/bikibird/ishml)
 # ISHML
 Interactive Story grapH Management Library
 
