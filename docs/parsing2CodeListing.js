@@ -53,9 +53,12 @@ command.semantics=(interpretation)=>
     {
         if(gist.object.indirectObject)
         {
-            gist.indirectObject=gist.object.indirectObject.nounPhrase
+            if(jgist.object.indirectObject)
+            {
+                gist.indirectObject=gist.object.indirectObject.nounPhrase || gist.object.indirectObject
+            }
         }
-        gist.directObject=gist.object.directObject.nounPhrase
+        gist.directObject=gist.object.directObject.nounPhrase || gist.object.directObject
         delete gist.object
     }
     return true
