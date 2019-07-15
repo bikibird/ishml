@@ -52,41 +52,29 @@ nounPhrase.semantics=(interpretation)=>
 
 var command=ISHML.Rule()
 
-command.snip("subject",nounPhrase).snip("verb").snip("object")
+command.snip("subject",nounPhrase.clone()).snip("verb").snip("object")
 command.subject.configure({minimum:0})
 command.verb.configure({filter:(definition)=>definition.part==="verb"})
 command.object.configure({minimum:0,mode:ISHML.enum.mode.any})
     .snip(1)
     .snip(2)
 
-command.object[1].snip("directObject",nounPhrase).snip("indirectObject")
-command.object[1].indirectObject.snip("preposition").snip("nounPhrase",nounPhrase)
+command.object[1].snip("directObject",nounPhrase.clone()).snip("indirectObject")
+command.object[1].indirectObject.snip("preposition").snip("nounPhrase",nounPhrase.clone())
 command.object[1].indirectObject
     .configure({minimum:0})
 command.object[1].indirectObject.preposition
     .configure({filter:(definition)=>definition.part==="preposition"})
 
-command.object[2].snip("indirectObject",nounPhrase).snip("directObject",nounPhrase)
+command.object[2].snip("indirectObject",nounPhrase.clone()).snip("directObject",nounPhrase.clone())
 
 command.semantics=(interpretation)=>
 {
     var {gist}=interpretation
-    var prepositions=new Set(gist.verb.prepositions)
     if (gist.object)
     {
         if(gist.object.indirectObject)
         {
-            if (gist.object.indirectObject.preposition)
-            {
-                if (!prepositions.has(gist.object.indirectObject.preposition))
-                {
-                    return false 
-                }
-                else
-                {
-                    gist.verb.prepositions=[gist.object.indirectObject.preposition]
-                }
-            }
             gist.indirectObject=gist.object.indirectObject.nounPhrase
         }
         gist.directObject=gist.object.directObject.nounPhrase
@@ -98,7 +86,8 @@ command.semantics=(interpretation)=>
             <h2>Rule Cloning</h2>
             <p>Refer to Code Listing 1. First, we create the <code>nounPhrase</code> rule that we can re-use in the <code>subject</code>, <code>directObject</code>, and <code>indirectObject</code> rules.  You should recognize the code for the <code>nounPhrase</code> rule from <a href="parsing.html">part one</a>.</p>
             <p>(The version of <code>nounPhrase</code> shown here also defines a  <code>.semantics</code> property, which will be explained toward the end of this tutorial.)</p>
-            <p>Now that we have a <code>nounPhrase rule</code>, let's put it to work in our root rule, <code>command</code>.  We use <code>.snip()</code> to create sub-rules, <code>subject</code>, <code>verb</code> and <code>object</code>. The <code>verb</code> rule is defined just as it was in <a href="parsing.html">part one</a>. However, the <code>subject</code> rule is created by passing in <code>nounPhrase</code> as the second argument of <code>.snip()</code>. This creates a deep copy of <code>nounPhrase</code> as the <code>subject</code> rule.  Similarly, <code>nounPhrase</code> appears as a sub-rule of <code>indirectObject</code> and <code>directObject</code>.  In both cases, they are entirely new instances of <code>ISHML.Rule</code>, which are identical to the original <code>nounPhrase</code> rule. Any subsequent changes to the orginal <code>nounPhrase</code> rule will not affect the cloned rules. Conversely, changes to the cloned rules will not affect the original rule.</p>
+            <p>Now that we have a <code>nounPhrase rule</code>, let's put it to work in our root rule, <code>command</code>.  We use <code>.snip()</code> to create sub-rules, <code>subject</code>, <code>verb</code> and <code>object</code>. The <code>verb</code> rule is defined just as it was in <a href="parsing.html">part one</a>. However, the <code>subject</code> rule is created by passing in <code>nounPhrase.clone()</code> as the second argument of <code>.snip()</code>. This creates a deep copy of <code>nounPhrase</code> as the <code>subject</code> rule.  Similarly, <code>nounPhrase</code> appears as a sub-rule of <code>indirectObject</code> and <code>directObject</code>.  In both cases, they are entirely new instances of <code>ISHML.Rule</code> because of the use of <code>.clone()</code>. They are identical copies of the original <code>nounPhrase</code> rule. Any subsequent changes to the orginal <code>nounPhrase</code> rule will not affect the cloned rules. Conversely, changes to the cloned rules will not affect the original rule.</p>
+            <p>(It should be noted that it is sometimes useful to recursively define a rule by referencing itself. In that case <code>.clone()</code> is not used. This advanced use of rules will be covered in a future tutorial.)</p>
             <h2>Choice Rules</h2>
             <p>By default all sub-rules created with <code>.snip()</code> are treated as a sequence of snippets when parsed. In the resulting syntax tree, all the snippets are child nodes of the parent node.  However, we can change the mode that the parent rule operates under so that it treats the sub-rules as alternatives to choose among instead of a sequence.</p>
             <p>The <code>object</code> rule is configured with the <code>mode</code> option set to <code>ISHML.enum.mode.any</code>, which means that the sub-rules of <code>object</code> are treated as alternative choices.  Next, we <code>.snip()</code> two sub-rules, which we call <code>1</code> and <code>2</code>. By convention, we list each <code>.snip()</code> on a separate line to visually cue that they are choice sub-rules, not sequence sub-rules.</p>
@@ -118,7 +107,7 @@ command.semantics=(interpretation)=>
 </body>
 
 <script src="/whitewhale.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/bikibird/ishml@1.0.3/src/ishml.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/bikibird/ishml@1.1.0/src/ishml.js"></script>
 <script src="/parsing2CodeListing.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"

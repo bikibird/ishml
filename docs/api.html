@@ -68,6 +68,7 @@
                             </div>
                             <strong>Methods</strong>
                             <div class="ml-3">
+                                <a class="d-block" href="#rule-clone">clone()</a>
                                 <a class="d-block" href="#rule-configure">configure()</a>
                                 <a class="d-block" href="#rule-parse">parse()</a>
                                 <a class="d-block" href="#rule-snip">snip()</a>
@@ -280,7 +281,8 @@
                         <p class="card-text">Checks the rule's generated syntax tree for semantic correctness and optionally edit the syntax tree.  Defaults to <code>(interpretation)=>true</code>, which accepts all interpretations as semantically correct. Returning <code>false</code> removes the <a href="#interpretation">interpretation</a> from further consideration.  Returning <code>true</code> allows the interperation to continue processing.  Optionally, you may alter the content <code>interpretation.gist</code> and return the altered interpretation as alternative to returning <code>true</code>.</p>  
                         
                         <h2 class="card-title">Methods</h2>
-                        
+                        <h3 class="card-subtitle" id="rule-clone"><code><b>.clone()</b></code></h3>
+                        <p class="card-text">Creates a deep copy of the rule.</p>
                         <h3 class="card-subtitle" id="rule-configure"><code><b>.configure(<i>options</i>)</b></code></h3>
                         <p class="card-text">Configures behavior of rule.</p>
                         <p class="card-text">The <i>options</i> argument is a plain javaScript object with properties that are the same as the <a href="#rule-non-enum"> non-enumerable properties of <code>ISHML.Rule</code></a>.</p>
@@ -294,7 +296,9 @@
                         <h3 class="card-subtitle" id="rule-snip"><code><b>.snip(<i>key</i> [, <i>rule</i>])</b></code></h3>
                         <p class="card-text">Creates a new <code>ISHML.rule</code> instance as an enumerable property of the rule.</p>
                         <p class="card-text">The <i>key</i> argument is the name to be used for the sub-rule and may be a string or integer. If the sub-rule is to be accessed using dot notation, the requirements for dot notation must be observed when naming the key.  For convenience, spaces are automatically converted to underscores.</p>
-                        <p class="card-text">The <i>rule</i> argument is the <code>ISHML.Rule</code> instance to be cloned and assined to the new property. If <i>rule</i> is omitted, a new instance of <code>ISHML.Rule</code> is used.  
+                        <p class="card-text">The <i>rule</i> argument is the <code>ISHML.Rule</code> instance to be assigned to the new property. Cloning of <i>rule</i> is recommended, for example, <code>command.snip("subject",nounPhrase.clone())</code>, unless the rule is being defined recursively.</p>
+                        <p>If <i>rule</i> is omitted, a new instance of <code>ISHML.Rule</code> is used.</p>
+                       
                         <p class="card-text">Returns the rule. This method is chainable.</p>
 
                         <p>See also <a href="parsing.html">parsing tutorial</a>.</p>

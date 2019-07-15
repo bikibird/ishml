@@ -30,41 +30,29 @@ nounPhrase.semantics=(interpretation)=>
 
 var command=ISHML.Rule()
 
-command.snip("subject",nounPhrase).snip("verb").snip("object")
+command.snip("subject",nounPhrase.clone()).snip("verb").snip("object")
 command.subject.configure({minimum:0})
 command.verb.configure({filter:(definition)=>definition.part==="verb"})
 command.object.configure({minimum:0,mode:ISHML.enum.mode.any})
     .snip(1)
     .snip(2)
 
-command.object[1].snip("directObject",nounPhrase).snip("indirectObject")
-command.object[1].indirectObject.snip("preposition").snip("nounPhrase",nounPhrase)
+command.object[1].snip("directObject",nounPhrase.clone()).snip("indirectObject")
+command.object[1].indirectObject.snip("preposition").snip("nounPhrase",nounPhrase.clone())
 command.object[1].indirectObject
     .configure({minimum:0})
 command.object[1].indirectObject.preposition
     .configure({filter:(definition)=>definition.part==="preposition"})
 
-command.object[2].snip("indirectObject",nounPhrase).snip("directObject",nounPhrase)
+command.object[2].snip("indirectObject",nounPhrase.clone()).snip("directObject",nounPhrase.clone())
 
 command.semantics=(interpretation)=>
 {
     var {gist}=interpretation
-    var prepositions=new Set(gist.verb.prepositions)
     if (gist.object)
     {
         if(gist.object.indirectObject)
         {
-            if (gist.object.indirectObject.preposition)
-            {
-                if (!prepositions.has(gist.object.indirectObject.preposition))
-                {
-                    return false 
-                }
-                else
-                {
-                    gist.verb.prepositions=[gist.object.indirectObject.preposition]
-                }
-            }
             gist.indirectObject=gist.object.indirectObject.nounPhrase
         }
         gist.directObject=gist.object.directObject.nounPhrase
