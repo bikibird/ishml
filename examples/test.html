@@ -2,7 +2,7 @@
     <head>
     </head>
     <body>
-        <!--<script src="https://cdn.jsdelivr.net/gh/bikibird/ishml@1.1.0/src/ishml.js"></script>-->
+        <!--<script src="https://cdn.jsdelivr.net/gh/bikibird/ishml@1.1.1/src/ishml.js"></script>-->
         <script src="../src/ishml.js"></script>
         <script>
 var lexicon = ISHML.Lexicon()
@@ -30,7 +30,8 @@ lexicon
     .register("from").as({ key: "from", part: "preposition" })
     .register("to").as({ key: "to", part: "preposition" })
 
-    var adjNoun=ISHML.Rule()
+var adjNoun=ISHML.Rule()
+
 
 adjNoun
     .snip("article").snip("adjectives").snip("noun")
@@ -43,15 +44,13 @@ adjNoun.adjectives
             filter:(definition)=>definition.part==="adjective"
     })
 
-    adjNoun.noun.configure({filter:(definition)=>definition.part==="noun" })
+adjNoun.noun.configure({filter:(definition)=>definition.part==="noun" })
 
     var nounPhrase=ISHML.Rule()
     
-nounPhrase.snip("NP", adjNoun).snip("relation")
-  //  nounPhrase.relation.snip("preposition").snip("RNP",adjNoun)
+nounPhrase.snip("NP", adjNoun.clone()).snip("relation")
 
-// Would like above to be:
- nounPhrase.relation.snip("preposition").snip("RNP",nounPhrase)
+nounPhrase.relation.snip("preposition").snip("RNP",nounPhrase)
 
 nounPhrase.relation.configure({minimum:0})
 nounPhrase.relation.preposition
@@ -60,20 +59,20 @@ nounPhrase.relation.preposition
 
 var command=ISHML.Rule()
 
-command.snip("subject",nounPhrase).snip("verb").snip("object")
+command.snip("subject",nounPhrase.clone()).snip("verb").snip("object")
 command.subject.configure({minimum:0})
 command.verb.configure({filter:(definition)=>definition.part==="verb"})
 command.object.configure({minimum:0,mode:ISHML.enum.mode.any})
     .snip(1)
     .snip(2)
 
-command.object[1].snip("directObject",nounPhrase).snip("indirectObject")
-command.object[1].indirectObject.snip("preposition").snip("nounPhrase",nounPhrase)
+command.object[1].snip("directObject",nounPhrase.clone()).snip("indirectObject")
+command.object[1].indirectObject.snip("preposition").snip("nounPhrase",nounPhrase.clone())
 command.object[1].indirectObject.configure({minimum:0})
 command.object[1].indirectObject.preposition
     .configure({filter:(definition)=>definition.part==="preposition"})
 
-    command.object[2].snip("indirectObject",nounPhrase).snip("directObject",nounPhrase)
+    command.object[2].snip("indirectObject",nounPhrase.clone()).snip("directObject",nounPhrase.clone())
 
     var parser=ISHML.Parser({lexicon:lexicon,grammar:command})    
 /*

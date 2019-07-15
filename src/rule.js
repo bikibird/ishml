@@ -19,11 +19,27 @@ ISHML.Rule=function Rule()
 
 ISHML.Rule.prototype.clone =function()
 {
-	var clonedRule= new ISHML.Rule().configure({minimum:this.minimum,maximum:this.maximum,
-		mode:this.mode,greedy:this.greedy,keep:this.keep,filter:this.filter, semantics:this.semantics})
-	var entries=Object.entries(this)
-	entries.forEach(([key,value])=>{clonedRule[key]=value.clone()})
-	return clonedRule
+	var circularReferences=new Set()
+	function _clone(rule)
+	{
+		var clonedRule= new ISHML.Rule().configure({minimum:rule.minimum,maximum:rule.maximum,
+			mode:rule.mode,greedy:rule.greedy,keep:rule.keep,filter:rule.filter, semantics:rule.semantics})
+		var entries=Object.entries(rule)
+		entries.forEach(([key,value])=>
+		{
+			if (circularReferences.has(value))
+			{
+				clonedRule[key]=value
+			}
+			else
+			{
+				clonedRule[key]=value.clone()
+				circularReferences.add(clonedRule[key])
+			}
+			
+		})
+		return clonedRule
+	}	
 }	
 ISHML.Rule.prototype.configure =function({minimum,maximum,mode,greedy,keep,filter,semantics}={})
 {
