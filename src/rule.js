@@ -278,7 +278,7 @@ ISHML.Rule.prototype.snip =function(key,rule)
 
 	if (rule instanceof ISHML.Rule)
 	{
-		this[formattedKey]=rule.clone()
+		this[formattedKey]=rule
 	}
 	else
 	{
