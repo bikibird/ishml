@@ -84,20 +84,122 @@ lexicon
                 </div>
             </div>
         </div>
-        <h2>The Grammar</h2>
+        
         <div class="clearfix">
-            <pre class="prettyprint bg-jumbotron lang-js float-right ml-4 shadow">
-//How do we struture the input text to look similar to this?
+           
+           
+           
+      <!--  </div> 
+        <div class="clearfix">---> 
+           <div class="d-inline-flex flex-column float-left">
+                <pre class="prettyprint bg-jumbotron lang-js mr-4 shadow">
+//How can we struture the input to look like this?
 command //root of syntax tree (JavaScript object)
 command.verb //token for "take"
 command.nounPhrase //non-terminal
 commmand.nounPhrase.article // token for "the"
 commmand.nounPhrase.adjectives // token for "ruby"
-commmand.nounPhrase.noun // token for "slipper"</pre>
-            <p>We created tokens in the lexicon, but we also need to define the structure of the syntax tree to be returned after parsing. In ISHML, a plain JavaScript object represents the root of the syntax tree. The object's properties are the child nodes of the tree.  Child nodes may have children of their own. In other words, the value of a property may also be a plain JavaScript object if the property represents a branch of the tree (a <i>non-terminal</i> node.) All branches of the tree eventually end with the actual token(s) in the <i>terminal</i> nodes.</p>
-            <p>Let's design a syntax tree for a simple command like "take the ruby slipper."  First, we snip that command into a verb followed by a noun phrase. Then, we snip the noun phrase into article, adjectives, and noun.</p>
-        </div>
-        <div class="clearfix">       
+commmand.nounPhrase.noun // token for "slipper"</pre>  
+            <div class="border mr-4 mb-4 p-2">
+            <figure>
+                <figcaption>Figure 1&mdash; Command</figcaption>
+                    <svg class="railroad-diagram" width="279" height="62" viewBox="0 0 279 62">
+                        <g transform="translate(.5 .5)">
+                        <g>
+                        <path d="M20 21v20m10 -20v20m-10 -10h20"></path>
+                        </g>
+                        <path d="M40 31h10"></path>
+                        <g class="terminal">
+                        <path d="M50 31h0"></path>
+                        <path d="M104 31h0"></path>
+                        <rect x="50" y="20" width="54" height="22" rx="10" ry="10"></rect>
+                        <text x="77" y="35">Verb</text>
+                        </g>
+                        <path d="M104 31h10"></path>
+                        <path d="M114 31h10"></path>
+                        <g class="non-terminal">
+                        <path d="M124 31h0"></path>
+                        <path d="M229 31h0"></path>
+                        <rect x="124" y="20" width="105" height="22"></rect>
+                        <text x="176.5" y="35">NounPhrase</text>
+                        </g>
+                        <path d="M229 31h10"></path>
+                        <path d="M 239 31 h 20 m -10 -10 v 20 m 10 -20 v 20"></path>
+                        </g>
+                    </svg></figure>
+                <figure>
+                        <figcaption>Figure 2&mdash; Noun Phrase</figcaption>
+                        <svg class="railroad-diagram" width="430" height="80" viewBox="0 0 430 80">
+                            <g transform="translate(.5 .5)">
+                            <g>
+                            <path d="M20 30v20m10 -20v20m-10 -10h20"></path>
+                            </g>
+                            <g>
+                            <path d="M40 40h0"></path>
+                            <path d="M159.5 40h0"></path>
+                            <path d="M40 40a10 10 0 0 0 10 -10v0a10 10 0 0 1 10 -10"></path>
+                            <g>
+                            <path d="M60 20h79.5"></path>
+                            </g>
+                            <path d="M139.5 20a10 10 0 0 1 10 10v0a10 10 0 0 0 10 10"></path>
+                            <path d="M40 40h20"></path>
+                            <g class="terminal">
+                            <path d="M60 40h0"></path>
+                            <path d="M139.5 40h0"></path>
+                            <rect x="60" y="29" width="79.5" height="22" rx="10" ry="10"></rect>
+                            <text x="99.75" y="44">Article</text>
+                            </g>
+                            <path d="M139.5 40h20"></path>
+                            </g>
+                            <g>
+                            <path d="M159.5 40h0"></path>
+                            <path d="M316 40h0"></path>
+                            <path d="M159.5 40a10 10 0 0 0 10 -10v0a10 10 0 0 1 10 -10"></path>
+                            <g>
+                            <path d="M179.5 20h116.5"></path>
+                            </g>
+                            <path d="M296 20a10 10 0 0 1 10 10v0a10 10 0 0 0 10 10"></path>
+                            <path d="M159.5 40h20"></path>
+                            <g>
+                            <path d="M179.5 40h0"></path>
+                            <path d="M296 40h0"></path>
+                            <path d="M179.5 40h10"></path>
+                            <g class="terminal">
+                            <path d="M189.5 40h0"></path>
+                            <path d="M286 40h0"></path>
+                            <rect x="189.5" y="29" width="96.5" height="22" rx="10" ry="10"></rect>
+                            <text x="237.75" y="44">Adjective</text>
+                            </g>
+                            <path d="M286 40h10"></path>
+                            <path d="M189.5 40a10 10 0 0 0 -10 10v0a10 10 0 0 0 10 10"></path>
+                            <g>
+                            <path d="M189.5 60h96.5"></path>
+                            </g>
+                            <path d="M286 60a10 10 0 0 0 10 -10v0a10 10 0 0 0 -10 -10"></path>
+                            </g>
+                            <path d="M296 40h20"></path>
+                            </g>
+                            <path d="M316 40h10"></path>
+                            <g class="terminal">
+                            <path d="M326 40h0"></path>
+                            <path d="M380 40h0"></path>
+                            <rect x="326" y="29" width="54" height="22" rx="10" ry="10"></rect>
+                            <text x="353" y="44">Noun</text>
+                            </g>
+                            <path d="M380 40h10"></path>
+                            <path d="M 390 40 h 20 m -10 -10 v 20 m 10 -20 v 20"></path>
+                            </g>
+                        </svg></figure>
+                       </div> 
+                    </div>
+                        <h2>The Grammar</h2>
+                        <p>We created tokens in the lexicon, but we also need to define the structure of the syntax tree to be returned after parsing. In ISHML, a plain JavaScript object represents the root of the syntax tree. The object's properties are the child nodes of the tree.  Child nodes may have children of their own. In other words, the value of a property may also be a plain JavaScript object if the property represents a branch of the tree (a <i>non-terminal</i> node.) All branches of the tree eventually end with the actual token(s) in the <i>terminal</i> nodes.</p>
+            
+                        <p>Let's design a syntax tree for a simple command like "take the ruby slipper."  First, we snip that command into a verb followed by a noun phrase. Then, we snip the noun phrase into article, adjectives, and noun.</p>            
+            <p>Now that we know what we are aiming for, we can design the grammar.  A grammar is a set of nested rules that describes the syntax tree to be generated during parsing. The structure of the grammar mirrors the structure of the syntax tree. Rules are, in spirit, a JavaScript adaptation of <a href="https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form">EBNF
+                notation</a>.</p>      
+ <!--       </div>
+        <div class="clearfix">       -->
             <pre id="codelisting2"class="prettyprint bg-jumbotron shadow lang-js float-left mr-4">
 //Code Listing 2
 
@@ -123,8 +225,7 @@ filter: (definition) => definition.part === "adjective"
 //alternatively the rule's options may be set directly.
 command.nounPhrase.noun.filter=(definition) => definition.part === "noun"
             </pre>
-            <p>Now that we know what we are aiming for, we can design the grammar.  A grammar is a set of nested rules that describes the syntax tree to be generated during parsing. The structure of the grammar mirrors the structure of the syntax tree. Rules are, in spirit, a JavaScript adaptation of <a href="https://en.wikipedia.org/wiki/Backus–Naur_form">BNF
-                notation</a>.</p>
+            
             <p>Study Code Listing 2.  It defines a variable, <code>command</code>, as an <code>ISHML.Rule</code>.  This is the root rule.  The <code>.snip()</code> method creates two sub-rules, <code>verb</code> and <code>nounPhrase</code>. These are also instances of <code>ISHML.Rule</code>. The <code>command.nounPhrase</code> rule further sub-divides into <code>article</code>, <code>adjective</code>, and <code>noun</code> rules.</p>
             <p>Now that we have a set of nested rules that mirrors the basic structure of the syntax tree we want, we can configure the rules. By default, rules return exactly one instance of a branch or token for a given interpretation. In the case of tokens, the default is to return the next token in the tokenization (token list), regardless of how that token is defined. </p>
             <p>The default behavior of a rule may be modified with the <code>.configure()</code> method. The <code>.configure()</code> method takes an options object as its argument. It is a plain JavaScript object with properties that are the same as the <a href="api.html#rule-non-enum">non-enumerable properties</a> of ISHML.Rule.</p>
