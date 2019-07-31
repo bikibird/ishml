@@ -9,7 +9,7 @@ document.querySelector("#navbar").innerHTML =`<a class="navbar-brand text-white-
         <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
           <a class="dropdown-item" href="parsing.html">Parsing Part One</a>
           <a class="dropdown-item" href="parsing2.html">Parsing Part Two</a>
-          <a class="dropdown-item" href="parsing2.html">Parsing Part Three</a>
+          <a class="dropdown-item" href="parsing3.html">Parsing Part Three</a>
         </div>
     </div>
     <a class="nav-link text-white" href="http://patreon.com/bikibird">Sponsorship</a>
