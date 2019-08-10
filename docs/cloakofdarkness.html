@@ -1,7 +1,7 @@
 <html>
     <body>
         
-        <script src="ishml46.js">//should be jsDelIver CDN</script>
+        <script src="../src/ishml.js">//should be jsDelIver CDN</script>
         <script>
 var story= new ISHML.Yarn()
 var net=story.net
@@ -11,7 +11,7 @@ var grammar=story.grammar
 var lexicon=story.lexicon
 
 lexicon
-    .register("the","a","an").as({kind:"noise"})
+    .register("the","a","an").as({part:"article"})
     .register("says").as({key:"says",kind:"tie",part:"relation"})
     .register("is said by").as({key:"is said by",kind:"tie",part:"relation"})
     .register("means").as({key:"means",kind:"tie",part:"relation"})
@@ -24,19 +24,26 @@ lexicon
     .register("is in","in").as({key:"in",kind:"tie",part:"relation"})
     .register("wears").as({key:"wears",kind:"tie",part:"relation"})
     .register("is worn by","worn","worn by").as({key:"is worn by",kind:"tie",part:"relation"})
+    .register("who","what","where","when","how","who").as({part:question})
 
 
-grammar.nounPhrase=ISHML.Rule()
-grammar.nounPhrase.article=ISHML.Rule({minimum:0})
-grammar.nounPhrase.article.filter=(definition)=>definition.kind==="noise"
-grammar.nounPhrase.adjectives=ISHML.Rule({minimum:0, maximum:5})
-grammar.nounPhrase.adjectives.filter=(definition)=>(definition.kind==="tie" || definition.kind==="knot")&& definition.part==="adjective"
-grammar.nounPhrase.noun=ISHML.Rule()
-grammar.nounPhrase.noun.filter=(definition)=>definition.kind==="knot" && definition.part==="noun"
+var nounPhrase=ISHML.Rule().snip("article").snip("adjectives").snip("noun")
+nounPhrase.article.configure({minimum:0, filter:(definition)=>definition.part==="article"})
+nounPhrase.adjectives.configure({minimum:0, maximum:Infinity,
+    filter:(definition)=>(definition.kind==="tie" || definition.kind==="knot")&& definition.part==="adjective"})
+nounPhrase.noun.filter=(definition)=>definition.kind==="knot" && definition.part==="noun"
 
-grammar.input=ISHML.Rule()
-grammar.input.command=[]
-grammar.input.command[0]=ISHML.Rule()
+var grammar=ISHML.Rule().configure({mode:ISHML.enum.any})   
+    .snip(1)
+    .snip(2)
+grammar[1].snip("command")
+grammar[1].command.snip("subject").snip("verb").snip("object")
+grammar[1].command.subject.snip("nounPhrase",nounPhrase.clone()).snip("adjunct")
+grammar[1].command.subject.adjunct.snip()
+grammar[2].snip("question")
+grammar[2].snip("interogative").snip("about")
+grammar[2].interogative.filter=(definition)=>definition.part==="interogative" 
+grammar[2].about.configure( {maximum:Infinity,fuzzy:true}) 
 grammar.input.command[0].subject=ISHML.Rule({minimum:0})
 grammar.input.command[0].subject.nounPhrase=grammar.nounPhrase
 grammar.input.command[0].subject.adjunct=ISHML.Rule({minimum:0,maximum:5})
