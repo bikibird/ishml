@@ -1,2 +1,2 @@
 disqus: whitewhalestories
-permalink: /:categories/:year/:month/:day/:title.html
+permalink: /:categories/:year/:month/:day/:title::output_ext
