@@ -1,5 +1,6 @@
 ---
-title:ISHML Released
+title: ISHML Released
+Permalink: date
 ---
 I’ve just released version 1 of  ISHML.
 
