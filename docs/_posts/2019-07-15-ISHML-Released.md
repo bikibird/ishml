@@ -1,4 +1,5 @@
 ---
+layout: post
 title: ISHML Release
 categories: [blog]
 Permalink: :categories/:year/:month/:day/:title:output_ext 
