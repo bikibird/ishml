@@ -1,4 +1,5 @@
 url: https://whitewhalestories.com
+baseurl: /
 disqus: whitewhalestories
 plugins:
   - jekyll-mentions
