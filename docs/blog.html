@@ -1,0 +1,14 @@
+---
+layout: page
+title: Blog
+permalink: /blog/
+---
+<p>test 2</p>
+<ul>
+  {% for post in site.posts %}
+    <li>
+      <a href="{{ post.url }}">{{ post.title }}</a>
+      {{ post.excerpt }}
+    </li>
+  {% endfor %}
+</ul>
