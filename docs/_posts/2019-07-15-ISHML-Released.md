@@ -2,7 +2,6 @@
 layout: post
 title: ISHML Release
 categories: [blog]
-Permalink: :categories/:year/:month/:day/:title:output_ext 
 ---
 I’ve just released version 1 of  ISHML.
 
