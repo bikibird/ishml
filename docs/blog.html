@@ -1,14 +1,12 @@
 ---
-layout: page
+layout: default
 title: Blog
 permalink: /blog/
 ---
-<p>test 2</p>
-<ul>
-  {% for post in site.posts %}
-    <li>
-      <a href="{{ post.url }}">{{ post.title }}</a>
-      {{ post.excerpt }}
-    </li>
-  {% endfor %}
+<h1>recent articles</h1>
+{% for post in site.posts %}
+	<h2>{{ post.title }}</h2>
+	<p>{{ post.excerpt }} <a href="{{ post.url }}">more...</a></p>
+	
+{% endfor %}
 </ul>
