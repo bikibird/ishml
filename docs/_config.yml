@@ -1,5 +1,5 @@
 url: https://whitewhalestories.com
-baseurl: /
+Permalink: /:categories/:year/:month/:day/:title:output_ext 
 disqus: whitewhalestories
 plugins:
   - jekyll-mentions
