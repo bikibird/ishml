@@ -1,203 +1,149 @@
-ISHML.Knot= function Knot(aYarn,aKey,aValue)
+ISHML.Knot= function Knot(id,value)
 {
 	if (this instanceof ISHML.Knot)
 	{
-		Object.assign(this,aValue)
-		Object.defineProperty(this, "key", {value:ISHML.util.formatKey(aKey),writable: true})
-		//Object.defineProperty(this, "$", {value:aValue,writable: true})
-		Object.defineProperty(this, "yarn", {value:aYarn})
+		Object.assign(this,value)
+		Object.defineProperty(this, "id", {value:ISHML.util.formatId(id),writable: true})
+		
 		return this
 	}
 	else
 	{
-		return new Knot(aYarn,key,aValue)
+		return new Knot(id,value)
 	}	
 }
-ISHML.Knot.prototype.fold=function(aKnot)
+//Object.defineProperty(ISHML.Knot.prototype, "path", { get: function() { return []}})
+ISHML.Knot.prototype.configure=function(knot)
 {
-	//merges proprties from aKnot to this knot
-	Object.assign(this,aKnot)
-	Object.entries(aKnot).forEach(([key,value])=>
-	{
-		if (value instanceof ISHML.Tie)
-		{
-			if(!this.hasOwnProperty(key))
-			{
-				this[key]=value
-			}
-			else
-			{
-				Object.assign(this[key],value)
-			}
-		}
-		else
-		{
-			if(!this.hasOwnProperty(key))
-			{
-				this[key]=value
-			}
-		}
-	})
+	var id=this.id
+	Object.assign(this,knot)
+	this.id=id
 
 }	
 ISHML.Knot.prototype.forget=function(aTerm,aDefinition)
 {
-	var definition=Object.assign({kind:"knot",key:this.key},aDefinition)
+	var definition=Object.assign({kind:"knot",id:this.id},aDefinition)
 	this.yarn.lexicon.unregister(aTerm,definition)
 	return this
 }
 
-ISHML.Knot.prototype.has=function(aKey)
+ISHML.Knot.prototype.has=function(aId)
 {
-	if (this.hasOwnProperty(ISHML.util.formatKey(aKey)))
+	if (this.hasOwnProperty(ISHML.util.formatId(aId)))
 	{
 		return true
 	}
 	else {return false}
 }
-ISHML.Knot.prototype.label=function(...someLabels)
-{
-	someLabels.forEach((label)=>
-	{
-		this.yarn.catalog.register(label,this)
-		if (!this.hasOwnProperty(label))
-		{
-			this.yarn.catalog.register(label,this)
-			this[label]=true
-			//Object.defineProperty(this, label, {value:true,writable: true})
-		}
-	})
-	return this
-}
-/*ISHML.Knot.prototype.path=function(aDestinationKnot)
-{
-	//shortest according to ply value?
-	//longest?
-	//random walk? 
-	var _via =function(...someTies)
-	{
 
+/*
+$
+	.tie("room").to("kitchen")
+	.tie("room").to("foyer")
+
+$.room.kitchen
+	.tie("exit:north<entrance:south").to($.room.foyer)
+
+$.room.kitchen 
+
+.to(knot) creates a reference to knot with bonus properities
+
+$.room.kitchen.exit.north //foyer knot
+$.room.kitchen.exit.north.ply // the ply
+$.room.kitchen.exit.north.tie //$.room.kitchen.exit
+$.room.kitchen.exit.north.converse // $.room.foyer.entrance.south aka $.room.kitchen
+
+
+*/			
+ISHML.Knot.prototype.tie = function(cordage)
+{
+	var fromPly=this
+	if (this instanceof ISHML.Ply)
+	{
+		
+		var fromKnot=this.knot
 	}
-	yield plies
-}*/
-
-
-ISHML.Knot.prototype.tie = function(aKey,aPlyValue)
-{
-	//Create Tie property if it does not already exist
-	//Knot.tie(aKey,aValue).to(anotherKnot).mutually(anotherValue)
-	//story.net.player.tie("friendship",8).to(story.net.Lizzy).mutually(6)
-
-	var thisKnot=this
-	var otherKnot
-	var otherTieKey
-	var tieKey=ISHML.util.formatKey(aKey)
+	else
+	{
+		var fromKnot=this
+	}
+//from is a ply.  Knot is a knot
+	var [forward,backward]=cordage.split(/[<>]/)
+	var [cordId,plyId]=forward.split(":").map(id=>ISHML.util.formatId(id.trim()))
+	if(!fromKnot.hasOwnProperty(cordId)){fromKnot[cordId]=new ISHML.Cord(cordId)}
+	if (backward)
+	{
+		var [converseCordId,conversePlyId]=backward.split(":").map(id=>ISHML.util.formatId(id.trim()))	
+	}
 	
-	if (!thisKnot.hasOwnProperty(tieKey))
+	var to = (knot)=>
 	{
-		thisKnot.yarn.catalog.register(tieKey,thisKnot)
-		thisKnot[tieKey]=new ISHML.Tie() 
-	}
-	//var thisKnot=this  //player
-	var _to = (anotherKnot, aValue={})=>
-	{
-		if (anotherKnot instanceof ISHML.Knot)
+		
+		if (knot instanceof ISHML.Knot)
 		{
-			
-			otherKnot=anotherKnot
+			var toKnot=knot
+			var toPly=knot
 		}
 		else
 		{
-			var otherKnotKey=ISHML.util.formatKey(anotherKnot)
-			if (thisKnot.yarn.net.hasOwnProperty(otherKnotKey))
+			if (knot instanceof ISHML.Ply)
 			{
-				otherKnot=thisKnot.yarn.net[otherKnotKey]
+				var toKnot=knot.knot
+				var toPly=knot
 			}
 			else
 			{
-				otherKnot=thisKnot.yarn.net.knot(otherKnotKey,aValue)
+				var toKnot=new ISHML.Knot(knot)
+				var toPly=toKnot
 			}
 		}
-
-		var ply=ISHML.Ply(otherKnot,aPlyValue)
-		thisKnot[tieKey][`${otherKnot.key}_`]=ply
-
-		return {mutually:_mutually,conversely:_conversely,to:_to}
-	}
-
-	var _mutually =(otherTieValue)=>
-		{
-			if (!otherKnot.hasOwnProperty(tieKey))
-			{
-				thisKnot.yarn.catalog.register(tieKey,otherKnot)
-				otherKnot[tieKey]=new ISHML.Tie()
-			}
+		if (!cordId){cordId=ISHML.util.formatId()}
+		if (!plyId){plyId=toKnot.id||ISHML.util.formatId(toKnot.name)}
 		
-			var ply=ISHML.Ply(thisKnot)
-			if(otherTieValue===undefined)
+		if (fromKnot.hasOwnProperty(cordId))
+		{
+			var cord=fromKnot[cordId]
+			
+		}	
+		else
+		{
+			var cord = new ISHML.Cord(cordId)
+			fromKnot[cordId]=cord
+		}
+		var ply=new ISHML.Ply(plyId,{toKnot:toKnot,fromPly:fromPly,cord:cord})
+		if(backward)
+		{
+			if (toKnot.hasOwnProperty(converseCordId))
 			{
-				ply.weight=aPlyValue
+				var converseCord=toKnot[converseCordId]
 			}
 			else
 			{
-				ply.weight=anotherPlyValue
-			}
-			ply.converse=tieKey
-			
-			otherKnot[tieKey][`${thisKnot.key}_`]=ply
-			thisKnot[tieKey][`${otherKnot.key}_`].converse=tieKey
-			return {to:_to,tie:thisKnot.tie.bind(thisKnot)}
-		}
-		var _conversely = (anotherTieKey,anotherPlyValue)=>
-		{
-
-			otherTieKey=ISHML.util.formatKey(anotherTieKey)
-			
-			if (!otherKnot.hasOwnProperty(otherTieKey))
-			{
+				var converseCord=new ISHML.Cord(converseCordId)
+				toKnot[converseCordId]=converseCord
 				
-				thisKnot.yarn.catalog.register(otherTieKey,otherKnot)
-				otherKnot[otherTieKey]=new ISHML.Tie()
 			}
-			//var thisPlyKey=thisKnot.key
-			var ply=ISHML.Ply(thisKnot)
-			if(anotherPlyValue===undefined)
-			{
-				ply.weight=aPlyValue
-			}
-			else
-			{
-				ply.weight=anotherPlyValue
-			}
-			ply.converse=tieKey
-			otherKnot[otherTieKey][`${thisKnot.key}_`]=ply
-			thisKnot[tieKey][`${otherKnot.key}_`].converse=otherTieKey
-			return {to:_to,tie:thisKnot.tie.bind(thisKnot)}
+			if (!conversePlyId){conversePlyId=fromKnot.id||ISHML.util.formatId(fromKnot.name)}
+			var conversePly = new ISHML.Ply(conversePlyId,{toKnot:fromKnot,fromPly:toPly,cord:converseCord,converse:ply})
+			ply.converse=conversePly
+			conversePly.converse=ply
+			toKnot[converseCordId][conversePlyId]=conversePly	
 		}
 
-	return {to:_to}
+		fromKnot[cordId][plyId]=ply
+		return this
+	}
+	return {to:to, tie:fromKnot.tie.bind(fromKnot)}
 }
-ISHML.Knot.prototype.ties=function(...someTieKeys)
+ISHML.Knot.prototype.cordage=function()
 {
-	var result=new ISHML.Tie()
-	someTieKeys.forEach((tie)=>
-	{
-		var tieKey=ISHML.util.formatKey(tie)
-		if (this.hasOwnProperty(tieKey))
-		{
-			Object.assign(result,this[tieKey])
-		}
-	})
-
-	return result
+	return [this.cord.id, this.ply.id, (this.converse && this.converse.cord.id), (this.converse && this.converse.ply.id)]
 }
-ISHML.Knot.prototype.toMesh=function(){return new ISHML.Mesh(this)}
-
 
 
 ISHML.Knot.prototype.understand=function(...someTerms)
 {
-	var definition={kind:"knot",key:this.key,knot:this,number:"singular",part:"noun"}
+	var definition={kind:"knot",id:this.id,knot:this,number:"singular",part:"noun"}
 	var _as=(aDefinition={})=>
 	{
 		this.yarn.lexicon.register(...someTerms).as(Object.assign(definition,aDefinition))
@@ -206,80 +152,28 @@ ISHML.Knot.prototype.understand=function(...someTerms)
 	return {as:_as}
 }
 
-ISHML.Knot.prototype.unlabel=function(...someLabels)
+
+ISHML.Knot.prototype.untie = function()
 {
-	someLabels.forEach((label)=>
+/*Knot must have been reached by traveling along a tie.
+$.room.kitchen.untie() removes the room tie for kitchen and returns kitchen.knot.
+$.room.kitchen.exit.north removes the exit north tie to foyer and returns north.knot, the bare foyer knot.
+
+$.room.kitchen.exit.north.untie()
+*/
+
+	var [cordId,plyId,converseCordId,conversePlyId]=this.cordage()
+	delete this.from[cordId][plyId]
+	if (converseCordId)
 	{
-		this.yarn.catalog.unregister(label,this)
-		delete this[label]
-	})
-	return this
+	delete this[converseCordId][conversePlyId]
+	}
+	return this.self
 }
-ISHML.Knot.prototype.untie = function(aKey)
+ISHML.Knot.prototype.retie = function(cordage)
 {
-	//deletes a ply from a tie.
-	//Knot.untie(aKey,aValue).from(anotherKnot)
-	//story.net.player.untie("friendship",8).from(story.net.Lizzy)
-	//
-	var thisKnot=this
-	if (aKey instanceof ISHML.Tie)
-	{
-		var tieKey=aKey.key
-	}
-	else
-	{
-		var tieKey=ISHML.util.formatKey(aKey)
-	}
+	//$.place.kitchen.contains.knife.retie("in<contains").to($.place.foyer)
+	this.untie()
 
-	var _from =(anotherKnot)=>
-	{
-
-		if (anotherKnot instanceof ISHML.Knot)
-		{
-			
-			var otherKnot=anotherKnot
-		}
-		else
-		{
-			var otherKnot=thisKnot.yarn.net[ISHML.util.formatKey(anotherKnot)]
-		}
-	
-		var plyKey=`${otherKnot.key}_`
-		var converseTieKey=thisKnot[tieKey].converse
-		delete thisKnot[tieKey][plyKey]
-	
-		if (converseTieKey)
-		{
-			var conversePlyKey=`${thisKnot.key}_`
-			delete otherKnot[converseTieKey][conversePlyKey]
-		}		
-		return thisKnot
-	}
-	var _all = (removeTie)=>
-	{
-		var converseTieKey=thisKnot[tieKey].converse
-		
-		var conversePlyKey=`${thisKnot.key}_`
-		Object.keys(thisKnot[tieKey]).forEach((ply)=>
-		{
-			if (converseTieKey)
-			{
-				delete thisKnot[tieKey][ply].knot[converseTieKey][conversePlyKey]
-				if (removeTie && Object.keys(thisKnot[tieKey][ply].knot[converseTieKey]).length >0)
-				{
-					delete thisKnot[tieKey][ply].knot[converseTieKey]
-				}
-			}	
-			delete thisKnot[tieKey][ply]
-		})
-
-		
-		if (removeTie)
-		{
-			delete thisKnot[tieKey]
-		}	
-		return thisKnot	
-	}
-
-	return {from:_from,all:_all}
+	return this.tie(cordage)
 }
