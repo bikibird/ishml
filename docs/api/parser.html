@@ -1,0 +1,55 @@
+<div class="card mt-4" id="parser">
+	<div class="card-header">
+		<h1 class="text-info">.Parser()</h1>
+		<h6 class="text-info">ishml.js, ishml-lp.js</h6>
+	</div>
+	<div class="card-body">
+		<p class="card-text">A Parser object is a <a href=></a>recursive descent parser, with backtracking, that works with a grammar and a lexicon to provide <a href="https://en.wikipedia.org/wiki/Lexical_analysis">lexical</a>, <a href="https://en.wikipedia.org/wiki/Parsing">syntactic</a>, and semantic analysis of input. It handles ambiguously defined tokens and grammars and may potentially generate multiple interpretations from the same text.</p>
+		<p class="card-text">Recursive decent parsers are susceptible to exponential run times. Writing the grammar in such a way as to reduce backtracking can improve run times.</p>
+		
+		<h2 class="card-title">Constructor</h2>
+		<h3 class="card-subtitle"><code><b>ISHML.Parser({lexicon:<i>lexicon</i>, grammar:<i>rule</i>})</b></code></h3>
+		<p class="card-text">Returns an instance of the Parser object. Use of new operator is optional.</p>
+		<p class="card-text">The <i>lexicon</i> argument is an instance of the <a href="#ISHML-Lexicon">ISHML.Lexicon</a> object that should be used tokenizing input.</p>
+		<p class="card-text">The <i>rule</i> argument is an instance of the <a href="#ISHML-Rule">ISHML.Rule</a> object that should be used for syntactic parsing and semantic analysis.</p>
+
+		<h2 class="card-title">Properties</h2>
+		<h3 class="card-subtitle" id="parser-lexicon"><code><b>.lexicon</b></code></h3>
+		<p class="card-text">The <a href="#ISHML-Lexicon">ISHML.Lexicon</a> object that was specified in the constructor.</p>
+
+		<h3 class="card-subtitle" id="parser-grammar"><code><b>.grammar</b></code></h3>
+		<p class="card-text">The <a href="#ISHML-Rule">ISHML.Rule</a> object that was specified in the constructor.</p>
+
+		<h2 class="card-title">Methods</h2>
+		<h3 class="card-subtitle" id="parser-analyze"><code><b>.analyze(<i>text</i>, <i>options</i>)</b></code></h3>
+		<p class="card-text"><a href="#lexicon-tokenize">Tokenizes</a> and <a href="#rule-parse">parses</a> the <i>text</i> argument and return an array of <a href="#interpretation">ISHML.Interpretation</a>.</p>
+			
+		<p class="card-text">The <i>text</i> argument is a string of characters to be analyzed.</p>
+		<p class="card-text">The <i>options</i> argument is a plain javaScript object with properties that affect how the <i>text</i> argument is tokenized.</p>
+
+		<h4 class="card-subtitle"><code>caseSensitve:<i class="text-info">Boolean</i></code></h4>
+		<p class="card-text">Defaults to <code>false</code>. Set to <code>true</code> for case sensitive tokenization.</p>
+
+		<h4 class="card-subtitle"><code>full <i class="text-info">Boolean</i></code></h4>
+		<p class="card-text">Defaults to <code>false</code> for partial matching. Set to <code>true</code> for full matching.</p>
+		<p class="card-text">A partial match is a match of the lexicon entry's full lexeme against the initial characters of the <i>lexeme</i> argument, but not the other way around.</p>
+		<p class="card-text">A full match matches all the characters in the <i>lexeme</i> argument against the lexicon entry with no characters leftover.</p>
+
+		<h4 class="card-subtitle"><code>.fuzzy <i class="text-info">Boolean</i></code></h4>
+		<p class="card-text">Defaults to <code>false</code>. Skips over any characters in the <i>text</i> argument that have no matching lexeme in the lexicon by adding fuzz <a href="#token">tokens</a>, <code>{lexeme:<i>characters</i>, definitions:[{fuzz:<i>characters</i>}]}</code>, to the <a href="#tokenization">tokenization</a>.</p>
+
+		<h4 class="card-subtitle"><code>.greedy <i class="text-info">Boolean</i></code></h4>
+		<p class="card-text">Defaults to <code>false</code>. Set to <code>true</code> to return the longest match. Only applicable when <code>full</code> is set to <code>false</code> for partial matching.</p>
+
+		<h4 class="card-subtitle"><code>.lax <i class="text-info">Boolean</i></code></h4>
+		<p class="card-text">Applies to partial matching. Defaults to <code>false</code>. Set to <code>true</code> to return partial matches even if the next character in the <i>lexeme</i> argument does not match the separator or end of string.</p>
+
+		<h4 class="card-subtitle"><code>.separator <i class="text-info">RegExp</i></code></h4>
+		<p class="card-text">Applies to partial matching. Defaults to <code>/\s/</code>, whitespace. May be set to any regular expression. For no separator, set to empty string. When <code>lax</code> is set to <code>false</code>, a potential partial match will only be considered a match if the next character in the <i>lexeme</i> argument matches the separator or is the end of string.</p>
+
+		<h4 class="card-subtitle"><code>.smooth <i class="text-info">Boolean</i></code></h4>
+		<p class="card-text">Defaults to <code>false</code>. Skips over any characters in the <i>text</i> argument that have no matching lexeme in the lexicon and continues tokenizing to the end of <i>text</i> argument. Mismatched characters are lost.</p>
+
+		<p>See also <a href="parsing.html">parsing tutorial</a>.</p>
+	</div>
+</div>

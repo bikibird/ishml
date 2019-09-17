@@ -1,0 +1,20 @@
+<div class="card mt-4" id="token">
+	<div class="card-header">
+		<h1 class="text-info">.Token()</h1>
+		<h6 class="text-info">ishml.js, ishml-lp.js</h6>
+	</div>
+	<div class="card-body">
+		<p class="card-text">A token object is the smallest unit of text along with its definition that is meaningful to an application. </p>
+		<h2 class="card-title">Constructor</h2>
+		<p class="card-text">Instances of <code>ISHML.Token</code> are not intended to be created by calling the object's constructor. Instead, they are produced (directly or indirectly) as a result of calls to <a href="#lexicon-search"><code>ISHML.Lexicon.search()</code></a>, <a href="#lexicon-tokenize"><code>ISHML.Lexicon.tokenize()</code></a>, or <a href="#parser-analyze"><code>ISHML.Parser.analyze()</code></a>.</p>
+
+		<h2 class="card-title">Properties</h2>
+		<h3 class="card-subtitle" id="token-lexeme"><code><b>.lexeme</b> <i class="text-info">String</i></code></h3>
+		<p class="card-text"> is the string of characters that identifies the token. </code></p>
+
+		<h3 class="card-subtitle" id="token-definitions"><code><b>.definitions</b> <i class="text-info">Array</i></code></h3>
+		<p class="card-text"> is an Array of definitions retrieved from the Lexicon that give meaning to the <code>lexeme</code>. A definition may be a simple value or a complex object. It is an arbitrary payload. A definition typically holds one or more references to objects and functions defined elsewhere in the application.</p>
+
+		<p>See also <a href="parsing.html">parsing tutorial</a>.</p>
+	</div>
+</div>
