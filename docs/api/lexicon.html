@@ -1,60 +1,49 @@
 <div class="card mt-4" id="lexicon">
-                    <div class="card-header">
-                        <h1 class="text-info">.Lexicon()</h1>
-                        <h6 class="text-info">ishml.js, ishml-lp.js</h6>
-                    </div>
-                    <div class="card-body">
-                        <p class="card-text">A Lexicon stores a collection of <a href="#token">tokens</a>.</p>
+	<div class="card-header">
+		<h1 class="text-info">.Lexicon()</h1>
+		<h6 class="text-info">ishml.js, ishml-lp.js</h6>
+	</div>
+	<div class="card-body">
+		<p class="card-text">A Lexicon stores a collection of <a href="#token">tokens</a>.</p>
+		<h2 class="card-title">Constructor</h2>
+		<h3 class="card-subtitle"><code><b>ISHML.Lexicon()</b></code></h3>
+		<p class="card-text">Returns an instance of the Lexicon object. Use of new operator is optional. Takes no argument.</p>
+		<p class="card-text">Used by <code><a href="#parser-anaylze">ISHML.Parser.analyze()</a></code> and <code><a href="#parser-anaylze">ISHML.Rule.parse()</a></code>.</p>
 
-                        <h2 class="card-title">Constructor</h2>
-                        <h3 class="card-subtitle"><code><b>ISHML.Lexicon()</b></code></h3>
-                        <p class="card-text">Returns an instance of the Lexicon object. Use of new operator is optional. Takes no argument.</p>
-                        <p class="card-text">Used by <code><a href="#parser-anaylze">ISHML.Parser.analyze()</a></code> and <code><a href="#parser-anaylze">ISHML.Rule.parse()</a></code>.</p>
+		<h2 class="card-title">Methods</h2>
+		<h3 class="card-subtitle"><code id="lexicon-register"><b>.register(<i>lexeme...</i>).as(<i>definition</i>)</b></code>
+		</h3>
+		<p class="card-text">Adds <a href="#token">tokens</a> to the lexicon.</p>
+		<p class="card-text">The <i>lexeme</i> is the string of characters to be matched. More than one lexeme may be specified for the same definition. The same lexeme may have multiple definitions, but only one definition is permitted for each call of the <code>register</code> method.</p>
+		<p class="card-text">The <i>definition</i> may be a simple value or a complex object. It is an arbitrary payload to be retrieved when the lexeme is matched. A definition typically holds one or more references to objects and functions defined elsewhere in the application.</p>
+		<p class="card-text">Returns the instance of <code>ISHML.Lexicon</code>. This method is chainable.</p>
 
-                        <h2 class="card-title">Methods</h2>
-                        <h3 class="card-subtitle"><code id="lexicon-register"><b>.register(<i>lexeme...</i>).as(<i>definition</i>)</b></code>
-                        </h3>
-                        <p class="card-text">Adds <a href="#token">tokens</a> to the lexicon.</p>
-                        <p class="card-text">The <i>lexeme</i> is the string of characters to be matched. More than one lexeme may be specified for the same definition. The same lexeme may have multiple definitions.</p>
-                        <p class="card-text">The <i>definition</i> may be a simple value or a complex object. It is an arbitrary payload to be retrieved when the lexeme is matched. A definition typically holds one or more references to objects and functions defined elsewhere in the application.</p>
-                        <p class="card-text">Returns the instance of <code>ISHML.Lexicon</code>. This method is chainable.</p>
+		<h3 class="card-subtitle"><code id="lexicon-search"><b>.search(<i>lexeme</i>[, <i>options</i>])</code></b></h3>
+		<p class="card-text">Searches for full and partial matches in the lexicon.</p>
+		<p class="card-text">Returns an array of search results. Each search result is a plain JavaScript object with a <code>token</code> property containing the matching <a href="#token">token</a> and, a <code>remainder</code> property containing the remaining unmatched string of characters from the <i>lexeme</i> argument.</p>
+		<p class="card-text">The <i>lexeme</i> argument is a string of characters to be matched against the entries in the lexicon.</p>
+		<p class="card-text">The <i>options</i> argument is a plain javaScript object with properties listed below that override the default behavior of search.</p>
+		<h4 class="card-subtitle"><code>.caseSensitve <i class="text-info">Boolean</i></code></h4>
+		<p class="card-text">Defaults to <code>false</code>. Set to <code>true</code> for case sensitive searches.</p>
+		<h4 class="card-subtitle"><code>.full <i class="text-info">Boolean</i></code></h4>
+		<p class="card-text">Defaults to <code>false</code> for partial matching. Set to <code>true</code> for full matching.</p>
+		<p class="card-text">A partial match is a match of the lexicon entry's full lexeme against the initial characters of the <i>lexeme</i> argument, but not the other way around.</p>
+		<p class="card-text">A full match matches all the characters in the <i>lexeme</i> argument against the lexicon entry with no characters leftover.</p>
+		<h4 class="card-subtitle"><code>.longest <i class="text-info">Boolean</i></code></h4>
+		<p class="card-text">Defaults to <code>false</code>. Set to <code>true</code> to return the longest match. Only applicable when <code>full</code> is set to <code>false</code> for partial matching.</p>
+		<h4 class="card-subtitle"><code>.lax <i class="text-info">Boolean</i></code></h4>
+		<p class="card-text">Applies to partial matching. Defaults to <code>false</code>. Set to <code>true</code> to return partial matches even if the next character in the <i>lexeme</i> argument does not match the separator or end of string.</p>
+		<h4 class="card-subtitle"><code>.regex <i class="text-info">RegExp</i></code></h4>
+		<p class="card-text">Defaults to <code>false</code>.  May be set to any regular expression. Causes the text supplied in the lexeme argument to be matched against the regular expression without searching the lexicon for definitions. Instead <code>{fuzzy:true} </code> is provided as the tokens definition. </p>
+		<h4 class="card-subtitle"><code>.separator <i class="text-info">RegExp</i></code></h4>
+		<p class="card-text">Applies to partial matching. Defaults to <code>/^\s+/</code>, whitespace. May be set to any regular expression. For no separator, set to empty string. When <code>lax</code> is set to <code>false</code>, a potential partial match will only be considered a match if the next character in the <i>lexeme</i> argument matches the separator or is the end of string.</p>
 
-                        <h3 class="card-subtitle"><code id="lexicon-search"><b>.search(<i>lexeme</i>[, <i>options</i>])</code></b></h3>
-                        <p class="card-text">Searches for full and partial matches in the lexicon.</p>
-                        <p class="card-text">Returns an array of search results. Each search result is a plain JavaScript object with a <code>token</code> property containing the matching <a href="#token">token</a> and, a <code>remainder</code> property containing the remaining unmatched string of characters from the <i>lexeme</i> argument.</p>
-                        <p class="card-text">The <i>lexeme</i> argument is a string of characters to be matched against the entries in the lexicon.</p>
-                        <p class="card-text">The <i>options</i> argument is a plain javaScript object with properties listed below that override the default behavior of search.</p>
-                        <h4 class="card-subtitle"><code>.caseSensitve <i class="text-info">Boolean</i></code></h4>
-                        <p class="card-text">Defaults to <code>false</code>. Set to <code>true</code> for case sensitive searches.</p>
-                        <h4 class="card-subtitle"><code>.full <i class="text-info">Boolean</i></code></h4>
-                        <p class="card-text">Defaults to <code>false</code> for partial matching. Set to <code>true</code> for full matching.</p>
-                        <p class="card-text">A partial match is a match of the lexicon entry's full lexeme against the initial characters of the <i>lexeme</i> argument, but not the other way around.</p>
-                        <p class="card-text">A full match matches all the characters in the <i>lexeme</i> argument against the lexicon entry with no characters leftover.</p>
-                        <h4 class="card-subtitle"><code>.greedy <i class="text-info">Boolean</i></code></h4>
-                        <p class="card-text">Defaults to <code>false</code>. Set to <code>true</code> to return the longest match. Only applicable when <code>full</code> is set to <code>false</code> for partial matching.</p>
-                        <h4 class="card-subtitle"><code>.lax <i class="text-info">Boolean</i></code></h4>
-                        <p class="card-text">Applies to partial matching. Defaults to <code>false</code>. Set to <code>true</code> to return partial matches even if the next character in the <i>lexeme</i> argument does not match the separator or end of string.</p>
-                        <h4 class="card-subtitle"><code>.separator <i class="text-info">RegExp</i></code></h4>
-                        <p class="card-text">Applies to partial matching. Defaults to <code>/\s/</code>, whitespace. May be set to any regular expression. For no separator, set to empty string. When <code>lax</code> is set to <code>false</code>, a potential partial match will only be considered a match if the next character in the <i>lexeme</i> argument matches the separator or is the end of string.</p>
-
-                        <h3 class="card-subtitle"><code id="lexicon-tokenize"><b>.tokenize(<i>text</i>[, {<i>options</i>}])</b></code></h3>
-                        <p class="card-text">Tokenizes a string according to entries in the lexicon.</p>
-                        <p class="card-text">Returns a plain JavaScript object with <code>complete</code> and <code>partial</code> properties.</p>
-                        <p class="card-text">The <code>complete</code> property is an array of all possible <a href="#tokenizations">tokenizations</a> that completely match the <i>text</i> argument. If there are no complete tokenizations possible, <code>complete</code> contains a zero length array.</p>
-                        <p class="card-text">In the event that the <i>text</i> argument could not be completely matched, the <code>partial</code> property contains all possible partial tokenzations of the <i>text</i> argument. If complete tokenization is possible, the <code>partial</code> property will contain a zero-lenght array.</p>
-                        <p class="card-text">The <i>text</i> argument is a string of characters to be matched against he entries in the lexicon.</p>
-                        <p class="card-text">The <i>options</i> argument is a plain javaScript object with properties to override the default behavior. The option properties for <code>tokenize()</code> are the same as <a href="#lexicon-search"><code>search()</code></a> above with the addition of the two options listed below.</p>
-                        <h4 class="card-subtitle"><code>.fuzzy <i class="text-info">Boolean</i></code></h4>
-                        <p class="card-text">Defaults to <code>false</code>. Skips over any characters in the <i>text</i> argument that have no matching lexeme in the lexicon by adding fuzz <a href="#token">tokens</a>, <code>{lexeme:<i>characters</i>, definitions:[{fuzz:<i>characters</i>}]}</code>, to the <a href="#tokenization">tokenization</a>.</p>
-                        <h4 class="card-subtitle"><code>.smooth <i class="text-info">Boolean</i></code></h4>
-                        <p class="card-text">Defaults to <code>false</code>. Skips over any characters in the <i>text</i> argument that have no matching lexeme in the lexicon and continues tokenizing to the end of <i>text</i> argument. Mismatched characters are lost.</p>
-                        
-                        <h3 class="card-subtitle"><code id="lexicon-unregister"><b>.unregister(<i>lexeme</i>[,definition])</b></code></h3>
-                        <p class="card-text">Removes a definition from a token in the lexicon.</p>
-                        <p class="card-text">The <i>lexeme</i> argument is a string of characters identifying a token in the lexicon.</p>
-                        <p class="card-text">The <i>definition</i> argument is a JavaScript object matching the original definition under which the lexeme was registered. The function does a shallow comparison of the properties and values of the <i>definition</i> argument to the definition stored in the lexicon. If they are found to be equal, the definition in the lexicon is deleted.</p>
-                        <p class="card-text">If no <i>definition</i> argument is provided, all definitions connected with the <i>lexeme</i> argument are removed from the lexicon, which, in essence, deletes the token.</p>
-                        <p class="card-text">Returns the instance object of method. This method is chainable.</p>
-                        <p class="card-text">See also <a href="parsing.html">parsing tutorial</a>.</p>
-                    </div>
-                </div>
+		<h3 class="card-subtitle"><code id="lexicon-unregister"><b>.unregister(<i>lexeme</i>[,definition])</b></code></h3>
+		<p class="card-text">Removes a definition from a token in the lexicon.</p>
+		<p class="card-text">The <i>lexeme</i> argument is a string of characters identifying a token in the lexicon.</p>
+		<p class="card-text">The <i>definition</i> argument is a JavaScript object matching the original definition under which the lexeme was registered. The function does a shallow comparison of the properties and values of the <i>definition</i> argument to the definition stored in the lexicon. If they are found to be equal, the definition in the lexicon is deleted.</p>
+		<p class="card-text">If no <i>definition</i> argument is provided, all definitions connected with the <i>lexeme</i> argument are removed from the lexicon, which, in essence, deletes the token.</p>
+		<p class="card-text">Returns the instance object of method. This method is chainable.</p>
+		<p class="card-text">See also <a href="parsing.html">parsing tutorial</a>.</p>
+	</div>
+</div>
