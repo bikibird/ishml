@@ -1,0 +1,20 @@
+<div class="card mt-4" id="interpretation">
+                    <div class="card-header">
+                        <h1 class="text-info">.Interpretation()</h1>
+                        <h6 class="text-info">ishml.js, ishml-lp.js</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">An Interpretation represents one possible parsing of a string of characters in the context of a specific lexicon and grammar.</p>
+                        
+                        <h2 class="card-title">Constructor</h2>
+                        <p class="card-text">Instances of <code>ISHML.Interpretation</code> are not intended to be created by calling the object's constructor. Instead, they are generated through calls to <code><a href="#parser-anaylze">ISHML.Parser.analyze()</a></code> or <code><a href="#rule-parse">ISHML.Rule.parse()</a></code>.</p>
+                        
+                        <h2 class="card-title">Properties</h2>
+                        <h3 id="interpretation-gist" class="card-subtitle"><code><b>.gist</b> <i class="text-info">Object</i></code></h3>
+                        <p class="card-text">The gist contains the syntax tree resulting from parsing. Parsing breaks down text into a sequence of terms.  Each of these terms may then be broken down into a sequence of one or more sub-terms, recursively. This process forms a syntax tree from the text. The structure of the gist follows the structure of the grammar <a href="#rule">rule</a> used to create it. The nodes of the syntax tree are properties named after the sub-rules that define them. These properties may in turn have other properties defined on them all the way down the syntax tree to the terminal nodes of the tree. A terminal property contains the matching <a href="#token">token</a> for the sub-rule. In the case where a sub-rule defines the maximum number of tokens to match to be more than one, the value stored in the terminal property is an array of <a href="#token">tokens</a>.</p>
+                        
+                        <h3 id="interpretation-remainder" class="card-subtitle"><code>.<b>remainder</b> <i class="text-info">ISHML.Tokenization</i></code></h3>
+                        <p class="card-text">The remainder contains an array of tokens in the form of a <a href="#tokenization">tokenization</a>, if any, that were not matched during parsing. Successful parsing will result in a remainder with an array length of zero. </p>
+                        <p class="card-text">See also <a href="parsing.html">parsing tutorial</a>.</p>
+                    </div>
+                </div>
