@@ -4,8 +4,8 @@
 	</div>
 	<div class="card-body">
 		<p class="card-text">A Rule object is a grammar rule that describes the syntax tree that will result from parsing some text with the rule. Rules are, in spirit, a JavaScript adaptation of <a href="https://en.wikipedia.org/wiki/Backus–Naur_form">BNF notation</a>.</p>
-		<p>Rules are built from other rules and have an object structure that resembles the syntax tree that results when the rule's <code>.parse()</code> method is called.</p>
-
+		<p>Rules may be built from other rules and have an object structure that resembles the syntax tree that results when the rule's <code>.parse()</code> method is called.</p>
+		<p>The terminal sub-rules match the input text against a lexicon or a regular expression pattern.</p>
 		<h2 class=" card-title">Constructor</h2>
 		<p class="card-text"><code>ISHML.Rule()</code></p>
 		<p class="card-text">Returns a new <code>ISHML.Rule</code> object instance. Use of new operator is optional. Takes no argument.</p>
@@ -13,30 +13,39 @@
 		<h2 class="card-title">Properties</h2>
 		<p class="card-text" id="rule-enum">Enumerable properties are of type <code>ISHML.Rule</code>. They are created with the <a href="#rule-snip"><code>.snip()</code></a> method, which forms a tree structure of rules, mirroring the intended syntax tree resulting from parsing.</p>
 		<p class="card-text" id="rule-non-enum">The following non-enumerable properties set the rule's behavior when its <a href="#rule-parse">.parse()</a> method is called. These properties may be set directly or with the <a href="#rule-configure"><code>.configure()</code></a> method.</p>
-
+		<h3 class="card-subtitle"><code>.caseSensitve <i class="text-info">Boolean</i></code></h3>
+		<p class="card-text">Applies to terminal rules. Defaults to <code>false</code>. Set to <code>true</code> for case sensitive parsing.</p>
 		<h3 class="card-subtitle" id="rule-filter"><code><b>.filter</b> <i class="text-info">function</i></code></h3>
-		<p class="card-text">Filters the array of definitions associated with the <a href="#token">token(s)</a> to be processed when rule's <a href="#rule-parse">.parse()</a> method is called. Defaults to <code>(definition)=>true</code>. Returning <code>true</code> from the filter function indicates that the definition should be kept. Returning <code>false</code> removes the definition from the definitions array of the token in the resulting <a href="#interpretation">interpretation</a>. A token that has no definitions left after filtering is consider a non-matching token for the rule.</p>
-
+		<p class="card-text">Filters the array of definitions associated with the <a href="#token">token(s)</a> to be processed when rule's <a href="#rule-parse">.parse()</a> method is called. Applies to terminal rules. Defaults to <code>(definition)=>true</code>. Returning <code>true</code> from the filter function indicates that the definition should be kept. Returning <code>false</code> removes the definition from the definitions array of the token in the resulting <a href="#interpretation">interpretation</a>. A token that has no definitions left after filtering is consider a non-matching token for the rule.</p>
+		<h3 class="card-subtitle"><code>.full <i class="text-info">Boolean</i></code><h3>
+		<p class="card-text">Applies to terminal rules. Defaults to <code>false</code> for partial matching. Set to <code>true</code> for full matching.</p>
+		<p class="card-text">A partial match is a match of the lexicon entry's full lexeme against the initial characters of the text to be parsed, but not the other way around.</p>
+		<p class="card-text">A full match matches all the characters of the text to be parsed against the lexicon entry with no characters leftover.</p>
 		<h3 class="card-subtitle" id="rule-greedy"><code><b>.greedy</b> <i class="text-info">Boolean</i></code></h3>
-		<p class="card-text">Set to <code>true</code> to consider the longest possible array of terms fitting the rule's criteria. Only applicable when <code>minimum</code> and <code>maximum</code> are set to different values and <code>maximum</code> is greater than one. Defaults to <code>false</code>, which generates all possible <a href="#interpretation">interpretations</a> between <code>minimum</code> and <code>maximum</code> inclusively. </p>
-		
+		<p class="card-text">Set to <code>true</code> to consider the longest possible array of terms fitting the rule's criteria. Only applicable when <code>minimum</code> and <code>maximum</code> are set to different values and <code>maximum</code> is greater than one. Applies to both terminal and non-terminal rules. Defaults to <code>false</code>, which generates all possible <a href="#interpretation">interpretations</a> between <code>minimum</code> and <code>maximum</code> inclusively. </p>
 		<h3 class="card-subtitle" id="rule-keep"><code><b>.keep</b> <i class="text-info">Boolean</i></code></h3>
-		<p class="card-text">Includes the result of a rule's parsing in the final result of parent rule.  Defaults to <code>true</code>.  Set to <code>false</code> to require the rule to parse succesfully, but skip its result.</p>
-		
+		<p class="card-text">Includes the result of a rule's parsing in the final result of parent rule.  Applies to both terminal and non-terminal rules. Defaults to <code>true</code>.  Set to <code>false</code> to require the rule to parse succesfully, but skip its result.</p>
+		<h3 class="card-subtitle"><code>.lax <i class="text-info">Boolean</i></code></h3>
+		<p class="card-text">Applies to partial matching in terminal rules. Defaults to <code>false</code>. Set to <code>true</code> to return partial matches even if the next character in the the text to be parsed does not match the separator or end of string.</p>
+		<h3 class="card-subtitle"><code>.longest <i class="text-info">Boolean</i></code></h3>
+		<p class="card-text">Applies to terminal rules. Defaults to <code>false</code>. Set to <code>true</code> to return only the longest match from the lexicon. Only applicable when <code>full</code> is set to <code>false</code> for partial matching.</p>
 		<h3 class="card-subtitle" id="rule-maximum"><code><b>.maximum</b> <i class="text-info">Integer</i></code></h3>
-		<p class="card-text">Sets the maximum number of times to repeat the rule. Defaults to 1. To allow an indefinite number of repitions, set <code>maximum</code> to <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Infinity"><code>Infinity</code></a>.</p>
+		<p class="card-text">Sets the maximum number of times to repeat the rule. Applies to both terminal and non-terminal rules. Defaults to 1. To allow an indefinite number of repitions, set <code>maximum</code> to <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Infinity"><code>Infinity</code></a>.</p>
 
 		<h3 class="card-subtitle" id="rule-minimum"><code><b>.minimum</b> <i class="text-info">Integer</i></code></h3>
-		<p class="card-text">Sets the minimum number of times to repeat the rule. Defaults to 1. Set <code>minimum</code> to 0 to make the rule optional.</p>
+		<p class="card-text">Sets the minimum number of times to repeat the rule.<h3 class="card-subtitle"><code>.lax <i class="text-info">Boolean</i></code></h3>
+		<p class="card-text">Applies to partial matching. Applies to both terminal and non-terminal rules. Defaults to <code>false</code>. Set to <code>true</code> to return partial matches even if the next character in the input text does not match the separator or end of string.</p> Defaults to 1. Set <code>minimum</code> to 0 to make the rule optional.</p>
 
 		<h3 class="card-subtitle" id="rule-mode"><code><b>.mode</b> <i class="text-info">all | any | apt</i></code></h3>
-		<p class="card-text">Sets parsing mode for sub-rules of a rule.  Defaults to <code>ISHML.enum.all</code>, which treats the sub-rules as part of a sequence, each of which must parse successfully in order for the parent rule to be considered successfully parsed. The syntax trees generated by the sub-rules are appended to the node generate by the parent rule.</p>
+		<p class="card-text">Sets parsing mode for sub-rules of a rule.  Applies to non-terminal rules.  Defaults to <code>ISHML.enum.all</code>, which treats the sub-rules as part of a sequence, each of which must parse successfully in order for the parent rule to be considered successfully parsed. The syntax trees generated by the sub-rules are appended to the node generate by the parent rule.</p>
 		<p><code>ISHML.enum.any</code> treats each sub-rule as a choice.  At least one sub-rule must parse successfully in order for the rule to parse successfully.  If more than one choice parses successfully, multiple alternative <a href="#interpretations">interpretations</a> are generated. The resulting sub-tree generated by the sub-rule has its root node removed and becomes the syntax tree generated by the parent rule.</p>
 		<p><code>ISHML.enum.apt</code> treats each sub-rule as a choice.  At least one choice must parse successfully in order for the rule to parse successfully.  Parsing of sub-rules stops after the first successful choice is parsed and only one interpretation is generated. The resulting sub-tree generated by the sub-rule has its root node removed and becomes the syntax tree generated by the parent rule.</p>
-
+		<h3 class="card-subtitle"><code>.regex <i class="text-info">RegExp</i></code></h3>
+		<p class="card-text">Applies to terminal rules. Defaults to <code>false</code> for lexicon search.  May be set to any regular expression. Causes the text to parsed to be matched against the regular expression without searching the lexicon for definitions. Instead <code>{fuzzy:true} </code> is provided as the token's definition. </p>
 		<h3 class="card-subtitle" id="rule-semantics"><code><b>.semantics</b> <i class="text-info">function</i></code></h3>
-		<p class="card-text">Checks the rule's generated syntax tree for semantic correctness and optionally edit the syntax tree.  Defaults to <code>(interpretation)=>true</code>, which accepts all interpretations as semantically correct. Returning <code>false</code> removes the <a href="#interpretation">interpretation</a> from further consideration.  Returning <code>true</code> allows the interperation to continue processing.  Optionally, you may alter the content <code>interpretation.gist</code> and return the altered interpretation as alternative to returning <code>true</code>.</p>  
-		
+		<p class="card-text">Checks the rule's generated syntax tree for semantic correctness and optionally edit the syntax tree. Applies to non-terminal rules. Defaults to <code>(interpretation)=>true</code>, which accepts all interpretations as semantically correct. Returning <code>false</code> removes the <a href="#interpretation">interpretation</a> from further consideration.  Returning <code>true</code> allows the interperation to continue processing.  Optionally, you may alter the content <code>interpretation.gist</code> and return the altered interpretation as alternative to returning <code>true</code>.</p>  
+		<h3 class="card-subtitle"><code>.separator <i class="text-info">RegExp</i></code></h3>
+		<p class="card-text">Applies to partial matching in terminal rules. Defaults to <code>/^\s+/</code>, whitespace. May be set to any regular expression. For no separator, set to empty string. When <code>lax</code> is set to <code>false</code>, a potential partial match will only be considered a match if the next character in the input text matches the separator or is the end of string.</p>
 		<h2 class="card-title">Methods</h2>
 		<h3 class="card-subtitle" id="rule-clone"><code><b>.clone()</b></code></h3>
 		<p class="card-text">Creates a deep copy of the rule.</p>

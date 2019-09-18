@@ -28,10 +28,10 @@
 		<p class="card-text">Defaults to <code>false</code> for partial matching. Set to <code>true</code> for full matching.</p>
 		<p class="card-text">A partial match is a match of the lexicon entry's full lexeme against the initial characters of the <i>lexeme</i> argument, but not the other way around.</p>
 		<p class="card-text">A full match matches all the characters in the <i>lexeme</i> argument against the lexicon entry with no characters leftover.</p>
-		<h4 class="card-subtitle"><code>.longest <i class="text-info">Boolean</i></code></h4>
-		<p class="card-text">Defaults to <code>false</code>. Set to <code>true</code> to return the longest match. Only applicable when <code>full</code> is set to <code>false</code> for partial matching.</p>
 		<h4 class="card-subtitle"><code>.lax <i class="text-info">Boolean</i></code></h4>
 		<p class="card-text">Applies to partial matching. Defaults to <code>false</code>. Set to <code>true</code> to return partial matches even if the next character in the <i>lexeme</i> argument does not match the separator or end of string.</p>
+		<h4 class="card-subtitle"><code>.longest <i class="text-info">Boolean</i></code></h4>
+		<p class="card-text">Defaults to <code>false</code>. Set to <code>true</code> to return the longest match. Only applicable when <code>full</code> is set to <code>false</code> for partial matching.</p>
 		<h4 class="card-subtitle"><code>.regex <i class="text-info">RegExp</i></code></h4>
 		<p class="card-text">Defaults to <code>false</code>.  May be set to any regular expression. Causes the text supplied in the lexeme argument to be matched against the regular expression without searching the lexicon for definitions. Instead <code>{fuzzy:true} </code> is provided as the tokens definition. </p>
 		<h4 class="card-subtitle"><code>.separator <i class="text-info">RegExp</i></code></h4>
