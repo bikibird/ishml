@@ -17,7 +17,7 @@
 		<p class="card-text">Applies to terminal rules. Defaults to <code>false</code>. Set to <code>true</code> for case sensitive parsing.</p>
 		<h3 class="card-subtitle" id="rule-filter"><code><b>.filter</b> <i class="text-info">function</i></code></h3>
 		<p class="card-text">Filters the array of definitions associated with the <a href="#token">token(s)</a> to be processed when rule's <a href="#rule-parse">.parse()</a> method is called. Applies to terminal rules. Defaults to <code>(definition)=>true</code>. Returning <code>true</code> from the filter function indicates that the definition should be kept. Returning <code>false</code> removes the definition from the definitions array of the token in the resulting <a href="#interpretation">interpretation</a>. A token that has no definitions left after filtering is consider a non-matching token for the rule.</p>
-		<h3 class="card-subtitle"><code>.full <i class="text-info">Boolean</i></code><h3>
+		<h3 class="card-subtitle"><code>.full <i class="text-info">Boolean</i></code></h3>
 		<p class="card-text">Applies to terminal rules. Defaults to <code>false</code> for partial matching. Set to <code>true</code> for full matching.</p>
 		<p class="card-text">A partial match is a match of the lexicon entry's full lexeme against the initial characters of the text to be parsed, but not the other way around.</p>
 		<p class="card-text">A full match matches all the characters of the text to be parsed against the lexicon entry with no characters leftover.</p>
