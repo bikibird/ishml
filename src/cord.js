@@ -4,33 +4,16 @@ ISHML.Cord= function Cord(id)
 	if (this instanceof ISHML.Cord)
 	{
 		Object.defineProperty(this,"id",{writable:true, value:id})
-		return new Proxy(this, 
-		{
-			get: function(target, property) 
-			{
-				var ply =Reflect.get(target,property)
-				var from = ply.from
-				if (from instanceof ISHML.Ply)
-				{
-					from._path.push(ply)
-					ply._path=from._path.slice(0)
-					from._path.length=0
-					
-				}
-				else
-				{
-					ply._path=[from, ply]
-					
-				}
-				return ply
-			}
-		})	
-	}
+
+		return this
+	}	
 	else
 	{
 		return new Cord(id)
 	}	
 }
+
+
 Object.defineProperty(ISHML.Cord.prototype, "knot", { get: function() { return Object.values(this)[0]}})
 Object.defineProperty(ISHML.Cord.prototype, "knots", { get: function() { return Object.values(this)||[]} })
 

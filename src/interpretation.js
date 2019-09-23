@@ -19,10 +19,10 @@ ISHML.Interpretation=function Interpretation(gist={},remainder)
 		}
 		if(remainder)
 		{
-			this.remainder=remainder.clone()
+			this.remainder=remainder.slice()
 		}
 		else
-		this.remainder=new ISHML.Tokenization()
+		this.remainder=""
 		return this
 	}
 	else

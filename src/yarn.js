@@ -4,16 +4,15 @@ ISHML.Yarn=function Yarn(aSeed)
 	{
 		this.plot= new ISHML.Plot(this)
 		this.storyline = new ISHML.Storyline(this)  //Event queue
-		this.net=new ISHML.Mesh(this)
-		//this.net.knot=this.net.knot.bind(this.net,this)
-
-		this.catalog=new ISHML.Catalog()
+		//this.catalog=new ISHML.Catalog()
 		this.lexicon=new ISHML.Lexicon()
 		this.grammar =new ISHML.Rule()
 		this.viewpoint="2nd person singular"
 		this.setting="present"
 		this.harkenings={}
 		ISHML.util.reseed(aSeed)
+		this.net=new ISHML.Knot()
+		this.$=this.net
 	}
 	else
 	{

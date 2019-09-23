@@ -2,8 +2,8 @@ ISHML.Storyline= function Storyline(aYarn)
 {
 	if (this instanceof ISHML.Storyline)
 	{
-		//  initialization section
 		this._storyline=[]
+		this.twists=new WeakMap
 		this._segue_=aYarn.plot
 		return this
 	}
@@ -34,4 +34,26 @@ ISHML.Storyline.prototype.segue= function(aPlot)
 {
 	this._segue_=aPlot
 	return this
+}
+ISHML.Storyline.prototype.twist=function(plot,twist)
+{
+	var handler=
+	{
+		set: function(target, property, value, receiver)
+		{
+			{
+				var plot= this.twists.get(receiver)
+				
+				var success=Reflect.set(target,property,value)
+				if (success)
+				{
+					this.introduce(plot,target)
+				}
+				return success
+			}
+		}
+	}
+	var proxiedTwist= new Proxy(twist, handler)
+	this.twists.set(proxiedTwist,plot)
+	return proxiedTwist
 }

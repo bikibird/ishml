@@ -6,11 +6,19 @@ ISHML.util.enumerator=function* (aStart =1)
   while (true) yield i++
 }
 
-ISHML.util.formatKey=function(aKey)
+ISHML.util.formatId=function(id)
 {
-	return aKey.replace(/\s+/g, '_')
+	if(id)
+	{ 
+		if (typeof(id)==="string"){return id.replace(/\s+/g, '_')}
+		else{return id.id.replace(/\s+/g, '_')}
+	}	
+	else 
+	{
+		return "auto" + ISHML.util.autoid.next().value.toString()
+	}
 }
-
+ISHML.util.autoid=ISHML.util.enumerator()
 ISHML.util.random = function() 
 {
 	this._seed = this._seed * 16807 % 2147483647
