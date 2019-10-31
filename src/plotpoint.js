@@ -1,78 +1,85 @@
-ISHML.Plotpoint = function Plotpoint(aYarn, aKey) {
-	if (this instanceof ISHML.Plotpoint) {
-		this.key = ISHML.util.formatKey(aKey);
-		this.yarn = aYarn;
-		this.plot = new ISHML.Plot(aYarn);
-		//this.$=undefined
-		aYarn.plot[this.key] = this;
-		return this;
+ishml.Plotpoint = function Plotpoint(yarn, id,summary)
+{
+	if (this instanceof ishml.Plotpoint)
+	{
+		Object.defineProperty(this, "id", {value:ishml.util.formatId(id),writable: true})
+		Object.defineProperty(this, "yarn", {value:yarn,writable: true})
+		Object.defineProperty(this, "summary", {value:summary,writable: true})
+		Object.defineProperty(this, "narrate", {value:ishml.Plotpoint.prototype.narrateSubplot ,writable: true})
+		Object.defineProperty(this, "uid", {value:ishml.util.formatId(),writable: true})
+		
+		this.points[this.uid]=this
+
+		return this
 	}
-	else {
-		return new Plotpoint(aYarn, aKey);
+	else 
+	{
+		return new Plotpoint(yarn, id,summary)
 	}
-};
-ISHML.Plotpoint.prototype.add = function (aPlotpoint) {
-	if (aPlotpoint instanceof ISHML.Plotpoint) {
-		var plotpoint = aPlotpoint;
-		var key = aPlotpoint.key;
+}
+Object.defineProperty(ishml.Plotpoint.prototype, "points", {value:{},writable: true})
+Object.defineProperty(ishml.Plotpoint.prototype, "subplot", { get: function() { return Object.values(this)}})
+
+ishml.Plotpoint.prototype.add = function (id,summary)
+{
+	if (id instanceof ishml.Plotpoint)
+	{
+		var plotpoint = id
 	}
-	else {
-		var key = ISHML.util.formatKey(aPlotpoint);
-		plotpoint = new ISHML.Plotpoint(this.yarn, key);
+	else 
+	{
+		var plotpoint = new ishml.Plotpoint(this.yarn, id,summary)
 	}
-	this.plot[plotpoint.key] = plotpoint;
-	this.yarn.plot[key] = plotpoint;
-	return plotpoint;
-};
-ISHML.Plotpoint.prototype.heed = function (aDocumentSelector) {
-	var yarn = this.yarn;
-	var element = document.querySelector(aDocumentSelector);
-	var eventString = "click";
-	if (element) {
-		if (element.classList.contains("ISHML-input")) {
-			eventString = "keyup";
+	this[id] = plotpoint
+	return this
+}
+ishml.Plotpoint.prototype.heed = function (aDocumentSelector)
+{
+	var yarn = this.yarn
+	var element = document.querySelector(aDocumentSelector)
+	var eventString = "click"
+	if (element)
+	{
+		if (element.classList.contains("ishml-input"))
+		{
+			eventString = "keyup"
 		}
-		return new Promise((resolve) => {
-			if (ISHML.util._harkenings[aDocumentSelector]) {
-				var harkeningHandler = ISHML.util._harkenings[aDocumentSelector][eventString];
-				if (harkeningHandler) {
-					element.removeEventListener(eventString, harkeningHandler);
+		return new Promise((resolve) =>
+		{
+			if (ishml.util._harkenings[aDocumentSelector])
+			{
+				var harkeningHandler = ishml.util._harkenings[aDocumentSelector][eventString]
+				if (harkeningHandler)
+				{
+					element.removeEventListener(eventString, harkeningHandler)
 				}
 			}
-			element.addEventListener(eventString, function handler(e) {
-				if (e.key === "Enter") {
-					var input = {
+			element.addEventListener(eventString, function handler(e)
+			{
+				if (e.key === "Enter")
+				{
+					var input = 
+					{
 						text: e.target.value,
 						agent: (e.target.dataset.agent || "player"),
 						target: e.target,
 						grammar: yarn.grammar[e.target.dataset.grammar] || yarn.grammar.input
-					};
-					e.target.value = "";
-					e.target.removeEventListener(eventString, handler);
-					if (harkeningHandler) {
-						e.target.addEventListener(eventString, harkeningHandler);
 					}
-					resolve(input);
+					e.target.value = ""
+					e.target.removeEventListener(eventString, handler)
+					if (harkeningHandler)
+					{
+						e.target.addEventListener(eventString, harkeningHandler)
+					}
+					resolve(input)
 				}
-			});
-		});
+			})
+		})
 	}
-};
-ISHML.Plotpoint.prototype.narrate = function (aTwist) {
-	this.plot.narrate(aTwist);
-	return false;
-};
-ISHML.Plotpoint.prototype.situation = function (aSituation = () => true) {
-	return aSituation();
-};
-ISHML.Plotpoint.prototype.resolution = function (aSituation = () => true) {
-	return aSituation();
-};
-ISHML.Plotpoint.prototype.understand = function (...someTerms) {
-	var definition = { key: this.key, kind: "plotpoint", part: "verb", plotpoint: this };
-	var _as = (aDefinition = {}) => {
-		this.yarn.lexicon.register(...someTerms).as(Object.assign(definition, aDefinition));
-		return this;
-	};
-	return { as: _as };
-};
+}
+//DOCUMENTATION:  Narrate should return false if twist not handled to allow siblings to have a chance at resolving. Return true if plotpoint resolves twist.
+//
+ishml.Plotpoint.prototype.narrateSubplot = function (twist) 
+{
+	return Object.values(this).some(plotpoint => plotpoint.narrate(twist))
+}

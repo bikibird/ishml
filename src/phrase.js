@@ -1,6 +1,6 @@
-ishml.Rule=function Rule() 
+ishml.Phrase=function Phrase() 
 {
-	if (this instanceof ishml.Rule)
+	if (this instanceof ishml.Phrase)
 	{
 		Object.defineProperty(this, "caseSensitive", {value:false, writable: true})
 		Object.defineProperty(this, "full", {value:false, writable: true})
@@ -19,36 +19,36 @@ ishml.Rule=function Rule()
 	}
 	else
 	{
-		return new Rule()
+		return new Phrase()
 	}
 }
 
-ishml.Rule.prototype.clone =function()
+ishml.Phrase.prototype.clone =function()
 {
 	var circularReferences=new Set()
 
-	function _clone(rule)
+	function _clone(phrase)
 	{
-		var clonedRule= new ishml.Rule().configure({caseSensitive:rule.caseSensitive, filter:rule.filter, full:rule.full, greedy:rule.greedy, keep:rule.keep, lax:rule.lax, longest:rule.longest, minimum:rule.minimum, maximum:rule.maximum, mode:rule.mode, regex:rule.regex, semantics:rule.semantics, separator:rule.separator})
-		var entries=Object.entries(rule)
+		var clonedPhrase= new ishml.Phrase().configure({caseSensitive:phrase.caseSensitive, filter:phrase.filter, full:phrase.full, greedy:phrase.greedy, keep:phrase.keep, lax:phrase.lax, longest:phrase.longest, minimum:phrase.minimum, maximum:phrase.maximum, mode:phrase.mode, regex:phrase.regex, semantics:phrase.semantics, separator:phrase.separator})
+		var entries=Object.entries(phrase)
 		entries.forEach(([key,value])=>
 		{
 			if (circularReferences.has(value))
 			{
-				clonedRule[key]=value
+				clonedPhrase[key]=value
 			}
 			else
 			{
 				circularReferences.add(value)
-				clonedRule[key]=_clone(value)
+				clonedPhrase[key]=_clone(value)
 			}
 			
 		})
-		return clonedRule
+		return clonedPhrase
 	}	
 	return _clone(this)
 }	
-ishml.Rule.prototype.configure =function({caseSensitive, filter, full, greedy, keep, lax, longest, minimum,maximum, mode, regex, semantics, separator}={})
+ishml.Phrase.prototype.configure =function({caseSensitive, filter, full, greedy, keep, lax, longest, minimum,maximum, mode, regex, semantics, separator}={})
 {
 
 	if(caseSensitive !== undefined){this.caseSensitive=caseSensitive}
@@ -66,7 +66,7 @@ ishml.Rule.prototype.configure =function({caseSensitive, filter, full, greedy, k
 	if(separator !== undefined){this.separator=separator}
 	return this
 }
-ishml.Rule.prototype.parse =function(text,lexicon)
+ishml.Phrase.prototype.parse =function(text,lexicon)
 {
 	var someText=text.slice(0)
 	var results=[]
@@ -279,7 +279,7 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 		
 		var counter = 0
 		var phrases=[]
-		var rule = this
+		var phrase = this
 		while (counter<this.maximum)
 		{
 			revisedCandidates.forEach(({gist,remainder})=>
@@ -287,7 +287,7 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 				//SNIP
 				if (remainder.length>0)
 				{
-					var snippets=lexicon.search(remainder, {regex:rule.regex,separator:rule.separator, lax:rule.lax, caseSensitive:rule.caseSensitive, longest:rule.longest, full:rule.full})
+					var snippets=lexicon.search(remainder, {regex:phrase.regex,separator:phrase.separator, lax:phrase.lax, caseSensitive:phrase.caseSensitive, longest:phrase.longest, full:phrase.full})
 
 					snippets.forEach((snippet)=>
 					{
@@ -363,30 +363,22 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 		return {snippets:[], error:problem}
 	}	
 }
-ishml.Rule.prototype.snip =function(key,rule)
+ishml.Phrase.prototype.say =function(key,phrase)
 {
-	if (typeof key !== "number")
+//DEFECT:Should be using arrays.
+	if (phrase instanceof ishml.Phrase)
 	{
-		var formattedKey=key.replace(/\s+/g, '_')
+		this[key]=phrase
 	}
 	else
 	{
-		var formattedKey=key
-	}
+		this[key]=new ishml.Phrase()
 
-	if (rule instanceof ishml.Rule)
-	{
-		this[formattedKey]=rule
-	}
-	else
-	{
-		this[formattedKey]=new ishml.Rule()
-
-		this[formattedKey].caseSensitive=this.caseSensitive
-		this[formattedKey].full=this.full
-		this[formattedKey].lax=this.lax
-		this[formattedKey].longest=this.longest
-		this[formattedKey].separator=this.separator
+		this[key].caseSensitive=this.caseSensitive
+		this[key].full=this.full
+		this[key].lax=this.lax
+		this[key].longest=this.longest
+		this[key].separator=this.separator
 		
 	}	
 	return this		

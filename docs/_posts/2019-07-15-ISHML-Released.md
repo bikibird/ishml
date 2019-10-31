@@ -3,7 +3,7 @@ layout: post
 title: ISHML Release
 categories: [blog]
 ---
-I’ve just released version 1 of  ISHML.
+Version 1 of ISHML has been released.
 
 ISHML stands for Interactive Story grapH Management Library, but call it “Ishmael.” Its intent is to facilitate the creation of interactive fiction in JavaScript and is intended for client-side applications running in modern browsers.
 

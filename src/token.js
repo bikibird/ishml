@@ -1,6 +1,6 @@
-ISHML.Token=function Token(lexeme="",definitions=[])
+ishml.Token=function Token(lexeme="",definitions=[])
 {
-	if (this instanceof ISHML.Token)
+	if (this instanceof ishml.Token)
 	{
 		this.lexeme=lexeme.slice(0)
 		this.definitions=definitions.slice(0)
@@ -11,7 +11,7 @@ ISHML.Token=function Token(lexeme="",definitions=[])
 		return new Token(lexeme,definitions)
 	}
 }
-ISHML.Token.prototype.clone=function() 
+ishml.Token.prototype.clone=function() 
 {
-	return new ISHML.Token(this.lexeme,this.definitions)
+	return new ishml.Token(this.lexeme,this.definitions)
 }

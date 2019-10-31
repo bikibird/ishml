@@ -1,0 +1,65 @@
+.ishml-choice
+{
+	cursor: pointer;
+}
+.ishml-draggable
+{
+	display: inline-block;
+	cursor: grab;
+}
+.ishml-draggable-dragging
+{
+	cursor: grabbing;
+}
+
+.ishml-draggable-accepted
+{
+	
+	cursor: grab;
+	transition-property:hidden;
+	transition-timing-function:ease-in;
+	transition-duration: 2s;
+}
+.ishml-draggable-hover
+{
+	color: orangered
+
+}
+.ishml-draggable-rejected
+{
+	--transitions:2;
+	cursor: none;
+	transition-property:left,top;
+	transition-timing-function:ease-out;
+	transition-duration: .5s;
+}
+.ishml-disappear
+{
+	visibility:hidden;
+}
+.ishml-dropbox
+{
+	border-style: hidden;
+}
+.ishml-dropbox-hover
+{
+	border-style: dotted;
+}
+.ishml-dropbox-accepted
+{
+	color:purple;
+	transition-property:color;
+	transition-duration: .5s;
+}
+.ishml-dropbox-rejected
+{
+	color:darkred;
+	transition-property:color;
+	transition-duration: .5s;
+}
+
+
+
+
+
+

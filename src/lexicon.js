@@ -1,6 +1,6 @@
-ISHML.Lexicon=function Lexicon() 
+ishml.Lexicon=function Lexicon() 
 {
-	if (this instanceof ISHML.Lexicon)
+	if (this instanceof ishml.Lexicon)
 	{
 
 		Object.defineProperty(this, "trie", {value:{},writable: true})
@@ -12,7 +12,7 @@ ISHML.Lexicon=function Lexicon()
 	}
 }
 
-ISHML.Lexicon.prototype.register = function (...someLexemes) 
+ishml.Lexicon.prototype.register = function (...someLexemes) 
 {
 	var lexemes=someLexemes
 	var _as =function(definition)
@@ -35,7 +35,7 @@ ISHML.Lexicon.prototype.register = function (...someLexemes)
 	}	
 	return {as:_as.bind(this)}	
 }
-ISHML.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^\s+/, lax=false, caseSensitive=false, longest=false, full=false}={}) 
+ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^\s+/, lax=false, caseSensitive=false, longest=false, full=false}={}) 
 {
 	var _trie = this.trie
 	var _results = []
@@ -57,7 +57,7 @@ ISHML.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^
 			var result={}
 			var definitions=[]
 			definitions[0]={fuzzy:true}
-			result.token=new ISHML.Token(match[1],definitions)
+			result.token=new ishml.Token(match[1],definitions)
 			result.remainder=match[2]
 			_results.push(result)
 
@@ -94,7 +94,7 @@ ISHML.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^
 						if (lax || (separator===false) || (separator && separator.test(trimmedText.substring(i+1))))
 						{
 							var result={}
-							result.token=new ISHML.Token(trimmedText.substring(0,i+1),_trie[character].definitions)
+							result.token=new ishml.Token(trimmedText.substring(0,i+1),_trie[character].definitions)
 							result.remainder=trimmedText.substring(i+1).slice(0)
 							_results.unshift(result)
 						}
@@ -102,7 +102,7 @@ ISHML.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^
 					else // if (i===trimmedtext.length-1) 
 					{
 						var result={}
-						result.token=new ISHML.Token(trimmedText.substring(0),_trie[character].definitions)
+						result.token=new ishml.Token(trimmedText.substring(0),_trie[character].definitions)
 						result.remainder=""
 						_results.unshift(result)
 					}
@@ -119,7 +119,7 @@ ISHML.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^
 	return _results
 }
 
-ISHML.Lexicon.prototype.unregister=function(lexeme,definition)
+ishml.Lexicon.prototype.unregister=function(lexeme,definition)
 {
 	var _lexeme=lexeme.toLowerCase()
 	var _trie = this.trie

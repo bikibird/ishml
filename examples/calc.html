@@ -16,6 +16,7 @@
                 .register(".").as({part:"point"})
                 .register("-").as({part:"negative"})
 
+            
             var number=ISHML.Rule()
             var negative=ISHML.Rule()
             var integer=ISHML.Rule()
@@ -115,7 +116,7 @@
             factor.semantics=calculate
 
             var parser=ISHML.Parser({lexicon:lexicon,grammar:expression})   
-            
+            //parser.analyze("(1+2)*3+5",{lax:true})
  
         </script>
     </body>

@@ -1,8 +1,8 @@
-ISHML.Knot= function Knot(id,value)
+ishml.Knot= function Knot(id,value)
 {
-	if (this instanceof ISHML.Knot)
+	if (this instanceof ishml.Knot)
 	{
-		if (id instanceof ISHML.Knot)
+		if (id instanceof ishml.Knot)
 		{
 			var knot=id.ply.knot
 			
@@ -11,13 +11,13 @@ ISHML.Knot= function Knot(id,value)
 		{
 			var knot=this
 			Object.assign(knot,value)
-			Object.defineProperty(knot, "id", {value:ISHML.util.formatId(id),writable: true})
+			Object.defineProperty(knot, "id", {value:ishml.util.formatId(id),writable: true})
 			Object.defineProperty(knot, "plies", {value:new WeakMap(),writable: true})
 			
 		}
 		
 		var ply={id:undefined,weight:()=>1,knot:knot,cord:undefined,from:undefined,to:undefined,converse:undefined, hop:0}
-		var proxiedKnot= new Proxy(knot, ISHML.Knot.prototype.handler)
+		var proxiedKnot= new Proxy(knot, ishml.Knot.prototype.handler)
 		knot.plies.set(proxiedKnot,ply)
 		return proxiedKnot
 	}
@@ -27,7 +27,7 @@ ISHML.Knot= function Knot(id,value)
 	}	
 }
 
-ISHML.Knot.prototype.handler=
+ishml.Knot.prototype.handler=
 {
 	get: function(target, property, receiver) 
 	{
@@ -122,53 +122,53 @@ ISHML.Knot.prototype.handler=
 	}	
 }
 
-ISHML.Knot.prototype.configure=function(knot)
+ishml.Knot.prototype.configure=function(knot)
 {
 	var id=this.id
 	Object.assign(this,knot)
 	this.id=id
 
 }	
-ISHML.Knot.prototype.forget=function(aTerm,aDefinition)
+ishml.Knot.prototype.forget=function(aTerm,aDefinition)
 {
 	var definition=Object.assign({kind:"knot",id:this.id},aDefinition)
 	this.yarn.lexicon.unregister(aTerm,definition)
 	return this
 }
 
-ISHML.Knot.prototype.has=function(aId)
+ishml.Knot.prototype.has=function(aId)
 {
-	if (this.hasOwnProperty(ISHML.util.formatId(aId)))
+	if (this.hasOwnProperty(ishml.util.formatId(aId)))
 	{
 		return true
 	}
 	else {return false}
 }
 	
-ISHML.Knot.prototype.tie = function(cordage)
+ishml.Knot.prototype.tie = function(cordage)
 {
 	var fromKnot=this
 
 	var [forward,backward]=cordage.split(/[<>]/)
-	var [cordId,plyId]=forward.split(":").map(id=>ISHML.util.formatId(id.trim()))
-	if(!fromKnot.hasOwnProperty(cordId)){fromKnot[cordId]=new ISHML.Cord(cordId)}
+	var [cordId,plyId]=forward.split(":").map(id=>ishml.util.formatId(id.trim()))
+	if(!fromKnot.hasOwnProperty(cordId)){fromKnot[cordId]=new ishml.Cord(cordId)}
 	if (backward)
 	{
-		var [converseCordId,conversePlyId]=backward.split(":").map(id=>ISHML.util.formatId(id.trim()))	
+		var [converseCordId,conversePlyId]=backward.split(":").map(id=>ishml.util.formatId(id.trim()))	
 	}
 	
 	var to = (knot)=>
 	{
-		if (knot instanceof ISHML.Knot)
+		if (knot instanceof ishml.Knot)
 		{
 			var toKnot=knot
 		}
 		else
 		{
-			var toKnot=new ISHML.Knot(knot)
+			var toKnot=new ishml.Knot(knot)
 		}
-		if (!cordId){cordId=ISHML.util.formatId()}
-		if (!plyId){plyId=toKnot.id||ISHML.util.formatId(toKnot.name)}
+		if (!cordId){cordId=ishml.util.formatId()}
+		if (!plyId){plyId=toKnot.id||ishml.util.formatId(toKnot.name)}
 		
 		if (fromKnot.hasOwnProperty(cordId))
 		{
@@ -177,10 +177,10 @@ ISHML.Knot.prototype.tie = function(cordage)
 		}	
 		else
 		{
-			var cord = new ISHML.Cord(cordId)
+			var cord = new ishml.Cord(cordId)
 			fromKnot[cordId]=cord
 		}
-		var aliasToKnot=new ISHML.Knot(toKnot)
+		var aliasToKnot=new ishml.Knot(toKnot)
 		aliasToKnot.ply.id=plyId
 		aliasToKnot.ply.cord=cord
 		//aliasToKnot.ply.from=fromKnot
@@ -192,12 +192,12 @@ ISHML.Knot.prototype.tie = function(cordage)
 			}
 			else
 			{
-				var converseCord=new ISHML.Cord(converseCordId)
+				var converseCord=new ishml.Cord(converseCordId)
 				toKnot[converseCordId]=converseCord
 				
 			}
-			if (!conversePlyId){conversePlyId=fromKnot.id||ISHML.util.formatId(fromKnot.name)}
-			var aliasFromKnot=new ISHML.Knot(fromKnot)
+			if (!conversePlyId){conversePlyId=fromKnot.id||ishml.util.formatId(fromKnot.name)}
+			var aliasFromKnot=new ishml.Knot(fromKnot)
 			aliasFromKnot.ply.id=conversePlyId
 			aliasFromKnot.ply.cord=converseCord
 			//aliasFromKnot.ply.from=toKnot
@@ -213,7 +213,7 @@ ISHML.Knot.prototype.tie = function(cordage)
 	}
 	return {to:to, tie:fromKnot.tie.bind(fromKnot)}
 }
-ISHML.Knot.prototype.track=function(journal)
+ishml.Knot.prototype.track=function(journal)
 {
 	if (journal instanceof Set)
 	{
@@ -226,12 +226,12 @@ ISHML.Knot.prototype.track=function(journal)
 	return this
 }
 
-ISHML.Knot.prototype.cordage=function()
+ishml.Knot.prototype.cordage=function()
 {
 	return [this.cord.id, this.ply.id, (this.converse && this.converse.cord.id), (this.converse && this.converse.ply.id)]
 }
 
-ISHML.Knot.prototype.untie = function()
+ishml.Knot.prototype.untie = function()
 {
 /*Knot must have been reached by traveling along a tie.
 $.room.kitchen.untie() removes the room tie for kitchen and returns kitchen.knot.
@@ -248,13 +248,13 @@ $.room.kitchen.exit.north.untie()
 	}
 	return this
 }
-ISHML.Knot.prototype.retie = function(cordage)
+ishml.Knot.prototype.retie = function(cordage)
 {
 	//$.place.kitchen.contains.knife.retie("in<contains").to($.place.foyer)
 	this.untie()
 	return this.tie(cordage)
 }
-ISHML.Knot.prototype.path=function(destintation,{filter=(knot)=>true,minimum=1,maximum=Infinity,via,cost}={})
+ishml.Knot.prototype.path=function(destintation,{filter=(knot)=>true,minimum=1,maximum=Infinity,via,cost}={})
 {
 	if (via)
 	{
@@ -294,7 +294,7 @@ ISHML.Knot.prototype.path=function(destintation,{filter=(knot)=>true,minimum=1,m
 					visited.add(knot.ply.knot)
 					Object.values(knot).forEach(cord => 
 					{
-						if (cord instanceof ISHML.Cord && (anyway || way.has(cord.id)) )
+						if (cord instanceof ishml.Cord && (anyway || way.has(cord.id)) )
 						{
 							Object.values(cord).forEach((child)=>
 							{
@@ -311,9 +311,9 @@ ISHML.Knot.prototype.path=function(destintation,{filter=(knot)=>true,minimum=1,m
 	}
 	return {success:false,start:false,end:false,path:[]}  //not found
 }
-ISHML.Knot.prototype.trail=function(knot)
+ishml.Knot.prototype.trail=function(knot)
 {
-	var newKnot=new ISHML.Knot(this)
+	var newKnot=new ishml.Knot(this)
 	newKnot.ply.from=knot
 	newKnot.ply.hop=knot.ply.hop+1
 	return newKnot

@@ -1,3 +1,3 @@
-ISHML.regex=ISHML.regex|{}
-ISHML.regex.word=/(^\w*)(.*)/
-ISHML.regex.digits=/(^\d*)(.*)/
+ishml.regex=ishml.regex||{}
+ishml.regex.word=/(^\w*)(.*)/
+ishml.regex.digits=/(^\d*)(.*)/

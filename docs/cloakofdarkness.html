@@ -1,10 +1,23 @@
 <html>
     <body>
-        
-        <script src="../src/ishml.js">//should be jsDelIver CDN</script>
+        <script src="../src/apex.js"></script>
+		<script src="../src/util.js"></script>
+		<script src="../src/catalog.js"></script>
+		<script src="../src/knot.js"></script>
+		<script src="../src/tie.js"></script>
+		<script src="../src/yarn.js"></script>
+		<script src="../src/mesh.js"></script>
+		<script src="../src/net.js"></script>
+		<script src="../src/plot.js"></script>
+		<script src="../src/plotpoint.js"></script>
+		<script src="../src/ply.js"></script>
+		<script src="../src/storyline.js"></script>
+		<script src="../src/lexicon.js"></script>
+		<script src="../src/rule.js"></script>
+		<script src="../src/token.js"></script>
         <script>
 var story= new ISHML.Yarn()
-var net=story.net
+var $=story.net
 var plot=story.plot
 var storyline=story.storyline
 var grammar=story.grammar
@@ -12,6 +25,7 @@ var lexicon=story.lexicon
 
 lexicon
     .register("the","a","an").as({part:"article"})
+    .register("blue").as({part:adjective, selector:()=>$.color.blue.knots})
     .register("says").as({key:"says",kind:"tie",part:"relation"})
     .register("is said by").as({key:"is said by",kind:"tie",part:"relation"})
     .register("means").as({key:"means",kind:"tie",part:"relation"})
@@ -26,8 +40,11 @@ lexicon
     .register("is worn by","worn","worn by").as({key:"is worn by",kind:"tie",part:"relation"})
     .register("who","what","where","when","how","who").as({part:question})
 
-
+var 
 var nounPhrase=ISHML.Rule().snip("article").snip("adjectives").snip("noun")
+var adjunct=
+
+.snip("adjunct").snip("n")
 nounPhrase.article.configure({minimum:0, filter:(definition)=>definition.part==="article"})
 nounPhrase.adjectives.configure({minimum:0, maximum:Infinity,
     filter:(definition)=>(definition.kind==="tie" || definition.kind==="knot")&& definition.part==="adjective"})
@@ -40,11 +57,31 @@ grammar[1].snip("command")
 grammar[1].command.snip("subject").snip("verb").snip("object")
 grammar[1].command.subject.snip("nounPhrase",nounPhrase.clone()).snip("adjunct")
 grammar[1].command.subject.adjunct.snip()
+grammar[1].command.snip("subject",nounPhrase.clone()).snip("verb").snip("object")
+grammar[1].command.subject.configure({minimum:0})
+grammar[1].command.verb.configure({filter:(definition)=>definition.part==="verb"})
+grammar[1].command.object.configure({minimum:0,mode:ISHML.enum.mode.any})
+    .snip(1)
+    .snip(2)
+
+grammar[1].command.object[1].snip("directObject",nounPhrase.clone()).snip("indirectObject")
+grammar[1].command.object[1].indirectObject.snip("preposition").snip("nounPhrase",nounPhrase.clone())
+grammar[1].command.object[1].indirectObject
+    .configure({minimum:0})
+grammar[1].command.object[1].indirectObject.preposition
+    .configure({filter:(definition)=>definition.part==="preposition"})
+grammar[1].command.object[2].snip("indirectObject",nounPhrase.clone()).snip("directObject",nounPhrase.clone())
+
 grammar[2].snip("question")
 grammar[2].snip("interogative").snip("about")
 grammar[2].interogative.filter=(definition)=>definition.part==="interogative" 
 grammar[2].about.configure( {maximum:Infinity,fuzzy:true}) 
-grammar.input.command[0].subject=ISHML.Rule({minimum:0})
+
+
+
+
+
+/*grammar[1].command[0].subject=ISHML.Rule({minimum:0})
 grammar.input.command[0].subject.nounPhrase=grammar.nounPhrase
 grammar.input.command[0].subject.adjunct=ISHML.Rule({minimum:0,maximum:5})
 grammar.input.command[0].subject.adjunct.relation=ISHML.Rule()
@@ -84,71 +121,61 @@ grammar.input.command[1].directObject.nounPhrase=grammar.nounPhrase
 grammar.input.command[1].directObject.adjunct=ISHML.Rule({minimum:0,maximum:5})
 grammar.input.command[1].directObject.adjunct.relation=ISHML.Rule()
 grammar.input.command[1].directObject.adjunct.relation.filter=(definition)=>definition.kind==="tie" && definition.part==="relation"
-grammar.input.command[1].directObject.adjunct.nounPhrase=grammar.nounPhrase
+grammar.input.command[1].directObject.adjunct.nounPhrase=grammar.nounPhrase*/
 
-net.knot("player",{name:"You",description:"You are a wery traveler glad to be out of the rain.",score:0})
-net.player.pronoun="you"
-net.player.possessive="your"
-net.knot("ISHML input",{})
-net.knot("ISHML interpretations")
+$.tie("person").to({key:"player",name:"The Traveler",description:"You are a weary traveler glad to be out of the rain.",score:0, pronoun:"you", possesive:"your"})
 
-net.player.tie("says").to("ISHML input").conversely("is said by")
 
-net.ISHML_input.tie("means").to("ISHML interpretations").conversely("is meant by")
-
-net.knot("foyer",{
+$.tie("place").to({key:"foyer",
 	name:`Foyer of the Opera House`,
-	description:`You are standing in a spacious hall, splendidly decorated in red and gold, with glittering chandeliers overhead.  
-The entrance from the street is to the north, and there are doorways south and west.`})
-    .label("room")
-    .understand("foyer").as()
+    description:`You are standing in a spacious hall, splendidly decorated in red and gold, with glittering chandeliers overhead.`})  
+    
+//The entrance from the street is to the north, and there are doorways south and west.`
 
-net.knot("cloakroom",{
-	name:`Cloakroom`,
-	description:`The walls of this small room were clearly once lined with hooks, though now only one remains.
-The exit is a door to the east.`})
-    .label("room")
-.understand("cloakroom").as()
 
-net.knot("bar",{
+$.tie("place").to({key:cloakroom,
+	name:`cloakroom`,
+    description:`The walls of this small room were clearly once lined with hooks, though now only one remains.`})
+
+
+//The exit is a door to the east.`})
+  
+$.tie("place").to({key:"bar",
 	name:`Foyer Bar`,
-	description:`The bar, much rougher than you'd have guessed after the opulence of the foyer to the north, is completely empty.
-There seems to be some sort of message scrawled in the sawdust on the floor.`})
-    .label("room")
-    .understand("bar","tavern", "foyer bar").as()
+	description:`The bar, much rougher than you'd have guessed after the opulence of the foyer to the north, is completely empty.`})
+//There seems to be some sort of message scrawled in the sawdust on the floor.`})
+ 
+$.tie("place").to({key:"street", name:"street"})
 
-/*net.foyer
-    .tie("south")
-    .cord({name:`door`,description: `wooden door`},"portal","closed","locked")
-    .as({description:`green`})
-    .to("bar")
-    .conversely("north")
-    .as({description:`red`})
-    .tie("west").to("cloakroom").conversely("east")
-*/
+$.place.foyer
+    .tie("exit:south<exit:north").to($.room.bar)
+    .tie("exit:west<exit:east").to("cloakroom")
+    .tie("exit:north").to($.room.street)
 
-net.foyer
-    .tie("south")
-    .to("bar")
-    .conversely("north")
-    .tie("west").to("cloakroom").conversely("east")
+$.tie("thing").to({key:"hook",
+	name:`hook`,
+    description:`The walls of this small room were clearly once lined with hooks, though now only one remains.`,
+    stationary:true})
+ 
+$.thing.hook.tie("supports")
 
-net.cloakroom
-    .tie("contains").to("hook").conversely("in")
+$.tie("thing").to({key:"cloak",
+	name:`cloak`,
+    description:`It is a handsome cloak, of velvet trimmed with satin, and slightly splattered with raindrops. Its blackness is so deep that it almost seems to suck light from the room.`,
+    })    
+$.thing.cloak.tie("worn by").tie("on").tie("carried by")
+$.place.cloakroom
+    .tie("contains<in").to("hook")
 
-net.hook.understand("small","brass","hook","peg")
-net.hook.label("fixed","hanger")  //fixed in place; can't be moved and you can hang things on it.
-net.hook.name=`hook`
-net.hook.description=`a small brass hook`
+$.person.player
+    .tie("wears<worn by").to("cloak")
 
-net.player.tie("in").to("foyer").conversely("contains")
-net.player.tie("wears").to("cloak").conversely("is worn by")
+lexicon
+    .register("small","brass").as({knot:$.thing.hook,part:"adjective"})
+    .register("hook","peg").as({knot:$.thing.hook,part:"noun"})
+    .register("cloak").as({knot:$.thing.cloak,part:"noun"})
+    .register("dark","black", "velvet").as({knot:$.thing.cloak,part:"adjective"})
 
-net.cloak.understand("cloak").as()
-net.cloak.understand("dark","black", "velvet").as({part:"adjective"})
-net.cloak.understand("cloaks").as({part:"noun", number:"plural"})
-
-net.cloak.label("portable","wearable")
 
 plot.add("main")
 plot.main.add("parse")

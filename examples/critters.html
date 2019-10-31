@@ -1,0 +1,39 @@
+<html>
+    <head>
+    </head>
+    <body>
+        <!--<script src="https://cdn.jsdelivr.net/gh/bikibird/ishml@a145af1/src/ishml.js"></script>-->
+        <script src="../src/ishml.js"></script>
+        <script>
+var lexicon = ISHML.Lexicon().register("baa").as({part:"bleat" })
+                            
+var bleat=ISHML.Rule().configure({filter:(definition)=>definition.part==="bleat"})	
+
+var goat=ISHML.Rule().configure({mode:ISHML.enum.mode.apt})  //Correct
+	.snip(1)
+	.snip(2)
+goat[1].snip("bleat",bleat.clone()).snip("goat",goat)
+goat[2].snip("bleat",bleat.clone())
+
+var kid=goat.clone().configure({mode:ISHML.enum.mode.any}) //Inefficient
+
+var sheep=ISHML.Rule().configure({mode:ISHML.enum.mode.apt}) //Wrong
+	.snip(1)
+	.snip(2)
+sheep[1].snip("bleat",bleat.clone())	
+sheep[2].snip("bleat",bleat.clone()).snip("sheep",sheep)
+
+var wolf=ISHML.Rule() //Wrong-- stack overflow
+	.snip(1)
+	.snip(2)
+wolf[1].snip("sheep",wolf).snip("bleat",bleat.clone())
+wolf[2].snip("bleat",bleat.clone())
+
+var lambs=ISHML.Rule().snip("bleat") //Correct
+lambs.bleat.configure({maximum:Infinity})
+
+
+// /[\,|\.|;|\!|\?|\s]/
+        </script>
+    </body>
+</html> 

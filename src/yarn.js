@@ -1,142 +1,164 @@
-ISHML.Yarn=function Yarn(aSeed) 
+ishml.Yarn=function Yarn(seed) 
 {
 	if (this instanceof Yarn)
 	{
-		this.plot= new ISHML.Plot(this)
-		this.storyline = new ISHML.Storyline(this)  //Event queue
-		//this.catalog=new ISHML.Catalog()
-		this.lexicon=new ISHML.Lexicon()
-		this.grammar =new ISHML.Rule()
+		this.plot= new ishml.Plotpoint(this)
+		this.storyline = new ishml.Storyline(this)  //Event queue
+		this.lexicon=new ishml.Lexicon()
+		this.grammar =new ishml.Rule()
 		this.viewpoint="2nd person singular"
 		this.setting="present"
-		this.harkenings={}
-		ISHML.util.reseed(aSeed)
-		this.net=new ISHML.Knot()
-		this.$=this.net
+		ishml.util.reseed(seed)
+		this.net=new ishml.Knot()
+		this.harken()
+
+		
 	}
 	else
 	{
-		return new Yarn(aSeed)
+		return new Yarn(seed)
 	}	
 }
-ISHML.Yarn.prototype.click=function(e)
+ishml.Yarn.prototype.harken=function()
 {
-	var input={text:e.target.dataset.input||"",
-		agent:(e.target.dataset.agent||"player"),
-		target:e.target, 
-		grammar:this.grammar[e.target.dataset.grammar]||this.grammar.input}
+	var state={dragging:false}
+	document.addEventListener('click', (e)=>this.click(e))
+	document.addEventListener('keyup', (e)=> this.keyup(e))
+	document.addEventListener('mousedown', (e)=> this.mousedown(e,state))
+	document.addEventListener('mouseup', (e)=> this.mouseup(e,state))
+	document.addEventListener('mousemove', (e)=> this.mousemove(e,state))
+	document.addEventListener('transitionend', (e)=> this.transitionend(e,state))
 
-	storyline.introduce((this.plot[e.target.dataset.plot]||this.plot.main),{input:input})
-	this.tell()
 }
-ISHML.Yarn.prototype.input=function(e)
+ishml.Yarn.prototype.click=function(e)
 {
-var yarn=this.yarn
-	var element=document.querySelector(aDocumentSelector)
-	var eventString="click"
-	if (element)
-	{	
-		if (element.classList.contains("ISHML-input")){eventString="keyup"}
-
-		return new Promise((resolve)=> 
-		{
-	   		element.addEventListener(eventString, function handler(e)
-			{
-				if (e.key === "Enter")
-				{
-					var input={text:e.target.value,
-					agent:(e.target.dataset.agent||"player"),
-					target:e.target, 
-					grammar:yarn.grammar[e.target.dataset.grammar]||yarn.grammar.input}
-					
-					e.target.value=""
-					
-					e.target.removeEventListener(eventString,handler)
-					resolve({input:input})
-				}
-	 		})
-		})
-	}	
-
-}
-ISHML.Yarn.prototype.drag=function(e)
-{	console.log(e.target.dataset.input)
-		e.dataTransfer.setData("input", (e.target.dataset.input||""))
-	console.log(e.dataTransfer)
-}
-ISHML.Yarn.prototype.dragover=function(e)
-{	
-	e.preventDefault()
-}
-ISHML.Yarn.prototype.dragenter=function(e)
-{	
-	e.preventDefault()
-}
-
-ISHML.Yarn.prototype.drop=function(e)
-{
-	var dropInput = e.dataTransfer.getData("input")||""
-	
-	var input={text:`${dropInput} ${e.target.dataset.input}`,
-		agent:(e.target.dataset.agent||"player"),
-		target:e.target, 
-		grammar:this.grammar[e.target.dataset.grammar]||this.grammar.input}
-	
-	storyline.introduce((this.plot[e.target.dataset.plot]||this.plot.main),{input:input})
-
-	this.tell()
-}
-
-ISHML.Yarn.prototype.harken=function(aDocumentSelector)
-{
-	var yarn=this
-	var element=document.querySelector(aDocumentSelector)
-	
-	if (element)
-	{	
-		var eventString="click"
-		var handler=function handler(e)
-		{
-			if (e.key === "Enter")
-			{
-				var input={text:e.target.value,
-				agent:(e.target.dataset.agent||"player"),
-				target:e.target, 
-				grammar:yarn.grammar[e.target.dataset.grammar]||yarn.grammar.input}
-				
-				e.target.value=""
-				
-				yarn.storyline.introduce((yarn.plot[e.target.dataset.plot]||yarn.plot.main),{input:input})
-				yarn.tell()
-			}
-		}
-		if (element.classList.contains("ISHML-input")){eventString="keyup"}
-
-   		element.addEventListener(eventString, handler)
-   		yarn._harkenings[aDocumentSelector]={}
-   		yarn._harkenings[aDocumentSelector][eventString]=handler
-	}
-	return this
-}
-ISHML.Yarn.prototype.ignore=function(aDocumentSelector)
-{
-	var eventString="click"
-	var element=document.querySelector(aDocumentSelector)
-	
-	if (element)
+	if (e.target.matches('.ishml-choice'))
 	{
-		if (element.classList.contains("ISHML-input")){eventString="keyup"}
-		if(this._harkenings[aDocumentSelector])
+		this.storyline.introduce({plotpoint:this.plot.points[e.target.dataset.plot]||this.plot,twist:e.target.dataset})
+		this.tell()
+	}
+}
+ishml.Yarn.prototype.keyup=function(e)
+{
+	if (e.target.matches('.ishml-input'))
+	{
+		if (e.keycode===13)
 		{
-			var harkeningHandler=this._harkenings[aDocumentSelector][eventString]
-			if (harkeningHandler)
+			this.storyline.introduce({plotpoint:this.plot.points[e.target.dataset.plot]||this.plot,twist:Object.assign({input:e.target.value}, e.target.dataset)})
+			this.tell()
+		}
+	}
+}
+ishml.Yarn.prototype.mousedown=function(e,state)
+{
+	if (e.target.matches('.ishml-draggable'))
+	{
+		e.preventDefault()
+		if(!state.dragging)
+		{
+			var {top,left}=e.target.getBoundingClientRect()
+			state.dragging={}
+			state.dragging.clone=e.target.cloneNode(true)
+			state.dragging.offset={left:e.clientX-left,top:e.clientY-top}
+			state.dragging.originalPosition={left:`${left}px`,top:`${top}px`}
+			state.dragging.clone.style.position="fixed"
+			state.dragging.clone.style.left=`${e.clientX - state.dragging.offset.left}px`
+			state.dragging.clone.style.top=`${e.clientY -state.dragging.offset.top}px`
+			state.dragging.original=e.target
+			e.target.classList.add("ishml-disappear")
+			state.dragging.clone.classList.add("ishml-draggable-dragging")
+			document.body.appendChild(state.dragging.clone)
+		}
+	}
+}
+ishml.Yarn.prototype.mouseup=function(e,state)
+{
+	
+	if (state.dragging && !state.dragging.transitioning)
+	{
+
+		e.preventDefault()
+		if(state.dragging.dropbox)
+		{
+			this.dropHoverStop({draggable:state.dragging.clone,dropbox:state.dragging.dropbox})
+		}
+		state.dragging.clone.classList.remove("ishml-draggable-dragging")
+		state.dragging.clone.classList.add("ishml-draggable-rejected")
+		state.dragging.clone.style.left=state.dragging.originalPosition.left
+		state.dragging.clone.style.top=state.dragging.originalPosition.top
+		state.dragging.transitions=0
+		state.dragging.transitioning=true
+	}
+}
+ishml.Yarn.prototype.mousemove=function(e,state)
+{
+	if (state.dragging && !state.dragging.clone.matches(".ishml-draggable-rejected"))
+	{
+		e.preventDefault()
+		var left=`${e.clientX - state.dragging.offset.left}px`
+		var right=`${e.clientY - state.dragging.offset.top}px`
+		state.dragging.clone.style.left="-10000px"
+		state.dragging.clone.style.top="-10000px"
+		let dropbox = document.elementFromPoint(e.clientX, e.clientY)
+		if(dropbox){dropbox=dropbox.closest(".ishml-dropbox")}
+		if (state.dragging.dropbox != dropbox) 
+		{
+			if (state.dragging.dropbox)
 			{
-				element.removeEventListener(eventString,harkeningHandler)
+				this.dropHoverStop({draggable:state.dragging.clone,dropbox:state.dragging.dropbox })
+			}
+ 			state.dragging.dropbox = dropbox;
+			if (state.dragging.dropbox) 
+			{ 
+				this.dropHoverStart({draggable:state.dragging.clone,dropbox:state.dragging.dropbox})
 			}
 		}
-	}	
-}	
-ISHML.Yarn.prototype.interpret=function(anInput={})
+		state.dragging.clone.style.left=left
+		state.dragging.clone.style.top=right
+	}
+}
+ishml.Yarn.prototype.transitionend=function(e,state)
+{
+	if(e.target===state.dragging.clone && state.dragging.transitioning )
+	{
+		state.dragging.transitions++
+
+		if (state.dragging.transitions==getComputedStyle(state.dragging.clone).getPropertyValue('--transitions'))
+		{
+			state.dragging.original.classList.remove("ishml-disappear")
+			
+			document.body.removeChild(state.dragging.clone)
+			state.dragging=false
+		}
+	}
+}
+
+ishml.Yarn.prototype.dropHoverStart=function({draggable,dropbox})
+{
+	draggable.dataset.originalText=draggable.innerText
+	draggable.innerText=draggable.innerText + " " +dropbox.innerText
+	draggable.classList.add("ishml-draggable-hover")
+	dropbox.classList.add("ishml-dropbox-hover")
+}
+ishml.Yarn.prototype.dropHoverStop=function({draggable,dropbox})
+{
+	draggable.classList.remove("ishml-draggable-hover")
+	draggable.innerText=draggable.dataset.originalText
+	dropbox.classList.remove("ishml-dropbox-hover")
+}
+ishml.Yarn.prototype.dropCheck=function({draggable,dropbox})
+{
+	var plot=this.plot.points[draggable.dataset.plot]
+	if (plot)
+	{
+		var subplot=this.plot.points[dropbox.dataset.plot]
+		var plotpoints=Object.values(plot)
+		return plotpoints.includes(subplot)
+	}
+	return false
+}
+
+ishml.Yarn.prototype.interpret=function(anInput={})
 {
 	//{text:"take ring",agent:"player",lexicon:story.lexicon,grammar:story.grammar}
 
@@ -153,7 +175,7 @@ ISHML.Yarn.prototype.interpret=function(anInput={})
 	var sequence = tokenizer.next()
 	while (!sequence.done)
 	{
-		interpretations.push(new ISHML.Interpretation([],sequence.value.tokens))
+		interpretations.push(new ishml.Interpretation([],sequence.value.tokens))
 		var result=grammar.parse(sequence.value.tokens)
 		if (result)
 		{
@@ -190,7 +212,7 @@ ISHML.Yarn.prototype.interpret=function(anInput={})
 		return {interpretations:badInterpretations,agent:agent}
 	}		
 }	
-ISHML.Yarn.prototype.say=function(aText)
+ishml.Yarn.prototype.say=function(aText)
 {	
 	if (typeof aText === 'string' || aText instanceof String)
 	{
@@ -198,7 +220,7 @@ ISHML.Yarn.prototype.say=function(aText)
     	fragment.innerHTML = aText
     	fragment= fragment.content
 	}
-	else if(aText instanceof ISHML.Passage)
+	else if(aText instanceof ishml.Passage)
 	{
 		var fragment=aText.documentFragment()
 	}
@@ -212,14 +234,14 @@ ISHML.Yarn.prototype.say=function(aText)
 		targetNodes.forEach((aNode)=>
 		{
 			aNode.prepend(fragment)
-			/*aNode.querySelectorAll(".ISHML-input").forEach((descendant)=>descendant.onkeyup=this.input.bind(this))
-			aNode.querySelectorAll(".ISHML-choice").forEach((descendant)=>descendant.onclick=this.click.bind(this))
-			aNode.querySelectorAll(".ISHML-drag").forEach((descendant)=>
+			/*aNode.querySelectorAll(".ishml-input").forEach((descendant)=>descendant.onkeyup=this.input.bind(this))
+			aNode.querySelectorAll(".ishml-choice").forEach((descendant)=>descendant.onclick=this.click.bind(this))
+			aNode.querySelectorAll(".ishml-drag").forEach((descendant)=>
 			{
 				descendant.ondragstart=this.drag.bind(this)
 				descendant.draggable=true
 			})
-			aNode.querySelectorAll(".ISHML-drop").forEach((descendant)=>
+			aNode.querySelectorAll(".ishml-drop").forEach((descendant)=>
 			{
 				descendant.ondrop=this.drop.bind(this)
 				descendant.ondragenter=this.dragenter.bind(this)
@@ -235,14 +257,14 @@ ISHML.Yarn.prototype.say=function(aText)
 		targetNodes.forEach((aNode)=>
 		{
 			aNode.append(fragment)
-			/*aNode.querySelectorAll(".ISHML-input").forEach((descendant)=>descendant.onkeyup=this.input.bind(this))
-			aNode.querySelectorAll(".ISHML-choice").forEach((descendant)=>descendant.onclick=this.click.bind(this))
-			aNode.querySelectorAll(".ISHML-drag").forEach((descendant)=>
+			/*aNode.querySelectorAll(".ishml-input").forEach((descendant)=>descendant.onkeyup=this.input.bind(this))
+			aNode.querySelectorAll(".ishml-choice").forEach((descendant)=>descendant.onclick=this.click.bind(this))
+			aNode.querySelectorAll(".ishml-drag").forEach((descendant)=>
 			{
 				descendant.ondragstart=this.drag.bind(this)
 				descendant.draggable=true
 			})
-			aNode.querySelectorAll(".ISHML-drop").forEach((descendant)=>descendant.ondrop=this.drop.bind(this))
+			aNode.querySelectorAll(".ishml-drop").forEach((descendant)=>descendant.ondrop=this.drop.bind(this))
 		*/
 		})
 		return this
@@ -253,14 +275,15 @@ ISHML.Yarn.prototype.say=function(aText)
 		{
 			while(aNode.firstChild){aNode.removeChild(aNode.firstChild)}
 			aNode.append(fragment)
-			/*aNode.querySelectorAll(".ISHML-input").forEach((descendant)=>descendant.onkeyup=this.input.bind(this))
-			aNode.querySelectorAll(".ISHML-choice").forEach((descendant)=>descendant.onclick=this.click.bind(this))
-			aNode.querySelectorAll(".ISHML-drag").forEach((descendant)=>
+
+			/*aNode.querySelectorAll(".ishml-input").forEach((descendant)=>descendant.onkeyup=this.input.bind(this))
+			aNode.querySelectorAll(".ishml-choice").forEach((descendant)=>descendant.onclick=this.click.bind(this))
+			aNode.querySelectorAll(".ishml-drag").forEach((descendant)=>
 			{
 				descendant.ondragstart=this.drag.bind(this)
 				descendant.draggable=true
 			})
-			aNode.querySelectorAll(".ISHML-drop").forEach((descendant)=>descendant.ondrop=this.drop.bind(this))
+			aNode.querySelectorAll(".ishml-drop").forEach((descendant)=>descendant.ondrop=this.drop.bind(this))
 		*/
 		})
 		return this
@@ -268,15 +291,13 @@ ISHML.Yarn.prototype.say=function(aText)
 	return {first:_first,last:_last,instead:_instead}
 }
 
-ISHML.Yarn.prototype.tell=function(aStoryline) 
+ishml.Yarn.prototype.tell=function(aStoryline) 
 {
-
+	//DEFECT: Save story state + episode to undo spool.
 	var storyline=aStoryline || this.storyline
 	while(storyline.continues())
 	{
-		var {plot,twist}=storyline.current()
-		plot.narrate(twist)
-		storyline.advance()
+		var {plotpoint,twist}=storyline.advance()
+		plotpoint.narrate(twist)
 	}
-
 }

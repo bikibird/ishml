@@ -1,7 +1,7 @@
-ISHML.Cord= function Cord(id)
+ishml.Cord= function Cord(id)
 {
 	//what cords are made of
-	if (this instanceof ISHML.Cord)
+	if (this instanceof ishml.Cord)
 	{
 		Object.defineProperty(this,"id",{writable:true, value:id})
 
@@ -14,18 +14,18 @@ ISHML.Cord= function Cord(id)
 }
 
 
-Object.defineProperty(ISHML.Cord.prototype, "knot", { get: function() { return Object.values(this)[0]}})
-Object.defineProperty(ISHML.Cord.prototype, "knots", { get: function() { return Object.values(this)||[]} })
+Object.defineProperty(ishml.Cord.prototype, "knot", { get: function() { return Object.values(this)[0]}})
+Object.defineProperty(ishml.Cord.prototype, "knots", { get: function() { return Object.values(this)||[]} })
 
-ISHML.Cord.prototype.filter=function(aFilter){return this.knots.filter(aFilter)}
-ISHML.Cord.prototype.first=function(aCount=1){return this.knots.slice(0,aCount)}
-ISHML.Cord.prototype.last=function(aCount=1){return this.knots.slice(-1,-aCount)}
-ISHML.Cord.prototype.middle=function(aCount=1){return this.knots.slice(aCount,-aCount)}
-ISHML.Cord.prototype.most=function(aCount=1){return this.knots.slice(aCount-1,-1)}
-ISHML.Cord.prototype.shuffle=function(aCount)
+ishml.Cord.prototype.filter=function(aFilter){return this.knots.filter(aFilter)}
+ishml.Cord.prototype.first=function(aCount=1){return this.knots.slice(0,aCount)}
+ishml.Cord.prototype.last=function(aCount=1){return this.knots.slice(-1,-aCount)}
+ishml.Cord.prototype.middle=function(aCount=1){return this.knots.slice(aCount,-aCount)}
+ishml.Cord.prototype.most=function(aCount=1){return this.knots.slice(aCount-1,-1)}
+ishml.Cord.prototype.shuffle=function(aCount)
 {
 	var count=aCount||this.size
-	return ISHML.util.shuffle(this.knots,count)
+	return ishml.util.shuffle(this.knots,count)
 }
-ISHML.Cord.prototype.sort=function(aSort){return this.knots.sort(aSort)}
+ishml.Cord.prototype.sort=function(aSort){return this.knots.sort(aSort)}
 

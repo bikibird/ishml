@@ -1,6 +1,6 @@
-ISHML.Queue= function Queue({compare=(a,b)=>a.weight<b.weight, mode=1}={})
+ishml.Queue= function Queue({compare=(a,b)=>a.weight<b.weight, mode=1}={})
 {
-	if (this instanceof ISHML.Queue)
+	if (this instanceof ishml.Queue)
 	{
 		this.mode=mode
 		this._queue
@@ -11,8 +11,8 @@ ISHML.Queue= function Queue({compare=(a,b)=>a.weight<b.weight, mode=1}={})
 		return new Queue({compare:compare, mode:mode})
 	}	
 }
-ISHML.Queue.protortype.enum={fifo:1,lifo:2,priority:3}
-ISHML.Queue.prototype.push=function(...items)
+ishml.Queue.protortype.enum={fifo:1,lifo:2,priority:3}
+ishml.Queue.prototype.push=function(...items)
 {
 	switch (this.mode) 
 	{
@@ -21,33 +21,28 @@ ISHML.Queue.prototype.push=function(...items)
 			break
 
 		case 3:
-			function siftUp(index)
-			{
-				if(index===0){return}
-				else
-				{
-					var parentIndex=Math.floor(index/2)
-					if (compare(this._queue[index],this._queue[parentIndex]))
-					{
-						var parent=this._queue[parentIndex] 
-						this._queue[parentIndex]=this._queue[index]
-						siftUp(parentIndex)
-					}
-					return
-				}
-			}
 			items.forEach(item)
 			{
-				this._queue.push(item)
-				siftUp(this._queue.length-1)
+				
+				var i = this._queue.push(item)-1
+				while (i > 0)
+				{
+					var parentIndex=Math.floor(i / 2)
+					if (this._queue[i] < this._queue[parentIndex])
+					{	
+						var parent=this._queue[parentIndex]
+						this._queue[parentIndex]= this._queue[i]
+						this._queue[i]=parent
+						i=parentIndex
+					}		
+				}
+				
 			}
-			
-			
 	}
 	
 	return this._queue.length
 }
-ISHML.Queue.prototype.pull=function()
+ishml.Queue.prototype.pull=function()
 {
 	switch (this.mode) 
 	{
@@ -58,33 +53,38 @@ ISHML.Queue.prototype.pull=function()
 			return this._queue.pop()
 			
 		case 3:
-			function siftUp(index)
+			var result=this._queue.shift()
+			this._queue.unshift( this._queue.pop())
+			var i=0
+			while (i*2<this._queue.length)
 			{
-				if(index===0){return}
-				else
+				var leftChildIndex=i*2
+				var child=this._queue[leftChildIndex]
+				if (this._queue[i]<child)
 				{
-					var parentIndex=Math.floor(index/2)
-					if (compare(this._queue[index],this._queue[parentIndex]))
-					{
-						var parent=this._queue[parentIndex] 
-						this._queue[parentIndex]=this._queue[index]
-						siftUp(parentIndex)
-					}
-					return
+					this._queue[leftChildIndex]=this._queue[i]
+					this._queue[i]=child
+					i=leftChildIndex
 				}
+				else 
+				{
+					var rightChildIndex=leftChildIndex+1
+					var child=this._queue[rightChildIndex]
+					if (this._queue[i]<child)
+					{
+						this._queue[rightChildIndex]=this._queue[i]
+						this._queue[i]=child
+						i=rightChildIndex
+					}
+					else {break}
+
+				}
+
 			}
-			/*	guard !isEmpty // 1
-				else { return nil }
-			  swapElement(at: 0, with: count - 1) // 2
-			  let element = elements.removeLast() // 3
-			  if !isEmpty { // 4
-				siftDown(elementAtIndex: 0) // 5
-			  }
-			  return element // 6
-			 */ 
+			return result
 	}
 }
-ISHML.Queue.prototype.peek=function()
+ishml.Queue.prototype.peek=function()
 {
 	switch (this.mode) 
 	{
@@ -94,39 +94,3 @@ ISHML.Queue.prototype.peek=function()
 			return this._queue[_queue.length-1]
 	}
 }
-mutating func swapElement(at firstIndex: Int, with secondIndex: Int) {
-	guard firstIndex != secondIndex
-	  else { return }
-	swap(&elements[firstIndex], &elements[secondIndex])
-  }
-  
-
-  func highestPriorityIndex(of parentIndex: Int, and childIndex: Int) -> Int {
-	guard childIndex < count && isHigherPriority(at: childIndex, than: parentIndex)
-	  else { return parentIndex }
-	return childIndex
-  }
-	  
-  func highestPriorityIndex(for parent: Int) -> Int {
-	return highestPriorityIndex(of: highestPriorityIndex(of: parent, and: leftChildIndex(of: parent)), and: rightChildIndex(of: parent))
-  }
-
-  func isHigherPriority(at firstIndex: Int, than secondIndex: Int) -> Bool {
-	return priorityFunction(elements[firstIndex], elements[secondIndex])
-  }
-
-  func isRoot(_ index: Int) -> Bool {
-	return (index == 0)
-  }
-  
-  func leftChildIndex(of index: Int) -> Int {
-	return (2 * index) + 1
-  }
-  
-  func rightChildIndex(of index: Int) -> Int {
-	return (2 * index) + 2
-  }
-  
-  func parentIndex(of index: Int) -> Int {
-	return (index - 1) / 2
-  }

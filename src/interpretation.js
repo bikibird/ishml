@@ -1,6 +1,6 @@
-ISHML.Interpretation=function Interpretation(gist={},remainder)
+ishml.Interpretation=function Interpretation(gist={},remainder)
 {
-	if (this instanceof ISHML.Interpretation)
+	if (this instanceof ishml.Interpretation)
 	{
 		if (gist instanceof Array)
 		{
@@ -8,7 +8,7 @@ ISHML.Interpretation=function Interpretation(gist={},remainder)
 		}
 		else
 		{
-			if(gist instanceof ISHML.Token)
+			if(gist instanceof ishml.Token)
 			{
 				this.gist=gist.clone()
 			}

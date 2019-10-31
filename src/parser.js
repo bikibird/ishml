@@ -1,6 +1,6 @@
-ISHML.Parser=function Parser({lexicon,grammar}={})
+ishml.Parser=function Parser({lexicon,grammar}={})
 {
-	if (this instanceof ISHML.Parser)
+	if (this instanceof ishml.Parser)
 	{
 		this.lexicon=lexicon
 		this.grammar=grammar
@@ -10,13 +10,14 @@ ISHML.Parser=function Parser({lexicon,grammar}={})
 		return new Parser({lexicon:lexicon,grammar:grammar})
 	}
 }
-ISHML.Parser.prototype.analyze=function(text)
+ishml.Parser.prototype.analyze=function(text)
 {    
 	var interpretations=[]
 	var partialInterpretations=[]
 	var completeInterpretations=[]
 
-	var result=this.grammar.parse(text,this.lexicon)
+	var {snippets:result,error}=this.grammar.parse(text,this.lexicon)
+	console.log(error)
 	if (result)
 	{
 		interpretations=interpretations.concat(result)
@@ -30,6 +31,7 @@ ISHML.Parser.prototype.analyze=function(text)
 		}
 		else
 		{
+			delete interpretation.error
 			completeInterpretations.push(interpretation)
 		}
 	})
