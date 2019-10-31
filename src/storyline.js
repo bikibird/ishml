@@ -1,37 +1,76 @@
-ISHML.Storyline= function Storyline(aYarn)
+ishml.Storyline= function Storyline(yarn)
 {
-	if (this instanceof ISHML.Storyline)
+	if (this instanceof ishml.Storyline)
 	{
-		//  initialization section
-		this._storyline=[]
-		this._segue_=aYarn.plot
+		this.storyline=new Set()
+		this.episodes=new WeakMap
 		return this
 	}
 	else
 	{
-		return new Storyline(aYarn)
+		return new Storyline(yarn)
 	}	
 }
-ISHML.Storyline.prototype.advance= function()
+ishml.Storyline.prototype.advance= function()
 {
-	this._storyline.shift()
-	return this
+	var incident =this.storyline.values().next()
+	if (!incident.done)
+	{
+		this.storyline.delete(incident.value)
+		return incident.value
+	}
+	else return false	
+	
 }
-ISHML.Storyline.prototype.continues= function(){return this._storyline.length>0}
-ISHML.Storyline.prototype.current= function()
+ishml.Storyline.prototype.continues= function(){return this.storyline.size>0}
+/*ishml.Storyline.prototype.current= function()
 {
-	return {plot:this._storyline[0].plot||this._segue_,twist:this._storyline[0].twist}
-}
-
-ISHML.Storyline.prototype.introduce= function(aPlot,aTwist)
+	var incident =this.storyline.values().next()
+	return incident
+}*/
+ishml.Storyline.prototype.interrupt= function(episode)
 {
+	var {plotpoint, twist}=episode
+	if (!plotpoint)
+	{
+		plotpoint=this.episodes.get(twist)
+	}
 	//story.storyline.introduce(story.net.player.score)  --adds object to plotline
-
-	this._storyline.push({plot:aPlot, twist:aTwist})
+	this.storyline=new Set([{plotpoint,twist}].concat([...this.storyline]))
+	
 	return this
 }
-ISHML.Storyline.prototype.segue= function(aPlot)
+
+ishml.Storyline.prototype.introduce= function(episode)
 {
-	this._segue_=aPlot
+	var {plotpoint, twist}=episode
+	if (!plotpoint)
+	{
+		plotpoint=this.episodes.get(twist)
+	}
+	this.storyline.add({plotpoint:plotpoint,twist:twist})
 	return this
+}
+
+ishml.Storyline.prototype.twist=function(episode)
+{
+	var {plotpoint,twist}=episode
+	var handler=
+	{
+		set: function(target, property, value)
+		{
+			{
+				if (Reflect.set(target,property,value))
+				{
+					this.introduce(target)
+					return true
+				}
+				else return false
+				
+			}
+		}
+	}
+	var proxiedTwist= new Proxy(twist, handler)
+	this.episodes.set(proxiedTwist,plotpoint)
+	return proxiedTwist
 }

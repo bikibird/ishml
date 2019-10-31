@@ -1,0 +1,14 @@
+Diagram(
+Sequence(
+Optional(NonTerminal('Subject')),
+Terminal('Verb'),
+Optional(
+Choice(0,
+Sequence(
+  NonTerminal('Direct Object'),
+  Optional(Sequence(NonTerminal('Preposition'), NonTerminal('Indirect Object')))),
+Sequence(
+  NonTerminal('Indirect Object'),
+ NonTerminal('Direct Object'))))))
+
+ 

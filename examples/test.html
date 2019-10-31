@@ -5,7 +5,8 @@
         <!--<script src="https://cdn.jsdelivr.net/gh/bikibird/ishml@a145af1/src/ishml.js"></script>-->
         <script src="../src/ishml.js"></script>
         <script>
-var lexicon = ISHML.Lexicon()
+var lexicon=ISHML.Lexicon()
+lexicon
 lexicon
     .register("the", "a", "an").as({ part: "article" })
     .register("take", "steal", "grab")
@@ -30,32 +31,39 @@ lexicon
     .register("from").as({ key: "from", part: "preposition" })
     .register("to").as({ key: "to", part: "preposition" })
 
-var adjNoun=ISHML.Rule()
+    var nounPhrase=ISHML.Rule()
 
-
-adjNoun
+nounPhrase
     .snip("article").snip("adjectives").snip("noun")
 
-adjNoun.article
+nounPhrase.article
     .configure({minimum:0, filter:(definition)=>definition.part==="article" })
-adjNoun.adjectives
+nounPhrase.adjectives
     .configure(
     { minimum:0, maximum:Infinity,
             filter:(definition)=>definition.part==="adjective"
     })
 
-adjNoun.noun.configure({filter:(definition)=>definition.part==="noun" })
+/*nounPhrase.adjectives
+    .configure(
+    { minimum:0, maximum:Infinity,regex:/(^\w*)(.*)/
+    })   
+*/
+nounPhrase.noun.configure({filter:(definition)=>definition.part==="noun" })
 
-    var nounPhrase=ISHML.Rule()
-    
-nounPhrase.snip("NP", adjNoun.clone()).snip("relation")
-
-nounPhrase.relation.snip("preposition").snip("RNP",nounPhrase)
-
-nounPhrase.relation.configure({minimum:0})
-nounPhrase.relation.preposition
-    .configure({filter:(definition)=>definition.part==="preposition"})
-
+nounPhrase.semantics=(interpretation)=>
+{
+    var {gist, remainder}=interpretation
+    if (gist.article)
+    {
+        gist.noun.definitions=gist.noun.definitions.filter((definition)=>
+        {
+            return !(definition.role==="npc")
+        })
+        if(gist.noun.definitions.length===0){return false}
+    }
+    return true
+}
 
 var command=ISHML.Rule()
 
@@ -68,11 +76,32 @@ command.object.configure({minimum:0,mode:ISHML.enum.mode.any})
 
 command.object[1].snip("directObject",nounPhrase.clone()).snip("indirectObject")
 command.object[1].indirectObject.snip("preposition").snip("nounPhrase",nounPhrase.clone())
-command.object[1].indirectObject.configure({minimum:0})
+command.object[1].indirectObject
+    .configure({minimum:0})
 command.object[1].indirectObject.preposition
     .configure({filter:(definition)=>definition.part==="preposition"})
 
-    command.object[2].snip("indirectObject",nounPhrase.clone()).snip("directObject",nounPhrase.clone())
+command.object[2].snip("indirectObject",nounPhrase.clone()).snip("directObject",nounPhrase.clone())
+
+command.semantics=(interpretation)=>
+{
+    var {gist}=interpretation
+    if (gist.object)
+    {
+        if(gist.object.indirectObject)
+        {
+            if(gist.object.indirectObject)
+            {
+                gist.indirectObject=gist.object.indirectObject.nounPhrase || gist.object.indirectObject
+            }
+        }
+        gist.directObject=gist.object.directObject.nounPhrase || gist.object.directObject
+        delete gist.object
+    }
+    return true
+}
+
+
 
     var parser=ISHML.Parser({lexicon:lexicon,grammar:command})    
 /*

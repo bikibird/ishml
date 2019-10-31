@@ -1,0 +1,45 @@
+<html>
+    <head>
+    </head>
+    <body>
+        <!--<script src="https://cdn.jsdelivr.net/gh/bikibird/ishml@a145af1/src/ishml.js"></script>-->
+        <script src="../src/ishml.js"></script>
+        <script>
+var lexicon = ISHML.Lexicon()
+lexicon
+    .register("baa").as({animal: "sheep", part:"bleat" })
+    .register("baa").as({animal: "goat", part:"bleat" })
+  
+var goat=ISHML.Rule()
+goat.configure({minimum:0,maximum:5}).snip("bleat").snip("goat",goat)
+goat.bleat.filter=(definition)=>definition.animal==="goat"
+
+var sheep=ISHML.Rule()
+sheep.configure({minimum:0,maximum:5}).snip("sheep",sheep).snip("bleat")
+sheep.bleat.filter=(definition)=>definition.animal==="sheep"
+
+//Returns 5 interpretations
+console.log(ISHML.Parser({lexicon:lexicon,grammar:goat}).analyze("baa baa baa"))
+
+//Returns 2,355,510 interpretations in about 15 seconds
+console.time()
+console.log(ISHML.Parser({lexicon:lexicon,grammar:goat}).analyze("baa baa baa baa baa baa baa baa baa baa baa baa baa baa"))
+console.timeEnd()
+
+//Exceeds call stack
+console.log(ISHML.Parser({lexicon:lexicon,grammar:sheep}).analyze("baa baa baa"))
+
+
+
+
+
+ //   var parser=ISHML.Parser({lexicon:lexicon,grammar:command})    
+/*
+    parser.analyze("take ruby glass slipper")
+    parser.analyze("take ruby glass slipper to ruby")
+    parser.analyze("take ruby ruby glass slipper to ruby")
+*/
+// /[\,|\.|;|\!|\?|\s]/
+        </script>
+    </body>
+</html> 

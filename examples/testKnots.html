@@ -1,0 +1,106 @@
+<html>
+    <head>
+    </head>
+    <body>
+        <!--<script src="https://cdn.jsdelivr.net/gh/bikibird/ishml@a145af1/src/ishml.js"></script>-->
+		<script src="../src/apex.js"></script>
+		<script src="../src/util.js"></script>
+	
+		<script src="../src/knot.js"></script>
+		<script src="../src/cord.js"></script>
+		<script src="../src/yarn.js"></script>
+		<script src="../src/plot.js"></script>
+		<script src="../src/plotpoint.js"></script>
+		<!--<script src="../src/ply.js"></script>-->
+		<script src="../src/storyline.js"></script>
+		<script src="../src/lexicon.js"></script>
+		<script src="../src/rule.js"></script>
+		<script src="../src/token.js"></script>
+		<script src="../src/set.js"></script>
+        <script>
+			var story = ishml.Yarn()
+			var $=story.net
+			$
+				.tie("place").to("kitchen")
+				.tie("place").to("foyer")
+				.tie("person").to("Lizzy")
+				.tie("person").to("Charlotte")
+				.tie("graph").to("a")
+				.tie("graph").to("b")
+				.tie("graph").to("c")
+				.tie("graph").to("d")
+				.tie("graph").to("e")
+				.tie("graph").to("f")
+				.tie("graph").to("g")
+
+			$.graph.a.tie("route<route").to($.graph.b)
+			$.graph.a.tie("route<route").to($.graph.c)
+			$.graph.b.tie("route<route").to($.graph.d)
+			$.graph.c.tie("route<route").to($.graph.f)
+			$.graph.d.tie("route<route").to($.graph.e)
+			$.graph.d.tie("route<route").to($.graph.f)
+			$.graph.d.tie("route<route").to($.graph.g)
+			$.graph.e.tie("route<route").to($.graph.g)
+
+			$.place.kitchen
+				.tie("exit:north<entrance:south").to($.place.foyer)
+			//if($.command.directObject.knot.in[$.person.player.in.knot.key])
+			//$.person.lizzy.friendship[friend.key].untie
+			
+			$.person.Lizzy.tie("friendship<friendship").to($.person.Charlotte)
+
+
+			console.log(story.net)
+/*
+
+$ is "the net" and is type ishml.Knot.  Start of all queries.  
+
+
+$.tie("room").to({name:"kitchen",description:"a bright and cheerful kitchen"})
+
+Creates $.room.ply.kitchen -- edge weight data for kitchen
+Creates $.room.kitchen-- a new instance of knot. ($.room.kitchen.key === "kitchen")
+
+$.tie("room").to("foyer")
+
+Creates $.room.ply.foyer -- edge weight data for foyer
+Creates $.room.foyer -- a new instance of knot.  ($.room.foyer.key === "foyer", name and description are undefined.)
+
+$.room.kitchen.tie("exit:north<entrance:south").to($.room.foyer)
+
+Creates $.room.kitchen.exit.ply.north  (ply is non-enumerable. edge weight for exit to foyer)
+Creates $.room.kitchen.exit.north (the foyer knot)
+Creates $.room.foyer.exit.ply.south (edge weight for exit to kitchen knot)
+creates $.room.foyer.exit.south (the kitchen knot)
+
+$.tie("person").to("lizzy")
+$.tie("person").to("jane")
+$.person.lizzy.tie("sisterhood:favorite<:favorite").to("jane")
+
+Valid ties
+
+tiekey  One way tie with ply named after knot key.
+tiekey:alias One way tie with ply named after alias.
+tiekey< Two-way tie with ply named after knot key.
+tiekey<:alias two-way tie with converse ply named after alias, ply named after knot key.
+tiekey<:alias: two-way tie with ply named after alias, converse ply named after knot key.
+tiekey:alias1<:alias2 two-way tie with ply named after alias1 and converse ply named after alias2.
+tiekey1:alias1<tiekey2:alias2
+//take
+player.tie("carrying<carried by").to($.thing.knife)
+player.tie("carrying:weapon<carried by").to($.thing.knife)
+//drop--
+player.untie("carrying").from("knife")
+player.untie("carrying").from($.thing.ring)
+player.untie("carrying").from("weapon")
+
+$.thing.knife.carried_by.retie
+
+$.place.kitchen.via("exit")
+
+*/
+
+
+        </script>
+    </body>
+</html> 
