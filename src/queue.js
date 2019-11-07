@@ -1,3 +1,4 @@
+//queue
 ishml.Queue= function Queue({compare=(a,b)=>a.weight<b.weight, mode=1}={})
 {
 	if (this instanceof ishml.Queue)
