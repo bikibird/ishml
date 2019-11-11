@@ -8,34 +8,44 @@ enumerable cords
 	each cord has a ply:
 
 user defined enumerable properties.
-*/
+*/ 
 ishml.Knot= class IshmlKnot
 {
-	constructor(id,value)
+	constructor({id,uid=null})
 	{
-		Object.assign(this,value)
-		Object.defineProperty(this, "id", {value:ishml.util.formatId(id),writable: true})
-		Object.defineProperty(this, "plies", {value:new WeakMap(),writable: true})
-		Object.defineProperty(this, "uid", {value:ishml.util.formatId(),writable: true})
-		var ply={id:undefined,weight:1,knot:this,cord:undefined,from:undefined,to:undefined,converse:undefined, hop:0}
-		var proxiedKnot= new Proxy(this, ishml.Knot.prototype.handler)
-		this.plies.set(proxiedKnot,ply)
-		this.knots.set(this.uid,this)  //DEFECT: Needed?
-		return proxiedKnot
+		Object.defineProperty(this, "uid", {value:uid || ishml.util.formatId(),writable: true})
+		Object.defineProperty(this, "id", {value:id,writable: true})
+		Object.defineProperty(this, "weight", {value:1,writable: true})
+		Object.defineProperty(this, "cord", {value:null,writable: true})
+		Object.defineProperty(this, "from", {value:null,writable: true})
+		Object.defineProperty(this, "to", {value:null,writable: true})
+		Object.defineProperty(this, "converse", {value:null,writable: true})
+		Object.defineProperty(this, "hop", {value:0,writable: true})
+		if (!uid)
+		{
+			//Object.assign(ishml.Knot.values[this.uid],value)
+			ishml.Knot.knots[this.uid]=this 
+		}
+		return new Proxy(this, ishml.Knot.handler)
 	}
-	get alias()
+	ply({id=null,weight=1,cord=null,from=null,to=null,converse=null,hop=0}={})
 	{
-		var ply={id:undefined,weight:1,knot:this.ply.knot,cord:undefined,from:undefined,to:undefined,converse:undefined, hop:0}
-		var proxiedKnot= new Proxy(this.ply.knot, ishml.Knot.prototype.handler)
-		this.ply.knot.plies.set(proxiedKnot,ply)
-		return proxiedKnot
-	}
-	configure(knot)
-	{
-		var id=this.id
-		Object.assign(this,knot)
-		this.id=id
+		var alias=id||this.id
+		var knot=new ishml.Knot()
 
+		this.uid=this.uid
+		this.id=alias
+		this.weight=weight || this.weight
+		this.cord=cord || this.cord
+		this.from=from || this.from
+		this.to=to || this.to
+		this.converse=converse || this.converse
+		this.hop=hop || this.hop
+		return knot
+	}	
+	configure(value)
+	{
+		Object.assign(ishml.Knot.values[this.uid],value)
 	}
 	cordage()
 	{
@@ -211,46 +221,24 @@ $.room.kitchen.exit.north.untie()
 		return this
 	}
 }
-//DEFECT: Needed?
-Object.defineProperty(ishml.knot.prototype, "knots", {value:new WeakMap(),writable: true})
+
+Object.defineProperty(ishml.knot, "knots", {value:{},writable: true})
+Object.defineProperty(ishml.knot, "values", {value:{},writable: true})
+Object.defineProperty(ishml.knot, "cords", {value:{},writable: true})
 ishml.Knot.prototype.handler=
 {
 	get: function(target, property, receiver) 
 	{
-		if (property==="ply")
-		{	
-			var plies=Reflect.get(target,"plies")
-			return (plies.get(receiver))
+		var uid=Reflect.get(target,"uid")
+		var values= Reflect.get(target,"values")
+		if (values[uid].hasOwnProperty(property))
+		{
+			return values[uid][property]
 		}
-		if (property==="retreat")
-		{	
-			var plies=Reflect.get(target,"plies")
-			return (plies.get(receiver))["retreat"]
-		}
-		if (property==="advance")
-		{	
-			var plies=Reflect.get(target,"plies")
-			return (plies.get(receiver))["advance"]
-		}
-		if (property==="hop")
-		{	
-			var plies=Reflect.get(target,"plies")
-			return (plies.get(receiver))["hop"]
-		}
-		if (property==="converse")
-		{	
-			var plies=Reflect.get(target,"plies")
-			return (plies.get(receiver))["converse"]
-		}
-		if (property==="cord")
-		{	
-			var plies=Reflect.get(target,"plies")
-			return (plies.get(receiver))["cord"]
-		}
-		if (property==="weight")
-		{	
-			var plies=Reflect.get(target,"plies")
-			return (plies.get(receiver))["weight"]
+		var cords= Reflect.get(target,"cords")
+		if (cords[uid].hasOwnProperty(property))
+		{
+			return cords[uid][property]
 		}
 		else
 		{
@@ -259,47 +247,16 @@ ishml.Knot.prototype.handler=
 	},
 	set: function(target, property, value, receiver)
 	{
-		if (property==="ply")
+		var uid=Reflect.get(target,"uid")
+		var values= Reflect.get(target,"values")
+		if (values[uid].hasOwnProperty(property))
 		{
-			var plies=Reflect.get(target,"plies")
-			plies.get(receiver)=value
-			return true
+			values[uid][property]=value
 		}
-		if (property==="retreat")
-		{	
-			var plies=Reflect.get(target,"plies")
-			plies.get(receiver)["retreat"]=value
-			return true
-		}
-		if (property==="advance")
-		{	
-			var plies=Reflect.get(target,"plies")
-			plies.get(receiver)["advance"]=value
-			return true
-		}
-		if (property==="hop")
-		{	
-			var plies=Reflect.get(target,"plies")
-			plies.get(receiver)["hop"]=value
-			return true
-		}
-		if (property==="converse")
-		{	
-			var plies=Reflect.get(target,"plies")
-			plies.get(receiver)["converse"]=value
-			return true
-		}
-		if (property==="cord")
-		{	
-			var plies=Reflect.get(target,"plies")
-			plies.get(receiver)["cord"]=value
-			return true
-		}
-		if (property==="weight")
-		{	
-			var plies=Reflect.get(target,"plies")
-			plies.get(receiver)["weight"]=value
-			return true
+		var cords= Reflect.get(target,"cords")
+		if (cords[uid].hasOwnProperty(property))
+		{
+			cords[uid][property]=value
 		}
 		else
 		{
@@ -307,18 +264,6 @@ ishml.Knot.prototype.handler=
 		}
 	}	
 }
-
-	
-
-
-
-	
-
-
-
-
-
-
 
 
 //knot.twist1=storyline.twist(subject,{twist}) returns proxied subject.
