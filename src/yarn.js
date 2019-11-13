@@ -9,7 +9,7 @@ ishml.Yarn=function Yarn(seed)
 		this.viewpoint="2nd person singular"
 		this.setting="present"
 		ishml.util.reseed(seed)
-		this.net=new ishml.Knot()
+		this.net=new ishml.Knot("ishml_net")
 		this.harken()
 
 		

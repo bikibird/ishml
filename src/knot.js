@@ -11,45 +11,48 @@ user defined enumerable properties.
 */ 
 ishml.Knot= class IshmlKnot
 {
-	constructor({id,uid=null})
+	constructor(id,uid)
 	{
 		Object.defineProperty(this, "uid", {value:uid || ishml.util.formatId(),writable: true})
 		Object.defineProperty(this, "id", {value:id,writable: true})
-		Object.defineProperty(this, "weight", {value:1,writable: true})
-		Object.defineProperty(this, "cord", {value:null,writable: true})
-		Object.defineProperty(this, "from", {value:null,writable: true})
-		Object.defineProperty(this, "to", {value:null,writable: true})
-		Object.defineProperty(this, "converse", {value:null,writable: true})
-		Object.defineProperty(this, "hop", {value:0,writable: true})
+		Object.defineProperty(this, "ply", {value:{
+			plyId:id,
+			weight:1,
+			cord:null,
+			advance:null,
+			retreat:null,
+			converse:null,
+			hop:0}
+		,writable: true})
+
 		if (!uid)
 		{
 			//Object.assign(ishml.Knot.values[this.uid],value)
 			ishml.Knot.knots[this.uid]=this 
+			ishml.Knot.values[this.uid]={}
+			ishml.Knot.cords[this.uid]={}
 		}
 		return new Proxy(this, ishml.Knot.handler)
 	}
-	ply({id=null,weight=1,cord=null,from=null,to=null,converse=null,hop=0}={})
+	entwine({plyId=null,weight=1,cord=null,advance=null,retreat=null,converse=null,hop=0}={})
 	{
-		var alias=id||this.id
-		var knot=new ishml.Knot()
-
-		this.uid=this.uid
-		this.id=alias
-		this.weight=weight || this.weight
-		this.cord=cord || this.cord
-		this.from=from || this.from
-		this.to=to || this.to
-		this.converse=converse || this.converse
-		this.hop=hop || this.hop
+		var knot=new ishml.Knot(this.id,this.uid)
+		knot.plyId=plyId||this.id
+		knot.weight=weight
+		knot.cord=cord 
+		knot.advance=advance 
+		knot.retreat=retreat 
+		knot.converse=converse 
+		knot.hop=hop 
 		return knot
 	}	
+	get cords()
+	{
+		return Object.values(ishml.Knot.cords[this.uid]) 	
+	}
 	configure(value)
 	{
 		Object.assign(ishml.Knot.values[this.uid],value)
-	}
-	cordage()
-	{
-		return [this.cord.id, this.ply.id, (this.converse && this.converse.cord.id), (this.converse && this.converse.ply.id)]
 	}
 	forget(aTerm,aDefinition)
 	{
@@ -57,14 +60,23 @@ ishml.Knot= class IshmlKnot
 		this.yarn.lexicon.unregister(aTerm,definition)
 		return this
 	}
-	has(aId)
+	has(property)
 	{
-		if (this.hasOwnProperty(ishml.util.formatId(aId)))
+
+		if (ishml.Knot.values[this.uid].hasOwnProperty(property))
 		{
 			return true
 		}
-		else {return false}
+		if (ishml.Knot.cords[this.uid].hasOwnProperty(property))
+		{
+			return true
+		}
+		else
+		{
+			return false
+		}
 	}
+	
 	path(destintation,{filter=(knot)=>true,minimum=1,maximum=Infinity,via,cost}={})
 	{
 		if (via)
@@ -76,47 +88,44 @@ ishml.Knot= class IshmlKnot
 		{
 			var anyway=true
 		}	
-		this.retreat=undefined
+		this.retreat=null
 		var queue=[this]
 		var visited = new Set()
 		var path= []
 		while (queue.length>0)
 		{
 			var knot=queue.shift()
-			console.log(knot)
-			if (knot.ply.hop<=maximum)
+			
+			if (knot.hop<=maximum)
 			{
-				if (knot.ply.knot===destintation.ply.knot && knot.ply.hop>=minimum)
+				if (knot.uid===destintation.uid && knot.hop>=minimum)
 				{
 					//found!
-					
+					console.log(path)
 					var advanceKnot
 					while (knot)
 					{
-						knot.ply.advance=advanceKnot
+						knot.advance=advanceKnot
 						path.unshift(knot)
 						advanceKnot=knot
-						knot=knot.ply.retreat
+						knot=knot.retreat
 					}	
 					return {success:true,start:path[0],end:path[path.length-1],path:path}
 				}
 				else
 				{
-					if (!visited.has(knot.ply.knot) && filter(knot))
+					if (!visited.has(knot) && filter(knot))
 					{
-						visited.add(knot.ply.knot)
-						Object.values(knot).forEach(cord => 
+						visited.add(knot)
+						knot.cords.forEach(cord => 
 						{
 							if (cord instanceof ishml.Cord && (anyway || way.has(cord.id)) )
 							{
 								Object.values(cord).forEach((child)=>
 								{
-									if (!visited.has(child.ply.knot))
+									if (!visited.has(child))
 									{
-										var newKnot=child.alias
-										newKnot.ply.retreat=knot
-										newKnot.ply.hop=knot.ply.hop+1
-										queue.push(newKnot)
+										queue.push(child.entwine({retreat:knot,hop:knot.hop+1}))
 									}
 								})
 							}	
@@ -142,7 +151,7 @@ ishml.Knot= class IshmlKnot
 
 		var [forward,backward]=cordage.split(/[<>]/)
 		var [cordId,plyId]=forward.split(":").map(id=>ishml.util.formatId(id.trim()))
-		if(!fromKnot.hasOwnProperty(cordId)){fromKnot[cordId]=new ishml.Cord(cordId)}
+		if(!fromKnot.has(cordId)){fromKnot[cordId]=new ishml.Cord(cordId)}
 		if (backward)
 		{
 			var [converseCordId,conversePlyId]=backward.split(":").map(id=>ishml.util.formatId(id.trim()))	
@@ -159,9 +168,9 @@ ishml.Knot= class IshmlKnot
 				var toKnot=new ishml.Knot(knot)
 			}
 			if (!cordId){cordId=ishml.util.formatId()}
-			if (!plyId){plyId=toKnot.id||ishml.util.formatId(toKnot.name)}
+			if (!plyId){plyId=toKnot.id}
 			
-			if (fromKnot.hasOwnProperty(cordId))
+			if (fromKnot.has(cordId))
 			{
 				var cord=fromKnot[cordId]
 				
@@ -171,12 +180,10 @@ ishml.Knot= class IshmlKnot
 				var cord = new ishml.Cord(cordId)
 				fromKnot[cordId]=cord
 			}
-			var aliasToKnot=toKnot.alias
-			aliasToKnot.ply.id=plyId
-			aliasToKnot.ply.cord=cord
+			var aliasToKnot=toKnot.entwine({plyId:plyId,cord:cord})
 			if(backward)
 			{
-				if (toKnot.hasOwnProperty(converseCordId))
+				if (toKnot.has(converseCordId))
 				{
 					var converseCord=toKnot[converseCordId]
 				}
@@ -186,14 +193,14 @@ ishml.Knot= class IshmlKnot
 					toKnot[converseCordId]=converseCord
 					
 				}
-				if (!conversePlyId){conversePlyId=fromKnot.id||ishml.util.formatId(fromKnot.name)}
-				var aliasFromKnot=fromKnot.alias
-				aliasFromKnot.ply.id=conversePlyId
+				if (!conversePlyId){conversePlyId=fromKnot.id}
+				var aliasFromKnot=fromKnot.entwine({plyId:conversePlyId,cord:converseCord, converse:aliasToKnot})
+				/*aliasFromKnot.ply.id=conversePlyId
 				aliasFromKnot.ply.cord=converseCord
 				//aliasFromKnot.ply.from=toKnot
-				aliasFromKnot.ply.converse=aliasToKnot
+				aliasFromKnot.ply.converse=aliasToKnot*/
 
-				aliasToKnot.ply.converse=aliasFromKnot
+				aliasToKnot.converse=aliasFromKnot
 				
 				toKnot[converseCordId][conversePlyId]=aliasFromKnot	
 			}
@@ -211,31 +218,41 @@ $.room.kitchen.exit.north removes the exit north tie to foyer and returns north.
 
 $.room.kitchen.exit.north.untie()
 */
-		var cord=this.ply.cord
-		delete cord[this.ply.id]
-		var converse=this.ply.converse
+		var cord=this.cord
+		delete cord[this.id]
+		var converse=this.converse
 		if (this.converse)
 		{
-			delete converse.ply.cord[converse.ply.id]
+			delete converse.cord[converse.id]
 		}
 		return this
 	}
+	get value()
+	{
+		return ishml.Knot.values[this.uid]
+	}
 }
 
-Object.defineProperty(ishml.knot, "knots", {value:{},writable: true})
-Object.defineProperty(ishml.knot, "values", {value:{},writable: true})
-Object.defineProperty(ishml.knot, "cords", {value:{},writable: true})
-ishml.Knot.prototype.handler=
+ishml.Knot.knots={}
+ishml.Knot.cords={}
+ishml.Knot.values={}
+
+ishml.Knot.handler=
 {
 	get: function(target, property, receiver) 
 	{
+		if(property==="plyId" || property==="cord" || property==="converse" || property==="advance" ||property==="retreat" || property==="hop")
+		{
+			var ply=Reflect.get(target,"ply")
+			return ply[property]
+		}
 		var uid=Reflect.get(target,"uid")
-		var values= Reflect.get(target,"values")
+		var values=ishml.Knot.values
 		if (values[uid].hasOwnProperty(property))
 		{
 			return values[uid][property]
 		}
-		var cords= Reflect.get(target,"cords")
+		var cords= ishml.Knot.cords
 		if (cords[uid].hasOwnProperty(property))
 		{
 			return cords[uid][property]
@@ -248,15 +265,23 @@ ishml.Knot.prototype.handler=
 	set: function(target, property, value, receiver)
 	{
 		var uid=Reflect.get(target,"uid")
-		var values= Reflect.get(target,"values")
+
+		if(property==="plyId" || property==="cord" || property==="converse" || property==="advance" ||property==="retreat" || property==="hop")
+		{
+			var ply=Reflect.get(target,"ply")
+			ply[property]=value
+			return true
+		}
+		
+		if (value instanceof ishml.Cord)
+		{
+			ishml.Knot.cords[uid][property]=value
+		}	
+		var values=ishml.Knot.values
 		if (values[uid].hasOwnProperty(property))
 		{
 			values[uid][property]=value
-		}
-		var cords= Reflect.get(target,"cords")
-		if (cords[uid].hasOwnProperty(property))
-		{
-			cords[uid][property]=value
+			return true
 		}
 		else
 		{

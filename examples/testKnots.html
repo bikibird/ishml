@@ -5,13 +5,10 @@
         <!--<script src="https://cdn.jsdelivr.net/gh/bikibird/ishml@a145af1/src/ishml.js"></script>-->
 		<script src="../src/apex.js"></script>
 		<script src="../src/util.js"></script>
-	
 		<script src="../src/knot.js"></script>
 		<script src="../src/cord.js"></script>
 		<script src="../src/yarn.js"></script>
-		<script src="../src/plot.js"></script>
 		<script src="../src/plotpoint.js"></script>
-		<!--<script src="../src/ply.js"></script>-->
 		<script src="../src/storyline.js"></script>
 		<script src="../src/lexicon.js"></script>
 		<script src="../src/rule.js"></script>
@@ -44,10 +41,11 @@
 
 			$.place.kitchen
 				.tie("exit:north<entrance:south").to($.place.foyer)
+	
 			//if($.command.directObject.knot.in[$.person.player.in.knot.key])
 			//$.person.lizzy.friendship[friend.key].untie
 			
-			$.person.Lizzy.tie("friendship<friendship").to($.person.Charlotte)
+			//$.person.Lizzy.tie("friendship<friendship").to($.person.Charlotte)
 
 
 			console.log(story.net)
