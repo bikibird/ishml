@@ -1,4 +1,3 @@
-url: https://whitewhalestories.com
 Permalink: /:categories/:year/:month/:day/:title:output_ext 
 disqus: whitewhalestories
 plugins:
