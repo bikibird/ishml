@@ -7,15 +7,28 @@ Copyright 2019, Jennifer L Schmidt
 Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
 
 THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+https://whitewhalestories.com
 */
 
-var ISHML = ISHML || {}
-var Ishmael = Ishmael || ISHML  //Call me Ishmael.
-ISHML.enum=ISHML.enum || {}
-ISHML.enum.mode={all:0,any:1,apt:2} 
-ISHML.Interpretation=function Interpretation(gist={},remainder)
+var ishml = ishml || {}
+//var Ishmael = Ishmael || ishml  //Call me Ishmael.
+ishml.enum=ishml.enum || {}
+ishml.enum.mode={all:Symbol('all'),any:Symbol('any'),apt: Symbol('apt')} 
+ishml.enum.pos=
 {
-	if (this instanceof ISHML.Interpretation)
+	adjective:Symbol("adjective"),
+	adverb:Symbol("adverb"),
+	conjunction:Symbol("conjunction"),
+	noun:Symbol("noun"),
+	prefix:Symbol("prefix"),
+	preposition:Symbol("preposition"),
+	suffix:Symbol("suffix"),
+	verb:Symbol("verb")
+}
+ishml.Interpretation=function Interpretation(gist={},remainder)
+{
+	if (this instanceof ishml.Interpretation)
 	{
 		if (gist instanceof Array)
 		{
@@ -23,7 +36,7 @@ ISHML.Interpretation=function Interpretation(gist={},remainder)
 		}
 		else
 		{
-			if(gist instanceof ISHML.Token)
+			if(gist instanceof ishml.Token)
 			{
 				this.gist=gist.clone()
 			}
@@ -45,9 +58,9 @@ ISHML.Interpretation=function Interpretation(gist={},remainder)
 		return new Interpretation(gist,remainder)
 	}
 }
-ISHML.Lexicon=function Lexicon() 
+ishml.Lexicon=function Lexicon() 
 {
-	if (this instanceof ISHML.Lexicon)
+	if (this instanceof ishml.Lexicon)
 	{
 
 		Object.defineProperty(this, "trie", {value:{},writable: true})
@@ -59,7 +72,7 @@ ISHML.Lexicon=function Lexicon()
 	}
 }
 
-ISHML.Lexicon.prototype.register = function (...someLexemes) 
+ishml.Lexicon.prototype.register = function (...someLexemes) 
 {
 	var lexemes=someLexemes
 	var _as =function(definition)
@@ -82,7 +95,7 @@ ISHML.Lexicon.prototype.register = function (...someLexemes)
 	}	
 	return {as:_as.bind(this)}	
 }
-ISHML.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^\s+/, lax=false, caseSensitive=false, longest=false, full=false}={}) 
+ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^\s+/, lax=false, caseSensitive=false, longest=false, full=false}={}) 
 {
 	var _trie = this.trie
 	var _results = []
@@ -104,7 +117,7 @@ ISHML.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^
 			var result={}
 			var definitions=[]
 			definitions[0]={fuzzy:true}
-			result.token=new ISHML.Token(match[1],definitions)
+			result.token=new ishml.Token(match[1],definitions)
 			result.remainder=match[2]
 			_results.push(result)
 
@@ -141,7 +154,7 @@ ISHML.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^
 						if (lax || (separator===false) || (separator && separator.test(trimmedText.substring(i+1))))
 						{
 							var result={}
-							result.token=new ISHML.Token(trimmedText.substring(0,i+1),_trie[character].definitions)
+							result.token=new ishml.Token(trimmedText.substring(0,i+1),_trie[character].definitions)
 							result.remainder=trimmedText.substring(i+1).slice(0)
 							_results.unshift(result)
 						}
@@ -149,7 +162,7 @@ ISHML.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^
 					else // if (i===trimmedtext.length-1) 
 					{
 						var result={}
-						result.token=new ISHML.Token(trimmedText.substring(0),_trie[character].definitions)
+						result.token=new ishml.Token(trimmedText.substring(0),_trie[character].definitions)
 						result.remainder=""
 						_results.unshift(result)
 					}
@@ -166,7 +179,7 @@ ISHML.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^
 	return _results
 }
 
-ISHML.Lexicon.prototype.unregister=function(lexeme,definition)
+ishml.Lexicon.prototype.unregister=function(lexeme,definition)
 {
 	var _lexeme=lexeme.toLowerCase()
 	var _trie = this.trie
@@ -211,9 +224,9 @@ ISHML.Lexicon.prototype.unregister=function(lexeme,definition)
 	}
 	return this	
 }
-ISHML.Parser=function Parser({lexicon,grammar}={})
+ishml.Parser=function Parser({lexicon,grammar}={})
 {
-	if (this instanceof ISHML.Parser)
+	if (this instanceof ishml.Parser)
 	{
 		this.lexicon=lexicon
 		this.grammar=grammar
@@ -223,7 +236,7 @@ ISHML.Parser=function Parser({lexicon,grammar}={})
 		return new Parser({lexicon:lexicon,grammar:grammar})
 	}
 }
-ISHML.Parser.prototype.analyze=function(text)
+ishml.Parser.prototype.analyze=function(text)
 {    
 	var interpretations=[]
 	var partialInterpretations=[]
@@ -264,12 +277,12 @@ ISHML.Parser.prototype.analyze=function(text)
 		}
 	}
 }
-ISHML.regex=ISHML.regex||{}
-ISHML.regex.word=/(^\w*)(.*)/
-ISHML.regex.digits=/(^\d*)(.*)/
-ISHML.Rule=function Rule() 
+ishml.regex=ishml.regex||{}
+ishml.regex.word=/(^\w*)(.*)/
+ishml.regex.digits=/(^\d*)(.*)/
+ishml.Rule=function Rule() 
 {
-	if (this instanceof ISHML.Rule)
+	if (this instanceof ishml.Rule)
 	{
 		Object.defineProperty(this, "caseSensitive", {value:false, writable: true})
 		Object.defineProperty(this, "full", {value:false, writable: true})
@@ -292,13 +305,13 @@ ISHML.Rule=function Rule()
 	}
 }
 
-ISHML.Rule.prototype.clone =function()
+ishml.Rule.prototype.clone =function()
 {
 	var circularReferences=new Set()
 
 	function _clone(rule)
 	{
-		var clonedRule= new ISHML.Rule().configure({caseSensitive:rule.caseSensitive, filter:rule.filter, full:rule.full, greedy:rule.greedy, keep:rule.keep, lax:rule.lax, longest:rule.longest, minimum:rule.minimum, maximum:rule.maximum, mode:rule.mode, regex:rule.regex, semantics:rule.semantics, separator:rule.separator})
+		var clonedRule= new ishml.Rule().configure({caseSensitive:rule.caseSensitive, filter:rule.filter, full:rule.full, greedy:rule.greedy, keep:rule.keep, lax:rule.lax, longest:rule.longest, minimum:rule.minimum, maximum:rule.maximum, mode:rule.mode, regex:rule.regex, semantics:rule.semantics, separator:rule.separator})
 		var entries=Object.entries(rule)
 		entries.forEach(([key,value])=>
 		{
@@ -317,7 +330,7 @@ ISHML.Rule.prototype.clone =function()
 	}	
 	return _clone(this)
 }	
-ISHML.Rule.prototype.configure =function({caseSensitive, filter, full, greedy, keep, lax, longest, minimum,maximum, mode, regex, semantics, separator}={})
+ishml.Rule.prototype.configure =function({caseSensitive, filter, full, greedy, keep, lax, longest, minimum,maximum, mode, regex, semantics, separator}={})
 {
 
 	if(caseSensitive !== undefined){this.caseSensitive=caseSensitive}
@@ -335,7 +348,7 @@ ISHML.Rule.prototype.configure =function({caseSensitive, filter, full, greedy, k
 	if(separator !== undefined){this.separator=separator}
 	return this
 }
-ISHML.Rule.prototype.parse =function(text,lexicon)
+ishml.Rule.prototype.parse =function(text,lexicon)
 {
 	var someText=text.slice(0)
 	var results=[]
@@ -346,9 +359,9 @@ ISHML.Rule.prototype.parse =function(text,lexicon)
 	{
 		switch (this.mode) 
 		{
-			case ISHML.enum.mode.all:
-				if (this.maximum ===1 ){var candidates=[new ISHML.Interpretation({},someText)]}
-				else {var candidates=[new ISHML.Interpretation([],someText)]}
+			case ishml.enum.mode.all:
+				if (this.maximum ===1 ){var candidates=[new ishml.Interpretation({},someText)]}
+				else {var candidates=[new ishml.Interpretation([],someText)]}
 				var counter = 0
 				var phrases=[]
 				var revisedCandidates=candidates.slice(0)
@@ -364,7 +377,7 @@ ISHML.Rule.prototype.parse =function(text,lexicon)
 								var {snippets,error}=this[key].parse(remainder.slice(0),lexicon) 
 								snippets.forEach((snippet)=>
 								{
-									var phrase=new ISHML.Interpretation(gist,snippet.remainder)
+									var phrase=new ishml.Interpretation(gist,snippet.remainder)
 									if (this.maximum ===1 )
 									{
 										if(this[key].keep){phrase.gist[key]=snippet.gist}
@@ -415,9 +428,9 @@ ISHML.Rule.prototype.parse =function(text,lexicon)
 					}
 				}
 				break
-			case ISHML.enum.mode.any:
-					if (this.maximum ===1 ){var candidates=[new ISHML.Interpretation({},someText)]}
-					else {var candidates=[new ISHML.Interpretation([],someText)]}
+			case ishml.enum.mode.any:
+					if (this.maximum ===1 ){var candidates=[new ishml.Interpretation({},someText)]}
+					else {var candidates=[new ishml.Interpretation([],someText)]}
 					var revisedCandidates=candidates.slice(0)
 					for (let key of keys)
 					{
@@ -434,7 +447,7 @@ ISHML.Rule.prototype.parse =function(text,lexicon)
 									var {snippets,error}=this[key].parse(remainder.slice(0),lexicon) 
 									snippets.forEach((snippet)=>
 									{
-										var phrase=new ISHML.Interpretation(gist,snippet.remainder)
+										var phrase=new ishml.Interpretation(gist,snippet.remainder)
 										if (this.maximum ===1 )
 										{
 											if(this[key].keep){phrase.gist=snippet.gist}
@@ -475,9 +488,9 @@ ISHML.Rule.prototype.parse =function(text,lexicon)
 						revisedCandidates=candidates.slice(0)  //go see if there are more alternatives that work.	
 					}
 					break
-			case ISHML.enum.mode.apt:
-				if (this.maximum ===1 ){var candidates=[new ISHML.Interpretation({},someText)]}
-				else {var candidates=[new ISHML.Interpretation([],someText)]}
+			case ishml.enum.mode.apt:
+				if (this.maximum ===1 ){var candidates=[new ishml.Interpretation({},someText)]}
+				else {var candidates=[new ishml.Interpretation([],someText)]}
 				var revisedCandidates=candidates.slice(0)
 				for (let key of keys)
 				{
@@ -494,7 +507,7 @@ ISHML.Rule.prototype.parse =function(text,lexicon)
 								var {snippets,error}=this[key].parse(remainder.slice(0),lexicon) 
 								snippets.forEach((snippet)=>
 								{
-									var phrase=new ISHML.Interpretation(gist,snippet.remainder)
+									var phrase=new ishml.Interpretation(gist,snippet.remainder)
 									if (this.maximum ===1 )
 									{
 										if(this[key].keep){phrase.gist=snippet.gist}
@@ -542,8 +555,8 @@ ISHML.Rule.prototype.parse =function(text,lexicon)
 	{
 	//terminal
 
-		if (this.maximum ===1 ){var candidates=[new ISHML.Interpretation({},someText)]}
-		else {var candidates=[new ISHML.Interpretation([],someText)]}
+		if (this.maximum ===1 ){var candidates=[new ishml.Interpretation({},someText)]}
+		else {var candidates=[new ishml.Interpretation([],someText)]}
 		var revisedCandidates=candidates.slice(0)
 		
 		var counter = 0
@@ -563,7 +576,7 @@ ISHML.Rule.prototype.parse =function(text,lexicon)
 						snippet.token.definitions=snippet.token.definitions.filter(this.filter)
 						if (snippet.token.definitions.length>0)
 						{
-							var phrase=new ISHML.Interpretation(gist,snippet.remainder)
+							var phrase=new ishml.Interpretation(gist,snippet.remainder)
 							if (this.maximum ===1 )
 							{
 								if(this.keep){phrase.gist=snippet.token}
@@ -632,7 +645,7 @@ ISHML.Rule.prototype.parse =function(text,lexicon)
 		return {snippets:[], error:problem}
 	}	
 }
-ISHML.Rule.prototype.snip =function(key,rule)
+ishml.Rule.prototype.snip =function(key,rule)
 {
 	if (typeof key !== "number")
 	{
@@ -643,13 +656,13 @@ ISHML.Rule.prototype.snip =function(key,rule)
 		var formattedKey=key
 	}
 
-	if (rule instanceof ISHML.Rule)
+	if (rule instanceof ishml.Rule)
 	{
 		this[formattedKey]=rule
 	}
 	else
 	{
-		this[formattedKey]=new ISHML.Rule()
+		this[formattedKey]=new ishml.Rule()
 
 		this[formattedKey].caseSensitive=this.caseSensitive
 		this[formattedKey].full=this.full
@@ -660,9 +673,9 @@ ISHML.Rule.prototype.snip =function(key,rule)
 	}	
 	return this		
 }
-ISHML.Token=function Token(lexeme="",definitions=[])
+ishml.Token=function Token(lexeme="",definitions=[])
 {
-	if (this instanceof ISHML.Token)
+	if (this instanceof ishml.Token)
 	{
 		this.lexeme=lexeme.slice(0)
 		this.definitions=definitions.slice(0)
@@ -673,19 +686,19 @@ ISHML.Token=function Token(lexeme="",definitions=[])
 		return new Token(lexeme,definitions)
 	}
 }
-ISHML.Token.prototype.clone=function() 
+ishml.Token.prototype.clone=function() 
 {
-	return new ISHML.Token(this.lexeme,this.definitions)
+	return new ishml.Token(this.lexeme,this.definitions)
 }
-ISHML.util={_seed:undefined}
+ishml.util={_seed:undefined}
 
-ISHML.util.enumerator=function* (aStart =1)
+ishml.util.enumerator=function* (aStart =1)
 {
   let i = aStart;
   while (true) yield i++
 }
 
-ISHML.util.formatId=function(id)
+ishml.util.formatId=function(id)
 {
 	if(id)
 	{ 
@@ -694,22 +707,22 @@ ISHML.util.formatId=function(id)
 	}	
 	else 
 	{
-		return "auto" + ISHML.util.autoid.next().value.toString()
+		return "auto" + ishml.util.autoid.next().value.toString()
 	}
 }
-ISHML.util.autoid=ISHML.util.enumerator()
-ISHML.util.random = function() 
+ishml.util.autoid=ishml.util.enumerator()
+ishml.util.random = function() 
 {
 	this._seed = this._seed * 16807 % 2147483647
 	return (this._seed-1)/2147483646
 }
-ISHML.util.reseed = function(aSeed=Math.floor(Math.random() * 2147483648)) 
+ishml.util.reseed = function(aSeed=Math.floor(Math.random() * 2147483648)) 
 {
 	var seed=aSeed % 2147483647
 	if (seed <= 0){seed += 2147483646}
 	this._seed=seed	
 }
-ISHML.util.shuffle=function(anArray,aCount=undefined)
+ishml.util.shuffle=function(anArray,aCount=undefined)
 {
 	var array=anArray.slice(0)
 	var m = array.length
