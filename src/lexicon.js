@@ -57,8 +57,8 @@ ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^
 			var result={}
 			var definitions=[]
 			definitions[0]={fuzzy:true}
-			result.token=new ishml.Token(match[1],definitions)
-			result.remainder=match[2]
+			result.token=new ishml.Token(match[0],definitions)
+			result.remainder=trimmedText.slice(match[0].length)
 			_results.push(result)
 
 		}
