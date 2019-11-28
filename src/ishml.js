@@ -117,8 +117,8 @@ ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^
 			var result={}
 			var definitions=[]
 			definitions[0]={fuzzy:true}
-			result.token=new ishml.Token(match[1],definitions)
-			result.remainder=match[2]
+			result.token=new ishml.Token(match[0],definitions)
+			result.remainder=trimmedText.slice(match[0].length)
 			_results.push(result)
 
 		}
@@ -279,7 +279,7 @@ ishml.Parser.prototype.analyze=function(text)
 }
 ishml.regex=ishml.regex||{}
 ishml.regex.word=/(^\w*)(.*)/
-ishml.regex.digits=/(^\d*)(.*)/
+ishml.regex.floatingPointNumber=/^-?([0-9]*[.])?[0-9]+/
 ishml.Rule=function Rule() 
 {
 	if (this instanceof ishml.Rule)
