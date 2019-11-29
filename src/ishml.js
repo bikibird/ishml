@@ -243,7 +243,6 @@ ishml.Parser.prototype.analyze=function(text)
 	var completeInterpretations=[]
 
 	var {snippets:result,error}=this.grammar.parse(text,this.lexicon)
-	console.log(error)
 	if (result)
 	{
 		interpretations=interpretations.concat(result)
@@ -401,8 +400,6 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 										problem.error[key]=error.error
 									}
 								}
-								
-								console.log(problem)	
 							}  
 						})
 						if (this[key].minimum===0)
@@ -472,7 +469,6 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 										problem.error[key]=error.error
 									}
 								}
-								console.log(problem)
 							})
 							
 							revisedCandidates=phrases.slice(0)
