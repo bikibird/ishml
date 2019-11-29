@@ -17,7 +17,6 @@ ishml.Parser.prototype.analyze=function(text)
 	var completeInterpretations=[]
 
 	var {snippets:result,error}=this.grammar.parse(text,this.lexicon)
-	console.log(error)
 	if (result)
 	{
 		interpretations=interpretations.concat(result)

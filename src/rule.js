@@ -119,8 +119,6 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 										problem.error[key]=error.error
 									}
 								}
-								
-								console.log(problem)	
 							}  
 						})
 						if (this[key].minimum===0)
@@ -190,7 +188,6 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 										problem.error[key]=error.error
 									}
 								}
-								console.log(problem)
 							})
 							
 							revisedCandidates=phrases.slice(0)
