@@ -1,4 +1,4 @@
-ishml.Interpretation=function Interpretation(gist={},remainder)
+ishml.Interpretation=function Interpretation(gist={},remainder="",valid=true)
 {
 	if (this instanceof ishml.Interpretation)
 	{
@@ -17,12 +17,9 @@ ishml.Interpretation=function Interpretation(gist={},remainder)
 				this.gist=Object.assign({},gist)
 			}	
 		}
-		if(remainder)
-		{
-			this.remainder=remainder.slice()
-		}
-		else
-		this.remainder=""
+
+		this.remainder=remainder.slice()
+		this.valid=valid
 		return this
 	}
 	else

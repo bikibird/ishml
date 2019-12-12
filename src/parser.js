@@ -15,14 +15,12 @@ ishml.Parser.prototype.analyze=function(text)
 	var interpretations=[]
 	var partialInterpretations=[]
 	var completeInterpretations=[]
-
-	var {snippets:result,error}=this.grammar.parse(text,this.lexicon)
+	var {snippets:result}=this.grammar.parse(text,this.lexicon)
 	if (result)
 	{
 		interpretations=interpretations.concat(result)
 	}
-
-	interpretations.forEach((interpretation)=>
+ 	interpretations.forEach((interpretation)=>
 	{
 		if (interpretation.remainder.length>0)
 		{
@@ -30,7 +28,7 @@ ishml.Parser.prototype.analyze=function(text)
 		}
 		else
 		{
-			delete interpretation.error
+			
 			completeInterpretations.push(interpretation)
 		}
 	})
