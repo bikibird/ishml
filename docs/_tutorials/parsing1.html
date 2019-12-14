@@ -1,33 +1,20 @@
-<!doctype html>
-<html lang="en">
-
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <link rel="stylesheet" href="/whitewhale.css">
-    <title>Interactive Story grapH Management Library</title>
-</head>
-
-<body>
-    <nav id="navbar" class="navbar navbar-expand-lg navbar-light bg-info sticky-top"></nav>
-
-    <div class="container mt-4">
-        <h1>Parsing Tutorial Part One</h1>
-        <p class="lead">Prerequisites: You should have a <a href="https://developer.mozilla.org/en-US/docs/Learn">basic working knowledge</a> of JavaScript and HTML and have read about <a href="index.html">getting started</a>.</p>
-        <p>The ISHML parser is a recursive descent parser with backtracking, which is capable of returning multiple interpretation of an input text. This tutorial provides an introduction to parsing with ISHML.</p>
-        <p>At the heart of it, parsing is about breaking up a larger piece of text into smaller pieces of text and organizing those small pieces in some manner so that they can be used by an application.  The smallest possible unit of meaningful text is called a <i>lexeme</i>. A lexeme is often a single word, but might be as small as a single character, or might be a longer string containing spaces.  A lexeme along with its definition is called a <i>token</i>. A <i>syntax tree</i>, also sometimes called a <i>parse tree</i>, orgainzes the tokens into a hierarchical structure according to a set of rules called a <i>grammar</i>. If this sounds like diagramming a sentence, you have the right idea.</p>
-        <p>Analyzing text is a multi-step process.  The first step, called <i>lexing</i> or <i>tokenization</i>, breaks up the input text into an array of tokens. The second step, <i>syntactic analysis</i>, applies grammar rules to the tokenization, which results in a syntax tree.  The third step, <i>semantic analysis</i>, modifies the branches of the syntax tree to change results that are syntactically correct, but not meaningful, into something meaningful, or to discard non-meaningful alternatives.</p>
-        <p>Now that we have a general notion of parsing, let's look at parsing in the context of the ISHML API. The API exposes its methods and properties via a global variable, ISHML.  This tutorial will examine  four ISHML objects: <code>.Lexicon</code>, <code>.Rule</code>, <code>.Parser</code>, and <code>.Interpretation</code>.</p> 
+---
+title: Parsing Part 1
+---
+<div class="container mt-4">
+<h1>Parsing Tutorial Part One</h1>
+        <p class="lead">Prerequisites: You should have a <a href="https://developer.mozilla.org/en-US/docs/Learn">basic working knowledge</a> of JavaScript and HTML and have read about <a href="{{ site.baseurl }}{% link index.html %}">getting started</a>.</p>
+        <p class="lead">All code listings are included as scripts for this web page which you may examine and interact with through your <a href="https://developer.mozilla.org/en-US/docs/Learn/Common_questions/What_are_browser_developer_tools">browser's developer tools</a>.</p></p>
+        <p>The ISHML parser is a recursive descent parser with backtracking, which is capable of returning multiple interpretations of an input text. This tutorial provides an introduction to parsing with ISHML.</p>
+        <p>At the heart of it, parsing is about breaking up a larger piece of text into smaller pieces of text and organizing those small pieces in some manner so that they can be used by an application.  The smallest possible unit of meaningful text is called a <i>lexeme</i>. A lexeme is often a single word, but might be as small as a single character, or it might be a longer string containing spaces.  A lexeme along with its definition is called a <i>token</i>. A <i>syntax tree</i>, also sometimes called a <i>parse tree</i>, orgainzes the tokens into a hierarchical structure according to a set of rules called a <i>grammar</i>. If this sounds like diagramming a sentence, you have the right idea.</p>
+        <p>Analyzing text requires both <i>syntactic analysis</i> and <i>semantic analysis</i>.  Syntactic analysis applies grammar rules to generate a syntax tree.  Semantic analysis, modifies the branches of the syntax tree to change results that are syntactically correct, but not meaningful, into something meaningful, or to discard non-meaningful alternatives.</p>
+        <p>Now that we have a general notion of parsing, let's look at parsing in the context of the ISHML API. The API exposes its methods and properties via a global variable, <code>ishml</code>.  This tutorial will examine  four <code>ishml</code> objects: <code>.Lexicon</code>, <code>.Rule</code>, <code>.Parser</code>, and <code>.Interpretation</code>.</p> 
         <h2>The Lexicon</h2>
-        <p class="lead">Note: All code listings are included as scripts for this web page which you may examine and interact with through your <a href="https://developer.mozilla.org/en-US/docs/Learn/Common_questions/What_are_browser_developer_tools">browser's developer tools</a>.</p>
         <p>Let's start by defining a collection of tokens to match against the input text. This is done be creating a lexicon and registering some tokens.  Think of the lexicon as a dictionary. Each entry in a dictionary consists of a word and one or more definitions. Each entry in the lexicon is a lexeme paired with one or more definitions.  Just as synonyms are allowed in a dictionary, multiple lexemes may share the same definition.</p>
         <div class="clearfix">
             <pre id="codelisting1" class="prettyprint bg-jumbotron shadow lang-js float-left mr-4" title="Code Listing 1">
 //Code Listing 1-- Definining a lexicon; registering tokens.    
-var lexicon=ISHML.Lexicon()
-lexicon
+var lexicon = ishml.Lexicon()
 lexicon
     .register("the", "a", "an").as({ part: "article" })
     .register("take", "steal", "grab")
@@ -50,13 +37,12 @@ lexicon
     .register("ruby").as({ key: "miss_ruby", part: "noun", role: "npc" })
     .register("sam").as({ key: "sam", part: "noun", role: "npc" })
     .register("from").as({ key: "from", part: "preposition" })
-    .register("to").as({ key: "to", part: "preposition" })
-            </pre>
+    .register("to").as({ key: "to", part: "preposition" })</pre>
  
-            <p>Study Code Listing 1. The first line creates an instance of ISHML.Lexicon. Notice that the <code>new</code> operator is omitted. The new operator is optional. ISHML constructors always return a new object instance when called.</p>
+            <p>Study Code Listing 1. The first line creates an instance of <code>ishml.Lexicon</code>. Notice that the <code>new</code> operator is omitted. The new operator is optional for most ISHML constructors.</p>
             <p>To add a token to the lexicon, the <code>.register()</code> method is used. The <code>.register()</code> method takes one or more lexemes as its arguments and returns the <code>.as()</code> function. The <code>.as() </code>function argument is the definition of the lexeme(s) and may be anything&mdash; a simple value or complex object. The <code>.as()</code> function returns the instance of the lexicon so that you can chain the <code>.register()</code> method multiple times.</p>
             <p>The definition should be thought of as an arbitrary payload to be retrieved when the lexeme is matched. The definitions in Code Listing 1 are highly simplified.  <span class="font-weight-bold">In practice, a definition will typically hold one or more references to objects and functions from your application.</span> </p>
-            <p>Knowing how to register tokens is all you need to know about the lexicon for most parsing applications.  However, the <a href="api.html#lexicon">API</a> discusses many additional features for other, more advanced uses of the lexicon.</p>
+            <p>Knowing how to register tokens is all you need to know about the lexicon for most parsing applications.  However, the <a href="{{ site.baseurl }}{% link api.html %}#lexicon">API</a> discusses many additional features for other, more advanced uses of the lexicon.</p>
         </div>
         <div class="card mt-4 mb-4">
             <div class="card-header" id="q1">
@@ -204,7 +190,7 @@ commmand.nounPhrase.noun // token for "slipper"</pre>
 //Code Listing 2
 
 //Create a set of nested rules which mirror the wanted syntax tree.
-var command = ISHML.Rule()
+var command = ishml.Rule()
 command.snip("verb").snip("nounPhrase")
 command.nounPhrase.snip("article").snip("adjectives").snip("noun")
 
@@ -213,24 +199,23 @@ command.nounPhrase.snip("article").snip("adjectives").snip("noun")
 command.verb.configure({ filter: (definition) => definition.part === "verb" })
 
 command.nounPhrase.article
-.configure({ minimum: 0, filter: (definition) => definition.part === "article" })
+    .configure({ minimum: 0, filter: (definition) => definition.part === "article" })
 
 command.nounPhrase.adjectives
-.configure(
-{
-minimum: 0, maximum: Infinity,
-filter: (definition) => definition.part === "adjective"
-})
+    .configure(
+        {
+            minimum: 0, maximum: Infinity,
+            filter: (definition) => definition.part === "adjective"
+        })
 
 //alternatively the rule's options may be set directly.
-command.nounPhrase.noun.filter=(definition) => definition.part === "noun"
-            </pre>
+command.nounPhrase.noun.filter = (definition) => definition.part === "noun"</pre>
             
-            <p>Study Code Listing 2.  It defines a variable, <code>command</code>, as an <code>ISHML.Rule</code>.  This is the root rule.  The <code>.snip()</code> method creates two sub-rules, <code>verb</code> and <code>nounPhrase</code>. These are also instances of <code>ISHML.Rule</code>. The <code>command.nounPhrase</code> rule further sub-divides into <code>article</code>, <code>adjective</code>, and <code>noun</code> rules.</p>
-            <p>Now that we have a set of nested rules that mirrors the basic structure of the syntax tree we want, we can configure the rules. By default, rules return exactly one instance of a branch or token for a given interpretation. In the case of tokens, the default is to return the next token in the tokenization (token list), regardless of how that token is defined. </p>
-            <p>The default behavior of a rule may be modified with the <code>.configure()</code> method. The <code>.configure()</code> method takes an options object as its argument. It is a plain JavaScript object with properties that are the same as the <a href="api.html#rule-non-enum">non-enumerable properties</a> of ISHML.Rule.</p>
-            <p>We'll look at just a few of the available options. Check the <a href="api.html#rule">API</a> for more.  Let's start with <code>filter</code>.  Recall that a single lexeme may have multiple definitions in the lexicon.  When a token is retrieved from the lexicon, the definitions are exposed as an array in the <code>.definitions</code> property of the token. We use the <code>filter</code> option to specify a function that will return <code>true</code> for valid definitions and <code>false</code> for invalid definitions. This will filter out the definitions that do not apply in the context of the grammar rule. If the filter returns <code>false</code> for all the definitions of the token, the token is undefined in the context of the rule and the current interpretation is not valid. </p>
-            <p>The <code>minimum</code> option specifies the mininum number of times to repeat the rule when parsing the input.  It defaults to 1.  Set to 0 to make the rule optional.  The <code>maximum</code> option specifies the maximum number of times to repeat a rule. It defaults to 1.  Set it to <code>Infinity</code> to repeat the rule an indefinite number of times.  If the parser is able to repeat a rule any number of times between the <code>minimum</code> and <code>maximum</code> inclusively the rule is deemed successful and the interpretation is accepted as valid.</p>
+            <p>Study Code Listing 2.  It defines a variable, <code>command</code>, as an <code>ishml.Rule</code>.  This is the root rule.  The <code>.snip()</code> method creates two sub-rules, <code>verb</code> and <code>nounPhrase</code>. These are also instances of <code>ishml.Rule</code>. The <code>command.nounPhrase</code> rule further sub-divides into <code>article</code>, <code>adjective</code>, and <code>noun</code> rules.</p>
+            <p>Now that we have a set of nested rules that mirrors the basic structure of the syntax tree we want, we can configure the rules. By default, rules return exactly one instance of a branch or token for a given interpretation. In the case of tokens, the default is to return the next token matching the head of the input text. </p>
+            <p>The default behavior of a rule may be modified with the <code>.configure()</code> method. The <code>.configure()</code> method takes an options object as its argument. The options object is a plain JavaScript object with properties that are the same as the <a href="{{ site.baseurl }}{% link api.html %}#rule-non-enum">non-enumerable properties</a> of ishml.Rule.</p>
+            <p>We'll look at just a few of the available options. Check the <a href="{{ site.baseurl }}{% link api.html %}#rule">API</a> for more.  Let's start with <code>filter</code>.  Recall that a single lexeme may have multiple definitions in the lexicon.  When a token is retrieved from the lexicon, all the definitions for it are exposed as an array in the <code>.definitions</code> property of the token. We use the <code>filter</code> option to specify a function that will return <code>true</code> for valid definitions and <code>false</code> for invalid definitions. This will filter out the definitions that do not apply in the context of the grammar rule. If the filter returns <code>false</code> for all the definitions of the token, the token is undefined in the context of the rule and the current interpretation is not valid. </p>
+            <p>The <code>minimum</code> option specifies the mininum number of times to repeat the rule when parsing the input.  It defaults to 1.  Set <code>minimum</code> to 0 to make the rule optional.  The <code>maximum</code> option specifies the maximum number of times to repeat a rule. It defaults to 1.  Set it to <code>Infinity</code> to repeat the rule an indefinite number of times.  If the parser is able to repeat a rule any number of times between the <code>minimum</code> and <code>maximum</code> inclusively the rule is deemed successful and the interpretation is accepted as valid.</p>
             
         </div>
         <div class="card mt-4 mb-4">
@@ -254,11 +239,11 @@ command.nounPhrase.noun.filter=(definition) => definition.part === "noun"
             <div id="a2" class="collapse" aria-labelledby="q2" data-parent="#q2">
                 <div class="card-body">
                     <ol class="card-text">
-                        <li>The <code>command</code> rule is a root rule.  It was created with <code>ISHML.Rule()</code>, not <code>.snip()</code> and that's a pretty good sign that we intead it to be the root rule.  The more accurate answer is that root rule can be any rule that we use to configure the parser, but we haven't talked about that yet...</li>
+                        <li>The <code>command</code> rule is a root rule.  It was created with <code>ishml.Rule()</code>, not <code>.snip()</code> and that's a pretty good sign that we intead it to be used as a root rule.  The more accurate answer is that root rule can be any rule that we use to configure the parser, but we haven't talked about the parser yet...</li>
                         <li>The <code>command.nounPhrase</code> and also <code>command</code> rules are non-terminal rules because they have sub-rules defined for them with <code>.snip()</code>.  The other rules are not "snipped" and therefore are terminal rules. The output of a non-terminal rule is a branch of the syntax tree.  The output of a terminal rule is one or more tokens.</li>
                         <li><code>command.nounPhrase.configure{minimum:0}</code> Or, <code>command.nounPhrase.minimum=0</code></li>
                         <li><code>command.nounPhrase.maximum=Infinity</code> Or, to make the nounPhrase also optional: <code>command.nounPhrase.configure{minimum:0,maximum:Infinity}</code></li>
-                        <li>Either way works, but using <code>.configure()</code> lets you set multiple options in one statement.  It also returns the instance of <code>ISHML.Rule</code> so you can use method chaining.</li>
+                        <li>Either way works, but using <code>.configure()</code> lets you set multiple options in one statement.  It also returns the instance of <code>ishml.Rule</code> so you can use method chaining.</li>
                         <li><code>command.nounPhrase.noun.filter=(definition) => definition.part === "noun" && definition.role="thing"</code></li>
                         <li>No, filters only apply to tokens in terminal nodes.  The <code>command.nounPhrase</code> rule defines a non-terminal node. Part two of this tutorial covers setting a rule's semantics option for validation of non-terminal nodes.</li>
                     </ol>
@@ -272,30 +257,27 @@ command.nounPhrase.noun.filter=(definition) => definition.part === "noun"
 //Code Listing 3
 
 //Create a parser 
-var parser=ISHML.Parser({lexicon:lexicon,grammar:command})</pre>
+var parser = ishml.Parser({ lexicon: lexicon, grammar: command }))</pre>
 <pre "codelisting4" class="prettyprint bg-jumbotron shadow lang-js  mr-4">
 //Code Listing 4
 
 var example1 = parser.analyze("take the ruby slipper")
 
-var example2 = parser.analyze("Take ruby slipper.",{separator:/[\.|\s]/})
+var example2 = parser.analyze("Take ruby slipper.")
 
-var example3 = parser.analyze("Take take ruby slipper.",{separator:/[\.|\s]/})
+var example3 = parser.analyze("Take take ruby slipper.")
 
-var example4 = parser.analyze("Take ruby slipper take.",{separator:/[\.|\s]/})
+var example4 = parser.analyze("Take ruby slipper take.")
 
-var example5 = parser.analyze("Take the really pretty ruby slipper.",{separator:/[\.|\s]/})
-
-</pre>
+var example5 = parser.analyze("Take the really pretty ruby slipper.")</pre>
             </div>
-            <p>Study Code Listing 3. Now that we've gone through the hard work of making a lexicon and a grammar, we are ready to define the parser. The constructor for <code>ISHML.Parser</code> takes an options argument.  The lexicon from Code Listing 1 is used for the <code>lexicon</code> option and the command rule from  Code Listing 2  is used for the <code>grammar</code> option. We are now finally ready to do some parsing.</p>
-            <p>Code Listing 4 shows the parser in action. The <code>.analyze()</code> method applies the grammar rule and the lexicon to the input text and returns the result of the parsing. It takes the input text as the first argument.  The second argument is an options object.</p>
-            <p>The input text is first tokenized using the lexicon specified when the parser was constructed.  Depending on the lexemes in the lexicon and the content of the input text, it may be possible that tokenizing may result in more than one valid tokenization.  That's OK. The ISHML parser is designed to handle multiple alternative tokenizations.  After tokenization, the grammar rules are applied and the results are returned as a plain JavaScript object. The properies of this object are dependent on the results of tokenization and parsing.</p> 
-            <p>If the input text was successfully tokenized and parsed, the <code>.success</code> property has a value of <code>true</code>. The <code>.interpretations</code> property contains an array of <code>ISHML.Interpretation</code>.  The <code>.gist</code> property of each interpretation contains the syntax tree generated from parsing.  The structure of <code>.gist</code> follows the structure of the grammar rules used to create it. The nodes of the syntax tree are properties named after the sub-rules that define them. These properties may in turn have other properties defined on them all the way down the syntax tree to the terminal nodes of the tree. A terminal property contains the matching token for the sub-rule. In the case where a sub-rule defines the maximum number of tokens to match to be more than one, the value stored in the terminal property is an array of tokens.  The <code>.remainder</code> property of an interpretation is an empty array because a successful parsing consumes all the tokens in the tokenization.</p>
-            <p>If the input text failed tokenization or parsing, the <code>.success</code> property has a value of <code>false</code>.  If tokenization failed, the <code>.tokenizations</code> property contains an array of partial tokenizations, which can be used to give feedback on why and where tokenization failed.  The <code>.interpretations</code> property is <code>undefined</code>.</p>
+            <p>Study Code Listing 3. Now that we've gone through the hard work of making a lexicon and a grammar, we are ready to define the parser. The constructor for <code>ishml.Parser</code> takes an options argument.  The lexicon from Code Listing 1 is used for the <code>lexicon</code> option and the command rule from  Code Listing 2  is used for the <code>grammar</code> option. We are now finally ready to do some parsing.</p>
+            <p>Code Listing 4 shows the parser in action. The <code>.analyze()</code> method applies the grammar rule and the lexicon to the input text and returns the result of the parsing. It takes the input text as the first argument.</p>
+            <p>Tthe grammar rules are applied and the results are returned as a plain JavaScript object. If the input text was successfully parsed, the <code>.success</code> property has a value of <code>true</code>. The <code>.interpretations</code> property contains an array of <code>ishml.Interpretation</code>.  The <code>.gist</code> property of each interpretation contains the syntax tree generated from parsing.  The structure of <code>.gist</code> follows the structure of the grammar rules used to create it. The nodes of the syntax tree are properties named after the sub-rules that define them. These properties may in turn have other properties defined on them all the way down the syntax tree to the terminal nodes of the tree. A terminal property contains the matching token for the sub-rule. In the case where a sub-rule defines the maximum number of tokens to match to be more than one, the value stored in the terminal property is an array of tokens.  The <code>.remainder</code> property of an interpretation is an empty array because a successful parsing consumes all the tokens in the tokenization.</p>
+            <p>If the input text fails parsing, the <code>.success</code> property has a value of <code>false</code>.  If tokenization failed, the <code>.tokenizations</code> property contains an array of partial tokenizations, which can be used to give feedback on why and where tokenization failed.  The <code>.interpretations</code> property is <code>undefined</code>.</p>
             <p>If tokenization was successful, but parsing was not, the <code>.tokenizations</code> property is <code>undefined</code> and the <code>.interprations</code> property contains an array of partial interpretations, which can be used to give feedback on why and where parsing failed. A partial interpretation is an interpretation that parses successfully against the grammar, but does not consume all the tokens in the tokenization.
             </p>
-            <p>There are many options for <code>.analyze()</code>. We'll only cover a few of them.  See the <a href="api.html#parser-analyze">API</a> for the complete list.</p>
+            <p>There are many options for <code>.analyze()</code>. We'll only cover a few of them.  See the <a href="{{ site.baseurl }}{% link api.html %}#parser-analyze">API</a> for the complete list.</p>
             <p>Example 1 shows the most basic use. By default, the tokenizer expects whitespace between lexemes and ignores it.  In example 2 the <code>separator</code> option has been changed to ignore both whitespace and periods.  Any <code>RegExp</code> may be used as a separator. For no separation at all, set the separator to the empty string.</p>
             <p>Example 3 is lexically correct, but syntactically incorrect due to the doubled verb. No interpretation can be generated. Example 4, with the second instance of "take" moved to the end, results in a partial interpretation since it is syntactically correct if the last token is not considered.</p>
             <p>Example 5 is lexically incorrect because "really pretty" is not registered in the lexicon. The result is a partial tokenization.</p>  
@@ -380,30 +362,79 @@ var example5 = parser.analyze("Take the really pretty ruby slipper.",{separator:
                                 <li>The leftover tokens remaining are available as a tokenization in an interpretation's <code>.remainder</code> property.  For example, <code>example4.interpretations[0].remainder</code>.</li>
                             </ol>
                         </li>
-                        <li>No, the value of <code>example5.success</code> is <code>false</code>.  The attempts at tokenization are available in <code>example5.tokenizations</code>.  For instance, <code>example5.tokenizations[0].tokens</code> contains an array of tokens for the partially tokenized input text and <code>example5.tokenizations[0].remainder</code> contains the portion of the input text that could not be tokenized.  By the way,  <a href="api.html#parser"><code>smooth</code> and <code>fuzzy</code></a> options could have been used to handle lexemes not found in lexicon.  The <code>smooth</code> option skips over lexemes not found in the lexcion.  The <code>fuzzy</code> option creates a token with a definition of "fuzz".</li>
+                        <li>No, the value of <code>example5.success</code> is <code>false</code>.  The attempts at tokenization are available in <code>example5.tokenizations</code>.  For instance, <code>example5.tokenizations[0].tokens</code> contains an array of tokens for the partially tokenized input text and <code>example5.tokenizations[0].remainder</code> contains the portion of the input text that could not be tokenized.  By the way,  <a href="{{ site.baseurl }}{% link api.html %}#parser"><code>smooth</code> and <code>fuzzy</code></a> options could have been used to handle lexemes not found in lexicon.  The <code>smooth</code> option skips over lexemes not found in the lexcion.  The <code>fuzzy</code> option creates a token with a definition of "fuzz".</li>
                     </ol>
                 </div>
             </div>
         </div>
-        <p>Continue to <a href="parsing2.html">part two</a> to learn about more complex grammars, including choice rules and semantic analysis.</p>
-    </div>
-</body>
+        </div>
+        <p>Continue to <a href="{{ site.baseurl }}{% link _tutorials/parsing2.html %}">part two</a> to learn about more complex grammars, including choice rules and semantic analysis.</p>
+        <script src="{{ site.ishml }}"></script>
+        <script>//Code Listing 1-- Definining a lexicon; registering tokens.    
+var lexicon = ishml.Lexicon()
+lexicon
+    .register("the", "a", "an").as({ part: "article" })
+    .register("take", "steal", "grab")
+        .as({ key: "take", part: "verb", prepositions: ["to", "from"] })
+    .register("drop", "leave").as({ key: "drop", part: "verb", prepositions: [] })
+    .register("ring").as({ key: "ring", part: "noun", role: "thing" })
+    .register("slipper").as({ key: "slipper", part: "noun", role: "thing" })
+    .register("diamond").as({ key: "ring", part: "adjective", role: "thing" })
+    .register("diamond jim").as({ key: "jim", part: "noun", role: "npc" })
+    .register("jim").as({ key: "james", part: "noun", role: "npc" })
+    .register("ruby").as({ key: "ring", part: "adjective", role: "thing" })
+    .register("ruby").as({ key: "ruby", part: "noun", role: "thing" })
+    .register("ruby").as({ key: "slipper", part: "adjective", role: "thing" })
+    .register("glass").as({ key: "slipper", part: "adjective", role: "thing" })
+    .register("glass").as({ key: "tumbler", part: "noun", role: "thing" })
+    .register("looking glass").as({ key: "mirror", part: "noun", role: "thing" })
+    .register("good looking").as({ key: "tumbler", part: "adjective", role: "thing" })
+    .register("good").as({ key: "mirror", part: "adjective", role: "thing" })
+    .register("tumbler").as({ key: "tumbler", part: "noun", role: "thing" })
+    .register("ruby").as({ key: "miss_ruby", part: "noun", role: "npc" })
+    .register("sam").as({ key: "sam", part: "noun", role: "npc" })
+    .register("from").as({ key: "from", part: "preposition" })
+    .register("to").as({ key: "to", part: "preposition" })
 
-<script src="/whitewhale.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/bikibird/ishml@1.1.2/src/ishml.js"></script>
-<script src="/parsingCodeListing.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
-  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
-    integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
-    crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
-    integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
-    crossorigin="anonymous"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
-    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
-    crossorigin="anonymous"></script>
-  
+//Code Listing 2
 
-</body>
+//Create a set of nested rules which mirror the wanted syntax tree.
+var command = ishml.Rule()
+command.snip("verb").snip("nounPhrase")
+command.nounPhrase.snip("article").snip("adjectives").snip("noun")
 
-</html>
+//Configure behavior of some of the rules with .configure().
+
+command.verb.configure({ filter: (definition) => definition.part === "verb" })
+
+command.nounPhrase.article
+    .configure({ minimum: 0, filter: (definition) => definition.part === "article" })
+
+command.nounPhrase.adjectives
+    .configure(
+        {
+            minimum: 0, maximum: Infinity,
+            filter: (definition) => definition.part === "adjective"
+        })
+
+//alternatively the rule's options may be set directly.
+command.nounPhrase.noun.filter = (definition) => definition.part === "noun"
+
+//Code Listing 3
+
+//Create a parser 
+var parser = ishml.Parser({ lexicon: lexicon, grammar: command })
+
+//Code Listing 4
+
+var example1 = parser.analyze("take the ruby slipper")
+
+var example2 = parser.analyze("Take ruby slipper.", { separator: /[\.|\s]/ })
+
+var example3 = parser.analyze("Take take ruby slipper.", { separator: /[\.|\s]/ })
+
+var example4 = parser.analyze("Take ruby slipper take.", { separator: /[\.|\s]/ })
+
+var example5 = parser.analyze("Take the really pretty ruby slipper.", { separator: /[\.|\s]/ })
+</script>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>

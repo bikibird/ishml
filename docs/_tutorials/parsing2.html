@@ -1,0 +1,396 @@
+---
+title: Parsing Part 2
+---
+<div class="container mt-4">
+<h1>Parsing Tutorial Part Two</h1>
+<p class="lead">Prerequisites: You should have read <a href="{{ site.baseurl }}{% link _tutorials/parsing1.html %}">Parsing Tutorial Part One</a>.</p>
+
+<p>Part two of the parsing tutorial covers rule cloning, choice rules, and semantic analysis.</p> 
+<div class="clearfix">
+<figure class="border mr-4 pl-2 float-left">
+        <figcaption>Figure 1&mdash; Command</figcaption>
+        <svg class="railroad-diagram" width="835" height="109" viewBox="0 0 835 109">
+                <g transform="translate(.5 .5)">
+                <g>
+                <path d="M20 38v20m10 -20v20m-10 -10h20"></path>
+                </g>
+                <path d="M40 48h10"></path>
+                <g>
+                <path d="M50 48h0"></path>
+                <path d="M785 48h0"></path>
+                <g>
+                <path d="M50 48h0"></path>
+                <path d="M169.5 48h0"></path>
+                <path d="M50 48a10 10 0 0 0 10 -10v0a10 10 0 0 1 10 -10"></path>
+                <g>
+                <path d="M70 28h79.5"></path>
+                </g>
+                <path d="M149.5 28a10 10 0 0 1 10 10v0a10 10 0 0 0 10 10"></path>
+                <path d="M50 48h20"></path>
+                <g class="non-terminal">
+                <path d="M70 48h0"></path>
+                <path d="M149.5 48h0"></path>
+                <rect x="70" y="37" width="79.5" height="22"></rect>
+                <text x="109.75" y="52">Subject</text>
+                </g>
+                <path d="M149.5 48h20"></path>
+                </g>
+                <path d="M169.5 48h10"></path>
+                <g class="terminal">
+                <path d="M179.5 48h0"></path>
+                <path d="M233.5 48h0"></path>
+                <rect x="179.5" y="37" width="54" height="22" rx="10" ry="10"></rect>
+                <text x="206.5" y="52">Verb</text>
+                </g>
+                <path d="M233.5 48h10"></path>
+                <g>
+                <path d="M243.5 48h0"></path>
+                <path d="M785 48h0"></path>
+                <path d="M243.5 48a10 10 0 0 0 10 -10v-8a10 10 0 0 1 10 -10"></path>
+                <g>
+                <path d="M263.5 20h501.5"></path>
+                </g>
+                <path d="M765 20a10 10 0 0 1 10 10v8a10 10 0 0 0 10 10"></path>
+                <path d="M243.5 48h20"></path>
+                <g>
+                <path d="M263.5 48h0"></path>
+                <path d="M765 48h0"></path>
+                <path d="M263.5 48h20"></path>
+                <g>
+                <path d="M283.5 48h0"></path>
+                <path d="M745 48h0"></path>
+                <g class="non-terminal">
+                <path d="M283.5 48h0"></path>
+                <path d="M414 48h0"></path>
+                <rect x="283.5" y="37" width="130.5" height="22"></rect>
+                <text x="348.75" y="52">Direct Object</text>
+                </g>
+                <path d="M414 48h10"></path>
+                <g>
+                <path d="M424 48h0"></path>
+                <path d="M745 48h0"></path>
+                <path d="M424 48a10 10 0 0 0 10 -10v0a10 10 0 0 1 10 -10"></path>
+                <g>
+                <path d="M444 28h281"></path>
+                </g>
+                <path d="M725 28a10 10 0 0 1 10 10v0a10 10 0 0 0 10 10"></path>
+                <path d="M424 48h20"></path>
+                <g>
+                <path d="M444 48h0"></path>
+                <path d="M725 48h0"></path>
+                <g class="non-terminal">
+                <path d="M444 48h0"></path>
+                <path d="M557.5 48h0"></path>
+                <rect x="444" y="37" width="113.5" height="22"></rect>
+                <text x="500.75" y="52">Preposition</text>
+                </g>
+                <path d="M557.5 48h10"></path>
+                <path d="M567.5 48h10"></path>
+                <g class="non-terminal">
+                <path d="M577.5 48h0"></path>
+                <path d="M725 48h0"></path>
+                <rect x="577.5" y="37" width="147.5" height="22"></rect>
+                <text x="651.25" y="52">Indirect Object</text>
+                </g>
+                </g>
+                <path d="M725 48h20"></path>
+                </g>
+                </g>
+                <path d="M745 48h20"></path>
+                <path d="M263.5 48a10 10 0 0 1 10 10v10a10 10 0 0 0 10 10"></path>
+                <g>
+                <path d="M283.5 78h81.75"></path>
+                <path d="M663.25 78h81.75"></path>
+                <g class="non-terminal">
+                <path d="M365.25 78h0"></path>
+                <path d="M512.75 78h0"></path>
+                <rect x="365.25" y="67" width="147.5" height="22"></rect>
+                <text x="439" y="82">Indirect Object</text>
+                </g>
+                <path d="M512.75 78h10"></path>
+                <path d="M522.75 78h10"></path>
+                <g class="non-terminal">
+                <path d="M532.75 78h0"></path>
+                <path d="M663.25 78h0"></path>
+                <rect x="532.75" y="67" width="130.5" height="22"></rect>
+                <text x="598" y="82">Direct Object</text>
+                </g>
+                </g>
+                <path d="M745 78a10 10 0 0 0 10 -10v-10a10 10 0 0 1 10 -10"></path>
+                </g>
+                <path d="M765 48h20"></path>
+                </g>
+                </g>
+                <path d="M785 48h10"></path>
+                <path d="M 795 48 h 20 m -10 -10 v 20 m 10 -20 v 20"></path>
+                </g>
+                </svg>
+    </figure>   
+
+<p>Let's look at a more complex grammar than the grammar covered in <a href="{{ site.baseurl }}{% link _tutorials/parsing1.html %}">part one</a>, which allows parsing of commands that contain a subject, verb, direct object and indirect object. Subject, direct object, and indirect object are each optional, but if the indirect object is present, the direct object must be present as well. Direct and indirect objects may appear in either order, but if the direct object is first, a preposition must precede the indirect object. (We'll continue to use the same lexicon.)</p>
+</div>
+<div class="clearfix">
+
+
+
+
+<pre id="codelisting1" class="prettyprint bg-jumbotron shadow lang-js float-left mr-4" title="Code Listing 1">
+//Code Listing 1
+var nounPhrase=ishml.Rule()
+
+nounPhrase
+.snip("article").snip("adjectives").snip("noun")
+
+nounPhrase.article
+.configure({minimum:0, filter:(definition)=>definition.part==="article" })
+nounPhrase.adjectives
+.configure(
+{ minimum:0, maximum:Infinity,
+filter:(definition)=>definition.part==="adjective"
+})
+
+nounPhrase.noun.configure({filter:(definition)=>definition.part==="noun" })
+
+nounPhrase.semantics=(interpretation)=>
+{
+var {gist, remainder}=interpretation
+if (gist.article)
+{
+gist.noun.definitions=gist.noun.definitions.filter((definition)=>
+{
+return !(definition.role==="npc")
+})
+if(gist.noun.definitions.length===0){return false}
+}
+return true
+}
+
+var command=ishml.Rule().configure({entire:true})
+
+command.snip("subject",nounPhrase.clone()).snip("verb").snip("object")
+command.subject.configure({minimum:0})
+command.verb.configure({filter:(definition)=>definition.part==="verb"})
+command.object.configure({minimum:0,mode:ishml.enum.mode.any})
+.snip(1)
+.snip(2)
+
+command.object[1].snip("directObject",nounPhrase.clone()).snip("indirectObject")
+command.object[1].indirectObject.snip("preposition").snip("nounPhrase",nounPhrase.clone())
+command.object[1].indirectObject
+.configure({minimum:0})
+command.object[1].indirectObject.preposition
+.configure({filter:(definition)=>definition.part==="preposition"})
+
+command.object[2].snip("indirectObject",nounPhrase.clone()).snip("directObject",nounPhrase.clone())
+
+command.semantics=(interpretation)=>
+{
+var {gist}=interpretation
+if (gist.object)
+{
+if(gist.object.indirectObject)
+{
+if(gist.object.indirectObject)
+{
+    if(gist.object.indirectObject.preposition)
+    {
+        gist.preposition=gist.object.indirectObject.preposition
+    }
+    gist.indirectObject=gist.object.indirectObject.nounPhrase || gist.object.indirectObject
+}
+}
+gist.directObject=gist.object.directObject.nounPhrase || gist.object.directObject
+delete gist.object
+}
+return true
+}
+</pre>
+<h2>Rule Cloning</h2>
+<p>Refer to Code Listing 1. First, we create a <code>nounPhrase</code> rule that we can re-use in the <code>subject</code>, <code>directObject</code>, and <code>indirectObject</code> rules.  You should recognize the code for the <code>nounPhrase</code> rule from <a href="{{ site.baseurl }}{% link _tutorials/parsing1.html %}">part one</a>.</p>
+<p>(The version of <code>nounPhrase</code> shown here also defines a  <code>.semantics</code> property, which will be explained toward the end of this tutorial.)</p>
+<p>Our root rule is <code>command</code>.  We want the entire input text to match against the <code>command</code> rule with no remaining text left over.  We set the <code>entire</code> property of the rule to <code>true</code>.  With this setting, we would expect input like <q>take</q> and <q>take the ruby</q> to be valid, but <q>take the flower</q> to fail because there is no rule that matches <q>flower</q>. If <code>entire</code> is left at its default value, <code>false</code>, <q>take the flower</q> would produce a successful match of <q>take</q> and a remainder of <q>the flower</q> since grammar accepts verbs without subject or object.
+<p>Next we create sub-rules for <code>command</code>.  We use <code>.snip()</code> to create sub-rules, <code>subject</code>, <code>verb</code> and <code>object</code>. The <code>verb</code> rule is defined just as it was in <a href="{{ site.baseurl }}{% link _tutorials/parsing1.html %}">part one</a>. However, the <code>subject</code> rule is created by passing in <code>nounPhrase.clone()</code> as the second argument of <code>.snip()</code>. This creates a deep copy of <code>nounPhrase</code> as the <code>subject</code> rule.  Similarly, <code>nounPhrase</code> appears as a sub-rule of <code>indirectObject</code> and <code>directObject</code>.  In both cases, they are entirely new instances of <code>ISHML.Rule</code> because of the use of <code>.clone()</code>. They are identical copies of the original <code>nounPhrase</code> rule. Any subsequent changes to the orginal <code>nounPhrase</code> rule will not affect the cloned rules. Conversely, changes to the cloned rules will not affect the original rule.</p>
+<p>(It should be noted that it is sometimes useful to recursively define a rule by referencing itself. In that case <code>.clone()</code> is not used. This advanced use of rules will be covered in <a href="{{ site.baseurl }}{% link _tutorials/parsing3.html %}">part three</a> of this tutorial.)</p>
+<h2>Choice Rules</h2>
+<p>By default all sub-rules created with <code>.snip()</code> are treated as a sequence of snippets when parsed. In the resulting syntax tree, all the snippets are child nodes of the parent node.  However, we can change the mode that the parent rule operates under so that it treats the sub-rules as alternatives to choose among instead of a sequence.</p>
+<p>The <code>object</code> rule is configured with the <code>mode</code> option set to <code>ishml.enum.mode.any</code>, which means that the sub-rules of <code>object</code> are treated as alternative choices.  Next, we <code>.snip()</code> two sub-rules, which we call <code>1</code> and <code>2</code>. By convention, we list each <code>.snip()</code> on a separate line to visually cue that they are choice sub-rules, not sequence sub-rules.</p>
+<p>The names we give the choice sub-rules are unimportant, because only the resulting child nodes from one of these choices, not the choice node itself,  is attached to the syntax tree.  Therefore, the syntax tree may contain <code>command.object.indirectObject</code>, but will never contain <code><s>command.object[1].indirectObject</s></code> or <code><s>command.object[2].indirectObject</s></code>.</p>
+<p>The <code>ishml.enum.mode.any</code> mode for rules allows the parser to generate alternative interpretations when provided with ambiguous input text.  For example, "take ruby slipper" can be interpreted as "take the slipper to Ruby," or as "take the red slipper."  To stop considering choice rules after the first alternative is generated, use <code>ISHML.enum.mode.apt</code> and create the choice sub-rules in priority order.</p>
+
+<h2>Semantics</h2>
+<p>So far, we have only discussed rules as defining a syntax tree.  The rules validate the input text as having the correct phrase structure, but syntax alone cannot determine if the input is meaningful or simply well structured nonsense. </p>
+<p>To discard interpretations that are nonsensical, we define a rule's <code>.semantics</code> property with a function that will return <code>true</code> for meainingful or <code>false</code> for nonsensical. After a rule's syntactic processing is complete, the function defined by the <code>.semantics</code> property is called with the branch of the syntax tree currently under consideration, an instance of <code>ISHML.Interpretation</code>, passed as the argument. This allows us to compare nodes in the branch and render judgements about the interpretation.  It is also possible to alter the structure of the branch by editing the interpretation's <code>.gist</code> property. </p>
+<p>Study the definition for <code>nounPhrase.semantics</code> in <a href="#codeListing1">Code Listing 1</a>.  If the <code>article</code> node is present in the branch, then we want throw away all definitions in the <code>noun</code> node where the definition's <code>.role</code> property is set to "npc" since people are not referred to with an article.  If, after cleaning up the definitions, there are no definitions left for the noun, then we discard the branch as nonsense and return <code>false</code>.</p>
+<p>The <code>command</code> rule also has <code>.semantics</code> defined.  In this case we're not checking for nonsense.  Instead, we're flattening out the tree structure to make easier to work with and more consistent.  Without the semantics function, the noun of the subject is pretty easily accessed: <code>.gist.subject.noun</code>. However, the noun of the direct object is not: <code>.gist.object.directObject.nounPhrase.noun</code>.  The semantics function for <code>command</code> moves the <code>directObject</code> and <code>indirectObject</code> nodes to directly below the root node, becoming siblings to <code>subject</code>. The function always returns <code>true</code> because it makes no judgements about the meaning of the interpretation, just restructures it.  You may argue that we're stretching the meaning of the term semantics past its limits and you might be right, but in the context of the ISHML API, semantics encompasses any sort of processing that is done after syntactic analysis.</p>
+
+
+<pre id="codelisting2" class="prettyprint bg-jumbotron shadow lang-js float-left mr-4" title="Code Listing 2">
+//Code Listing 2        
+nounPhrase.mismatch=(interpretation)=>
+{
+    interpretation.gist.error=true
+    interpretation.gist.errorMessage=
+        `Expected end of nounPhrase. Found: "${interpretation.remainder}".`
+    interpretation.valid=false
+    return interpretation
+}
+nounPhrase.noun.mismatch=(interpretation)=>
+{
+    interpretation.gist.error=true
+    interpretation.gist.errorMessage=
+        "Expected noun. Found: "${interpretation.remainder}"
+    interpretation.valid=false
+    return interpretation
+}
+command.mismatch=(interpretation)=>
+{
+    interpretation.gist.error=true
+    interpretation.gist.errorMessage=
+        `Expected end of command. Found: "${interpretation.remainder}".`
+    interpretation.valid=false
+    return interpretation
+}
+command.verb.mismatch=(interpretation)=>
+{
+    interpretation.gist.error=true
+    interpretation.gist.errorMessage=
+        `Expected verb. Found: "${interpretation.remainder}"".`
+    interpretation.valid=false
+    return interpretation   
+}
+</pre>
+<h2>Error Handling</h2>       
+        <p>If an invalid command is parsed using the <code>command</code> rule in Code Listing 1, the parser will return <code>{success: false}</code> since the <code>command</code> rule is set to match the entire input.  This can make it difficult to troubleshoot your grammar or gracefully respond to invalid input.  To improve error handling, we define a rule's <code>.mismatch</code> property with a custom function.  Study Code listing 2.  The <code>.mismatch</code> functions receive an <code>ishml.interpretation</code> object containing the gist and the remainder for the branch of the syntax tree that each rule is attempting to generate.  The only requirement of the function is to return an interpretation.  The <code>.mismatch</code> functions generally set the interpretation's <code>.valid</code> property to <code>false</code> to indicate the that interpretation is invalid.  The function may also arbitrarily manipulate the interpretation to provide additional feedback to be used in the application.  In this example, <code>.error</code> and <code>.errorMessage</code> properties have been added to the interpretation's <code>.gist</code> property.  This results in nested errors that mirrors the rule's syntax tree.</p>
+
+<p>Continue to <a href="{{ site.baseurl }}{% link _tutorials/parsing3.html %}">part three</a> to learn about recursive rules.</p>
+
+</div>
+  </div> 
+<script src="{{ site.ishml }}"></script>
+<script>//Code Listing 1
+var nounPhrase=ishml.Rule()
+
+nounPhrase
+    .snip("article").snip("adjectives").snip("noun")
+
+nounPhrase.article
+    .configure({minimum:0, filter:(definition)=>definition.part==="article" })
+nounPhrase.adjectives
+    .configure(
+    { minimum:0, maximum:Infinity,
+            filter:(definition)=>definition.part==="adjective"
+    })
+
+nounPhrase.noun.configure({filter:(definition)=>definition.part==="noun" })
+
+nounPhrase.semantics=(interpretation)=>
+{
+    var {gist, remainder}=interpretation
+    if (gist.article)
+    {
+        gist.noun.definitions=gist.noun.definitions.filter((definition)=>
+        {
+            return !(definition.role==="npc")
+        })
+        if(gist.noun.definitions.length===0){return false}
+    }
+    return true
+}
+
+var command=ishml.Rule().configure({entire:true})
+command.snip("subject",nounPhrase.clone()).snip("verb").snip("object")
+command.subject.configure({minimum:0})
+command.verb.configure({filter:(definition)=>definition.part==="verb"})
+command.object.configure({minimum:0,mode:ishml.enum.mode.any})
+    .snip(1)
+    .snip(2)
+
+command.object[1].snip("directObject",nounPhrase.clone()).snip("indirectObject")
+command.object[1].indirectObject.snip("preposition").snip("nounPhrase",nounPhrase.clone())
+command.object[1].indirectObject
+    .configure({minimum:0})
+command.object[1].indirectObject.preposition
+    .configure({filter:(definition)=>definition.part==="preposition"})
+
+command.object[2].snip("indirectObject",nounPhrase.clone()).snip("directObject",nounPhrase.clone())
+
+command.semantics=(interpretation)=>
+{
+    var {gist}=interpretation
+    if (gist.object)
+    {
+        if(gist.object.indirectObject)
+        {
+            if(gist.object.indirectObject)
+            {
+                gist.indirectObject=gist.object.indirectObject.nounPhrase || gist.object.indirectObject
+            }
+        }
+        gist.directObject=gist.object.directObject.nounPhrase || gist.object.directObject
+        delete gist.object
+    }
+    return true
+}
+
+nounPhrase.mismatch=(interpretation)=>
+{
+    interpretation.gist.error=true
+    interpretation.gist.errorMessage=`Expected end of nounPhrase. Found: "${interpretation.remainder}".`
+    interpretation.valid=false
+    return interpretation
+}
+nounPhrase.noun.mismatch=(interpretation)=>
+{
+    interpretation.gist.error=true
+    interpretation.gist.errorMessage="Expected noun."
+    interpretation.valid=false
+    return interpretation
+}
+command.mismatch=(interpretation)=>
+{
+    interpretation.gist.error=true
+    interpretation.gist.errorMessage=`Expected end of command. Found: "${interpretation.remainder}".`
+    interpretation.valid=false
+    return interpretation
+}
+command.verb.mismatch=(interpretation)=>
+{
+    interpretation.gist.error=true
+    interpretation.gist.errorMessage=`Expected verb. Found: "${interpretation.remainder}"".`
+    interpretation.valid=false
+    return interpretation   
+}
+
+var lexicon = ishml.Lexicon()
+lexicon
+    .register("the", "a", "an").as({ part: "article" })
+    .register("take", "steal", "grab")
+        .as({ key: "take", part: "verb", prepositions: ["to", "from"] })
+    .register("drop", "leave").as({ key: "drop", part: "verb", prepositions: [] })
+    .register("ring").as({ key: "ring", part: "noun", role: "thing" })
+    .register("slipper").as({ key: "slipper", part: "noun", role: "thing" })
+    .register("diamond").as({ key: "ring", part: "adjective", role: "thing" })
+    .register("diamond jim").as({ key: "jim", part: "noun", role: "npc" })
+    .register("jim").as({ key: "james", part: "noun", role: "npc" })
+    .register("ruby").as({ key: "ring", part: "adjective", role: "thing" })
+    .register("ruby").as({ key: "ruby", part: "noun", role: "thing" })
+    .register("ruby").as({ key: "slipper", part: "adjective", role: "thing" })
+    .register("glass").as({ key: "slipper", part: "adjective", role: "thing" })
+    .register("glass").as({ key: "tumbler", part: "noun", role: "thing" })
+    .register("looking glass").as({ key: "mirror", part: "noun", role: "thing" })
+    .register("good looking").as({ key: "tumbler", part: "adjective", role: "thing" })
+    .register("good").as({ key: "mirror", part: "adjective", role: "thing" })
+    .register("tumbler").as({ key: "tumbler", part: "noun", role: "thing" })
+    .register("ruby").as({ key: "miss_ruby", part: "noun", role: "npc" })
+    .register("sam").as({ key: "sam", part: "noun", role: "npc" })
+    .register("from").as({ key: "from", part: "preposition" })
+    .register("to").as({ key: "to", part: "preposition" })
+
+//Create Parser 
+var parser = ishml.Parser({ lexicon: lexicon, grammar: command })
+
+var example1 = parser.analyze("take ruby slipper")
+var example2 = parser.analyze("take ruby slipper to ruby")
+var example3 = parser.analyze("take the flower")
+</script>
+<script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>

@@ -7,21 +7,21 @@
 		<p class="card-text">Recursive decent parsers are susceptible to exponential run times. Writing the grammar in such a way as to reduce backtracking can improve run times.</p>
 		
 		<h2 class="card-title">Constructor</h2>
-		<h3 class="card-subtitle"><code><b>ISHML.Parser({lexicon:<i>lexicon</i>, grammar:<i>rule</i>})</b></code></h3>
+		<h3 class="card-subtitle"><code><b>ishml.Parser({lexicon:<i>lexicon</i>, grammar:<i>rule</i>})</b></code></h3>
 		<p class="card-text">Returns an instance of the Parser object. Use of new operator is optional.</p>
-		<p class="card-text">The <i>lexicon</i> argument is an instance of the <a href="#ISHML-Lexicon">ISHML.Lexicon</a> object that should be used tokenizing input.</p>
-		<p class="card-text">The <i>rule</i> argument is an instance of the <a href="#ISHML-Rule">ISHML.Rule</a> object that should be used for syntactic parsing and semantic analysis.</p>
+		<p class="card-text">The <i>lexicon</i> argument is an instance of the <a href="#ishml-Lexicon">ishml.Lexicon</a> object that should be used tokenizing input.</p>
+		<p class="card-text">The <i>rule</i> argument is an instance of the <a href="#ishml-Rule">ishml.Rule</a> object that should be used for syntactic parsing and semantic analysis.</p>
 
 		<h2 class="card-title">Properties</h2>
 		<h3 class="card-subtitle" id="parser-lexicon"><code><b>.lexicon</b></code></h3>
-		<p class="card-text">The <a href="#ISHML-Lexicon">ISHML.Lexicon</a> object that was specified in the constructor.</p>
+		<p class="card-text">The <a href="#ishml-Lexicon">ishml.Lexicon</a> object that was specified in the constructor.</p>
 
 		<h3 class="card-subtitle" id="parser-grammar"><code><b>.grammar</b></code></h3>
-		<p class="card-text">The <a href="#ISHML-Rule">ISHML.Rule</a> object that was specified in the constructor.</p>
+		<p class="card-text">The <a href="#ishml-Rule">ishml.Rule</a> object that was specified in the constructor.</p>
 
 		<h2 class="card-title">Methods</h2>
 		<h3 class="card-subtitle" id="parser-analyze"><code><b>.analyze(<i>text</i>)</b></code></h3>
-		<p class="card-text"><a href="#lexicon-tokenize"><a href="#rule-parse">Parses</a> the <i>text</i> argument and return an array of <a href="#interpretation">ISHML.Interpretation</a>.</p>
+		<p class="card-text"><a href="#lexicon-tokenize"><a href="#rule-parse">Parses</a> the <i>text</i> argument and return an array of <a href="#interpretation">ishml.Interpretation</a>.</p>
 			
 		<p class="card-text">The <i>text</i> argument is a string of characters to be analyzed.</p>
 		<p>See also <a href="parsing.html">parsing tutorial</a>.</p>

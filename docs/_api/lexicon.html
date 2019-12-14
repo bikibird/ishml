@@ -5,9 +5,9 @@
 	<div class="card-body">
 		<p class="card-text">A Lexicon stores a collection of <a href="#token">tokens</a>.</p>
 		<h2 class="card-title">Constructor</h2>
-		<h3 class="card-subtitle"><code><b>ISHML.Lexicon()</b></code></h3>
+		<h3 class="card-subtitle"><code><b>ishml.Lexicon()</b></code></h3>
 		<p class="card-text">Returns an instance of the Lexicon object. Use of new operator is optional. Takes no argument.</p>
-		<p class="card-text">Used by <code><a href="#parser-anaylze">ISHML.Parser.analyze()</a></code> and <code><a href="#parser-anaylze">ISHML.Rule.parse()</a></code>.</p>
+		<p class="card-text">Used by <code><a href="#parser-anaylze">ishml.Parser.analyze()</a></code> and <code><a href="#parser-anaylze">ishml.Rule.parse()</a></code>.</p>
 
 		<h2 class="card-title">Methods</h2>
 		<h3 class="card-subtitle"><code id="lexicon-register"><b>.register(<i>lexeme...</i>).as(<i>definition</i>)</b></code>
@@ -15,7 +15,7 @@
 		<p class="card-text">Adds <a href="#token">tokens</a> to the lexicon.</p>
 		<p class="card-text">The <i>lexeme</i> is the string of characters to be matched. More than one lexeme may be specified for the same definition. The same lexeme may have multiple definitions, but only one definition is permitted for each call of the <code>register</code> method.</p>
 		<p class="card-text">The <i>definition</i> may be a simple value or a complex object. It is an arbitrary payload to be retrieved when the lexeme is matched. A definition typically holds one or more references to objects and functions defined elsewhere in the application.</p>
-		<p class="card-text">Returns the instance of <code>ISHML.Lexicon</code>. This method is chainable.</p>
+		<p class="card-text">Returns the instance of <code>ishml.Lexicon</code>. This method is chainable.</p>
 
 		<h3 class="card-subtitle"><code id="lexicon-search"><b>.search(<i>lexeme</i>[, <i>options</i>])</code></b></h3>
 		<p class="card-text">Searches for full and partial matches in the lexicon.</p>

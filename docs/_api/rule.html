@@ -3,18 +3,20 @@
 		<h1 class="text-info">.Rule()</h1>
 	</div>
 	<div class="card-body">
-		<p class="card-text">A Rule object is a grammar rule that describes the syntax tree that will result from parsing some text with the rule. Rules are, in spirit, a JavaScript adaptation of <a href="https://en.wikipedia.org/wiki/Backus–Naur_form">BNF notation</a>.</p>
+		<p class="card-text">A Rule object is a grammar rule that describes the syntax tree that will result from parsing some text with the rule. Rules are, in spirit, a JavaScript adaptation of <a href="https://en.wikipedia.org/wiki/Extended_Backus-Naur_form">EBNF notation</a>.</p>
 		<p>Rules may be built from other rules and have an object structure that resembles the syntax tree that results when the rule's <code>.parse()</code> method is called.</p>
 		<p>The terminal sub-rules match the input text against a lexicon or a regular expression pattern.</p>
 		<h2 class=" card-title">Constructor</h2>
-		<p class="card-text"><code>ISHML.Rule()</code></p>
-		<p class="card-text">Returns a new <code>ISHML.Rule</code> object instance. Use of new operator is optional. Takes no argument.</p>
+		<p class="card-text"><code>ishml.Rule()</code></p>
+		<p class="card-text">Returns a new <code>ishml.Rule</code> object instance. Use of new operator is optional. Takes no argument.</p>
 		
 		<h2 class="card-title">Properties</h2>
-		<p class="card-text" id="rule-enum">Enumerable properties are of type <code>ISHML.Rule</code>. They are created with the <a href="#rule-snip"><code>.snip()</code></a> method, which forms a tree structure of rules, mirroring the intended syntax tree resulting from parsing.</p>
+		<p class="card-text" id="rule-enum">Enumerable properties are of type <code>ishml.Rule</code>. They are created with the <a href="#rule-snip"><code>.snip()</code></a> method, which forms a tree structure of rules, mirroring the intended syntax tree resulting from parsing.</p>
 		<p class="card-text" id="rule-non-enum">The following non-enumerable properties set the rule's behavior when its <a href="#rule-parse">.parse()</a> method is called. These properties may be set directly or with the <a href="#rule-configure"><code>.configure()</code></a> method.</p>
 		<h3 class="card-subtitle"><code><b>.caseSensitve</b> <i class="text-info">Boolean</i></code></h3>
 		<p class="card-text">Applies to terminal rules. Defaults to <code>false</code>. Set to <code>true</code> for case sensitive parsing.</p>
+		<h3 class="card-subtitle" id="rule-entire"><code><b>.entire</b> <i class="text-info">boolean</i></code></h3>
+		<p class="card-text">If set to <code>true</code> requires the rule to match the entire input text with no remainder in order to be considered a valid match. Defaults to <code>false</code> for partial matching of the input text. </p>
 		<h3 class="card-subtitle" id="rule-filter"><code><b>.filter</b> <i class="text-info">function</i></code></h3>
 		<p class="card-text">Filters the array of definitions associated with the <a href="#token">token(s)</a> to be processed when rule's <a href="#rule-parse">.parse()</a> method is called. Applies to terminal rules. Defaults to <code>(definition)=>true</code>. Returning <code>true</code> from the filter function indicates that the definition should be kept. Returning <code>false</code> removes the definition from the definitions array of the token in the resulting <a href="#interpretation">interpretation</a>. A token that has no definitions left after filtering is consider a non-matching token for the rule.</p>
 		<h3 class="card-subtitle"><code><b>.full</b> <i class="text-info">Boolean</i></code></h3>
@@ -34,11 +36,48 @@
 
 		<h3 class="card-subtitle" id="rule-minimum"><code><b>.minimum</b> <i class="text-info">Integer</i></code></h3>
 		<p class="card-text">Sets the minimum number of times to repeat the rule.</p> Defaults to 1. Set <code>minimum</code> to 0 to make the rule optional.</p>
-
+<h3 class="card-subtitle" id="rule-mismatch"><code><b>.mismatch</b> <i class="text-info">function</i></code></h3>
+		<p class="card-text">Modifies the rule's generated interpretations, according to the custom function assigned, in the event that the rule does not match the input text.  Generally used to provide meta-data about the reason for the rule's failure. Each interpretation is passed to the function and a modified interpretation is returned.  Typically, the interpretation's <code>.valid</code> property is set to <code>.false</code> and the interpretation's <code>.gist</code> property is modified to provide additional information.  See example below.</p>
+	<pre id="example-mismatch" class="prettyprint bg-jumbotron shadow lang-js " title="Mismatch Example">
+//Example        
+nounPhrase.noMatch=(interpretation)=>
+{
+    interpretation.gist.error=true
+    interpretation.gist.errorMessage=
+        `Expected end of nounPhrase. Found: "${interpretation.remainder}".`
+    interpretation.valid=false
+    return interpretation
+}
+nounPhrase.noun.noMatch=(interpretation)=>
+{
+    interpretation.gist.error=true
+    interpretation.gist.errorMessage=
+        "Expected noun. Found: "${interpretation.remainder}"
+    interpretation.valid=false
+    return interpretation
+}
+command.noMatch=(interpretation)=>
+{
+    interpretation.gist.error=true
+    interpretation.gist.errorMessage=
+        `Expected end of command. Found: "${interpretation.remainder}".`
+    interpretation.valid=false
+    return interpretation
+}
+command.verb.noMatch=(interpretation)=>
+{
+    interpretation.gist.error=true
+    interpretation.gist.errorMessage=
+        `Expected verb. Found: "${interpretation.remainder}"".`
+    interpretation.valid=false
+    return interpretation   
+}
+</pre>
 		<h3 class="card-subtitle" id="rule-mode"><code><b>.mode</b> <i class="text-info">all | any | apt</i></code></h3>
-		<p class="card-text">Sets parsing mode for sub-rules of a rule.  Applies to non-terminal rules.  Defaults to <code>ISHML.enum.all</code>, which treats the sub-rules as part of a sequence, each of which must parse successfully in order for the parent rule to be considered successfully parsed. The syntax trees generated by the sub-rules are appended to the node generate by the parent rule.</p>
-		<p><code>ISHML.enum.any</code> treats each sub-rule as a choice.  At least one sub-rule must parse successfully in order for the rule to parse successfully.  If more than one choice parses successfully, multiple alternative <a href="#interpretations">interpretations</a> are generated. The resulting sub-tree generated by the sub-rule has its root node removed and becomes the syntax tree generated by the parent rule.</p>
-		<p><code>ISHML.enum.apt</code> treats each sub-rule as a choice.  At least one choice must parse successfully in order for the rule to parse successfully.  Parsing of sub-rules stops after the first successful choice is parsed and only one interpretation is generated. The resulting sub-tree generated by the sub-rule has its root node removed and becomes the syntax tree generated by the parent rule.</p>
+		<p class="card-text">Sets parsing mode for sub-rules of a rule.  Applies to non-terminal rules.  Defaults to <code>ishml.enum.all</code>, which treats the sub-rules as part of a sequence, each of which must parse successfully in order for the parent rule to be considered successfully parsed. The syntax trees generated by the sub-rules are appended to the node generate by the parent rule.</p>
+		<p><code>ishml.enum.any</code> treats each sub-rule as a choice.  At least one sub-rule must parse successfully in order for the rule to parse successfully.  If more than one choice parses successfully, multiple alternative <a href="#interpretations">interpretations</a> are generated. The resulting sub-tree generated by the sub-rule has its root node removed and becomes the syntax tree generated by the parent rule.</p>
+		<p><code>ishml.enum.apt</code> treats each sub-rule as a choice.  At least one choice must parse successfully in order for the rule to parse successfully.  Parsing of sub-rules stops after the first successful choice is parsed and only one interpretation is generated. The resulting sub-tree generated by the sub-rule has its root node removed and becomes the syntax tree generated by the parent rule.</p>
+	
 		<h3 class="card-subtitle"><code><b>.regex</b> <i class="text-info">RegExp</i></code></h3>
 		<p class="card-text">Applies to terminal rules. Defaults to <code>false</code> for lexicon search.  May be set to any regular expression. Causes the text to parsed to be matched against the regular expression without searching the lexicon for definitions. Instead <code>{fuzzy:true} </code> is provided as the token's definition. </p>
 		<h3 class="card-subtitle" id="rule-semantics"><code><b>.semantics</b> <i class="text-info">function</i></code></h3>
@@ -50,7 +89,7 @@
 		<p class="card-text">Creates a deep copy of the rule.</p>
 		<h3 class="card-subtitle" id="rule-configure"><code><b>.configure(<i>options</i>)</b></code></h3>
 		<p class="card-text">Configures behavior of rule.</p>
-		<p class="card-text">The <i>options</i> argument is a plain javaScript object with properties that are the same as the <a href="#rule-non-enum"> non-enumerable properties of <code>ISHML.Rule</code></a>.</p>
+		<p class="card-text">The <i>options</i> argument is a plain javaScript object with properties that are the same as the <a href="#rule-non-enum"> non-enumerable properties of <code>ishml.Rule</code></a>.</p>
 		<p class="card-text">Returns the rule. This method is chainable.</p>    
 
 		<h3 class="card-subtitle" id="rule-parse"><code><b>.parse(<i>tokenization</i>)</b></code></h3>
@@ -59,10 +98,10 @@
 		<p class="card-text">Returns an array of <a href="#interpretation">interpretations</a>.</p>  
 		
 		<h3 class="card-subtitle" id="rule-snip"><code><b>.snip(<i>key</i> [, <i>rule</i>])</b></code></h3>
-		<p class="card-text">Creates a new <code>ISHML.rule</code> instance as an enumerable property of the rule.</p>
+		<p class="card-text">Creates a new <code>ishml.rule</code> instance as an enumerable property of the rule.</p>
 		<p class="card-text">The <i>key</i> argument is the name to be used for the sub-rule and may be a string or integer. If the sub-rule is to be accessed using dot notation, the requirements for dot notation must be observed when naming the key.  For convenience, spaces are automatically converted to underscores.</p>
-		<p class="card-text">The <i>rule</i> argument is the <code>ISHML.Rule</code> instance to be assigned to the new property. Cloning of <i>rule</i> is recommended, for example, <code>command.snip("subject",nounPhrase.clone())</code>, unless the rule is being defined recursively.</p>
-		<p>If <i>rule</i> is omitted, a new instance of <code>ISHML.Rule</code> is used.</p>
+		<p class="card-text">The <i>rule</i> argument is the <code>ishml.Rule</code> instance to be assigned to the new property. Cloning of <i>rule</i> is recommended, for example, <code>command.snip("subject",nounPhrase.clone())</code>, unless the rule is being defined recursively.</p>
+		<p>If <i>rule</i> is omitted, a new instance of <code>ishml.Rule</code> is used.</p>
 		
 		<p class="card-text">Returns the rule. This method is chainable.</p>
 

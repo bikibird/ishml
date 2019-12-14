@@ -1,8 +1,17 @@
-Permalink: /:categories/:year/:month/:day/:title:output_ext 
-disqus: whitewhalestories
+ishml: "https://cdn.jsdelivr.net/gh/bikibird/ishml@0.1.2/src/ishml.js"
+defaults:
+  -
+    scope:
+      path: ""
+    values:
+      layout: "default"
+collections:
+  releases:
+    output: true
+    permalink: /releases/:name:output_ext
+  tutorials:
+    output: true
+    permalink: /tutorials/:name:output_ext
 plugins:
-  - jekyll-mentions
-  - jemoji
-  - jekyll-redirect-from
   - jekyll-sitemap
-  - jekyll-feed
+disqus: whitewhalestories

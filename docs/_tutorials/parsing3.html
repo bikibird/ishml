@@ -1,0 +1,290 @@
+---
+title: Parsing Part 3
+---
+<div class="container mt-4">
+  <h1>Parsing Tutorial Part Three</h1>
+<p class="lead">Prerequisites: You should have read <a href="{{ site.baseurl }}{% link _tutorials/parsing2.html %}">Parsing Tutorial Part Two</a>.</p>
+<p class="lead">Part three of the parsing tutorial focuses on recursive rules. The code listings are also embedded as a script for this page.  Open your web browser's developer tools to try the parsing examples.</p>
+<div class="clearfix">
+    <pre id="codelisting1" class="prettyprint bg-jumbotron shadow lang-js float-left mr-4" title="Code Listing 1">
+//Code Listing 1
+var lexicon = ishml.Lexicon().register("baa").as({part:"bleat" })
+                            
+var bleat=ishml.Rule().configure({filter:(definition)=>definition.part==="bleat"})	
+
+var goat=ishml.Rule().configure({mode:ishml.enum.mode.apt})  //Correct
+	.snip(1)
+	.snip(2)
+goat[1].snip("bleat",bleat.clone()).snip("goat",goat)
+goat[2].snip("bleat",bleat.clone())
+
+var kid=goat.clone().configure({mode:ishml.enum.mode.any}) //Inefficient
+
+var sheep=ishml.Rule().configure({mode:ishml.enum.mode.apt}) //Wrong
+	.snip(1)
+	.snip(2)
+sheep[1].snip("bleat",bleat.clone())	
+sheep[2].snip("bleat",bleat.clone()).snip("sheep",sheep)
+
+var wolf=ishml.Rule() //Wrong-- stack overflow
+	.snip(1)
+	.snip(2)
+wolf[1].snip("sheep",wolf).snip("bleat",bleat.clone())
+wolf[2].snip("bleat",bleat.clone())
+
+var lambs=ishml.Rule().snip("bleat") //Correct
+lambs.bleat.configure({maximum:Infinity})</pre>
+
+
+
+<h2>Recursion</h2>
+<p>In the grammar presented in <a href="{{ site.baseurl }}{% link _tutorials/parsing2.html %}">part two</a>, we used <code>.clone()</code> to make deep copies of the <code>nounPhrase</code> rule so that we could modify the copies however we wanted. Had we not cloned the rule, the property settings for the subject, direct object, indirect object would have each overwritten each other and created bugs in the program because all of the rules point to the one and only <code>nounPhrase</code> rule.</p>
+
+<p>Cloning rules is generally safer. However, there are grammars that rely on recursively defined rules, where cloning would not have the desired outcome.</p>
+<p>Refer to Code Listing 1. Entering <code>ishml.Parser({lexicon:lexicon,grammar:goat}).analyze("baa baa baa")</code> in the console produces a syntax trees with <code>goat</code> properties nested inside each other and one <code>bleat</code> token at each level. This is achieved by recursively defning the <code>goat</code> rule. One of the sub-rules of <code>goat[1]</code> is the <code>goat</code> rule itself.</p>
+
+<p>The <code>goat</code> rule is right recursive. Rules are right recursive if there is at least one token that is consumed before the rule recurses. In ISHML, sub-rule sequences are always processed from left to right.  That is, the sub-rules are processed in the order in which they were created (with <code>.snip</code>.  In <code>goat[1]</code> the <code>bleat</code> sub-rule consumes a token prior to the goat sub-rule, which recurses back to the original <code>goat</code> rule.</p>
+
+<p>The <code>wolf</code> rule is left recursive.  Entering <code>ishml.Parser({lexicon:lexicon,grammar:wolf}).analyze("baa baa baa")</code> in the console produces a <span class="alert-warning">stack overflow!</span>  The <code>wolf[1]</code> sub-rule recursively calls the <code>wolf</code> rule before consuming any tokens, which in turn runs <code>wolf[1]</code> again, creating an infinite loop.  <a href="https://en.wikipedia.org/wiki/Left_recursion">Left recursion must be eliminated from all ISHML grammars!</a></p>
+<p>Recursion can be very powerful, but it can also make the rules harder to understand.  Depending on your needs, consider switching to a simple array of repeating elements as shown in the <code>lambs</code> rule.</p>
+
+<h2>Apt Mode</h2>
+<p>The goat rula also introduces a new mode: <code>ishml.enum.mode.apt</code>. This is another option for choice rules, very similar to <code>ishml.enum.mode.any</code>. The main difference is that <code>.apt</code> rules stop evaluating choices after the first successful match.  In the case of the <code>goat</code> rule, if the input text consists of a <em>baa</em> followed by more <em>baa</em>(s) the <code>goat[1]</code> rule matches the input and <code>goat[2]</code>isn't evaluated.  Eventually, when all the other tokens have been consumed and there is only one <em>baa</em> remaining, <code>goat[1]</code> will fail and <code>goat[2]</code> will process the last <em>baa</em>.</p>
+
+<p>The <code>kid</code> rule is similar to the goat rule except that the <code>mode</code> has been changes to <code>.any</code>.  This rule will structure the ouput similar to the <code>goat</code> rule, but it is less efficient, because both alternatives, <code>kid[1]</code> and <code>kid[2]</code>, are always evaluated, even if the <code>kid[1]</code> rule is successful.  If your grammar and lexicon are unambigous, you should prefer <code>.apt</code> to <code>.any</code></p>
+
+<p>The <code>sheep</code> rule contains a mistake. It looks a lot like the <code>goat</code> rule, but <code>sheep[1]</code> and <code>sheep[2]</code> rules are in reverse order compared to <code>goat[1]</code> and <code>goat[2]</code>.  Because <code>mode</code> is set to <code>.apt</code>, the rule consumes one token when <code>sheep[1]</code> executes and then stops, resulting in a partial interpretation.</p>
+
+</div>
+<div class="clearfix">
+<pre id="codelisting2" class="prettyprint bg-jumbotron shadow lang-js float-left mr-4" title="Code Listing 2">
+//Code Listing 2			
+var lexicon=ishml.Lexicon() --reusing lexicon from code listing 1 above.
+lexicon
+	.register("(").as({part:"begin"})
+	.register(")").as({part:"end"})
+	.register("+").as({part:"termOp", operation:(a,b)=>a+b})
+	.register("-").as({part:"termOp",operation:(a,b)=>a-b})
+	.register("*").as({part:"factorOp",operation:(a,b)=>a*b})
+	.register("/").as({part:"factorOp",operation:(a,b)=>a/b})
+	.register("^","**").as({part:"powerOp",operation:(a,b)=>a**b})
+
+var expression=ishml.Rule().configure({lax:true})
+var term=ishml.Rule().configure({lax:true})	
+var power=ishml.Rule().configure({lax:true})
+var group=ishml.Rule().configure({lax:true})
+var number=ishml.Rule().configure({lax:true})
+
+expression.snip("term",term).snip("operations")
+expression.operations.snip("operator").snip("operand",term)
+	.configure({minimum:0, maximum:Infinity,greedy:true})
+expression.operations.operator.configure({filter:(definition)=>definition.part==="termOp",longest:true})
+
+term.snip("power",power).snip("operations")
+term.operations.snip("operator").snip("operand",power)
+	.configure({minimum:0, maximum:Infinity, greedy:true})
+term.operations.operator.configure({filter:(definition)=>definition.part==="factorOp",longest:true})
+
+power.snip("group",group).snip("operations")
+power.operations.snip("operator").snip("operand",power)
+	.configure({minimum:0, greedy:true})
+power.operations.operator.configure({filter:(definition)=>definition.part==="powerOp",longest:true})
+
+group.configure({mode:ishml.enum.mode.apt})
+	.snip(1)
+	.snip(2,number)
+group[1].snip("begin").snip("expression",expression).snip("end")
+group[1].begin.configure({keep:false,filter:(definition)=>definition.part==="begin"})         
+group[1].end.configure({keep:false,filter:(definition)=>definition.part==="end"}) 
+
+number.configure({regex:/^-?([0-9]*[.])?[0-9]+/})
+	.semantics=(interpretation)=>
+	{
+		interpretation.gist=Number(interpretation.gist.lexeme)
+		return interpretation
+	}
+
+getOperation=(interpretation)=>
+{
+	interpretation.gist=interpretation.gist.definitions[0].operation
+	return interpretation
+}
+
+calculate=(interpretation)=>
+{
+	var {gist} = interpretation
+	var {expression, term, power, group, operand,operations}=gist
+	var result=expression || term || power || group ||operand|| gist
+	if (operations)
+	{
+		if (operations instanceof Array)
+		{
+			operations.forEach(function(operation)
+			{
+			result=operation.operator(result,operation.operand)
+			})
+		}
+		else
+		{
+			result=operations.operator(result,operations.operand)
+		}	
+		
+	}
+	interpretation.gist=result
+	return interpretation
+}
+
+expression.operations.operator.semantics=getOperation
+term.operations.operator.semantics=getOperation	
+power.operations.operator.semantics=getOperation
+
+expression.semantics=calculate
+term.semantics=calculate    
+group.semantics=calculate
+power.semantics=calculate
+
+var parser=ishml.Parser({lexicon:lexicon,grammar:expression}) 
+
+console.log(parser.analyze("18/6/3"))  // 1
+console.log(parser.analyze("(1+2)*3+5")) // 14
+console.log(parser.analyze("(2^3-3)*4")) // 20</pre>
+<h2>More Recursion</h2>
+<p>A classic example of recursion is the grammar for basic arithmetic expressions shown in Code Listing 2. It parses and evaluates expressions involving addition, subtraction, multiplication, divsion, and exponentiation. For the sake of brevity the grammar does not support the unary negation operator.</p> 
+<p>To review basic arithmetic, recall that addition, subtraction, multiplication, and division operations are performed from left to right (left associative operations) with multiplication and division taking precedence over addition and subtraction.  Exponentiation is performed right to left (right associative) and has precedence over multiplication and division.  The order of these operations may also be overridden by the use of parentheses.</p>
+<p>The lexicon defines the operators.  Notice that functions to perform the operations are stored as part of each operator's definition. This will simplify the semantic processing to evaluate the expression.</p>
+<p>Due to the recursive nature of this grammar, the <code>expression</code>, <code>term</code>, <code>power</code>, and <code>group</code> rules reference each other. It is perfectly acceptable to use a rule in another rule before it is configured.  In the case of this grammar, it is absolutely necessary.</p>
+<p>In the <code>group</code> rule we alos see <code>.apt</code> mode as opposed to <code>.any</code> mode. If we're able to evaluate as an expression wrapped in parentheses, there is no point in considering evaluating as a number.</p>
+<p>The <code>expression</code> rule is the top level rule for the grammar and breaks down the input text into a series of terms that can be added or subtracted.  The <code>term</code> rule further decomposes each term into a series of powers that can be multiplied or divided.</p>
+<p>The <code>power</code> rule decomposes each power into groups that can be exponentiated. The <code>group</code> rule decomposes a group into either an expression to be recursively evaluated by the <code>expression</code> rule or a number. The <code>power</code> rule also uses recursion to nest the power nodes in the syntax tree.  The <code>semantics</code> function attached to these nodes works from the leaves up, carrying the result up the tree in right associative order.  For the left associative operations, the <code>.operations</code> array is iterated over, applying the <code>semantics</code> function on the operands and accumulating the result.</p>
+<p>The <code>number</code> rule uses a regular expression instead of the lexicon to match numbers, by defining the <code>regex</code> property.  Note the use of <q>^</q> to anchor the search to the head of the input text.  Since the lexicon is not used for this rule, there is no token definition to be retrieved.  Instead, a token is constructed. The token's lexeme is set to the string returned by the regular expression match.  The token's definition is simply set to <code>{fuzzy:true}</code>.  <p>	
+<h2>Additional Options</h2>
+	<p>Let's look at a few of the options that were used in the calculator grammar to change the default behavior of the rules.</p>	
+<p>This grammar allows white space, but does not require it. <q  class="text-monospace">1 + 1</q> is acceptable, but so is <q class=" text-monospace">1+1</q>. Setting the <code>lax</code> option to <code>true</code> makes separators between lexemes optional.</p>
+<p>By default, the parser expects ambiguity; all combinations of repeating items are consider from minimum to maximum and all potential choices are evaluated; all potential matches against the lexicon from shortest to longest are considered.  This is unnecessary for a calculator. The result of an arithmetic expression is unambigous; there is one and only one answer.  The <code>greedy</code> option causes the parser to only consider the longest series whem <code>maximum</code> is set to more than one.  The <code>longest</code> option causes only longest possible match to be considered when retrieving tokens from the lexicon. For example, in this grammar, ""**" may be used for exponentiation.  The parser doesn't need to consider "**" as two multiplication symbols in a row.  Setting <code>longest</code> to <code>true</code> will avoid the parser even considering the muliplication token when it appears twice in row. Instead it will only consider the longer token for exponentiation. The <code>greedy</code> and <code>longest</code> options allow the parser to operate more efficiently, but should only be used where the grammar is unambiguous.</p>
+	<p>The <code>keep</code> option may be set to false to discard some branches and nodes. In this grammar the left and right parentheses are discarded.  While they do identify the start and end of a group, the parentheses are not actually needed for the calculation.</p>
+
+<h2>Next Steps</h2>
+		<p>This has been a brief tour of parsing using the ISHML API. We did not cover all the configure options for rules and parsing.  See the <a href="{{ site.baseurl }}{% link api.html %}">API Reference</a> for complete documentation. The lexicon and grammar discussed in this tutorial is attached as a script for this web page.  Open your browser's developer tools and experiment. </p>
+	</div>	 
+</div>
+<script src="{{ site.ishml }}"></script>
+<script>var lexicon = ishml.Lexicon().register("baa").as({part:"bleat" })
+                            
+var bleat=ishml.Rule().configure({filter:(definition)=>definition.part==="bleat"})	
+
+var goat=ishml.Rule().configure({mode:ishml.enum.mode.apt})  //Correct
+	.snip(1)
+	.snip(2)
+goat[1].snip("bleat",bleat.clone()).snip("goat",goat)
+goat[2].snip("bleat",bleat.clone())
+
+var kid=goat.clone().configure({mode:ishml.enum.mode.any}) //Inefficient
+
+var sheep=ishml.Rule().configure({mode:ishml.enum.mode.apt}) //Wrong
+	.snip(1)
+	.snip(2)
+sheep[1].snip("bleat",bleat.clone())	
+sheep[2].snip("bleat",bleat.clone()).snip("sheep",sheep)
+
+var wolf=ishml.Rule() //Wrong-- stack overflow
+	.snip(1)
+	.snip(2)
+wolf[1].snip("sheep",wolf).snip("bleat",bleat.clone())
+wolf[2].snip("bleat",bleat.clone())
+
+var lambs=ishml.Rule().snip("bleat") //Correct
+lambs.bleat.configure({maximum:Infinity})
+
+//Code Listing 2			
+//var lexicon=ishml.Lexicon() --reusing lexicon from code listing 1 above.
+lexicon
+	.register("(").as({part:"begin"})
+	.register(")").as({part:"end"})
+	.register("+").as({part:"termOp", operation:(a,b)=>a+b})
+	.register("-").as({part:"termOp",operation:(a,b)=>a-b})
+	.register("*").as({part:"factorOp",operation:(a,b)=>a*b})
+	.register("/").as({part:"factorOp",operation:(a,b)=>a/b})
+	.register("^","**").as({part:"powerOp",operation:(a,b)=>a**b})
+
+var expression=ishml.Rule().configure({lax:true})
+var term=ishml.Rule().configure({lax:true})	
+var power=ishml.Rule().configure({lax:true})
+var group=ishml.Rule().configure({lax:true})
+var number=ishml.Rule().configure({lax:true})
+
+expression.snip("term",term).snip("operations")
+expression.operations.snip("operator").snip("operand",term)
+	.configure({minimum:0, maximum:Infinity,greedy:true})
+expression.operations.operator.configure({filter:(definition)=>definition.part==="termOp",longest:true})
+
+term.snip("power",power).snip("operations")
+term.operations.snip("operator").snip("operand",power)
+	.configure({minimum:0, maximum:Infinity, greedy:true})
+term.operations.operator.configure({filter:(definition)=>definition.part==="factorOp",longest:true})
+
+power.snip("group",group).snip("operations")
+power.operations.snip("operator").snip("operand",power)
+	.configure({minimum:0, greedy:true})
+power.operations.operator.configure({filter:(definition)=>definition.part==="powerOp",longest:true})
+
+group.configure({mode:ishml.enum.mode.apt})
+	.snip(1)
+	.snip(2,number)
+group[1].snip("begin").snip("expression",expression).snip("end")
+group[1].begin.configure({keep:false,filter:(definition)=>definition.part==="begin"})         
+group[1].end.configure({keep:false,filter:(definition)=>definition.part==="end"}) 
+
+number.configure({regex:/^-?([0-9]*[.])?[0-9]+/})
+	.semantics=(interpretation)=>
+	{
+		interpretation.gist=Number(interpretation.gist.lexeme)
+		return interpretation
+	}
+
+getOperation=(interpretation)=>
+{
+	interpretation.gist=interpretation.gist.definitions[0].operation
+	return interpretation
+}
+
+calculate=(interpretation)=>
+{
+	var {gist} = interpretation
+	var {expression, term, power, group, operand,operations}=gist
+	var result=expression || term || power || group ||operand|| gist
+	if (operations)
+	{
+		if (operations instanceof Array)
+		{
+			operations.forEach(function(operation)
+			{
+			result=operation.operator(result,operation.operand)
+			})
+		}
+		else
+		{
+			result=operations.operator(result,operations.operand)
+		}	
+		
+	}
+	interpretation.gist=result
+	return interpretation
+}
+
+expression.operations.operator.semantics=getOperation
+term.operations.operator.semantics=getOperation	
+power.operations.operator.semantics=getOperation
+
+expression.semantics=calculate
+term.semantics=calculate    
+group.semantics=calculate
+power.semantics=calculate
+
+var parser=ishml.Parser({lexicon:lexicon,grammar:expression}) 
+
+console.log(parser.analyze("18/6/3"))  // 1
+console.log(parser.analyze("(1+2)*3+5")) // 14
+console.log(parser.analyze("(2^3-3)*4")) // 20
+</script>
+  <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+  
