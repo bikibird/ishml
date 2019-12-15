@@ -164,6 +164,7 @@ if(gist.noun.definitions.length===0){return false}
 }
 return true
 }
+/*Note (a)*/
 
 var command=ishml.Rule().configure({entire:true})
 
@@ -185,25 +186,27 @@ command.object[2].snip("indirectObject",nounPhrase.clone()).snip("directObject",
 
 command.semantics=(interpretation)=>
 {
-var {gist}=interpretation
-if (gist.object)
-{
-if(gist.object.indirectObject)
-{
-if(gist.object.indirectObject)
-{
-    if(gist.object.indirectObject.preposition)
+    var {gist}=interpretation
+    if (gist.object)
     {
-        gist.preposition=gist.object.indirectObject.preposition
+        if(gist.object.indirectObject)
+        {
+        if(gist.object.indirectObject)
+        {
+            if(gist.object.indirectObject.preposition)
+            {
+                gist.preposition=gist.object.indirectObject.preposition
+            }
+            gist.indirectObject=gist.object.indirectObject.nounPhrase || gist.object.indirectObject
+        }
     }
-    gist.indirectObject=gist.object.indirectObject.nounPhrase || gist.object.indirectObject
+    gist.directObject=gist.object.directObject.nounPhrase || gist.object.directObject
+    delete gist.object
+    }
+    return true
 }
-}
-gist.directObject=gist.object.directObject.nounPhrase || gist.object.directObject
-delete gist.object
-}
-return true
-}
+
+/* Note (b) */
 </pre>
 <h2>Rule Cloning</h2>
 <p>Refer to Code Listing 1. First, we create a <code>nounPhrase</code> rule that we can re-use in the <code>subject</code>, <code>directObject</code>, and <code>indirectObject</code> rules.  You should recognize the code for the <code>nounPhrase</code> rule from <a href="{{ site.baseurl }}{% link _tutorials/parsing1.html %}">part one</a>.</p>
@@ -225,7 +228,9 @@ return true
 
 
 <pre id="codelisting2" class="prettyprint bg-jumbotron shadow lang-js float-left mr-4" title="Code Listing 2">
-//Code Listing 2        
+//Code Listing 2    
+
+//Add code below after note (a) in listing 1
 nounPhrase.mismatch=(interpretation)=>
 {
     interpretation.gist.error=true
@@ -242,6 +247,9 @@ nounPhrase.noun.mismatch=(interpretation)=>
     interpretation.valid=false
     return interpretation
 }
+
+//Add code below after note (b) in listing 1
+
 command.mismatch=(interpretation)=>
 {
     interpretation.gist.error=true
@@ -261,6 +269,42 @@ command.verb.mismatch=(interpretation)=>
 </pre>
 <h2>Error Handling</h2>       
         <p>If an invalid command is parsed using the <code>command</code> rule in Code Listing 1, the parser will return <code>{success: false}</code> since the <code>command</code> rule is set to match the entire input.  This can make it difficult to troubleshoot your grammar or gracefully respond to invalid input.  To improve error handling, we define a rule's <code>.mismatch</code> property with a custom function.  Study Code listing 2.  The <code>.mismatch</code> functions receive an <code>ishml.interpretation</code> object containing the gist and the remainder for the branch of the syntax tree that each rule is attempting to generate.  The only requirement of the function is to return an interpretation.  The <code>.mismatch</code> functions generally set the interpretation's <code>.valid</code> property to <code>false</code> to indicate the that interpretation is invalid.  The function may also arbitrarily manipulate the interpretation to provide additional feedback to be used in the application.  In this example, <code>.error</code> and <code>.errorMessage</code> properties have been added to the interpretation's <code>.gist</code> property.  This results in nested errors that mirrors the rule's syntax tree.</p>
+
+<pre id="codelisting3" class="prettyprint bg-jumbotron shadow lang-js float-left mr-4" title="Code Listing 3">
+//Code Listing 3
+var parser = ishml.Parser({ lexicon: lexicon, grammar: command })
+
+var example1 = parser.analyze("take ruby slipper")
+var example2 = parser.analyze("take ruby slipper to Ruby")
+var example3 = parser.analyze("take the flower")
+</pre>
+<div class="card mt-4 mb-4">
+        <div class="card-header" id="q4">
+            <p class="text-info">Open your <a href="https://developer.mozilla.org/en-US/docs/Learn/Common_questions/What_are_browser_developer_tools">browser's developer tools</a>, refer to Code Listing 3, and try the following exercises:</p>
+            <ol class="card-text">
+                <li>Enter <code>console.log(example1)</code> in the command console. Did <code>example1</code> parse successfully? How many interpretations were returned?
+                </li>
+                <li>Enter <code>console.log(example2)</code> in the command console. Did <code>example2</code> parse successfully? How many interpretations were returned?
+                </li>
+                <li>Enter <code>console.log(example3)</code> in the command console. Did <code>example3</code> parse successfully? Why or why not?
+            </ol>
+                <button class="btn btn-link text-info collapsed " type="button" data-toggle="collapse" data-target="#a4"
+                    aria-expanded="false" aria-controls="a4">
+                    Answers
+                </button>
+        </div>
+        <div id="a4" class="collapse" aria-labelledby="q4" data-parent="#q4">
+            <div class="card-body">
+                <ol class="card-text">
+                    <li>Yes, two interpretations were returned.  The first interpretation treats <q>ruby</q> as an adjective modifying the noun, <q>slipper</q>.  The second interpretation treats <q>ruby</q> as a noun functioning as an indirect object.</code>
+                    </li>
+                    <li>Yes, the value of <code>example2.success</code> is <code>true</code>. One interpretation was returned. The interpretation is identical to the second interpretation in example 1.</li>
+                    <li>No, the value of <code>example3.success</code> is <code>false</code>. Examining <code>example3.interpretations[0].gist</code> and <code>example3.interpretations[1].gist</code> provides additional insight as to why the input could not be validated successfully.
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
 
 <p>Continue to <a href="{{ site.baseurl }}{% link _tutorials/parsing3.html %}">part three</a> to learn about recursive rules.</p>
 
@@ -295,6 +339,21 @@ nounPhrase.semantics=(interpretation)=>
         if(gist.noun.definitions.length===0){return false}
     }
     return true
+}
+
+nounPhrase.mismatch=(interpretation)=>
+{
+    interpretation.gist.error=true
+    interpretation.gist.errorMessage=`Expected end of nounPhrase. Found: "${interpretation.remainder}".`
+    interpretation.valid=false
+    return interpretation
+}
+nounPhrase.noun.mismatch=(interpretation)=>
+{
+    interpretation.gist.error=true
+    interpretation.gist.errorMessage="Expected noun."
+    interpretation.valid=false
+    return interpretation
 }
 
 var command=ishml.Rule().configure({entire:true})
@@ -332,20 +391,6 @@ command.semantics=(interpretation)=>
     return true
 }
 
-nounPhrase.mismatch=(interpretation)=>
-{
-    interpretation.gist.error=true
-    interpretation.gist.errorMessage=`Expected end of nounPhrase. Found: "${interpretation.remainder}".`
-    interpretation.valid=false
-    return interpretation
-}
-nounPhrase.noun.mismatch=(interpretation)=>
-{
-    interpretation.gist.error=true
-    interpretation.gist.errorMessage="Expected noun."
-    interpretation.valid=false
-    return interpretation
-}
 command.mismatch=(interpretation)=>
 {
     interpretation.gist.error=true
@@ -390,7 +435,7 @@ lexicon
 var parser = ishml.Parser({ lexicon: lexicon, grammar: command })
 
 var example1 = parser.analyze("take ruby slipper")
-var example2 = parser.analyze("take ruby slipper to ruby")
+var example2 = parser.analyze("take ruby slipper to Ruby")
 var example3 = parser.analyze("take the flower")
 </script>
 <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>

@@ -263,24 +263,19 @@ var parser = ishml.Parser({ lexicon: lexicon, grammar: command }))</pre>
 
 var example1 = parser.analyze("take the ruby slipper")
 
-var example2 = parser.analyze("Take ruby slipper.")
+var example2 = parser.analyze("Take ruby slipper")
 
-var example3 = parser.analyze("Take take ruby slipper.")
+var example3 = parser.analyze("Take slipper")
 
-var example4 = parser.analyze("Take ruby slipper take.")
+var example4 = parser.analyze("Take ruby slipper take")
 
-var example5 = parser.analyze("Take the really pretty ruby slipper.")</pre>
+var example5 = parser.analyze("Take the really pretty ruby slipper")</pre>
             </div>
             <p>Study Code Listing 3. Now that we've gone through the hard work of making a lexicon and a grammar, we are ready to define the parser. The constructor for <code>ishml.Parser</code> takes an options argument.  The lexicon from Code Listing 1 is used for the <code>lexicon</code> option and the command rule from  Code Listing 2  is used for the <code>grammar</code> option. We are now finally ready to do some parsing.</p>
-            <p>Code Listing 4 shows the parser in action. The <code>.analyze()</code> method applies the grammar rule and the lexicon to the input text and returns the result of the parsing. It takes the input text as the first argument.</p>
-            <p>Tthe grammar rules are applied and the results are returned as a plain JavaScript object. If the input text was successfully parsed, the <code>.success</code> property has a value of <code>true</code>. The <code>.interpretations</code> property contains an array of <code>ishml.Interpretation</code>.  The <code>.gist</code> property of each interpretation contains the syntax tree generated from parsing.  The structure of <code>.gist</code> follows the structure of the grammar rules used to create it. The nodes of the syntax tree are properties named after the sub-rules that define them. These properties may in turn have other properties defined on them all the way down the syntax tree to the terminal nodes of the tree. A terminal property contains the matching token for the sub-rule. In the case where a sub-rule defines the maximum number of tokens to match to be more than one, the value stored in the terminal property is an array of tokens.  The <code>.remainder</code> property of an interpretation is an empty array because a successful parsing consumes all the tokens in the tokenization.</p>
-            <p>If the input text fails parsing, the <code>.success</code> property has a value of <code>false</code>.  If tokenization failed, the <code>.tokenizations</code> property contains an array of partial tokenizations, which can be used to give feedback on why and where tokenization failed.  The <code>.interpretations</code> property is <code>undefined</code>.</p>
-            <p>If tokenization was successful, but parsing was not, the <code>.tokenizations</code> property is <code>undefined</code> and the <code>.interprations</code> property contains an array of partial interpretations, which can be used to give feedback on why and where parsing failed. A partial interpretation is an interpretation that parses successfully against the grammar, but does not consume all the tokens in the tokenization.
-            </p>
-            <p>There are many options for <code>.analyze()</code>. We'll only cover a few of them.  See the <a href="{{ site.baseurl }}{% link api.html %}#parser-analyze">API</a> for the complete list.</p>
-            <p>Example 1 shows the most basic use. By default, the tokenizer expects whitespace between lexemes and ignores it.  In example 2 the <code>separator</code> option has been changed to ignore both whitespace and periods.  Any <code>RegExp</code> may be used as a separator. For no separation at all, set the separator to the empty string.</p>
-            <p>Example 3 is lexically correct, but syntactically incorrect due to the doubled verb. No interpretation can be generated. Example 4, with the second instance of "take" moved to the end, results in a partial interpretation since it is syntactically correct if the last token is not considered.</p>
-            <p>Example 5 is lexically incorrect because "really pretty" is not registered in the lexicon. The result is a partial tokenization.</p>  
+            <p>Code Listing 4 shows the parser in action. The <code>.analyze()</code> method applies the parser's grammar and lexicon to the input text and returns the result of the parsing.</p>
+            <p>The results are returned as a plain JavaScript object. If the input text was successfully parsed, the <code>.success</code> property has a value of <code>true</code>. The <code>.interpretations</code> property contains an array of <code>ishml.Interpretation</code>.  The <code>.gist</code> property of each interpretation contains the syntax tree generated from parsing.  The structure of <code>.gist</code> follows the structure of the grammar rules used to create it. The nodes of the syntax tree are properties named after the sub-rules that define them. These properties may in turn have other properties defined on them all the way down the syntax tree to the terminal nodes of the tree. A terminal property contains the matching token for the sub-rule. In the case where a sub-rule defines the maximum number of tokens to match to be more than one, the value stored in the terminal property is an array of tokens.  The <code>.remainder</code> property of an interpretation is an empty string because a successful parsing consumes all the text.</p>
+            <p>If the input text fails parsing, the <code>.success</code> property has a value of <code>false</code>. Depending on how the root rule was configured, you may also receive some partial interpretations of the input when parsing fails. For more details see <a href="{{ site.baseurl }}{% link _tutorials/parsing2.html %}">part two</a> of this tutorial, which covers advanced error handling techniques.</p>
+             
         </div>
         <div class="card mt-4 mb-4">
             <div class="card-header" id="q3">
@@ -288,7 +283,7 @@ var example5 = parser.analyze("Take the really pretty ruby slipper.")</pre>
                 <ol class="card-text">
                     <li>Enter <code>console.log(example1)</code> in the command console. Did <code>example1</code> parse successfully? How many interpretations were returned?
                         <ol>
-                            <li>Why does <code>example1.interpretations[0].remainder.tokens</code> contain an empty array?</li>
+                            <li>Why does <code>example1.interpretations[0].remainder</code> contain an empty string?</li>
                             <li>What is <code>example1.interpretations[0].gist</code>?
                                 <ol>
                                     <li>Enter <code>console.log(example1.interpretations[0].gist)</code>. In what order are the properties of <code>.gist</code> listed?</li>
@@ -300,23 +295,16 @@ var example5 = parser.analyze("Take the really pretty ruby slipper.")</pre>
                     </li>
                     <li>Enter <code>console.log(example2)</code> in the command console. Did <code>example2</code> parse successfully? How many interpretations were returned?
                         <ol>
-                            <li>Why is the period character in the input text accepted as valid?</li>
                             <li>Why is it valid to omit the word "the" in the input text?</li>
                             <li>How is the syntax tree affected by the missing article in the input text?</li>
                         </ol>
                     </li>
                     <li>Enter <code>console.log(example3)</code> in the command console. Did <code>example3</code> parse successfully? Why or why not?
-                        <ol>
-                            <li>Did the input text generate any interpretations?</li>
-                            <li>Did the input text successfully tokenize?</li>
-                         </ol>
+
                     </li>
                     <li>Enter <code>console.log(example4)</code> in the command console. Did <code>example4</code> parse successfully? Why
                         or why not?
-                        <ol>
-                            <li>How many interpretations were generated? Why?</li>
-                            <li>In the case of a partial interpretation, are the leftover tokens available?</li>
-                        </ol>
+
                     </li>
                     <li>Enter <code>console.log(example5)</code> in the command console. Did <code>example5</code> parse successfully? Why
                         or why not?
@@ -332,11 +320,11 @@ var example5 = parser.analyze("Take the really pretty ruby slipper.")</pre>
                     <ol class="card-text">
                         <li>Yes, the value of <code>example1.success</code> is <code>true</code>. One interpretation was returned in the array, <code>example1.interpretations</code>
                             <ol>
-                                <li>A successful interpretation consumes all the tokens in the tokenization.</li>
+                                <li>A successful interpretation consumes all input text.</li>
                                 <li>The syntax tree is contained in <code>example1.interpretations[0].gist</code>. The <code>.gist</code> property of the interpretation is the root node of the syntax tree.
                                     <ol>
-                                        <li>Alphabetically.</li>
-                                        <li>All modern browsers <a href="http://www.ecma-international.org/ecma-262/7.0/#sec-ordinaryownpropertykeys">iterate an object's own enumerable properties</a> by starting with integer keys in numerical order followed by the order in which the properties are created. Oddly, <code>console.log()</code>, as implemented in browsers, still insists on alphabetizing object properties for your convenience, which is confusing, but harmless.)</li>
+                                        <li>Depending on the version of the browser you are using, they may be arranged alphabetically.</li>
+                                        <li>All modern browsers <a href="http://www.ecma-international.org/ecma-262/7.0/#sec-ordinaryownpropertykeys">iterate an object's own enumerable properties</a> by starting with integer keys in numerical order followed by the order in which the properties are created. Oddly, <code>console.log()</code>, as implemented in some  browsers, still insists on alphabetizing object properties for your convenience, which is confusing, but harmless.)</li>
                                     </ol>
                                 </li>
                                 <li>The <code>maximum</code> option for the <code>.adjectives</code> rule was set to more than 1.</li>
@@ -345,30 +333,26 @@ var example5 = parser.analyze("Take the really pretty ruby slipper.")</pre>
                         <li>Yes, the value of <code>example2.success</code> is <code>true</code>. One interpretation was returned in the array,
                             <code>example2.interpretations</code>
                             <ol>
-                                <li>The period was part of the regular expression assigned to the <code>separator</code> option when <code>parser.analyze()</code> was called.</li>
                                 <li>The <code>minimum</code> option for the article rule was set to 0.</li>
                                 <li>There is no article property in the syntax tree. <code>example3.interpretations[0].gist.article</code> is <code>undefined</code>.</li>
                             </ol>
                         </li>
-                        <li>No, the value of <code>example3.success</code> is <code>false</code>. 
-                            <ol>
-                                <li>No, the value of <code>example3.interpretations</code> is undefined.  </li>
-                                <li>Yes, <code>example3.tokenizations</code> contains an array (length 1) of tokenizations.  The list of tokens is  <code>example3.tokenizations[0].tokens</code>.</li>
-                            </ol>
+                        <li>Yes, the value of <code>example3.success</code> is <code>true</code>. Both the article and adjectives are optional for the noun phrase. 
                         </li>
                         <li>No, the value of <code>example4.success</code> is <code>false</code>.
                             <ol>
-                                <li>Two partial interpretations were generated: "take ruby slipper", where ruby is an adjective, and "take ruby", where ruby is a noun.  These interpretations fit the grammar, but they only partially consome the list of tokens in the tokenization. </li>
-                                <li>The leftover tokens remaining are available as a tokenization in an interpretation's <code>.remainder</code> property.  For example, <code>example4.interpretations[0].remainder</code>.</li>
+                                <li>Two partial interpretations were generated: "take ruby slipper", where ruby is an adjective, and "take ruby", where ruby is a noun.  These interpretations fit the grammar, but they only partially consumme the input text. </li>
+                                <li>The leftover input text is in the interpretation's <code>.remainder</code> property, <code>example4.interpretations[0].remainder</code>.</li>
                             </ol>
                         </li>
-                        <li>No, the value of <code>example5.success</code> is <code>false</code>.  The attempts at tokenization are available in <code>example5.tokenizations</code>.  For instance, <code>example5.tokenizations[0].tokens</code> contains an array of tokens for the partially tokenized input text and <code>example5.tokenizations[0].remainder</code> contains the portion of the input text that could not be tokenized.  By the way,  <a href="{{ site.baseurl }}{% link api.html %}#parser"><code>smooth</code> and <code>fuzzy</code></a> options could have been used to handle lexemes not found in lexicon.  The <code>smooth</code> option skips over lexemes not found in the lexcion.  The <code>fuzzy</code> option creates a token with a definition of "fuzz".</li>
+                        <li>No, the value of <code>example5.success</code> is <code>false</code>.  The input text does not match the <code>command</code> rule. The text <q>really pretty</q> does not match the <code>adjectives</code> rule or the <code>noun</code> rule.  Therefore, the <code>nounPhrase</code> rule fails, which causes the <code>command</code> rule to fail. By the way, it is possible to match text not found in the lexicon by using the <a href="{{ site.baseurl }}{% link api.html %}#rule"><code>regex</code></a> option. Regular expressions are cover in <a href="{{ site.baseurl }}{% link _tutorials/parsing2.html %}">part two</a> of this tutorial.</li>
                     </ol>
                 </div>
             </div>
         </div>
-        </div>
+        
         <p>Continue to <a href="{{ site.baseurl }}{% link _tutorials/parsing2.html %}">part two</a> to learn about more complex grammars, including choice rules and semantic analysis.</p>
+    </div>    
         <script src="{{ site.ishml }}"></script>
         <script>//Code Listing 1-- Definining a lexicon; registering tokens.    
 var lexicon = ishml.Lexicon()
@@ -429,12 +413,12 @@ var parser = ishml.Parser({ lexicon: lexicon, grammar: command })
 
 var example1 = parser.analyze("take the ruby slipper")
 
-var example2 = parser.analyze("Take ruby slipper.", { separator: /[\.|\s]/ })
+var example2 = parser.analyze("Take ruby slipper")
 
-var example3 = parser.analyze("Take take ruby slipper.", { separator: /[\.|\s]/ })
+var example3 = parser.analyze("Take slipper")
 
-var example4 = parser.analyze("Take ruby slipper take.", { separator: /[\.|\s]/ })
+var example4 = parser.analyze("Take ruby slipper take")
 
-var example5 = parser.analyze("Take the really pretty ruby slipper.", { separator: /[\.|\s]/ })
+var example5 = parser.analyze("Take the really pretty ruby slipper")
 </script>
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
