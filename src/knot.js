@@ -7,7 +7,7 @@ uid
 enumerable cords
 	each cord has a ply:
 
-user defined enumerable properties.
+Cords only no other user defined properties.  twists are a set of plotpoints that apply to the ply.
 */ 
 ishml.Knot= class IshmlKnot
 {
@@ -17,6 +17,7 @@ ishml.Knot= class IshmlKnot
 		Object.defineProperty(this, "id", {value:id,writable: true})
 		Object.defineProperty(this, "ply", {value:{
 			plyId:id,
+			twists:{},
 			weight:1,
 			cord:null,
 			advance:null,
@@ -27,15 +28,20 @@ ishml.Knot= class IshmlKnot
 
 		if (!uid)
 		{
-			//Object.assign(ishml.Knot.values[this.uid],value)
 			ishml.Knot.knots[this.uid]=this 
 			ishml.Knot.values[this.uid]={}
 			ishml.Knot.cords[this.uid]={}
 		}
 		return new Proxy(this, ishml.Knot.handler)
 	}
-	entwine({plyId=null,weight=1,cord=null,advance=null,retreat=null,converse=null,hop=0}={})
+	get mesh()
 	{
+		return new ishml.Mesh(this)
+	}
+	plait({plyId=null,weight=1,cord=null,advance=null,retreat=null,converse=null,hop=0,twists={}}={})
+	{
+		//creates alias of 
+
 		var knot=new ishml.Knot(this.id,this.uid)
 		knot.plyId=plyId||this.id
 		knot.weight=weight
@@ -45,21 +51,26 @@ ishml.Knot= class IshmlKnot
 		knot.converse=converse 
 		knot.hop=hop 
 		return knot
-	}	
+	
+	}
+
 	get cords()
 	{
 		return Object.values(ishml.Knot.cords[this.uid]) 	
 	}
+
 	configure(value)
 	{
 		Object.assign(ishml.Knot.values[this.uid],value)
 	}
+
 	forget(aTerm,aDefinition)
 	{
 		var definition=Object.assign({kind:"knot",id:this.id},aDefinition)
 		this.yarn.lexicon.unregister(aTerm,definition)
 		return this
 	}
+
 	has(property)
 	{
 
@@ -125,7 +136,7 @@ ishml.Knot= class IshmlKnot
 								{
 									if (!visited.has(child))
 									{
-										queue.push(child.entwine({retreat:knot,hop:knot.hop+1}))
+										queue.push(child.plait({retreat:knot,hop:knot.hop+1}))
 									}
 								})
 							}	
@@ -136,27 +147,21 @@ ishml.Knot= class IshmlKnot
 		}
 		return {success:false,start:false,end:false,path:[]}  //not found
 	}
+
 	retie(cordage)
 	{
 		//$.place.kitchen.contains.knife.retie("in<contains").to($.place.foyer)
 		this.untie()
 		return this.tie(cordage)
 	}
-	tie(cordage)
+
+	tie(...someCordage)
 	{
 		//$.place.kitchen.tie("exit:north<entrance:south").to($.place.foyer)
 		//$.person.Lizzy.tie("friendship<friendship").to($.person.Charlotte)
 
 		var fromKnot=this
 
-		var [forward,backward]=cordage.split(/[<>]/)
-		var [cordId,plyId]=forward.split(":").map(id=>ishml.util.formatId(id.trim()))
-		if(!fromKnot.has(cordId)){fromKnot[cordId]=new ishml.Cord(cordId)}
-		if (backward)
-		{
-			var [converseCordId,conversePlyId]=backward.split(":").map(id=>ishml.util.formatId(id.trim()))	
-		}
-		
 		var to = (knot)=>
 		{
 			if (knot instanceof ishml.Knot)
@@ -167,49 +172,66 @@ ishml.Knot= class IshmlKnot
 			{
 				var toKnot=new ishml.Knot(knot)
 			}
-			if (!cordId){cordId=ishml.util.formatId()}
-			if (!plyId){plyId=toKnot.id}
-			
-			if (fromKnot.has(cordId))
+			someCordage.forEach((cordage)=>
 			{
-				var cord=fromKnot[cordId]
 				
-			}	
-			else
-			{
-				var cord = new ishml.Cord(cordId)
-				fromKnot[cordId]=cord
-			}
-			var aliasToKnot=toKnot.entwine({plyId:plyId,cord:cord})
-			if(backward)
-			{
-				if (toKnot.has(converseCordId))
+				var [forward,backward]=cordage.split(/[<>]/)
+				var [cordId,plyId]=forward.split(":").map(id=>ishml.util.formatId(id.trim()))
+				if(!fromKnot.has(cordId)){fromKnot[cordId]=new ishml.Cord(cordId)}
+				if (backward)
 				{
-					var converseCord=toKnot[converseCordId]
+					var [converseCordId,conversePlyId]=backward.split(":").map(id=>ishml.util.formatId(id.trim()))	
 				}
+
+				
+				if (!cordId){cordId=ishml.util.formatId()}
+				if (!plyId){plyId=toKnot.id}
+				
+				if (fromKnot.has(cordId))
+				{
+					var cord=fromKnot[cordId]
+					
+				}	
 				else
 				{
-					var converseCord=new ishml.Cord(converseCordId)
-					toKnot[converseCordId]=converseCord
-					
+					var cord = new ishml.Cord(cordId)
+					fromKnot[cordId]=cord
 				}
-				if (!conversePlyId){conversePlyId=fromKnot.id}
-				var aliasFromKnot=fromKnot.entwine({plyId:conversePlyId,cord:converseCord, converse:aliasToKnot})
-				/*aliasFromKnot.ply.id=conversePlyId
-				aliasFromKnot.ply.cord=converseCord
-				//aliasFromKnot.ply.from=toKnot
-				aliasFromKnot.ply.converse=aliasToKnot*/
+				var aliasToKnot=toKnot.plait({plyId:plyId,cord:cord})
+				if(backward)
+				{
+					if (toKnot.has(converseCordId))
+					{
+						var converseCord=toKnot[converseCordId]
+					}
+					else
+					{
+						var converseCord=new ishml.Cord(converseCordId)
+						toKnot[converseCordId]=converseCord
+						
+					}
+					if (!conversePlyId){conversePlyId=fromKnot.id}
+					var aliasFromKnot=fromKnot.plait({plyId:conversePlyId,cord:converseCord, converse:aliasToKnot})
+					/*aliasFromKnot.ply.id=conversePlyId
+					aliasFromKnot.ply.cord=converseCord
+					//aliasFromKnot.ply.from=toKnot
+					aliasFromKnot.ply.converse=aliasToKnot*/
 
-				aliasToKnot.converse=aliasFromKnot
-				
-				toKnot[converseCordId][conversePlyId]=aliasFromKnot	
-			}
+					aliasToKnot.converse=aliasFromKnot
+					
+					toKnot[converseCordId][conversePlyId]=aliasFromKnot	
+				}
 
-			fromKnot[cordId][plyId]=aliasToKnot
+				fromKnot[cordId][plyId]=aliasToKnot
+
+			})
+			
 			return fromKnot
 		}
-		return {to:to, tie:fromKnot.tie.bind(fromKnot)}
+		//return {to:to, tie:fromKnot.tie.bind(fromKnot)}
+		return {to:to}
 	}
+	
 	untie()
 	{
 /*Knot must have been reached by traveling along a tie.
@@ -291,5 +313,3 @@ ishml.Knot.handler=
 }
 
 
-//knot.twist1=storyline.twist(subject,{twist}) returns proxied subject.
-//knot.twist1.prop=7  creates a proxied property see on change libary.

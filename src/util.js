@@ -21,14 +21,14 @@ ishml.util.formatId=function(id)
 ishml.util.autoid=ishml.util.enumerator()
 ishml.util.random = function() 
 {
-	this._seed = this._seed * 16807 % 2147483647
-	return (this._seed-1)/2147483646
+	ishml.util._seed =ishml.util._seed* 16807 % 2147483647
+	return (ishml.util._seed-1)/2147483646
 }
 ishml.util.reseed = function(aSeed=Math.floor(Math.random() * 2147483648)) 
 {
 	var seed=aSeed % 2147483647
 	if (seed <= 0){seed += 2147483646}
-	this._seed=seed	
+	ishml.util._seed=seed	
 }
 ishml.util.shuffle=function(anArray,aCount=undefined)
 {

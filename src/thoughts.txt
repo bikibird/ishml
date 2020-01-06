@@ -1,0 +1,43 @@
+//knot.twist1=storyline.twist(subject,{twist}) returns proxied subject.
+//knot.twist1.prop=7  creates a proxied property see on change libary.
+
+knot.twists={}
+knot.twists.prop1.twist1=plotpoint
+
+knot.twist(twistid).involve(propid).incite(plotpoint)
+
+$.thing.inventory.twist(plot.episodes.moth_makes_hole_in_bag).involve("contains").incite(plot.episodes.moth_makes_hole_in_bag)
+$.thing.moth.twist(plot.episodes.moth_makes_hole_in_bag).enmesh("hunger").incite(plot.episodes.moth_makes_hole_in_bag)
+
+plot.episodes.moth_makes_hole_in_bag
+	.twist({knot:inventory,as:"inventory").enmesh("contains")
+	.twist({knot:moth,as:"critter"}).enmesh("hunger")
+
+****
+Twists are a ply property?
+
+*****
+
+lexicon definition property select provides a function that when called will retrieve the knots.
+
+select: ()=>$.person.knots
+select: ()=>$.place.kitchen
+select: ()=>$.place.filter((knot)=>knot.floor==="2nd")
+
+****
+Examples of cordage:
+
+exit:north<entrance:south //exit and entrance are cords for "from" and "to" knots respectively. North and south are aliases
+
+$.graph.a.tie("route<route").to($.graph.b) //reciprocal linkage
+$.tie("person").to("lizzy")  //One way linkage, no aliases
+
+sister:big<:little  //both cords named the same, knots have different aliases.
+
+cordage:
+
+cordId:alias<otherCordId:otherAlias
+
+
+
+

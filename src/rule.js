@@ -9,7 +9,6 @@ ishml.Rule=function Rule()
 		Object.defineProperty(this, "filter", {value:(definition)=>true, writable: true})
 		Object.defineProperty(this, "greedy", {value:false, writable: true})
 		Object.defineProperty(this, "keep", {value:true, writable: true})
-		Object.defineProperty(this, "lax", {value:false, writable: true})
 		Object.defineProperty(this, "longest", {value:false, writable: true})
 		Object.defineProperty(this, "minimum", {value:1, writable: true})
 		Object.defineProperty(this, "maximum", {value:1, writable: true})
@@ -31,7 +30,7 @@ ishml.Rule.prototype.clone =function()
 
 	function _clone(rule)
 	{
-		var clonedRule= new ishml.Rule().configure({caseSensitive:rule.caseSensitive, entire:rule.entire, filter:rule.filter, full:rule.full, greedy:rule.greedy, keep:rule.keep, lax:rule.lax, longest:rule.longest, minimum:rule.minimum, maximum:rule.maximum, mode:rule.mode, mismatch:rule.mismatch, regex:rule.regex, semantics:rule.semantics, separator:rule.separator})
+		var clonedRule= new ishml.Rule().configure({caseSensitive:rule.caseSensitive, entire:rule.entire, filter:rule.filter, full:rule.full, greedy:rule.greedy, keep:rule.keep,longest:rule.longest, minimum:rule.minimum, maximum:rule.maximum, mode:rule.mode, mismatch:rule.mismatch, regex:rule.regex, semantics:rule.semantics, separator:rule.separator})
 		var entries=Object.entries(rule)
 		entries.forEach(([key,value])=>
 		{
@@ -51,7 +50,7 @@ ishml.Rule.prototype.clone =function()
 	return _clone(this)
 }	
 //DEFECT Entire not documented.
-ishml.Rule.prototype.configure =function({caseSensitive, entire,filter, full, greedy, keep, lax, longest, minimum,maximum, mode,mismatch, regex, semantics, separator}={})
+ishml.Rule.prototype.configure =function({caseSensitive, entire,filter, full, greedy, keep, longest, minimum,maximum, mode,mismatch, regex, semantics, separator}={})
 {
 
 	if(caseSensitive !== undefined){this.caseSensitive=caseSensitive}
@@ -60,7 +59,6 @@ ishml.Rule.prototype.configure =function({caseSensitive, entire,filter, full, gr
 	if(full !== undefined){this.full=full}
 	if(greedy !== undefined){this.greedy=greedy}
 	if(keep !== undefined){this.keep=keep}
-	if(lax !== undefined){this.lax=lax}
 	if(longest !== undefined){this.longest=longest}
 	if(minimum !== undefined){this.minimum=minimum}
 	if(maximum !== undefined){this.maximum=maximum}
@@ -119,8 +117,6 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 						})
 						if (this[key].minimum===0)
 						{
-							
-							//revisedCandidates=revisedCandidates.concat(phrases.filter(p=>p.valid))
 							revisedCandidates=revisedCandidates.concat(phrases.slice(0))
 						}
 						else
@@ -184,8 +180,6 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 							})
 							if (this[key].minimum===0)
 							{
-								
-								//revisedCandidates=phrases.filter(p=>p.valid)
 								revisedCandidates=phrases.slice(0)
 							}
 							else
@@ -286,12 +280,11 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 				//SNIP
 				if (remainder.length>0)
 				{
-					var snippets=lexicon.search(remainder, {regex:rule.regex,separator:rule.separator, lax:rule.lax, caseSensitive:rule.caseSensitive, longest:rule.longest, full:rule.full})
+					var snippets=lexicon.search(remainder, {regex:rule.regex,separator:rule.separator, caseSensitive:rule.caseSensitive, longest:rule.longest, full:rule.full})
 
 					snippets.forEach((snippet)=>
 					{
-						snippet.token.definitions=snippet.token.definitions.filter(this.filter)
-						if (snippet.token.definitions.length>0)
+						if (this.filter(snippet.token.definition))
 						{
 							var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid)
 							if (this.maximum ===1 )
@@ -309,12 +302,7 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 					})
 				}
 			})
-/*			if (this.minimum===0)
-			{
-				revisedCandidates=phrases.filter(p=>p.valid)
-			}
-			else{
-*/			
+			
 			revisedCandidates=phrases.slice(0) //}
 			phrases=[]
 			counter++
@@ -385,19 +373,6 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 	},[])
 	if (results.length>0)
 	{
-	/*	var validResults=results.filter((interpretation)=>
-		{
-			return interpretation.valid
-		})
-		if (validResults.length>0)
-		{
-			return {snippets:validResults}
-		}
-		else
-		{
-			return {snippets:results}
-		}
-	*/
 		return {snippets:results}	
 	}
 	else
@@ -418,7 +393,6 @@ ishml.Rule.prototype.snip =function(key,rule)
 
 		this[key].caseSensitive=this.caseSensitive
 		this[key].full=this.full
-		this[key].lax=this.lax
 		this[key].longest=this.longest
 		this[key].separator=this.separator
 		

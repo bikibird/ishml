@@ -35,43 +35,43 @@ ishml.Lexicon.prototype.register = function (...someLexemes)
 	}	
 	return {as:_as.bind(this)}	
 }
-ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^\s+/, lax=false, caseSensitive=false, longest=false, full=false}={}) 
+ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^\s+/, caseSensitive=false, longest=false, full=false}={}) 
 {
 	var _trie = this.trie
 	var _results = []
-	
-	//trim leading separators.
-	if (separator && separator.test(searchText))
-	{
-		var trimmedText=searchText.split(separator,2)[1]
-	}
-	else
-	{
-		var trimmedText=searchText
-	}
 	if(regex)
 	{
-		var match=trimmedText.match(regex)
+		var match=searchText.match(regex)
 		if (match)
 		{
 			var result={}
 			var definitions=[]
 			definitions[0]={fuzzy:true}
 			result.token=new ishml.Token(match[0],definitions)
-			result.remainder=trimmedText.slice(match[0].length)
-			_results.push(result)
-
+			result.remainder=searchText.slice(match[0].length)
+			if (separator)
+			{
+				var discard=result.remainder.match(separator)
+				if (discard !== null)
+				{
+					result.remainder=result.remainder.slice(discard.length)
+					_results.unshift(result)
+				}
+			}
+			else
+			{
+				_results.unshift(result)
+			}
+			
 		}
 		return _results
-		
 	}
 	else
 	{
-		
-		for (let i=0; i < trimmedText.length; i++)
+		for (let i=0; i < searchText.length; i++)
 		{
-			if (caseSensitive){var character=trimmedText.charAt(i)}
-			else{var character=trimmedText.charAt(i).toLowerCase()}
+			if (caseSensitive){var character=searchText.charAt(i)}
+			else{var character=searchText.charAt(i).toLowerCase()}
 			if ( ! _trie[character])
 			{	
 				if(longest|full)
@@ -87,26 +87,39 @@ ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^
 			}
 			else
 			{	
-				if (_trie[character].definitions)
+				if(_trie[character].definitions)
 				{
-					if (i<trimmedText.length-1)
-					{	
-						if (lax || (separator===false) || (separator && separator.test(trimmedText.substring(i+1))))
+					_trie[character].definitions.forEach(definition=>
+					{
+						if (i<searchText.length-1)
+						{	
+							
+							var result={}
+							result.token=new ishml.Token(searchText.substring(0,i+1),definition)
+							result.remainder=searchText.substring(i+1).slice(0)
+							if (separator)
+							{
+								var discard=result.remainder.match(separator)
+								if (discard !== null)
+								{
+									result.remainder=result.remainder.slice(discard[0].length)
+									_results.unshift(result)
+								}
+							}
+							else
+							{
+								_results.unshift(result)
+							}
+						}
+						else
 						{
 							var result={}
-							result.token=new ishml.Token(trimmedText.substring(0,i+1),_trie[character].definitions)
-							result.remainder=trimmedText.substring(i+1).slice(0)
+							result.token=new ishml.Token(searchText.substring(0),definition)
+							result.remainder=""
 							_results.unshift(result)
-						}
-					}
-					else // if (i===trimmedtext.length-1) 
-					{
-						var result={}
-						result.token=new ishml.Token(trimmedText.substring(0),_trie[character].definitions)
-						result.remainder=""
-						_results.unshift(result)
-					}
-				}
+						}	
+					})
+				}	
 				_trie = _trie[character]
 			}
 		}

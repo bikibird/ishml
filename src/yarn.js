@@ -11,13 +11,17 @@ ishml.Yarn=function Yarn(seed)
 		ishml.util.reseed(seed)
 		this.net=new ishml.Knot("ishml_net")
 		this.harken()
-
+		this.undo=[]
 		
 	}
 	else
 	{
 		return new Yarn(seed)
 	}	
+}
+ishml.Yarn.prototype.configure=function(options)
+{
+	//DEFECT TO DO seed, name, author, etc.
 }
 ishml.Yarn.prototype.harken=function()
 {
@@ -290,7 +294,88 @@ ishml.Yarn.prototype.say=function(aText)
 	}
 	return {first:_first,last:_last,instead:_instead}
 }
+ishml.Yarn.prototype.restore=function(key)
+{
+	var yarn = this
+	return new Promise(function(resolve, reject)
+	{
+		
+		var db = indexedDB.open("ishml", 1)
+		db.onupgradeneeded = function(e)
+		{
+			this.result.createObjectStore("games", { keyPath: "key" });
+			
+		}
+		db.onerror = function(e)
+		{
+			console.log("indexedDB: Could not open ishml save game database.")
+			reject(e)
+		}
+		db.onsuccess = function(e)
+		{
+			var request=this.result.transaction("games").objectStore("games").get(key)
+			request.onsuccess= function(e) 
+			{
+				var game=e.target.result
+				if (game)
+				{
+					yarn.net=game.net
+					yarn.seed=game.seed
+					yarn.undo=game.undo
+					resolve(game)
+				}
+				else
+				{
+					reject(e)
+				}
+			}
 
+			request.onerror = function(e)
+			{
+				console.log("indexedDB: Could not retrieve ishml saved game from database.")
+				reject(e)
+			}
+			this.result.close()		
+		}	
+	})
+}	
+
+ishml.Yarn.prototype.save=function(key)
+{
+	var yarn =this
+	
+	return new Promise(function(resolve,reject)
+	{
+		var db = indexedDB.open("ishml", 1)
+		db.onupgradeneeded = function(e)
+		{
+			this.result.createObjectStore("games", { keyPath: "key" });
+			
+		}
+		db.onerror = function(e)
+		{
+			console.log("indexedDB: Could not open ishml save game database.")
+			failure(e)
+		}
+		db.onsuccess = function(e)
+		{
+			var request = this.result.transaction(["games"], "readwrite")
+				.objectStore("games")
+				.put({key:key,net:JSON.stringify(yarn.net),seed:ishml.util._seed,undo:yarn.undo})
+			
+			request.onsuccess = function(e)
+			{
+				resolve(e)
+			} 
+			request.onerror = function(e)
+			{
+				reject(e)
+			}
+
+			this.result.close()
+		}	 
+	})	
+}
 ishml.Yarn.prototype.tell=function(aStoryline) 
 {
 	//DEFECT: Save story state + episode to undo spool.

@@ -52,7 +52,7 @@ ishml.Storyline.prototype.introduce= function(episode)
 	return this
 }
 
-ishml.Storyline.prototype.twist=function(episode)
+/*ishml.Storyline.prototype.twist=function(episode)
 {
 	var {plotpoint,twist}=episode
 	var handler=
@@ -73,4 +73,4 @@ ishml.Storyline.prototype.twist=function(episode)
 	var proxiedTwist= new Proxy(twist, handler)
 	this.episodes.set(proxiedTwist,plotpoint)
 	return proxiedTwist
-}
+}*/
