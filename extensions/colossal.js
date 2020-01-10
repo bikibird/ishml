@@ -125,15 +125,15 @@ grammar.nounPhrase.semantics=(interpretation)=>
     }
     if(gist.adjunct)
     {
-       
+       knots=knots.entwine(gist.adjunct.nounPhrase.noun.definition.select()).where({via:gist.adjunct.relation.definition.cord})
     } 
     if (gist.conjunct)
     {
-        knots.join(conjunct.nounPhrase.noun.definition.select())
+        knots.union(gist.conjunct.nounPhrase.noun.definition.select())
     }  
 
     gist.knots=knots
-   console.log(knots)
+
    return interpretation
 }
 
@@ -145,13 +145,13 @@ grammar.nounPhrase.adjectives.configure({minimum:0, maximum:Infinity, separator:
 grammar.nounPhrase.noun.filter=(definition)=>definition.part==="noun"
 
 grammar.nounPhrase.adjunct
-    .configure({minimum:0, maximum:Infinity})
+    .configure({minimum:0})
     .snip("relation").snip("nounPhrase",grammar.nounPhrase)
     
 grammar.nounPhrase.adjunct.relation.configure({filter:(definition)=>definition.part==="relation"})
 
 grammar.nounPhrase.conjunct
-    .configure({minimum:0, maximum:Infinity})    
+    .configure({minimum:0})    
     .snip("conjunction").snip("nounPhrase",grammar.nounPhrase)
  
 grammar.nounPhrase.conjunct.conjunction.configure({filter:(definition)=>definition.part==="conjunction"})

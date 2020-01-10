@@ -29,26 +29,25 @@ ishml.Mesh= function Mesh(...knots)
 
 ishml.Mesh.prototype[Symbol.iterator]=function()
 {
-	var knots=Object.values(this)
-	var i=0
-	var next=function()
-	{
-		if (i<knots.length) 
+	return {
+		knots:Object.values(this),
+		i:0,
+		next()
 		{
-			var value = knots[i]
+			if (this.i<this.knots.length) 
+			{
+				var value = this.knots[this.i]
+				this.i++
+				return {value: value, done: false}
+				
+			}
+			else
+			{
+				return {done: true}
+			}
+			
 		}
-		if (i<knots.length-1)
-		{
-			var done=false
-			i++
-		}
-		else
-		{
-			var done=true
-		}
-		return {value: value, done: done}
 	}
-	return next
 }
 
 ishml.Mesh.prototype.add=function(...knots)
@@ -107,23 +106,46 @@ ishml.Mesh.prototype.disjoin=function(...knots)
 }
 ishml.Mesh.prototype.entwine=function(...knots)
 {
-	var other=new ishml.Mesh(knots)
-	var twining=[]
-	function where(condition)
+	var other=new ishml.Mesh()
+	knots.forEach((k=>other.add(k)))
+	var twinings=new ishml.Mesh()
+	var where=({via=null,condition=()=>true}={})=>
 	{
 		this.forEach((knot)=>
 		{
 			other.forEach((otherKnot)=>
 			{
-				if (condition(knot,otherKnot))
+				if(knot.hasOwnProperty(via) && knot[via] instanceof ishml.Cord)
 				{
-					twining.push({a:knot,b:otherKnot})
+					if(knot[via].mesh.has(otherKnot))
+					{
+						if (condition(knot,otherKnot))
+						{
+							var head=knot.plait()
+							var tail=otherKnot.plait()
+							head.advance=tail
+							head.via=via
+							tail.retreat=head
+							twinings.add(head)
+						}
+					}
+					
 				}
+				else
+				{
+					var head=knot.plait()
+					var tail=otherKnot.plait()
+					head.advance=tail
+					head.via=via
+					tail.retreat=head
+					twinings.add(head)
+				}		
 			})
 		})
-		return twining
+			
+		return twinings
 	}
-	return where
+	return {where:where}
 }	
 ishml.Mesh.prototype.filter=function(filter)
 {

@@ -9,7 +9,7 @@ enumerable cords
 
 Cords only no other user defined properties.  twists are a set of plotpoints that apply to the ply.
 */ 
-ishml.Knot= class IshmlKnot
+ishml.Knot= class Knot
 {
 	constructor(id,uid)
 	{
@@ -23,6 +23,7 @@ ishml.Knot= class IshmlKnot
 			advance:null,
 			retreat:null,
 			converse:null,
+			via:"",
 			hop:0}
 		,writable: true})
 
@@ -38,7 +39,7 @@ ishml.Knot= class IshmlKnot
 	{
 		return new ishml.Mesh(this)
 	}
-	plait({plyId=null,weight=1,cord=null,advance=null,retreat=null,converse=null,hop=0,twists={}}={})
+	plait({plyId=null,weight=1,cord=null,advance=null,retreat=null,converse=null,hop=0,via="",twists={}}={})
 	{
 		//creates alias of 
 
@@ -50,6 +51,7 @@ ishml.Knot= class IshmlKnot
 		knot.retreat=retreat 
 		knot.converse=converse 
 		knot.hop=hop 
+		knot.via=via
 		return knot
 	
 	}
@@ -112,7 +114,6 @@ ishml.Knot= class IshmlKnot
 				if (knot.uid===destintation.uid && knot.hop>=minimum)
 				{
 					//found!
-					console.log(path)
 					var advanceKnot
 					while (knot)
 					{
@@ -136,7 +137,7 @@ ishml.Knot= class IshmlKnot
 								{
 									if (!visited.has(child))
 									{
-										queue.push(child.plait({retreat:knot,hop:knot.hop+1}))
+										queue.push(child.plait({retreat:knot,via:cord.id,hop:knot.hop+1}))
 									}
 								})
 							}	
@@ -147,7 +148,22 @@ ishml.Knot= class IshmlKnot
 		}
 		return {success:false,start:false,end:false,path:[]}  //not found
 	}
+	plait({plyId=null,weight=1,cord=null,advance=null,retreat=null,converse=null,hop=0,via="",twists={}}={})
+	{
+		//creates alias of 
 
+		var knot=new ishml.Knot(this.id,this.uid)
+		knot.plyId=plyId||this.id
+		knot.weight=weight
+		knot.cord=cord 
+		knot.advance=advance 
+		knot.retreat=retreat 
+		knot.converse=converse 
+		knot.hop=hop 
+		knot.via=via
+		return knot
+	
+	}
 	retie(cordage)
 	{
 		//$.place.kitchen.contains.knife.retie("in<contains").to($.place.foyer)
