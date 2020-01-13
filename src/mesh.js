@@ -3,30 +3,92 @@ ishml.Mesh= function Mesh(...knots)
 	
 	if (this instanceof ishml.Mesh)
 	{
-
+		Object.defineProperty(this,"id",{writable:true})
+		Object.defineProperty(this,"alias",{writable:true,value:{}})
 		knots.forEach((knot)=>
 		{
 			if(knot instanceof ishml.Knot)
 			{
 				this[knot.uid]=knot
+				this.alias[knot.uid]=knot.uid
 			}
 			else
 			{
 				knot.forEach((knot)=>
 				{
 					this[knot.uid]=knot
+					this.alias[knot.uid]=knot.uid
 				})
 			}
 		})
 		
-		return this
+		return new Proxy(this,ishml.Mesh.handler)
 	}
 	else
 	{
 		return new Mesh(knots)
 	}	
 }
-
+ishml.Mesh.handler=
+{
+	get: function(target, property, receiver) 
+	{
+		if(Reflect.has(target,property))
+		{
+			return Reflect.get(target,property)
+		}
+		else
+		{
+			var alias=Reflect.get(target,"alias")
+			return Reflect.get(target,alias[property])
+		}
+	},
+	has: function(target, property, receiver) 
+	{
+		if(Reflect.has(target,property))
+		{
+			return true
+		}
+		else
+		{
+			var alias=Reflect.get(target,"alias")
+			if (alias.hasOwnProperty(property))
+			{
+				return true
+			}
+			else {return false}
+		}
+	},
+	set: function(target, property, value, receiver)
+	{
+		var alias=Reflect.get(target,"alias")
+		if (property==="id")
+		{
+			return Reflect.set(target,property,value)
+		}
+		if (value instanceof ishml.Knot)
+		{
+			Reflect.set(target,value.uid,value)
+			if (property!==value.uid)
+			{
+				alias[property]=value.uid
+			}
+			return true
+		}
+		else
+		{
+			value.forEach((knot)=>
+			{
+				Reflect.set(target,knot.uid,knot)
+				if (property!==knot.uid)
+				{
+					alias[property]=knot.uid
+				}
+			})
+			return true
+		}	
+	}	
+}
 ishml.Mesh.prototype[Symbol.iterator]=function()
 {
 	return {
@@ -49,7 +111,11 @@ ishml.Mesh.prototype[Symbol.iterator]=function()
 		}
 	}
 }
-
+ishml.Mesh.prototype.cord=function(id)
+{
+	this.id=id
+	return this
+}	
 ishml.Mesh.prototype.add=function(...knots)
 {
 	knots.forEach((knot)=>
@@ -104,48 +170,43 @@ ishml.Mesh.prototype.disjoin=function(...knots)
 	var right = other.filter(knot => !this.has(knot))
 	return left.union(right)
 }
-ishml.Mesh.prototype.entwine=function(...knots)
+ishml.Mesh.prototype.entwine=function({knots,via=null,condition=()=>true})
 {
-	var other=new ishml.Mesh()
-	knots.forEach((k=>other.add(k)))
+	var other=new ishml.Mesh(knots)
 	var twinings=new ishml.Mesh()
-	var where=({via=null,condition=()=>true}={})=>
+	
+	this.forEach((knot)=>
 	{
-		this.forEach((knot)=>
+		other.forEach((otherKnot)=>
 		{
-			other.forEach((otherKnot)=>
+			if(knot.hasOwnProperty(via) && knot[via] instanceof ishml.Mesh)
 			{
-				if(knot.hasOwnProperty(via) && knot[via] instanceof ishml.Cord)
+				if(knot[via].has(otherKnot))
 				{
-					if(knot[via].mesh.has(otherKnot))
+					if (condition(knot,otherKnot))
 					{
-						if (condition(knot,otherKnot))
-						{
-							var head=knot.plait()
-							var tail=otherKnot.plait()
-							head.advance=tail
-							head.via=via
-							tail.retreat=head
-							twinings.add(head)
-						}
+						var head=knot.plait()
+						var tail=otherKnot.plait()
+						head.advance=tail
+						head.via=via
+						tail.retreat=head
+						twinings.add(head)
 					}
-					
 				}
-				else
-				{
-					var head=knot.plait()
-					var tail=otherKnot.plait()
-					head.advance=tail
-					head.via=via
-					tail.retreat=head
-					twinings.add(head)
-				}		
-			})
+
+			}
+			else
+			{
+				var head=knot.plait()
+				var tail=otherKnot.plait()
+				head.advance=tail
+				head.via=via
+				tail.retreat=head
+				twinings.add(head)
+			}		
 		})
-			
-		return twinings
-	}
-	return {where:where}
+	})
+	return twinings
 }	
 ishml.Mesh.prototype.filter=function(filter)
 {
@@ -195,6 +256,7 @@ ishml.Mesh.prototype.join= function(...knots)
 		return new ishml.Mesh(other.filter(knot => this.has(knot)))
 	}	
 }
+Object.defineProperty(ishml.Mesh.prototype, "knot", { get: function() { return Object.values(this)[0]} })
 
 ishml.Mesh.prototype.last=function(count=1)
 {

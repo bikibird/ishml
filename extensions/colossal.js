@@ -56,11 +56,11 @@ plot.action.going
 lexicon
     
     //adjectives
-    .register("all").as({part:"adjective",select:()=>$.thing.mesh})
-    .register("blue").as({part:"adjective",select:()=>$.blue.mesh})
-    .register("green").as({part:"adjective",select:()=>$.green.mesh})
-    .register("big").as({part:"adjective",select:()=>$.big.mesh})
-    .register("small").as({part:"adjective",select:()=>$.small.mesh})
+    .register("all").as({part:"adjective",select:()=>$.thing})
+    .register("blue").as({part:"adjective",select:()=>$.blue})
+    .register("green").as({part:"adjective",select:()=>$.green})
+    .register("big").as({part:"adjective",select:()=>$.big})
+    .register("small").as({part:"adjective",select:()=>$.small})
 
     //articles
     .register("the", "a", "an").as({ part: "article" })
@@ -69,11 +69,11 @@ lexicon
     .register("and",",").as({ part: "conjunction" })
 
     //nouns
-    .register("things").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.mesh})
-    .register("cup").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.cup.mesh})
-    .register("plate").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.plate.mesh})
-    .register("bowl").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.bowl.mesh})
-    .register("dishes").as({part:"noun", number:ishml.enum.number.plural, select:()=>$.thing.dishes.mesh})
+    .register("things").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing})
+    .register("cup").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.cup})
+    .register("plate").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.plate})
+    .register("bowl").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.bowl})
+    .register("dishes").as({part:"noun", number:ishml.enum.number.plural, select:()=>$.thing.dishes})
 
     //particles
     .register("up").as({ key: "up", part: "particle" })
@@ -125,7 +125,7 @@ grammar.nounPhrase.semantics=(interpretation)=>
     }
     if(gist.adjunct)
     {
-       knots=knots.entwine(gist.adjunct.nounPhrase.noun.definition.select()).where({via:gist.adjunct.relation.definition.cord})
+       knots=knots.entwine({knots:gist.adjunct.nounPhrase.noun.definition.select(),via:gist.adjunct.relation.definition.cord})
     } 
     if (gist.conjunct)
     {
@@ -213,7 +213,7 @@ $
     .tie("thing","green","big").to("cup")
     .tie("thing","blue","small").to("plate")
     
-$.thing.cup.tie("on<under").to("plate")    
+$.thing.cup.tie("on<under").to($.thing.plate)    
 
 
 
