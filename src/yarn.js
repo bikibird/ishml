@@ -6,10 +6,11 @@ ishml.Yarn=function Yarn(seed)
 		this.storyline = new ishml.Storyline(this)  //Event queue
 		this.lexicon=new ishml.Lexicon()
 		this.grammar =new ishml.Rule()
+		this.parser=ishml.Parser({ lexicon: this.lexicon, grammar: this.grammar})
 		this.viewpoint="2nd person singular"
 		this.setting="present"
 		ishml.util.reseed(seed)
-		this.net=new ishml.Knot("ishml_net")
+		this.net=new ishml.Knot()
 		this.harken()
 		this.undo=[]
 		
@@ -38,7 +39,7 @@ ishml.Yarn.prototype.click=function(e)
 {
 	if (e.target.matches('.ishml-choice'))
 	{
-		this.storyline.introduce({plotpoint:this.plot.points[e.target.dataset.plot]||this.plot,twist:e.target.dataset})
+		this.storyline.introduce({plotpoint:this.plot.points[e.target.dataset.plot]||this.plot[e.target.dataset.plot]||this.plot,twist:e.target.dataset})
 		this.tell()
 	}
 }
@@ -46,9 +47,9 @@ ishml.Yarn.prototype.keyup=function(e)
 {
 	if (e.target.matches('.ishml-input'))
 	{
-		if (e.keycode===13)
+		if (e.keyCode===13)
 		{
-			this.storyline.introduce({plotpoint:this.plot.points[e.target.dataset.plot]||this.plot,twist:Object.assign({input:e.target.value}, e.target.dataset)})
+			this.storyline.introduce({plotpoint:this.plot.points[e.target.dataset.plot]||this.plot[e.target.dataset.plot]||this.plot,twist:Object.assign({input:e.target.value}, e.target.dataset)})
 			this.tell()
 		}
 	}
@@ -155,67 +156,13 @@ ishml.Yarn.prototype.dropCheck=function({draggable,dropbox})
 	var plot=this.plot.points[draggable.dataset.plot]
 	if (plot)
 	{
-		var subplot=this.plot.points[dropbox.dataset.plot]
+		var subplot=this.plot.points[dropbox.dataset.plot]||this.plot[dropbox.dataset.plot]
 		var plotpoints=Object.values(plot)
 		return plotpoints.includes(subplot)
 	}
 	return false
 }
-
-ishml.Yarn.prototype.interpret=function(anInput={})
-{
-	//{text:"take ring",agent:"player",lexicon:story.lexicon,grammar:story.grammar}
-
-	var lexicon=anInput.lexicon || this.lexicon
-	var grammar=anInput.grammar || this.grammar
-	var agent=anInput.agent || "player"
-	var text=anInput.text || ""
-
-	var interpretations=[]
-	var goodInterpretations=[]
-	var badInterpretations=[]
-
-	var tokenizer = lexicon.tokenize(text)
-	var sequence = tokenizer.next()
-	while (!sequence.done)
-	{
-		interpretations.push(new ishml.Interpretation([],sequence.value.tokens))
-		var result=grammar.parse(sequence.value.tokens)
-		if (result)
-		{
-			interpretations=interpretations.concat(result)
-		}
-		sequence = tokenizer.next()
-	}
-	interpretations.sort(function(first,second){return first.remainder.length - second.remainder.length})
-
-	var success=false
-	interpretations.some((interpretation)=>
-	{
-		if (interpretation.remainder.length>0)
-		{
-			if (success===true){return true}
-			else
-			{
-				badInterpretations.push(interpretation)
-			}	
-		}
-		else
-		{
-			goodInterpretations.push(interpretation)
-			success=true
-			return false
-		}
-	})
-	if (goodInterpretations.length>0)
-	{	
-		return {interpretations:goodInterpretations,agent:agent}
-	}
-	else
-	{
-		return {interpretations:badInterpretations,agent:agent}
-	}		
-}	
+		
 ishml.Yarn.prototype.say=function(aText)
 {	
 	if (typeof aText === 'string' || aText instanceof String)

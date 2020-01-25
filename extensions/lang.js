@@ -1,58 +1,6 @@
-var story = story || new ishml.Yarn()
-var $ = story.net
+/*lexicon*/
 var grammar = story.grammar 
 var lexicon = story.lexicon 
-var plot = story.plot
-
-/*plot outline*/
-plot
-    .add("action","actions")
-    .add("episodes","episodes")
-    .add("main","input processing")
-
-plot.main
-    .add("prolog","before turn actions")
-    .add("dialog","input processing and response")
-    .add("epilog","after turn actions")
-
-plot.main.dialog
-    .add("before","before dialog actions")
-    .add("input", "process input")
-    .add("after","after dialog actions")
-
-plot.main.dialog.input
-    .add("parse","parse input")
-    .add("choose","narrate chosen plotpoint")
-
-plot.action
-    .add("taking","taking  action")
-    .add("dropping","dropping action")
-    .add("going","going action")
-
-plot.action.taking
-    .add("before")
-    .add("perform")
-    .add("after")
-
-plot.action.dropping
-    .add("before")
-    .add("perform")
-    .add("after")    
-
-plot.action.going
-    .add("before")
-    .add("perform")
-    .add("after")
-
-    
-
-/*narration*/    
-
-
-/*lexicon*/
-
-
-
 lexicon
     
     //adjectives
@@ -92,7 +40,7 @@ lexicon
     .register("take","grab","steal")
         .as({plot:plot.action.taking, part: "verb" })
     .register("take")
-        .as({plot:plot.action.taking_to , part: "verb", preposition:"from" })    
+        .as({plot:plot.action.taking_to , part: "verb", preposition:"to" })    
     .register("take")
         .as({plot:plot.action.taking_from , part: "verb", preposition:"from" })    
     .register("pick")
@@ -108,6 +56,11 @@ lexicon
     .register("transcript").as({key:"transcript", part: "system"})
 
 /*grammar*/
+grammar.verb=ishml.Rule().configure(
+{
+    minimum:1,
+    filter: (definition)=>definition.part==="verb" 
+})
 
 grammar.nounPhrase=ishml.Rule()
     .snip("article").snip("adjectives").snip("noun").snip("adjunct").snip("conjunct")
@@ -196,7 +149,54 @@ grammar.sentences.command.predicate
     .snip(1)
     .snip(2)
 
-grammar.sentences.command.predicate[1].snip("verb").snip("verbalParticle").snip("object",grammar.object.clone())
+grammar.sentences.command.predicate.semantics=(interpretation)=>
+{
+    var gist=interpretation.gist
+    var vPreposition=gist.verb.definition.preposition
+    var vParticle=gist.verb.definition.particle
+    if (gist.hasOwnProperty("object"))
+    {
+        if (gist.object.hasOwnProperty("indirectObject"))
+        {
+            var ioPreposition=gist.object.indirectObject.preposition
+            if (ioPreposition)
+            {
+                if (vPreposition)
+                {
+                    if (!(ioPreposition.definition.key===vPreposition))
+                    {return false}
+                }
+                else {return false}
+            }
+            else //no indirect object preposition
+            {
+                if(vPreposition){return false}
+            }
+        }
+        else //no indirect object
+        {
+            if(vPreposition){return false}
+        }
+    }
+    else //no object.
+    {
+        if(vPreposition){return false}
+    }
+    if (gist.hasOwnProperty("particle"))
+    {
+        if (vParticle)
+        {
+            if (!(vParticle===gist.particle.definition.key)){return false}
+        }
+        else {return false}
+    }
+    else
+    {
+        if (vParticle){return false}
+    }
+    return true
+}
+grammar.sentences.command.predicate[1].snip("verb",grammar.verb.clone()).snip("verbalParticle").snip("object",grammar.object.clone())
 
 grammar.sentences.command.predicate[1].verb.filter=(definition)=>definition.part==="verb"
 grammar.sentences.command.predicate[1].verbalParticle
@@ -205,16 +205,33 @@ grammar.sentences.command.predicate[1].verbalParticle
 grammar.sentences.command.predicate[1].object
     .configure({minimum:0})
 
-grammar.sentences.command.predicate[2].snip("verb").snip("object",grammar.object.clone()).snip("verbalParticle")
+grammar.sentences.command.predicate[2].snip("verb",grammar.verb.clone()).snip("object",grammar.object.clone()).snip("verbalParticle")
 
-/*net*/
+grammar.sentences.command.semantics=(interpretation)=>
+{
+    var arguments={}
+    var predicate=gist.predicate
+    if (gist.hasOwnProperty("subject"))
+    {
+        arguments.subject=gist.subject.knots
+    }
+    if (predicate.hasOwnProperty("object"))
+    {
+        var object=predicate.object
+        if (object.hasOwnnProperty("directObject"))
+        {
+            arguments.directObject=object.directObject.knots
+        }
+        if (object.hasOwnnProperty("indirectObject"))
+        {
+            arguments.directObject=object.indirectObject.knots
+        }
+    }
 
-$
-    .tie("thing","green","big").to("cup")
-    .tie("thing","blue","small").to("plate")
-    
-$.thing.cup.tie("on<under").to($.thing.plate)    
+    var result=gist.verb.definition.plotpoint.frame(arguments)
+    console.log(result)
+    return true
+}
 
 
-
-
+story.parser = ishml.Parser({ lexicon: lexicon, grammar: grammar.sentences.command })

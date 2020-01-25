@@ -3,7 +3,6 @@ A knot has
 non-enumerable properties
 id
 uid
-and user defined enumerable properties
 
 enumerable cords
 	each cord has a ply:

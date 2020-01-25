@@ -3,7 +3,6 @@ A knot has
 non-enumerable properties
 id
 uid
-and user defined enumerable properties
 
 enumerable cords
 	each cord has a ply:
@@ -16,14 +15,17 @@ ishml.Knot= class Knot
 	{
 		Object.defineProperty(this, "uid", {value:uid || ishml.util.formatId(),writable: true})
 		Object.defineProperty(this, "id", {value:id,writable: true})
+		Object.defineProperty(this, "plyId", {value:id,writable: true})
 		Object.defineProperty(this, "ply", {value:{
 			plyId:id,
+			knot1:this,
+			knot2:null, 
 			twists:{},
 			weight:1,
 			cord:null,
 			advance:null,
 			retreat:null,
-			converse:null,
+		//converse:null,
 			via:"",
 			hop:0}
 		,writable: true})
@@ -306,6 +308,19 @@ ishml.Knot.handler=
 {
 	get: function(target, property, receiver) 
 	{
+		if(property==="from")
+		{
+			var ply=Reflect.get(target,"ply")
+			if (Reflect.get(target,"uid")===ply[knot1][uid])
+			{
+				return ply[knot2]
+			}
+			else
+			{
+				return ply[knot1]
+			}
+		
+		}
 		if(property==="plyId" || property==="cord" || property==="converse" || property==="advance" ||property==="retreat" || property==="hop")
 		{
 			var ply=Reflect.get(target,"ply")
