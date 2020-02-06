@@ -13,11 +13,11 @@ var $ = story.net
 
 $
     .tie("thing@is").to("cup")
-    .tie("thing@is").to("plate")
+ //   .tie("thing@is").to("plate")
 
-    .tie("green@is").to($.thing.cup,$.thing.plate)    
-    .tie("big@is").to($.thing.cup)
-    .tie("small@is:tiny").to($.thing.plate)    
+ //   .tie("green@is").to($.thing.cup,$.thing.plate)    
+ //   .tie("big@is").to($.thing.cup)
+ //   .tie("small@is:tiny").to($.thing.plate)    
 //$.thing.cup  -- ply of cup as cup relates to thing
 //$.thing.cup.is.thing -- also  same ply
 //.tie("thing@is:")
@@ -30,12 +30,12 @@ $
 //$thing.cup.tie("cord:alias@otherCord:otherAlias").to(otherKnot) --reflexive relation
     
     
-$.thing.cup.tie("on<under").to($.thing.plate)   
+/*$.thing.cup.tie("on<under").to($.thing.plate)   
 console.log($.green.describes)
 console.log($.green.describes.cup)
 console.log(things.cup.is.green)
 console.log(things.cup.on.plate)
-console.log(things.plate.under.cup)
+console.log(things.plate.under.cup)*/
 
 //things.cup.is.green.is.big
 

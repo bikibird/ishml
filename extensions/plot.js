@@ -7,6 +7,9 @@ plot
 	.add("main","input processing")
 	.add("system","common routines")
 
+plot.episodes
+    .add("disambiguate","disambiguate parser input")
+
 plot.main
     .add("prolog","before turn actions")
     .add("dialog","input processing and response")
@@ -61,7 +64,7 @@ plot.action
 plot.main.dialog.stock.input.interpret.narrate=function(twist)
 {
     var interpretations= this.parse.narrate(twist.input)
-
+    console.log(interpretations)
     
     var result=this.reply.narrate(interpretations)
     return {continue:true, success:true, conclusion:interpretations}
@@ -70,10 +73,17 @@ plot.main.dialog.stock.input.interpret.narrate=function(twist)
 }
 plot.main.dialog.stock.input.interpret.parse.stock.narrate=function(input)
 {
-
-    return this.yarn.parser.analyze(input)
+    console.log("parse")
+    return {continue:true, success:true, conclusion:this.yarn.parser.analyze(input)} 
 }
 plot.main.dialog.stock.input.interpret.reply.stock.narrate=function(interpretations)
 {
-
+    //console.log("reply")
+    console.log(interpretations)
+    return {continue:true, success:true, conclusion:interpretations}
+}
+plot.action.taking.frame.stock.narrate=function(gist)
+{
+    console.log(gist)
+    return {continue:true}
 }

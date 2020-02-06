@@ -4,13 +4,14 @@ ishml.Yarn=function Yarn(seed)
 	{
 		this.plot= new ishml.Plotpoint(this)
 		this.storyline = new ishml.Storyline(this)  //Event queue
-		this.lexicon=new ishml.Lexicon()
-		this.grammar =new ishml.Rule()
-		this.parser=ishml.Parser({ lexicon: this.lexicon, grammar: this.grammar})
+		this.lexicon=null
+		this.grammar =null
+		this.parser=null
+		this.translator= null
 		this.viewpoint="2nd person singular"
 		this.setting="present"
 		ishml.util.reseed(seed)
-		this.net=new ishml.Knot()
+		this.net=new ishml.Ply("$")
 		this.harken()
 		this.undo=[]
 		
@@ -20,6 +21,7 @@ ishml.Yarn=function Yarn(seed)
 		return new Yarn(seed)
 	}	
 }
+
 ishml.Yarn.prototype.configure=function(options)
 {
 	//DEFECT TO DO seed, name, author, etc.

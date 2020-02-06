@@ -1,6 +1,6 @@
 /*lexicon*/
-var grammar = story.grammar 
-var lexicon = story.lexicon 
+var grammar = story.grammar || new ishml.Rule()
+var lexicon = story.lexicon || new ishml.Lexicon()
 lexicon
     
     //adjectives
@@ -44,7 +44,7 @@ lexicon
     .register("take")
         .as({plot:plot.action.taking_from , part: "verb", preposition:"from" })    
     .register("pick")
-        .as({plot:plot.action.taking, part: "verb", particles:"up"})    
+        .as({plot:plot.action.taking, part: "verb", particle:"up"})    
     .register("drop", "leave").as({ plotpoint: plot.action.dropping, part: "verb", prepositions: [] })
     
     
@@ -68,24 +68,24 @@ grammar.nounPhrase=ishml.Rule()
 grammar.nounPhrase.semantics=(interpretation)=>
 {
     var gist=interpretation.gist
-    var knots=new ishml.Mesh(gist.noun.definition.select())
+    var plies=new ishml.Cord(gist.noun.definition.select())
     if (gist.adjectives)
     {
         gist.adjectives.forEach(adjective=>
         {
-            knots.join(adjective.definition.select())
+            plies.join(adjective.definition.select())
         })
     }
     if(gist.adjunct)
     {
-       knots=knots.entwine({knots:gist.adjunct.nounPhrase.noun.definition.select(),via:gist.adjunct.relation.definition.cord})
+       plies=plies.entwine({plies:gist.adjunct.nounPhrase.noun.definition.select(),via:gist.adjunct.relation.definition.cord})
     } 
     if (gist.conjunct)
     {
-        knots.union(gist.conjunct.nounPhrase.noun.definition.select())
+        plies.union(gist.conjunct.nounPhrase.noun.definition.select())
     }  
 
-    gist.knots=knots
+    gist.plies=plies
 
    return interpretation
 }
@@ -129,8 +129,8 @@ grammar.object[2].snip("indirectObject",grammar.nounPhrase.clone()).snip("direct
 grammar.sentences=ishml.Rule()
     .configure({maximum:Infinity, mode:ishml.enum.mode.any})
     .snip("command")
-    .snip("question")
-    .snip("remark")
+   // .snip("question")
+   // .snip("remark")
 
 grammar.sentences.command
     .snip("subject").snip("predicate")
@@ -210,6 +210,7 @@ grammar.sentences.command.predicate[2].snip("verb",grammar.verb.clone()).snip("o
 grammar.sentences.command.semantics=(interpretation)=>
 {
     var arguments={}
+    var gist=interpretation.gist
     var predicate=gist.predicate
     if (gist.hasOwnProperty("subject"))
     {
@@ -218,20 +219,20 @@ grammar.sentences.command.semantics=(interpretation)=>
     if (predicate.hasOwnProperty("object"))
     {
         var object=predicate.object
-        if (object.hasOwnnProperty("directObject"))
+        if (object.hasOwnProperty("directObject"))
         {
             arguments.directObject=object.directObject.knots
         }
-        if (object.hasOwnnProperty("indirectObject"))
+        if (object.hasOwnProperty("indirectObject"))
         {
             arguments.directObject=object.indirectObject.knots
         }
     }
 
-    var result=gist.verb.definition.plotpoint.frame(arguments)
+    var result=predicate.verb.definition.plot.frame.narrate(arguments)
     console.log(result)
     return true
 }
 
-
-story.parser = ishml.Parser({ lexicon: lexicon, grammar: grammar.sentences.command })
+story.parser=ishml.Parser({ lexicon: lexicon, grammar: grammar.sentences})
+story.translater= ishml.Parser({ lexicon: lexicon, grammar: grammar.phrasing})
