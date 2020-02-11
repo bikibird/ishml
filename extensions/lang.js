@@ -68,24 +68,27 @@ grammar.nounPhrase=ishml.Rule()
 grammar.nounPhrase.semantics=(interpretation)=>
 {
     var gist=interpretation.gist
-    var plies=new ishml.Cord(gist.noun.definition.select())
+    var knots=gist.noun.definition.select().knots
     if (gist.adjectives)
     {
         gist.adjectives.forEach(adjective=>
         {
-            plies.join(adjective.definition.select())
+            knots.join(adjective.definition.select().knots)
         })
     }
     if(gist.adjunct)
     {
-       plies=plies.entwine({plies:gist.adjunct.nounPhrase.noun.definition.select(),via:gist.adjunct.relation.definition.cord})
+        knots=knots.cross(gist.adjunct.nounPhrase.noun.definition.select().knots,(noun,adjunct)=>
+        {
+           return noun.ply.entwine({ply:adjunct.ply,via:gist.adjunct.relation.definition.cord})
+        })
     } 
     if (gist.conjunct)
     {
-        plies.union(gist.conjunct.nounPhrase.noun.definition.select())
+        knots.union(gist.conjunct.nounPhrase.noun.definition.select().knots)
     }  
 
-    gist.plies=plies
+    gist.knots=knots
 
    return interpretation
 }

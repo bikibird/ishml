@@ -3,12 +3,9 @@ var plot = story.plot
 /*plot outline*/
 plot
     .add("action","actions")
-    .add("episodes","episodes")
+    .add("scenes","scenes")
 	.add("main","input processing")
 	.add("system","common routines")
-
-plot.episodes
-    .add("disambiguate","disambiguate parser input")
 
 plot.main
     .add("prolog","before turn actions")
@@ -63,24 +60,28 @@ plot.action
 /*narration*/    
 plot.main.dialog.stock.input.interpret.narrate=function(twist)
 {
-    var interpretations= this.parse.narrate(twist.input)
-    console.log(interpretations)
+    console.log("interpret")
+    this.parse.narrate(twist)
+    console.log(twist)
     
-    var result=this.reply.narrate(interpretations)
-    return {continue:true, success:true, conclusion:interpretations}
+    this.reply.narrate(twist)
+    return {continue:true}
    
    
 }
-plot.main.dialog.stock.input.interpret.parse.stock.narrate=function(input)
+plot.main.dialog.stock.input.interpret.parse.stock.narrate=function(twist)
 {
+    var {input}=twist
     console.log("parse")
-    return {continue:true, success:true, conclusion:this.yarn.parser.analyze(input)} 
+    twist.interpretations=this.yarn.parser.analyze(input)
+    return {continue:true} 
 }
-plot.main.dialog.stock.input.interpret.reply.stock.narrate=function(interpretations)
+plot.main.dialog.stock.input.interpret.reply.stock.narrate=function(twist)
 {
-    //console.log("reply")
+    var {interpretations}=twist
+    console.log("reply")
     console.log(interpretations)
-    return {continue:true, success:true, conclusion:interpretations}
+    return {continue:true}
 }
 plot.action.taking.frame.stock.narrate=function(gist)
 {

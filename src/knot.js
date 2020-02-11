@@ -18,18 +18,29 @@ ishml.Knot= class Knot
 		
 		return this
 	}
-	toCord(id)
+	get cord()
 	{
 		//Returns cord with ply representing this knot.
-		return new ishml.Cord(this.toPly(id||this.id))
+		return new ishml.Cord(this.toPly(this.id))
 	}
-	toPly(id)
+	get ply()
 	{
 		//Turns bare knot into a ply.
-		return new ishml.Ply(id||this.id,this)
+		return new ishml.Ply(this.id,this)
 		
 	}
-
+	get tangle()
+	{
+		return new ishml.Tangle(this)
+	}
+	get knots()
+	{
+		return new ishml.Tangle(this)
+	}
+	get plies()
+	{
+		return new ishml.Tangle(this.ply)
+	}
 	get cords()
 	{
 		

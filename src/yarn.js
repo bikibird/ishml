@@ -2,6 +2,8 @@ ishml.Yarn=function Yarn(seed)
 {
 	if (this instanceof Yarn)
 	{
+		this.clock=0
+		this.turn=1
 		this.plot= new ishml.Plotpoint(this)
 		this.storyline = new ishml.Storyline(this)  //Event queue
 		this.lexicon=null
@@ -11,6 +13,7 @@ ishml.Yarn=function Yarn(seed)
 		this.viewpoint="2nd person singular"
 		this.setting="present"
 		ishml.util.reseed(seed)
+		this.cordage ={}  //a place to put functions for auto tying knots.
 		this.net=new ishml.Ply("$")
 		this.harken()
 		this.undo=[]
@@ -334,4 +337,5 @@ ishml.Yarn.prototype.tell=function(aStoryline)
 		var {plotpoint,twist}=storyline.advance()
 		plotpoint.narrate(twist)
 	}
+	this.turn=turn+1
 }

@@ -100,7 +100,12 @@ ishml.Ply= class Ply
 		
 		return tail
 	}	
-
+	explore({filter=(knot)=>true,minimum=1,maximum=Infinity,via,cost=(ply,leg)=>ply.cost+leg.ply.weight}={})
+	{
+		//Returns {explore:explore function, knots:a tangle knots, startPlies: a tangle of entwined plies, endPlies} showing the various paths 
+		//ply.explore("friends").explore("friends")
+	}
+	get knots(){return new ishml.Tangle(this.knot)}
 	plait()
 	{
 		//create a new ply from this ply.  shallow copy of members.
@@ -234,7 +239,7 @@ ishml.Ply= class Ply
 						ply=ply.retreat //retreat one hop
 						//exit loop once ply is null.  last retreat points to null.
 					}	
-					return {success:true,start:path[0],end:path[path.length-1],path:path}
+					return {success:true,start:path[0],end:path[path.length-1]}
 				}
 				else
 				{
@@ -273,7 +278,10 @@ ishml.Ply= class Ply
 		this.untie()
 		return this.tie(cordage)
 	}
-
+	get tangle()
+	{
+		return new ishml.Tangle(this)
+	}
 	tie(...someCordage)
 	{
 /*$.thing.cup.tie("cord:ply").to(otherKnot/otherPly) --one-way relation converse===null
@@ -283,98 +291,98 @@ $.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexiv
 
 		var fromPly=this
 		var fromKnot=this.knot
-		var to = (knot=false)=>
+		var to = (...someKnots)=>
 		{
-			if (knot instanceof ishml.Knot)
+			someKnots.forEach((knot)=>
 			{
-				var toKnot=knot
-			}
-			else
-			{
-				if (knot instanceof ishml.Ply)
+				if (knot instanceof ishml.Knot)
 				{
-					var toKnot=knot.knot
+					var toKnot=knot
 				}
 				else
 				{
-					var toKnot=new ishml.Knot(knot)
-				}	
-			}
-			someCordage.forEach((cordage)=>
-			{
-				//parse the cordage
-				var [forward,backward]=cordage.split(/[-=@]/)
-				var mutual=cordage.includes("-")
-				var reflexive=cordage.includes("@")
-				var converse=cordage.includes("=")
-				var [cordId,plyId]=forward.split(":").map(id=>ishml.util.formatId(id.trim()))
-				if(!fromKnot.hasOwnProperty(cordId))
-				{
-					fromKnot[cordId]=new ishml.Cord()
-					fromKnot[cordId].id=cordId
+					if (knot instanceof ishml.Ply)
+					{
+						var toKnot=knot.knot
+					}
+					else
+					{
+						var toKnot=new ishml.Knot(knot)
+					}	
 				}
-				if (backward)
+				someCordage.forEach((cordage)=>
 				{
-					var [converseCordId,conversePlyId]=backward.split(":").map(id=>ishml.util.formatId(id.trim()))	
-				}
+					//parse the cordage
+					var [forward,backward]=cordage.split(/[-=@]/)
+					var mutual=cordage.includes("-")
+					var reflexive=cordage.includes("@")
+					var converse=cordage.includes("=")
+					var [cordId,plyId]=forward.split(":").map(id=>ishml.util.formatId(id.trim()))
+					if(!fromKnot.hasOwnProperty(cordId))
+					{
+						fromKnot[cordId]=new ishml.Cord()
+						fromKnot[cordId].id=cordId
+					}
+					if (backward)
+					{
+						var [converseCordId,conversePlyId]=backward.split(":").map(id=>ishml.util.formatId(id.trim()))	
+					}
 
-				
-				if (!cordId){cordId=ishml.util.formatId()}
-				if (!plyId){plyId=toKnot.id}
-				
-				//get the cord where the new ply will live.
-				if (fromKnot.hasOwnProperty(cordId))
-				{
-					var cord=fromKnot[cordId]
 					
-				}	
-				else
-				{
-					var cord = new ishml.Cord()
-					cord.id=cordId
-					fromKnot[cordId]=cord
-				}
-				//create the new ply
-				var forwardPly=new ishml.Ply(plyId,toKnot)
-				forwardPly.from=fromKnot
-				//var aliasToKnot=toKnot.plait({plyId:plyId,cord:cord})
-				if(backward)
-				{
-					if (toKnot.hasOwnProperty(converseCordId))
+					if (!cordId){cordId=ishml.util.formatId()}
+					if (!plyId){plyId=toKnot.id}
+					
+					//get the cord where the new ply will live.
+					if (fromKnot.hasOwnProperty(cordId))
 					{
-						var converseCord=toKnot[converseCordId]
-					}
+						var cord=fromKnot[cordId]
+						
+					}	
 					else
 					{
-						var converseCord=new ishml.Cord()
-						converseCord.id=converseCordId
-						toKnot[converseCordId]=converseCord
+						var cord = new ishml.Cord()
+						cord.id=cordId
+						fromKnot[cordId]=cord
 					}
-
-					if (reflexive)
+					//create the new ply
+					var forwardPly=new ishml.Ply(plyId,toKnot)
+					forwardPly.from=fromKnot
+					//var aliasToKnot=toKnot.plait({plyId:plyId,cord:cord})
+					if(backward)
 					{
-						if (!conversePlyId){conversePlyId=toKnot.id}
-						var backwardPly=new ishml.Ply(plyId,toKnot)
-						backwardPly.from=toKnot
-						backwardPly.ply.weight=forwardPly.ply.weight
-					}
-					else
-					{
-						if (!conversePlyId){conversePlyId=fromKnot.id}
-						var backwardPly=new ishml.Ply(conversePlyId,fromKnot)
-						backwardPly.from=toKnot
-						backwardPly.converse=forwardPly
-						if (mutual){ backwardPly.ply=forwardPly.ply}
-					}
+						if (toKnot.hasOwnProperty(converseCordId))
+						{
+							var converseCord=toKnot[converseCordId]
+						}
+						else
+						{
+							var converseCord=new ishml.Cord()
+							converseCord.id=converseCordId
+							toKnot[converseCordId]=converseCord
+						}
 
-					forwardPly.converse=backwardPly
-					toKnot[converseCordId][conversePlyId]=backwardPly	
-				}
-				
-				
-				fromKnot[cordId][plyId]=forwardPly
-			})
-			
+						if (reflexive)
+						{
+							if (!conversePlyId){conversePlyId=toKnot.id}
+							var backwardPly=new ishml.Ply(plyId,toKnot)
+							backwardPly.from=toKnot
+							backwardPly.ply.weight=forwardPly.ply.weight
+						}
+						else
+						{
+							if (!conversePlyId){conversePlyId=fromKnot.id}
+							var backwardPly=new ishml.Ply(conversePlyId,fromKnot)
+							backwardPly.from=toKnot
+							backwardPly.converse=forwardPly
+							if (mutual){ backwardPly.ply=forwardPly.ply}
+						}
+
+						forwardPly.converse=backwardPly
+						toKnot[converseCordId][conversePlyId]=backwardPly	
+					}
+					fromKnot[cordId][plyId]=forwardPly
+				})
+			})	
 			return fromPly
 		}
 		return {to:to}

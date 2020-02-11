@@ -1,14 +1,18 @@
-ishml.Storyline= function Storyline(yarn)
+//
+
+ishml.Storyline= function Storyline()
 {
 	if (this instanceof ishml.Storyline)
 	{
 		this.storyline=new Set()
 		this.episodes=new WeakMap
+		this.tick=0
+		this.turn=0
 		return this
 	}
 	else
 	{
-		return new Storyline(yarn)
+		return new Storyline()
 	}	
 }
 ishml.Storyline.prototype.advance= function()

@@ -119,7 +119,7 @@ ishml.Plotpoint.prototype.heed = function (aDocumentSelector)
 ishml.Plotpoint.prototype.narrateSubplot = function (twist) 
 {
 	//return Object.values(this).some(plotpoint => {plotpoint.narrate(twist)})
-	var result={continue:true, success:false}
+	var result={continue:true}
 	for (plotpoint of this)
 	{
 		console.log(plotpoint.id)

@@ -33,7 +33,7 @@ ishml.Cord= function Cord(...plies)
 	}
 	else
 	{
-		return new Cord(knots)
+		return new Cord(plies)
 	}	
 }
 ishml.Cord.prototype.hasKnot=function(knot)
@@ -45,76 +45,17 @@ ishml.Cord.prototype.hasKnot=function(knot)
 	return false
 
 }
-ishml.Cord.handler=
-{
-	get: function(target, property, receiver) 
-	{
-		if(Reflect.has(target,property))
-		{
-			return Reflect.get(target,property)
-		}
-		else
-		{
-			var alias=Reflect.get(target,"alias")
-			return Reflect.get(target,alias[property])
-		}
-	},
-/*	has: function(target, property, receiver) 
-	{
-		if(Reflect.has(target,property))
-		{
-			return true
-		}
-		else
-		{
-			var alias=Reflect.get(target,"alias")
-			if (alias.hasOwnProperty(property))
-			{
-				return true
-			}
-			else {return false}
-		}
-	},*/
-	set: function(target, property, value, receiver)
-	{
-		var alias=Reflect.get(target,"alias")
-		if (property==="id")
-		{
-			return Reflect.set(target,property,value)
-		}
-		if (value instanceof ishml.Knot)
-		{
-			Reflect.set(target,value.uid,value)
-			if (property!==value.uid)
-			{
-				alias[property]=value.uid
-			}
-			return true
-		}
-		else
-		{
-			value.forEach((knot)=>
-			{
-				Reflect.set(target,knot.uid,knot)
-				if (property!==knot.uid)
-				{
-					alias[property]=knot.uid
-				}
-			})
-			return true
-		}	
-	}	
-}
+//Removed ishml.Cord.handler
 ishml.Cord.prototype[Symbol.iterator]=function()
 {
 	return {
-		knots:Object.values(this),
+		plies:Object.values(this),
 		i:0,
 		next()
 		{
-			if (this.i<this.knots.length) 
+			if (this.i<this.plies.length) 
 			{
-				var value = this.knots[this.i]
+				var value = this.plies[this.i]
 				this.i++
 				return {value: value, done: false}
 				
@@ -127,27 +68,32 @@ ishml.Cord.prototype[Symbol.iterator]=function()
 		}
 	}
 }
-/*ishml.Cord.prototype.cord=function(id)
+
+ishml.Cord.prototype.add=function(...plies)
 {
-	this.id=id
-	return this
-}*/	
-ishml.Cord.prototype.add=function(...knots)
-{
-	knots.forEach((knot)=>
+	plies.forEach((ply)=>
 	{
-		if(knot instanceof ishml.Knot)
-		{
-			this[knot.uid]=knot
-		}
+		if(ply instanceof ishml.Ply){this[ply.id]=ply}
 		else
 		{
-			knot.forEach((knot)=>
-			{
-				this[knot.uid]=knot
-			})
+			if (ply instanceof ishml.Knot){this[ply.id]=ply.toPly()}
+			else
+			{	
+				if (ply)
+				{
+					ply.forEach((ply)=>
+					{
+						if(ply instanceof ishml.Ply){this[ply.id]=ply}
+						else
+						{
+							if (ply instanceof ishml.Knot){this[ply.id]=ply.toPly()}
+						}	
+					})
+				}	
+			}
 		}
 	})
+		
 	return this
 }
 
@@ -160,70 +106,31 @@ ishml.Cord.prototype.clear=function()
 	return this
 }	  
 
-ishml.Cord.prototype.delete=function(...knots)
+ishml.Cord.prototype.delete=function(...plies)
 {
-	knots.forEach((knot)=>
+	plies.forEach((ply)=>
 	{
-		if(knot instanceof ishml.Knot)
-		{
-			delete this[knot.uid]
-		}
+		if(ply instanceof ishml.Ply){delete this[ply.id]}
 		else
 		{
-			knot.forEach((knot)=>
+			
+			if (ply)
 			{
-				delete this[knot.uid]
-			})
+				ply.forEach((ply)=>
+				{
+					if(ply instanceof ishml.Ply){delete this[ply.id]}
+						
+				})
+			}	
+			
 		}
 	})
 	return this
 }
 	
-ishml.Cord.prototype.disjoin=function(...knots)
-{
-	var other=new ishml.Cord(knots)
-	var left = this.filter(knot => !other.has(knot))
-	var right = other.filter(knot => !this.has(knot))
-	return left.union(right)
-}
-ishml.Cord.prototype.entwine=function({knots,via=null,condition=()=>true})
-{
-	var other=new ishml.Cord(knots)
-	var twinings=new ishml.Cord()
+// REMOVED: ishml.Cord.prototype.disjoin=function(...plies)
+//REMOVED: ishml.Cord.prototype.entwine=function({knots,via=null,condition=()=>true})
 	
-	this.forEach((knot)=>
-	{
-		other.forEach((otherKnot)=>
-		{
-			if(knot.hasOwnProperty(via) && knot[via] instanceof ishml.Cord)
-			{
-				if(knot[via].has(otherKnot))
-				{
-					if (condition(knot,otherKnot))
-					{
-						var head=knot.plait()
-						var tail=otherKnot.plait()
-						head.advance=tail
-						head.via=via
-						tail.retreat=head
-						twinings.add(head)
-					}
-				}
-
-			}
-			else
-			{
-				var head=knot.plait()
-				var tail=otherKnot.plait()
-				head.advance=tail
-				head.via=via
-				tail.retreat=head
-				twinings.add(head)
-			}		
-		})
-	})
-	return twinings
-}	
 ishml.Cord.prototype.filter=function(filter)
 {
 	return new ishml.Cord(Object.values(this).filter(filter))
@@ -242,37 +149,29 @@ ishml.Cord.prototype.forEach=function(f)
 	return undefined
 }
 
-ishml.Cord.prototype.has=function(...knots)
+ishml.Cord.prototype.has=function(...plies)
+{
+	return plies.every((ply)=>
+	{
+		return (Object.values(this).some(thisPly=>{thisPly===ply}))
+
+	})
+}
+ishml.Cord.prototype.hasKnot=function(...knots)
 {
 	return knots.every((knot)=>
 	{
-		if(knot instanceof ishml.Knot)
-		{
-			if(this[knot.uid]){return true}else{return false}
-		}
-		else
-		{
-			return knot.every((knot)=>
-			{
-				if(this[knot.uid]){return true}else{return false}
-			})
-		}
-	})
+		return (Object.values(this).some(thisPly=>{thisPly.knot===knot}))
+
+	})	
+
 }
 
-ishml.Cord.prototype.join= function(...knots) 
-{
-	var other=new ishml.Cord(...knots)
-	if (this.size < other.size)
-	{
-		return new ishml.Cord(this.filter(knot => other.has(knot)))
-	}
-	else
-	{
-		return new ishml.Cord(other.filter(knot => this.has(knot)))
-	}	
-}
-Object.defineProperty(ishml.Cord.prototype, "knot", { get: function() { return Object.values(this)[0]} })
+// Removed: ishml.Cord.prototype.join= function(...plies) 
+Object.defineProperty(ishml.Cord.prototype, "knots", { get: function() { return new ishml.Tangle(Object.values(this).map((ply)=>ply.knot))}})
+
+Object.defineProperty(ishml.Cord.prototype, "plies", { get: function() { return new ishml.Tangle(Object.values(this))}})
+Object.defineProperty(ishml.Cord.prototype, "ply", { get: function() { return Object.values(this)[0]} })
 
 ishml.Cord.prototype.last=function(count=1)
 {
@@ -301,15 +200,13 @@ ishml.Cord.prototype.shuffle=function(quantity)
 	return new ishml.Cord(ishml.util.shuffle(this.knots,count))
 }
 
-Object.defineProperty(ishml.Cord.prototype, "size", { get: function() { return Object.values(this).size}})
+Object.defineProperty(ishml.Cord.prototype, "size", { get: function() { return Object.values(this).length}})
 
 ishml.Cord.prototype.sort=function(sorting)
 {
 	return new ishml.Cord(Object.values(this).sort(sorting))
 }
 
-ishml.Cord.prototype.union=function(...knots)
-{
-	return new ishml.Cord(this, knots)
-}
+
+
 

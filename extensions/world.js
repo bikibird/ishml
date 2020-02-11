@@ -1,10 +1,24 @@
 var story = story || new ishml.Yarn()
 var $ = story.net
-/*selectors*/
+var cordage=story.cordage
+/*cordage*/
+cordage.actor=["actor@"]
+cordage.thing=["thing@is:thing"]
+cordage.fixture=["fixture@is:fixture"]
+cordage.container=["container@is:container"]
+cordage.supporter=["supporter@is:supporter"]
+cordage.open=["openable@is:openable","open@is:open"]
+cordage.closed=["openable@is:openable","closed@is:closed"]
+cordage.locked=["lockable@is:lockable","locked@is:locked"]
+cordage.unlocked=["lockable@is:lockable","lockable@is:lockable","unlocked@is:unlocked"]
 
+/*system*/
+$.tie("system").to("clock")
 
+/*actors*/
+$
+    .tie("actor@").to("player","jane")
 
-/*persons*/
 
 
 /*places*/
@@ -12,12 +26,12 @@ var $ = story.net
 /*things*/
 
 $
-    .tie("thing@is").to("cup")
- //   .tie("thing@is").to("plate")
+    .tie(...cordage.thing,...cordage.container).to("cup","box")
+    .tie("thing@is:thing").to("plate")
 
- //   .tie("green@is").to($.thing.cup,$.thing.plate)    
- //   .tie("big@is").to($.thing.cup)
- //   .tie("small@is:tiny").to($.thing.plate)    
+    .tie("green@is").to($.thing.cup,$.thing.plate)    
+  .tie("big@is").to($.thing.cup)
+   .tie("small@is:tiny").to($.thing.plate)    
 //$.thing.cup  -- ply of cup as cup relates to thing
 //$.thing.cup.is.thing -- also  same ply
 //.tie("thing@is:")
