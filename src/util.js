@@ -26,9 +26,9 @@ ishml.util.random = function()
 }
 ishml.util.reseed = function(aSeed=Math.floor(Math.random() * 2147483648)) 
 {
-	var seed=aSeed % 2147483647
-	if (seed <= 0){seed += 2147483646}
-	ishml.util._seed=seed	
+	//var seed=aSeed % 2147483647
+	//if (seed <= 0){seed += 2147483646}
+	ishml.util._seed=aSeed	
 }
 ishml.util.shuffle=function(anArray,aCount=undefined)
 {

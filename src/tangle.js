@@ -15,9 +15,9 @@ ishml.Tangle=class Tangle extends Set
 	cross(other,crossing)
 	{
 		var tangle = new ishml.Tangle()
-		for (a of this)
+		for (const a of this)
 		{
-			for (b of other)
+			for (const b of other)
 			{
 				tangle.add(crossing(a,b))
 			}
@@ -56,12 +56,22 @@ ishml.Tangle=class Tangle extends Set
 	}
 	map(map)
 	{
-		return new ishml.Tangle([...this].map(map))
+		var tangle = new ishml.Tangle()
+		for ( const a of this)
+		{
+				tangle.add(map(a))
+		}
+		return tangle
 	}
 	sort(sorting)
 	{
 		return new ishml.Tangle([...this].sort(sorting))
 	}
+	first(count=1)
+	{
+		return new ishml.Tangle([...this].slice(0,1))
+	}
+
 	last(count=1)
 	{
 		return new ishml.Tangle([...this].slice(-1,-count))

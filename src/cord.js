@@ -169,7 +169,6 @@ ishml.Cord.prototype.hasKnot=function(...knots)
 
 // Removed: ishml.Cord.prototype.join= function(...plies) 
 Object.defineProperty(ishml.Cord.prototype, "knots", { get: function() { return new ishml.Tangle(Object.values(this).map((ply)=>ply.knot))}})
-
 Object.defineProperty(ishml.Cord.prototype, "plies", { get: function() { return new ishml.Tangle(Object.values(this))}})
 Object.defineProperty(ishml.Cord.prototype, "ply", { get: function() { return Object.values(this)[0]} })
 
@@ -201,6 +200,7 @@ ishml.Cord.prototype.shuffle=function(quantity)
 }
 
 Object.defineProperty(ishml.Cord.prototype, "size", { get: function() { return Object.values(this).length}})
+Object.defineProperty(ishml.Cord.prototype, "isEmpty", { get: function() { return Object.values(this).length===0}})
 
 ishml.Cord.prototype.sort=function(sorting)
 {

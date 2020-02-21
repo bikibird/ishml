@@ -2,7 +2,7 @@
 var grammar = story.grammar || new ishml.Rule()
 var lexicon = story.lexicon || new ishml.Lexicon()
 lexicon
-    
+
     //adjectives
     .register("all").as({part:"adjective",select:()=>$.thing})
     .register("blue").as({part:"adjective",select:()=>$.blue})
@@ -18,10 +18,7 @@ lexicon
 
     //nouns
     .register("things").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing})
-    .register("cup").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.cup})
-    .register("plate").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.plate})
-    .register("bowl").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.bowl})
-    .register("dishes").as({part:"noun", number:ishml.enum.number.plural, select:()=>$.thing.dishes})
+    
 
     //particles
     .register("up").as({ key: "up", part: "particle" })
@@ -45,7 +42,7 @@ lexicon
         .as({plot:plot.action.taking_from , part: "verb", preposition:"from" })    
     .register("pick")
         .as({plot:plot.action.taking, part: "verb", particle:"up"})    
-    .register("drop", "leave").as({ plotpoint: plot.action.dropping, part: "verb", prepositions: [] })
+    .register("drop", "leave").as({ plot: plot.action.dropping, part: "verb", prepositions: [] })
     
     
     .register("save").as({key:"save", part: "system"})
@@ -212,29 +209,35 @@ grammar.sentences.command.predicate[2].snip("verb",grammar.verb.clone()).snip("o
 
 grammar.sentences.command.semantics=(interpretation)=>
 {
-    var arguments={}
+    var command={}
     var gist=interpretation.gist
     var predicate=gist.predicate
     if (gist.hasOwnProperty("subject"))
     {
-        arguments.subject=gist.subject.knots
+        command.subject=gist.subject.knots
+    }
+    else
+    {
+        command.subject=$.actor.player.tangle
     }
     if (predicate.hasOwnProperty("object"))
     {
         var object=predicate.object
         if (object.hasOwnProperty("directObject"))
         {
-            arguments.directObject=object.directObject.knots
+            command.directObject=object.directObject.knots
         }
         if (object.hasOwnProperty("indirectObject"))
         {
-            arguments.directObject=object.indirectObject.knots
+            command.directObject=object.indirectObject.knots
         }
     }
 
-    var result=predicate.verb.definition.plot.frame.narrate(arguments)
-    console.log(result)
-    return true
+   result=predicate.verb.definition.plot.scope.narrate(command)
+   interpretation.valid=result.valid
+   interpretation.response=result.response
+   interpretation.gist=command
+   return true
 }
 
 story.parser=ishml.Parser({ lexicon: lexicon, grammar: grammar.sentences})

@@ -16,7 +16,7 @@ ishml.Knot= class Knot
 	{
 		Object.defineProperty(this, "id", {value:id,writable: true}) //local name
 		
-		return this
+		return new Proxy(this,ishml.Knot.handler)
 	}
 	get cord()
 	{
@@ -51,6 +51,14 @@ ishml.Knot= class Knot
 		Object.assign(this,value)
 	}
 
+}
+ishml.Knot.handler=
+{
+	get: function(target, property) 
+	{
+		if (Reflect.has(target,property)){return Reflect.get(target,property)}
+		else {return new ishml.Cord()}
+	}
 }
 
 

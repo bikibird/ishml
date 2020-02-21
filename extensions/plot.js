@@ -13,78 +13,61 @@ plot.main
     .add("epilog","after turn actions")
 
 plot.main.dialog
-    .add("before","before dialog")
-    .add("stock", "Standard dialog")
-    .add("after","after dialog actions")
 
-plot.main.dialog.stock
     .add("input", "process input")
- //   .add("choice","process choice")
 
-plot.main.dialog.stock.input
-    .add("before","before interpreting input")
-    .add("interpret","interpret input")
-    .add("after", "after interpreting input")
-
-plot.main.dialog.stock.input.interpret
-    .add("parse","parse input")
-    .add("reply","reply to input")
-
-plot.main.dialog.stock.input.interpret.parse
-    .add("before","before parsing input")    
-    .add("stock","standard parsing")
-    .add("after","after parsing input")
-
-plot.main.dialog.stock.input.interpret.reply
-    .add("before","before replying")    
-    .add("stock","standard reply")
-    .add("after","after reply")
-
-/*plot.main.dialog.stock.choice
-    .add("before","before selecting choice")    
-    .add("stock","narrate chosen plotpoint")
-    .add("after","after selection")
-*/
 
 plot.action
-    .addAction("dropping","dropping action")
-    .addAction("going","going action")
-    .addAction("gibbering","unsuccessful parse action")
-    .addAction("taking","taking  action")
-    .addAction("taking_from","taking  action")
-    .addAction("taking_to","taking  action")
+    .add("dropping","dropping action")
+    .add("going","going action")
+    .add("gibbering","unsuccessful parse action")
+    .add("taking","taking  action")
+    .add("taking_from","taking  action")
+    .add("taking_to","taking  action")
     
+plot.action.dropping.add("scope").add("do")
+plot.action.going.add("scope").add("do")
+plot.action.gibbering.add("scope").add("do")
+plot.action.taking.add("scope").add("do")
+plot.action.taking_from.add("scope").add("do")
 
-
-    
 /*narration*/    
-plot.main.dialog.stock.input.interpret.narrate=function(twist)
+plot.main.dialog.input.narrate=function(twist)
 {
-    console.log("interpret")
-    this.parse.narrate(twist)
-    console.log(twist)
+    twist.interpretations=this.yarn.parser.analyze(twist.input)
     
-    this.reply.narrate(twist)
+    console.log(twist.interpretations)
     return {continue:true}
    
    
 }
-plot.main.dialog.stock.input.interpret.parse.stock.narrate=function(twist)
+
+plot.action.taking.scope.narrate=function(command)
 {
-    var {input}=twist
-    console.log("parse")
-    twist.interpretations=this.yarn.parser.analyze(input)
-    return {continue:true} 
-}
-plot.main.dialog.stock.input.interpret.reply.stock.narrate=function(twist)
-{
-    var {interpretations}=twist
-    console.log("reply")
-    console.log(interpretations)
+    console.log(command)
     return {continue:true}
 }
-plot.action.taking.frame.stock.narrate=function(gist)
+plot.action.dropping.scope.narrate=function(command)
 {
-    console.log(gist)
-    return {continue:true}
+    
+    if (command.directObject)
+    {
+        var wearing=command.subject.map(ply=>ply.knot.wears.knots)
+        var carrying=command.subject.map(ply=>ply.knot.carries.knots)
+        var droppable=wearing.union(carrying).join(command.directObject)
+        if(droppable.size===0)
+        {
+            
+            //this.yarn.say(`<p>You are not carrying it.</p>`).last("#story")
+            return {valid:false, response:`<p>You think about dropping your ${command.directObject.first().name}, but you don't have one.</p>`}
+        }
+        else
+        {
+            command.directObject=droppable
+            return { valid:true}
+                        //this.yarn.say(`you drop it.`).last("#story")
+        }
+
+    }
+    else return {valid:false, response:`<p>You think about dropping something, but what?</p>`}
 }

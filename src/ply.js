@@ -42,7 +42,7 @@ ishml.Ply= class Ply
 		this.advance=null //a ply created during entwining
 		this.retreat=null //a ply created during entwining
 		this.converse=null // a ply created during tying
-		this.cord // name of of from knot cord where this ply lives
+		this.cord="" // name of of from knot cord where this ply lives
 		this.from=null //the knot where this ply lives
 		//this.mutual=false -- not needed just share this.ply mutually
 		return new Proxy(this, ishml.Ply.handler)
@@ -347,6 +347,7 @@ $.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexiv
 					//create the new ply
 					var forwardPly=new ishml.Ply(plyId,toKnot)
 					forwardPly.from=fromKnot
+					forwardPly.cord=cordId
 					//var aliasToKnot=toKnot.plait({plyId:plyId,cord:cord})
 					if(backward)
 					{
@@ -366,6 +367,7 @@ $.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexiv
 							if (!conversePlyId){conversePlyId=toKnot.id}
 							var backwardPly=new ishml.Ply(plyId,toKnot)
 							backwardPly.from=toKnot
+							backwardPly.cord=converseCordId
 							backwardPly.ply.weight=forwardPly.ply.weight
 						}
 						else
@@ -374,10 +376,12 @@ $.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexiv
 							var backwardPly=new ishml.Ply(conversePlyId,fromKnot)
 							backwardPly.from=toKnot
 							backwardPly.converse=forwardPly
+							backwardPly.cord=converseCordId
 							if (mutual){ backwardPly.ply=forwardPly.ply}
 						}
 
 						forwardPly.converse=backwardPly
+						
 						toKnot[converseCordId][conversePlyId]=backwardPly	
 					}
 					fromKnot[cordId][plyId]=forwardPly

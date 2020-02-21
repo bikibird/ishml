@@ -56,7 +56,7 @@ ishml.Plotpoint.prototype.add = function (id,summary)
 	return this
 }
 
-ishml.Plotpoint.prototype.addAction = function (id,summary)
+/*ishml.Plotpoint.prototype.addAction = function (id,summary)
 {
 	this.add(id,summary)
 	var action=this[id]
@@ -67,7 +67,7 @@ ishml.Plotpoint.prototype.addAction = function (id,summary)
 	action.report.add("before").add("stock").add("after")
 
 	return this
-}	
+}*/	
 
 
 ishml.Plotpoint.prototype.heed = function (aDocumentSelector)
@@ -122,7 +122,6 @@ ishml.Plotpoint.prototype.narrateSubplot = function (twist)
 	var result={continue:true}
 	for (plotpoint of this)
 	{
-		console.log(plotpoint.id)
 		var result =plotpoint.narrate(twist)
 		if (!result.continue)
 		{
@@ -131,4 +130,11 @@ ishml.Plotpoint.prototype.narrateSubplot = function (twist)
 	}
 	return result	
 }
+
+ishml.Plotpoint.prototype.episode = function (...args) 
+{
+	//Arguments must be serializable or cannot save episode (for repeating episodes) as part of game state.
+	var episode={plotpoint:this,arguments:args} 
+	return episode
+}	
 
