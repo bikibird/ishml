@@ -23,6 +23,21 @@ ishml.Tangle=class Tangle extends Set
 			}
 		}
 	}
+	add(member)
+	{
+		if (member instanceof Set || member instanceof Array)
+		{
+			member.forEach((item)=>
+			{
+				super.add(item)
+			})
+		}
+		else
+		{
+			super.add(member)
+		}
+		return this
+	}
 	union(other)
 	{
 		return new ishml.Tangle([...this, ...other])
