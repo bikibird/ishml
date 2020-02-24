@@ -19,6 +19,7 @@ plot.main.dialog
 
 plot.action
     .add("dropping","dropping action")
+    .add("equivocating","multiple interpretations of input")
     .add("going","going action")
     .add("gibbering","unsuccessful parse action")
     .add("taking","taking  action")
@@ -26,6 +27,7 @@ plot.action
     .add("taking_to","taking  action")
     
 plot.action.dropping.add("scope").add("do")
+plot.action.equivocating.add("scope").add("do")
 plot.action.going.add("scope").add("do")
 plot.action.gibbering.add("scope").add("do")
 plot.action.taking.add("scope").add("do")
@@ -47,18 +49,15 @@ plot.action.taking.scope.narrate=function(command)
     console.log(command)
     return {continue:true}
 }
-plot.action.dropping.scope.narrate=function(command)
-{
+    plot.action.dropping.scope.narrate=function(command)
+    {
     
     if (command.directObject)
     {
         var wearing=command.subject.map(ply=>ply.knot.wears.knots)
         var carrying=command.subject.map(ply=>ply.knot.carries.knots)
        var droppable=wearing.union(carrying).join(command.directObject)
-        command.directObject.filter(knot=>
-        {
-        
-        })
+
         if(droppable.size===0)
         {
             
@@ -74,4 +73,8 @@ plot.action.dropping.scope.narrate=function(command)
 
     }
     else return {valid:false, response:`<p>You think about dropping something, but what?</p>`}
+}
+plot.action.equivocating.scope.narrate=function(interpretations)
+{
+    console.log(interpretations)
 }

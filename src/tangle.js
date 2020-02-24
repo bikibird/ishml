@@ -1,16 +1,23 @@
 ishml.Tangle=class Tangle extends Set
 {
-	constructor(members) 
+	constructor(...members) 
 	{
-		if(members)
+		super()
+		members.forEach(member=>
 		{
-			if(typeof members[Symbol.iterator] === 'function')
+			if (member instanceof Set || member instanceof Array)
 			{
-				super(members)
+				member.forEach((item)=>
+				{
+					super.add(item)
+				})
 			}
-			else{super([members])}
-		}
-		else {super()}
+			else
+			{
+				super.add(member)
+			}
+		})	
+		return this	
 	}
 	cross(other,crossing)
 	{
@@ -22,10 +29,13 @@ ishml.Tangle=class Tangle extends Set
 				tangle.add(crossing(a,b))
 			}
 		}
+		return tangle
 	}
-	add(member)
+	add(...members)
 	{
-		if (member instanceof Set || member instanceof Array)
+		members.forEach(member=>
+		{
+			if (member instanceof Set || member instanceof Array)
 		{
 			member.forEach((item)=>
 			{
@@ -36,6 +46,8 @@ ishml.Tangle=class Tangle extends Set
 		{
 			super.add(member)
 		}
+		})
+		
 		return this
 	}
 	union(other)

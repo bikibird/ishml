@@ -432,7 +432,7 @@ ishml.Ply.handler=
 			
 			return knot[property]
 		}
-		else {return undefined}
+		else {return new ishml.Cord()}
 	},
 	set: function(target, property, value, receiver)
 	{

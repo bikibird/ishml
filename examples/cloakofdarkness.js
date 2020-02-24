@@ -28,7 +28,8 @@ $.place.bar.knot.configure({
 $
     .tie(...cords.fixture,"small@is","brass@is").to("hook")
 	.tie(...cords.thing,...cords.wearable,"dark@is","black@is","velvet@is").to("cloak")
-	
+	.tie(...cords.thing,...cords.wearable,"black@is","left@is").to("left_shoe")
+	.tie(...cords.thing,...cords.wearable,"black@is","right@is").to("right_shoe")
 
 /*Actors*/
 $
@@ -39,6 +40,8 @@ $
 $.actor.player
 	.tie(...cords.in).to($.place.foyer)
 	.tie(...cords.wears).to($.thing.cloak)
+	.tie(...cords.wears).to($.thing.left_shoe)
+	.tie(...cords.wears).to($.thing.right_shoe)
 $.fixture.hook.tie(...cords.in).to($.place.cloakroom)
 
 /*language*/
@@ -46,12 +49,17 @@ lexicon
 	/*nouns*/
 	.register("hook","peg").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.fixture.hook})
 	.register("cloak").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.cloak})
+	.register("shoe").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.left_shoe.knots.union($.thing.right_shoe.knots)})
+
 
 	/*adjectives*/
 	.register("small").as({part:"adjective",select:()=>$.small})
 	.register("brass").as({part:"adjective",select:()=>$.brass})
 	.register("dark").as({part:"adjective",select:()=>$.dark})
 	.register("velvet").as({part:"adjective",select:()=>$.velvet})
+	.register("black").as({part:"adjective",select:()=>$.black})
+	.register("left").as({part:"adjective",select:()=>$.left})
+	.register("right").as({part:"adjective",select:()=>$.right})
 
 	/*verbs*/
 	.register("hang")
