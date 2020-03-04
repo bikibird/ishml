@@ -115,12 +115,26 @@ ishml.Cord =class Cord extends Function
 			}
 			if (ply instanceof ishml.Tangle)
 			{
-				//DEFECT not done
+				[...ply].every(member=>
+				{
+					if (member instanceof ishml.Ply)
+					{
+						return (Object.values(this).some(thisPly=>thisPly.knot===member.knot))
+					}
+					if (member instanceof ishml.Knot)
+					{
+						return (Object.values(this).some(thisPly=>thisPly.knot===member))
+					}
+				})
+			}
+			else
+			{
+				return this.hasOwnProperty(ply)
 			}
 
 		})
 	}
-	get knots(){ return new ishml.Tangle(Object.values(this).map((ply)=>ply.knot))}
+	//get knots(){ return new ishml.Tangle(Object.values(this).map((ply)=>ply.knot))}
 	get plies(){ return new ishml.Tangle(Object.values(this))}
 	get ply(){ return Object.values(this)[0]}
 
@@ -129,10 +143,6 @@ ishml.Cord =class Cord extends Function
 		return new ishml.Cord(Object.values(this).slice(-1,-count))
 	}
 
-	map(map)
-	{
-		return ishml.Cord(Object.values(this).map(map))
-	}
 	middle(count=1)
 	{
 		return new ishml.Cord(Object.values(this).slice(count,-count))
@@ -141,9 +151,9 @@ ishml.Cord =class Cord extends Function
 	{
 		return new ishml.Cord(Object.values(this).slice(count-1,-1))
 	}
-	omit(other)
+	where(condition)
 	{
-		return new ishml.Cord(Object.values(this).filter(x => !other.has(x)))
+		return new ishml.Cord(Object.values(this).filter(ply=>condition(ply)))
 	}
 	shuffle(quantity)
 	{
@@ -157,6 +167,10 @@ ishml.Cord =class Cord extends Function
 	sort(sorting)
 	{
 		return new ishml.Cord(Object.values(this).sort(sorting))
+	}
+	get tangle()
+	{
+		return (new ishml.Tangle(Object.values(this)))
 	}
 
 }

@@ -9,7 +9,7 @@ cords.closed=["openable@is:openable","closed@is:closed"]
 cords.container=["container@is:container"]
 cords.in=["in=contains"]
 
-cords.door=["door@is"]
+cords.door=["door@is:door"]
 cords.down=["exit:down=exit:up"]
 cords.east=["exit:east=exit:west"]
 cords.edible=["edible@is:edible"]
@@ -40,7 +40,10 @@ cords.closedDoor=[...cords.door, ...cords.closed]
 cords.openDoor=[...cords.door, ...cords.open]
 cords.lockedDoor=[...cords.closedDoor, ...cords.locked]
 cords.thing=["thing@is:thing",...cords.portable,...cords.touchable]
-
+//$.thing.ring  --forward ply
+//is.ring back ply
+//ring.is.thing --back ply
+//thing.ring --converse back ply
 /*places*/
 
 

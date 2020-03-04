@@ -34,7 +34,74 @@ $.actor.player.friend.friend
 	.first().from.knot
 
 ******
-ply should extend Proxy. ply wraps knot in a proxy.
+knots contains the data that represents a vertex on a graph.
+
+plies are the edges of a directed, weighted graph.  Each ply points a knot. A property not found in a ply will be forwarded to the knot because plies are proxied.
+
+Cords are always a bundle of plies implemented as a set of key/value pairs, aka an object.  The keys are the ids of the plies which may or may not be identical to the ids of the knots they point to.
+
+Tangles are bundles of either plies or knots, but not mixed, and set operations may be perfomed on them.
+
+Cords allow plies to be referenced by ID.  Tangles do not.
+Cords have a magic has property, aka wears(), carries().
+
+Users may attempt to treat plies, knots, or tangles interchangeably.  They should be allowed to do so, where appropriate.  More importantly, they shouldn't be too concerned whether that are dealing in the singular (ply, knot) or the plural (cord, tangle).
+
+If you restrict tangles to knots, you lose the context that the ply provides.
+
+How does one implicitly convert up and down between singular and plural and remember which you are dealing with.
+
+ply, knot, tangle, cord each need  knots and plies functions that convert to a tangle of knots or plies.
+
+****
+close all north doors in rooms
+
+var allNorthDoors=$.place.explore(p=>p.is.room)  //$.place is cord p is ply.
+	.exit.explore(e=>e.north.is.door)
+
+allNorthDoors is a set of entwined plies?
+AllNorthDoors is a set of plies
+AllNorthDoors is a filtered deep copy of cord?
+
+$.place.bar.exit.east  //points to library
+$.place.foyer.exit.east //points to libery
+$.place.library.exit.northwest  //points to bar
+$.place.library.exit.southwest  //points to foyer
+
+
+
+
+var allNorthDoors=$
+	.place.explore(p=>p.is.room)  //$.place is cord p is ply.
+	.exit.explore(e=>e.north.is.door && e.north.is.open)
+	.forEach(e=>e.north
+	.untie()  //removes ply and 
+	.tie(...cordage.closed)).from($) //tying reflexive knots from the reverse perspective.
+
+var allEastAndNorthDoors=$
+	.place.explore(p=>p.is.room)
+	.exit.(e=>e.east.is.door && e.east.is.open)
+	.union (allNorthDoors)//implicit conversion to tangle
+	.forEach(door=>{door.is.open.untie();door.tie(...cordage.closed).from($)})
+
+
+Fix converse for reflexive ties. (done!)
+Add fore and aft, which advance and retreat to the end of an entwined ply.  (done!)
+Add _from() for .tie(), reverse persepective of _to(). done!
+
+
+Path filters:
+
+var cup =$.thing.cup.where(cup=>cup.on.saucer.where(saucer=>saucer.on("table"))&& !cup.contains("ring")) 
+
+//working should also add to tangles?
+
+
+var cup=$.thing.cup.on("saucer")
+
+
+$.green.where(green=>green.is.edible).tangle.add() //returns cord of edible green things.
+
 
 
 

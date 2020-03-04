@@ -54,9 +54,9 @@ ishml.Knot= class Knot
 }
 ishml.Knot.handler=
 {
-	get: function(target, property) 
+	get: function(target, property,receiver) 
 	{
-		if (Reflect.has(target,property)){return Reflect.get(target,property)}
+		if (Reflect.has(target,property)){return Reflect.get(target,property,receiver)}
 		else {return new ishml.Cord()}
 	}
 }

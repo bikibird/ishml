@@ -18,7 +18,9 @@ lexicon
 
     //nouns
     .register("things").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing})
-    
+    .register("cup").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.cup})   
+    .register("saucer").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.saucer})
+    .register("table").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.table})     
 
     //particles
     .register("up").as({ key: "up", part: "particle" })
@@ -65,27 +67,28 @@ grammar.nounPhrase=ishml.Rule()
 grammar.nounPhrase.semantics=(interpretation)=>
 {
     var gist=interpretation.gist
-    var knots=gist.noun.definition.select().knots
+    var plies=gist.noun.definition.select().tangle
+    //filter existing noun plies by adjectives
     if (gist.adjectives)
     {
         gist.adjectives.forEach(adjective=>
         {
-            knots.join(adjective.definition.select().knots)
+            plies=plies.cross(adjective.definition.select().tangle)
+            .per((noun,adjective)=>noun.knot===adjective.knot)
         })
     }
     if(gist.adjunct)
     {
-        knots=knots.cross(gist.adjunct.nounPhrase.noun.definition.select().knots,(noun,adjunct)=>
-        {
-           return noun.ply.entwine({ply:adjunct.ply,via:gist.adjunct.relation.definition.cord})
-        })
+        plies=gist.adjunct.nounPhrase.plies.cross(plies)
+            .per((adjunct,noun)=>noun.entwine({ply:adjunct.ply,via:gist.adjunct.relation.definition.cord}).aft)
     } 
     if (gist.conjunct)
     {
-        knots.union(gist.conjunct.nounPhrase.noun.definition.select().knots)
+       plies=plies.add(gist.conjunct.nounPhrase.noun.definition.select()).disjoint
+       
     }  
 
-    gist.knots=knots
+    gist.plies=plies
 
    return interpretation
 }
@@ -214,22 +217,22 @@ grammar.sentences.command.semantics=(interpretation)=>
     var predicate=gist.predicate
     if (gist.hasOwnProperty("subject"))
     {
-        command.subject=gist.subject.knots
+        command.subject=gist.subject.plies
     }
     else
     {
-        command.subject=$.actor.player.tangle
+        command.subject=$.actor.player.plies
     }
     if (predicate.hasOwnProperty("object"))
     {
         var object=predicate.object
         if (object.hasOwnProperty("directObject"))
         {
-            command.directObject=object.directObject.knots
+            command.directObject=object.directObject.plies
         }
         if (object.hasOwnProperty("indirectObject"))
         {
-            command.directObject=object.indirectObject.knots
+            command.directObject=object.indirectObject.plies
         }
     }
 

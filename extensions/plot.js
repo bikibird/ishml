@@ -54,9 +54,10 @@ plot.action.taking.scope.narrate=function(command)
     
     if (command.directObject)
     {
-        var wearing=command.subject.map(ply=>ply.knot.wears.knots)
-        var carrying=command.subject.map(ply=>ply.knot.carries.knots)
-       var droppable=wearing.union(carrying).join(command.directObject)
+        var droppable=command.directObject
+            .cross(command.subject) 
+            .per((thing,actor)=>actor.wears(thing)||actor.carries(thing))
+        
 
         if(droppable.size===0)
         {

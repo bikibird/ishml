@@ -30,6 +30,9 @@ $
 	.tie(...cords.thing,...cords.wearable,"dark@is","black@is","velvet@is").to("cloak")
 	.tie(...cords.thing,...cords.wearable,"black@is","left@is").to("left_shoe")
 	.tie(...cords.thing,...cords.wearable,"black@is","right@is").to("right_shoe")
+	.tie(...cords.thing).to("cup")
+	.tie(...cords.thing).to("saucer")
+	.tie(...cords.thing).to("table")
 
 /*Actors*/
 $
@@ -43,13 +46,17 @@ $.actor.player
 	.tie(...cords.wears).to($.thing.left_shoe)
 	.tie(...cords.wears).to($.thing.right_shoe)
 $.fixture.hook.tie(...cords.in).to($.place.cloakroom)
+$.thing.saucer.tie(...cords.on).to($.thing.table)
+$.thing.cup.tie(...cords.on).to($.thing.saucer)
+
 
 /*language*/
 lexicon
 	/*nouns*/
-	.register("hook","peg").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.fixture.hook})
-	.register("cloak").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.cloak})
-	.register("shoe").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.left_shoe.knots.union($.thing.right_shoe.knots)})
+	.register("hook","peg").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.fixture.hook.plies})
+	.register("cloak").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.cloak.plies})
+	.register("shoe").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.left_shoe.plies.add($.thing.right_shoe)})
+	.register("shoes").as({part:"noun", number:ishml.enum.number.plural, select:()=>$.thing.left_shoe.plies.add($.thing.right_shoe)})
 
 
 	/*adjectives*/

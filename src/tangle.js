@@ -1,5 +1,6 @@
 ishml.Tangle=class Tangle extends Set
 {
+	//a tangle is a collection of unrelated plies
 	constructor(...members) 
 	{
 		super()
@@ -9,79 +10,90 @@ ishml.Tangle=class Tangle extends Set
 			{
 				member.forEach((item)=>
 				{
-					super.add(item)
+					if (item instanceof ishml.Ply){super.add(item)}
+					if (item instanceof ishml.Knot){super.add(item.ply)}
 				})
 			}
 			else
 			{
-				super.add(member)
+				if (member instanceof ishml.Ply){super.add(member)}
+				if (member instanceof ishml.Knot){super.add(member.ply)}
 			}
 		})	
 		return this	
 	}
-	cross(other,crossing)
+	cross(other)
 	{
-		var tangle = new ishml.Tangle()
-		for (const a of this)
+		
+		var per=crossing=>
 		{
-			for (const b of other)
+			var tangle = new ishml.Tangle()
+			for (const a of this)
 			{
-				tangle.add(crossing(a,b))
+				for (const b of other)
+				{
+					var result=crossing(a,b)
+					try
+					{
+						if (result===true)
+						{
+							tangle.add(a)
+						}
+						else 
+						{
+							if (result instanceof ishml.Ply)
+							{
+								tangle.add(result)
+							}
+						}
+					}
+					catch {}	
+				}
 			}
+			return tangle
 		}
-		return tangle
+		return {per:per}
 	}
 	add(...members)
 	{
 		members.forEach(member=>
 		{
 			if (member instanceof Set || member instanceof Array)
-		{
-			member.forEach((item)=>
 			{
-				super.add(item)
-			})
-		}
-		else
+				member.forEach((item)=>
+				{
+					if (item instanceof ishml.Ply){super.add(item)}
+					if (item instanceof ishml.Knot){super.add(item.ply)}
+				})
+			}
+			else
+			{
+				if (member instanceof ishml.Ply){super.add(member)}
+				if (member instanceof ishml.Knot){super.add(member.ply)}
+			}
+		})	
+		return this	
+	}
+	get disjoint()
+	{
+		var knots=new Set()
+		var tangle=new ishml.Tangle
+		this.forEach(ply=>
 		{
-			super.add(member)
-		}
+			if (!knots.has(ply.knot))
+			{
+				knots.add(ply.knot)
+				tangle.add(ply)
+			}
 		})
-		
-		return this
+		return tangle
 	}
-	union(other)
+	get tangle(){return this}
+	where(condition)
 	{
-		return new ishml.Tangle([...this, ...other])
+		return new ishml.Tangle([...this].filter(condition))
 	}
-	join(other) 
-	{
-		var thisArray=[...this]
-		var otherArray=[...other]
-		if (thisArray.length<otherArray.length)
-		{
-			return new ishml.Tangle(thisArray.filter(x => other.has(x)))
-		}
-		else
-		{
-			return new ishml.Tangle(otherArray.filter(x => this.has(x)))
-		}	
-	}
-	disjoin(other) 
-	{
-		var leftArray= [...this].filter(x => !other.has(x))
-		var rightArray=[...other].filter(x => !this.has(x))
-		return new ishml.Tangle(leftArray.concat(rightArray))
-	}
-	omit(other)
-	{
-		return new ishml.Tangle([...this].filter(x => !other.has(x)))
-	}
-	filter(filter)
-	{
-		return new ishml.Tangle([...this].filter(filter))
-	}
-	map(map)
+	/*map(map)
 	{
 		var tangle = new ishml.Tangle()
 		for ( const a of this)
@@ -89,11 +101,7 @@ ishml.Tangle=class Tangle extends Set
 				tangle.add(map(a))
 		}
 		return tangle
-	}
-	sort(sorting)
-	{
-		return new ishml.Tangle([...this].sort(sorting))
-	}
+	}*/
 	first(count=1)
 	{
 		return new ishml.Tangle([...this].slice(0,1))
@@ -120,31 +128,5 @@ ishml.Tangle=class Tangle extends Set
 	{
 		return new Tangle([...this].sort(sorting))
 	}
-	isSuperset(otherTangle)
-	{
-		return [...otherTangle].every((member)=>this.has(member))
-	}
-	isSubset(otherTangle)
-	{
-		return [...this].every((member)=>otherTangle.has(member))
-	}
-	isEqual(otherTangle)
-	{
-		if (this.size===otherTangle.size)
-		{
-			return [...otherTangle].every((member)=>this.has(member))
-		}
-		else {return false}
-	}
-	isEquivalent(otherTangle)
-	{
-		if (this.size===otherTangle.size){return true}
-		else {return false}
-	}
-
-	get array()
-	{
-
-		return [...this]
-	}
+	
 }

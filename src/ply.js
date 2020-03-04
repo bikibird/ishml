@@ -22,32 +22,47 @@ ishml.Ply= class Ply
 {
 	constructor(id,knot)
 	{
-		this.id=id
-
-		if (knot instanceof ishml.Knot)
+		if (id)
 		{
-			var k=knot
+			this.id=id
+
+			if (knot instanceof ishml.Knot)
+			{
+				var k=knot
+			}
+			else
+			{
+				if (knot){var k=new ishml.Knot(knot)}
+				else{var k=new ishml.Knot(id)}
+
+			}
+			this.knot=k //destination
+			//this.twists={}
+			this.ply={weight:1}
 		}
 		else
 		{
-			if (knot){var k=new ishml.Knot(knot)}
-			else{var k=new ishml.Knot(id)}
-
-		}
-		this.knot=k //destination
-		//this.twists={}
-		this.ply={weight:1}
+			this.id=null
+			this.knot=null
+			this.ply=null
+		}	
 		this.hop=0
 		this.cost=0
+		this.adjunct=null //for adjunctive cording
 		this.advance=null //a ply created during entwining
 		this.retreat=null //a ply created during entwining
-		this.converse=null // a ply created during tying
+		this.converse=null // a ply created during tying for reflexive, mutual and converse
 		this.cord="" // name of of from knot cord where this ply lives
 		this.from=null //the knot where this ply lives
 		//this.mutual=false -- not needed just share this.ply mutually
 		return new Proxy(this, ishml.Ply.handler)
 	}
-
+	get aft()
+	{
+		var ply=this
+		while (ply.retreat){ply=ply.retreat}
+		return ply
+	}
 	get cords()
 	{
 		
@@ -66,7 +81,7 @@ ishml.Ply= class Ply
 			{
 				if(this.knot[via].hasOwnProperty(otherPly.id))
 				{
-					if (condition(this,knot))
+					if (condition(this,otherPly))
 					{
 
 						var tail=this.plait()
@@ -80,12 +95,12 @@ ishml.Ply= class Ply
 						head.retreat=tail
 						head.advance=tail
 						
-						return tail
+						return {tail:tail,head:head}
 					}
 				}
 
 			}
-			return null
+			return {aft:null,fore:null}
 		}	
 
 		var tail=this.plait()
@@ -98,12 +113,13 @@ ishml.Ply= class Ply
 		head.retreat=tail
 		head.advance=tail
 		
-		return tail
+		return {aft:tail,fore:head}
 	}	
-	explore({filter=(knot)=>true,minimum=1,maximum=Infinity,via,cost=(ply,leg)=>ply.cost+leg.ply.weight}={})
+	get fore()
 	{
-		//Returns {explore:explore function, knots:a tangle knots, startPlies: a tangle of entwined plies, endPlies} showing the various paths 
-		//ply.explore("friends").explore("friends")
+		var ply=this
+		while (ply.advance){ply=ply.advance}
+		return ply
 	}
 	get knots(){return new ishml.Tangle(this.knot)}
 	plait()
@@ -216,7 +232,7 @@ ishml.Ply= class Ply
 		this.hop=0
 		this.cost=0
 		var heap=[null]
-		insert(this)
+		insert(this.plait())
 		
 		var visited = new Set()
 		var path= []
@@ -239,7 +255,7 @@ ishml.Ply= class Ply
 						ply=ply.retreat //retreat one hop
 						//exit loop once ply is null.  last retreat points to null.
 					}	
-					return {success:true,start:path[0],end:path[path.length-1]}
+					return {aft:path[0],fore:path[path.length-1]}
 				}
 				else
 				{
@@ -269,9 +285,9 @@ ishml.Ply= class Ply
 				}
 			}		
 		}
-		return {success:false,start:false,end:false,path:[]}  //not found
+		return {aft:null,fore:null}  //not found
 	}
-
+	get plies(){return new ishml.Tangle(this)}
 	retie(cordage)
 	{
 		//$.place.kitchen.contains.knife.retie("in<contains").to($.place.foyer)
@@ -289,109 +305,122 @@ $.thing.cup.tie("cord:ply=otherCord:otherPly").to(otherKnot/otherPly) --converse
 $.thing.cup.tie("cord:ply-otherCord:otherPly").to(otherKnot/otherPly) --mutual relation converse === another ply, but when ply properties updated, other ply is updated automatically because both share the same properties object.
 $.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexive relation converse=== this ply.*/
 
-		var fromPly=this
-		var fromKnot=this.knot
-		var to = (...someKnots)=>
+		var thisPly=this
+		var tie=(from,to)=>
 		{
-			someKnots.forEach((knot)=>
+			if (from instanceof ishml.Knot)
 			{
-				if (knot instanceof ishml.Knot)
+				var fromKnot=from
+			}
+			else
+			{
+				if (from instanceof ishml.Ply)
 				{
-					var toKnot=knot
+					var fromKnot=from.knot
 				}
 				else
 				{
-					if (knot instanceof ishml.Ply)
-					{
-						var toKnot=knot.knot
-					}
-					else
-					{
-						var toKnot=new ishml.Knot(knot)
-					}	
-				}
-				someCordage.forEach((cordage)=>
+					var fromKnot=new ishml.Knot(from)
+				}	
+			}
+			if (to instanceof ishml.Knot)
+			{
+				var toKnot=to
+			}
+			else
+			{
+				if (to instanceof ishml.Ply)
 				{
-					//parse the cordage
-					var [forward,backward]=cordage.split(/[-=@]/)
-					var mutual=cordage.includes("-")
-					var reflexive=cordage.includes("@")
-					var converse=cordage.includes("=")
-					var [cordId,plyId]=forward.split(":").map(id=>ishml.util.formatId(id.trim()))
-					if(!fromKnot.hasOwnProperty(cordId))
+					var toKnot=to.knot
+				}
+				else
+				{
+					var toKnot=new ishml.Knot(to)
+				}	
+			}
+			someCordage.forEach((cordage)=>
+			{
+				//parse the cordage
+				var [fore,aft]=cordage.split(/[-=@]/)
+				var mutual=cordage.includes("-")
+				var reflexive=cordage.includes("@")
+				var converse=cordage.includes("=")
+				var [foreCordId,forePlyId]=fore.split(":").map(id=>ishml.util.formatId(id.trim()))
+				if (!forePlyId){forePlyId=toKnot.id}
+				//create the new fore ply
+				var forePly=new ishml.Ply(forePlyId,toKnot)
+				forePly.from=fromKnot
+				forePly.cord=foreCordId
+				if (fromKnot.hasOwnProperty(foreCordId))
+				{
+					fromKnot[foreCordId][forePlyId]=forePly
+				}	
+				else
+				{
+					var cord = new ishml.Cord()
+					cord.id=foreCordId
+					cord[forePlyId]=forePly
+					fromKnot[foreCordId]=cord
+				}
+
+//exit:north=entrance:south
+//foyer.exit.north points to kitchen
+//foyer.exit.north.converse equivalent to foyer.exit.north.entrance.south which points back to foyer
+//kitchen.entrance.south points to foyer
+//kitchen.entrance.south.converse equivalent to  kitchen.entrance.south.exit.north which points back to foyer			
+				if (mutual || converse || reflexive)
+				{
+					//create the new aft ply
+					var [aftCordId,aftPlyId]=aft.split(":").map(id=>ishml.util.formatId(id.trim()))	
+					if (!aftCordId){aftCordId=foreCordId}
+					
+
+					if (reflexive)
 					{
-						fromKnot[cordId]=new ishml.Cord()
-						fromKnot[cordId].id=cordId
+						if (!aftPlyId){aftPlyId=foreCordId}
+						var aftPly=new ishml.Ply(aftPlyId,toKnot)
 					}
-					if (backward)
+					else 
 					{
-						var [converseCordId,conversePlyId]=backward.split(":").map(id=>ishml.util.formatId(id.trim()))	
+						if (!aftPlyId){aftPlyId=toKnot.id}
+						var aftPly=new ishml.Ply(aftPlyId,fromKnot)
 					}
 
-					
-					if (!cordId){cordId=ishml.util.formatId()}
-					if (!plyId){plyId=toKnot.id}
-					
-					//get the cord where the new ply will live.
-					if (fromKnot.hasOwnProperty(cordId))
+					aftPly.from=toKnot
+					aftPly.cord=aftCordId
+
+					if (toKnot.hasOwnProperty(aftCordId))
 					{
-						var cord=fromKnot[cordId]
-						
+						toKnot[aftCordId][aftPlyId]=aftPly
 					}	
 					else
 					{
 						var cord = new ishml.Cord()
-						cord.id=cordId
-						fromKnot[cordId]=cord
+						cord.id=aftCordId
+						cord[aftPlyId]=aftPly
+						toKnot[aftCordId]=cord
 					}
-					//create the new ply
-					var forwardPly=new ishml.Ply(plyId,toKnot)
-					forwardPly.from=fromKnot
-					forwardPly.cord=cordId
-					//var aliasToKnot=toKnot.plait({plyId:plyId,cord:cord})
-					if(backward)
-					{
-						if (toKnot.hasOwnProperty(converseCordId))
-						{
-							var converseCord=toKnot[converseCordId]
-						}
-						else
-						{
-							var converseCord=new ishml.Cord()
-							converseCord.id=converseCordId
-							toKnot[converseCordId]=converseCord
-						}
 
-						if (reflexive)
-						{
-							if (!conversePlyId){conversePlyId=toKnot.id}
-							var backwardPly=new ishml.Ply(plyId,toKnot)
-							backwardPly.from=toKnot
-							backwardPly.cord=converseCordId
-							backwardPly.ply.weight=forwardPly.ply.weight
-						}
-						else
-						{
-							if (!conversePlyId){conversePlyId=fromKnot.id}
-							var backwardPly=new ishml.Ply(conversePlyId,fromKnot)
-							backwardPly.from=toKnot
-							backwardPly.converse=forwardPly
-							backwardPly.cord=converseCordId
-							if (mutual){ backwardPly.ply=forwardPly.ply}
-						}
-
-						forwardPly.converse=backwardPly
-						
-						toKnot[converseCordId][conversePlyId]=backwardPly	
-					}
-					fromKnot[cordId][plyId]=forwardPly
-				})
-			})	
-			return fromPly
+					forePly.converse=aftPly
+					aftPly.converse=forePly
+				}
+			})
+		}		
+		
+		var from =(...someKnots)=>
+		{
+			someKnots.forEach(knot=>tie(knot,thisPly.knot))	
+			return thisPly
 		}
-		return {to:to}
+
+		var to = (...someKnots)=>
+		{
+			someKnots.forEach(knot=>tie(thisPly.knot,knot))
+			return thisPly
+		}
+		return {to:to, from:from}
 	}
-	
+
 	untie()
 	{
 /*Knot must have been reached by traveling along a tie.
@@ -409,17 +438,32 @@ $.room.kitchen.exit.north.untie()
 		}
 		return this
 	}
-	get value()
+	where(condition)
 	{
-		return ishml.Knot.values[this.uid]
+		try
+		{
+			if (condition(this)){return this}
+			else {return null}
+		}
+		catch
+		{
+			return null
+		}
 	}
+	get test(){return this}
+
 }
+
+
 //custom properties are returned from .ply.  if not found on .ply, then returned from .knot.  Example, description.
 ishml.Ply.handler=
 {
+
 	get: function(target, property, receiver) 
 	{
-		if (Reflect.has(target,property)){return Reflect.get(target,property)}
+		//console.log("reciever",receiver)
+		
+		if (Reflect.has(target,property)){return Reflect.get(target,property, receiver)}
 		var ply=Reflect.get(target,"ply")
 		if(ply.hasOwnProperty(property))
 		{
@@ -427,16 +471,20 @@ ishml.Ply.handler=
 			return ply[property]
 		}
 		var knot=Reflect.get(target,"knot")
-		if(knot.hasOwnProperty(property))
+		if (knot)
 		{
-			
-			return knot[property]
+			if(knot.hasOwnProperty(property))
+			{
+				
+				return knot[property]
+			}
+			else {return new ishml.Cord()}
 		}
-		else {return new ishml.Cord()}
+		else {return new ishml.Cord()}	
 	},
 	set: function(target, property, value, receiver)
 	{
-		if (Reflect.has(target,property)){return Reflect.set(target,property,value)}
+		if (Reflect.has(target,property)){return Reflect.set(target,property,value,receiver)}
 		var ply=Reflect.get(target,"ply")
 		if(ply.hasOwnProperty(property))
 		{
@@ -444,6 +492,7 @@ ishml.Ply.handler=
 			return true
 		}
 		var knot=Reflect.get(target,"knot")
+		
 		if(knot.hasOwnProperty(property))
 		{
 			knot[property]=value
