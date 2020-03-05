@@ -68,6 +68,7 @@ ishml.Tangle=class Tangle extends Set
 			}
 			else
 			{
+				if (member instanceof ishml.Cord){super.add(Object.values(member))}
 				if (member instanceof ishml.Ply){super.add(member)}
 				if (member instanceof ishml.Knot){super.add(member.ply)}
 			}
@@ -93,7 +94,7 @@ ishml.Tangle=class Tangle extends Set
 	{
 		return new ishml.Tangle([...this].filter(condition))
 	}
-	/*map(map)
+	map(map)
 	{
 		var tangle = new ishml.Tangle()
 		for ( const a of this)
@@ -101,7 +102,7 @@ ishml.Tangle=class Tangle extends Set
 				tangle.add(map(a))
 		}
 		return tangle
-	}*/
+	}
 	first(count=1)
 	{
 		return new ishml.Tangle([...this].slice(0,1))

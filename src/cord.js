@@ -134,6 +134,15 @@ ishml.Cord =class Cord extends Function
 
 		})
 	}
+	//$.thing.in($.place.room)
+	orient(toPly)
+	{
+		for (let ply of Object.values(this))
+		{
+			if (ply.knot===toPly.knot){return ply.converse} //returns $.thing.in.foyer
+		}
+		return null
+	}
 	//get knots(){ return new ishml.Tangle(Object.values(this).map((ply)=>ply.knot))}
 	get plies(){ return new ishml.Tangle(Object.values(this))}
 	get ply(){ return Object.values(this)[0]}
@@ -176,7 +185,7 @@ ishml.Cord =class Cord extends Function
 }
 ishml.Cord.handler=
 {
-	apply: (target, thisArg, args) => target.has(...args)
+	apply: (target, thisArg, args) => target.orient(thisArg, ...args)
 }
 
 
