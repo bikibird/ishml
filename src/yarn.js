@@ -13,7 +13,7 @@ ishml.Yarn=function Yarn(seed)
 		this.viewpoint="2nd person singular"
 		this.setting="present"
 		ishml.util.reseed(seed)
-		this.net=new ishml.Ply("$")
+		this.net=new ishml.Knot("$")
 		this.harken()
 		this.undo={}
 		this.undoLength=10

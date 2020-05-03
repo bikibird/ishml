@@ -215,6 +215,7 @@ grammar.sentences.command.semantics=(interpretation)=>
     var command={}
     var gist=interpretation.gist
     var predicate=gist.predicate
+
     if (gist.hasOwnProperty("subject"))
     {
         command.subject=gist.subject.plies
@@ -223,6 +224,7 @@ grammar.sentences.command.semantics=(interpretation)=>
     {
         command.subject=$.actor.player.plies
     }
+    command.verb=[predicate.verb.definition.plot]
     if (predicate.hasOwnProperty("object"))
     {
         var object=predicate.object
@@ -236,9 +238,9 @@ grammar.sentences.command.semantics=(interpretation)=>
         }
     }
 
-   result=predicate.verb.definition.plot.scope.narrate(command)
-   interpretation.valid=result.valid
-   interpretation.response=result.response
+   //result=predicate.verb.definition.plot.scope.narrate(command)
+   //interpretation.valid=result.valid
+  // interpretation.response=result.response
    interpretation.gist=command
    return true
 }

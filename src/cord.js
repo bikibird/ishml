@@ -29,7 +29,7 @@ ishml.Cord =class Cord extends Function
 
 		return new Proxy(this, ishml.Cord.handler)
 	}
-	[Symbol.iterator](){return Object.values(this)}
+	[Symbol.iterator](){return Object.values(this)[Symbol.iterator]()}
 	add(...plies)
 	{
 		plies.forEach((ply)=>
@@ -135,12 +135,16 @@ ishml.Cord =class Cord extends Function
 		})
 	}
 	//$.thing.in($.place.room)
+	
 	orient(toPly)
 	{
+		if (typeof toPly === "string"){return Object.hasOwnProperty(toPly)?this[toPly].converse:null}
+		
 		for (let ply of Object.values(this))
 		{
 			if (ply.knot===toPly.knot){return ply.converse} //returns $.thing.in.foyer
 		}
+
 		return null
 	}
 	//get knots(){ return new ishml.Tangle(Object.values(this).map((ply)=>ply.knot))}
@@ -185,7 +189,11 @@ ishml.Cord =class Cord extends Function
 }
 ishml.Cord.handler=
 {
-	apply: (target, thisArg, args) => target.orient(thisArg, ...args)
+
+	apply: (target, thisArg, args) => 
+	{
+		return target.orient(...args)
+	}
 }
 
 

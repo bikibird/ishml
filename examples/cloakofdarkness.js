@@ -53,8 +53,8 @@ $.thing.cup.tie(...cords.on).to($.thing.saucer)
 /*language*/
 lexicon
 	/*nouns*/
-	.register("hook","peg").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.fixture.hook.plies})
-	.register("cloak").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.cloak.plies})
+	.register("hook","peg").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.fixture.hook})
+	.register("cloak").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.cloak})
 	.register("shoe").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.left_shoe.plies.add($.thing.right_shoe)})
 	.register("shoes").as({part:"noun", number:ishml.enum.number.plural, select:()=>$.thing.left_shoe.plies.add($.thing.right_shoe)})
 

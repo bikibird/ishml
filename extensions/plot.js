@@ -5,7 +5,7 @@ plot
     .add("action","actions")
     .add("scenes","scenes")
 	.add("main","input processing")
-	.add("system","common routines")
+	.add("scope","check whether subjects and objects are in scope.")
 
 plot.main
     .add("prolog","before turn actions")
@@ -13,10 +13,23 @@ plot.main
     .add("epilog","after turn actions")
 
 plot.main.dialog
-
     .add("input", "process input")
 
+plot.scope
+    .add("subjectInRoom")
+    .add("directObjectInRoom")
+    .add("indirectObjectInRoom")
+    .add("subjectCarriesDirectObject")
+    .add("subjectCarriesDirectObjectImplied")
+    .add("subjectWearsDirectObject")
+    .add("subjectWearsDirectObjectImplied")
+    .add("subjectHasDirectObject")
 
+plot.scope.subjectHasDirectObject
+    .add(plot.scope.subjectCarriesDirectObject)
+    .add(plot.scope.subjectWearsDirectObject)
+    .add(plot.scope.subjectCarriesDirectObjectImplied)
+    
 plot.action
     .add("dropping","dropping action")
     .add("equivocating","multiple interpretations of input")
@@ -25,116 +38,170 @@ plot.action
     .add("taking","taking  action")
     .add("taking_from","taking  action")
     .add("taking_to","taking  action")
-    
-plot.action.dropping.add("scope").add("do")
-plot.action.equivocating.add("scope").add("do")
-plot.action.going.add("scope").add("do")
-plot.action.gibbering.add("scope").add("do")
-plot.action.taking.add("scope").add("do")
-plot.action.taking_from.add("scope").add("do")
 
-/*narration*/    
+plot.action.dropping
+    .add(plot.scope.subjectHasDirectObject)
+    .add("perform")
+   
+/*narration*/   
+
 plot.main.dialog.input.narrate=function(twist)
 {
-    twist.interpretations=this.yarn.parser.analyze(twist.input)
-    var command=twist.interpretations[0].gist[0].command
-    command.predicate.verb.definition.plot.narrate(command)
-    console.log(twist.interpretations)
-    interpretations
+    var results=this.yarn.parser.analyze(twist.input)
+    if(results.success)
+    {
+        var interpretations=results.interpretations
+        twist.interpretations=interpretations.forEach(interpretation=>
+        {
+            interpretation.gist.forEach(command=>
+            {
+                command.verb.slice(0).forEach(plotpoint=>
+                    {
+                       plotpoint.narrate(command)
+                       if (command.success)
+                       {
+                           interpretation.valid=true
+                       }
+                       else {interpretation.valid=false}
+    
+                    })
+
+               console.log(command.verb)
+            })
+        })
+        if (interpretations.length===1)
+        {
+            var commands=interpretations[0].gist
+            commands.forEach(command=>
+            {
+                command.perform()
+            })
+        }
+    }    
     return {continue:true}
    
-   
 }
-
-plot.action.taking.scope.narrate=function(command)
+/*scopes*/
+plot.scope.subjectHasDirectObject.narrate=function(command)
 {
     if (command.directObject)
     {
-        if (command.directObject.size>1)
-        {
-            return {valid:false, response:`<p>You think about who should take the ${command.directObject.first().name}. Only one may, afterall.</p>`}
+        if (command.directObject.isEmpty)
+        { 
+            command.salience=2
+            command.perform=()=>
+            {
+                this.yarn.say(`<p>You think about dropping something, but what?</p>`).last("#story")
+                
+            }
+            return this
         }
 
-        var location=command.subject.in
-        var takeable=command.directObject
-            .cross(location) 
-            .per((thing,place)=>thing.in(place) && thing.is.portable)
-            
+        var  droppable=command.directObject
+            .worn_by(command.subject).tangle
+            .add(command.directObject.carried_by(command.subject).tangle)
 
-        if(takeable.size===0)
+                
+        if(droppable.isEmpty)
         {
-            
-            //this.yarn.say(`<p>You are not carrying it.</p>`).last("#story")
-            return {valid:false, response:`<p>You think about taking the ${command.directObject.first().name}, but it's not here.</p>`}
+            command.salience=2
+            command.perform=()=>
+            {
+                this.yarn.say(`<p>You want to drop something, but you don't even have it.</p>`).last("#story")
+                
+            }
+            return this
         }
-
+        
+        command.directObject=droppable
+        command.indirectObject=command.subject.map(subject=>subject.in)
+        command.salience=5
+       
       
+    }
+    else 
+    {
+        command.salience=2
+            command.perform=()=>
+            {
+                this.yarn.say(`<p>You think about dropping something, but what?</p>`).last("#story")
+                
+            }
+        return this
+    } 
+}
+/*actions*/
+plot.action.dropping.narrate=function(command)
+{
+    //is object being carried or worn by subject?
+
+   this.narrateSubplot(command)
+   
+   if (command.salience>=5)
+   {
+        command.perform=()=>
+        {
+            command.directObject=command.directObject
+                .cross(command.indirectObject).per((thing,place)=>thing.untie().tie(...cords.in).to(place).in(place)).tangle
+            this.yarn.say(`<p>You dropped it.</p>`).last("#story")
+        }
+   }    
+   return this 
+    
+
+    //is subject willing or the player?
+
+    
+}
+
+
+
+
+/*plot.action.taking.ponder=function(command)
+{
+    var subplot=this.subplot.ponder(command)
+    if (subplot.salience>0)
+    {
+        command.verb=subplot.plotpoints
+    }
+
+}    
+plot.action.taking.stock.ponder=function(command)
+{
+    console.log("pondering taking")
+    if (command.directObject)
+    {
+        if (command.directObject.isEmpty){ return {salience:1}}
+
+        var location=command.subject.map(subject=>subject.in)
+        var takeable=command.directObject
+            .where(thing=>thing.is.portable)
+            .cross(location) 
+            .per((thing,place)=>thing.in(place))
+            
+
+        if(takeable.isEmpty){return {salience:1}}
+
         command.directObject=takeable
         command.indirectObject=location
-        return { valid:true}
-      
 
+        return {salience:5,plotpoints:[this]}
     }
-    else return {valid:false, response:`<p>You think about taking something, but what?</p>`}
+    else {return {salience:0}} 
 
 }
-plot.action.taking.narrate=function(command)
+plot.action.taking.stock.perform=function(command)
 {
-    var place = command.indirectObject.first
-    command.directObject
-        .cross(location) 
-        .per((thing,place)=>
-        {
-            thing.knot.in(place).retie(...cords.in).from(thing)
-        })
-        this.yarn.say(`<p>You took it.</p>`).last("#story")
-} 
-
-    plot.action.dropping.scope.narrate=function(command)
-    {
+    command.directObject=command.directObject
+    .cross(command.subject)
+    .per((thing,actor)=>thing.untie().tie(...cords.carries).from(actor).carried_by(actor))
     
-    if (command.directObject)
-    {
-        var droppable=command.directObject
-            .cross(command.subject) 
-            .per((thing,actor)=>actor.wears(thing)||actor.carries(thing))
-            .map((thing)=>thing.in.first())
         
-
-        if(droppable.size===0)
-        {
-            
-            //this.yarn.say(`<p>You are not carrying it.</p>`).last("#story")
-            return {valid:false, response:`<p>You think about dropping your ${command.directObject.first().name}, but you don't have one.</p>`}
-        }
-        else
-        {
-            command.directObject=droppable
-            command.indirectObject=command.subject.map(subject=>subject.in)
-            return { valid:true}
-                        
-        }
-
-    }
-    else return {valid:false, response:`<p>You think about dropping something, but what?</p>`}
-}
-/*plot.action.dropping.narrate=function(command)
-{
- command.directObject.forEach((thing)=>{thing.in})
-        .cross(command.subject) 
-        .per((thing,actor)=>actor.wears(thing)||actor.carries(thing))*
-    this.yarn.say(`you drop it.`).last("#story")
-}
-plot.action.equivocating.scope.narrate=function(interpretations)
-{
-    console.log(interpretations)
 }
 
-   
-plot.action.taking.narrate=function(command)
+plot.action.taking.stock.narrate=function(command)
 {
-    command.directObject
-        .cross(command.subject) 
-        .per((thing,actor)=>actor.wears(thing)||actor.carries(thing))
-    this.yarn.say(`you drop it.`).last("#story")
-} */ 
+
+    this.yarn.say(`<p>You took it.</p>`).last("#story")
+}
+*/

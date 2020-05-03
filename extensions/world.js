@@ -3,7 +3,7 @@ var $ = story.net
 var cords={}
 /*cords*/
 cords.actor=["actor@"]
-cords.carries=["carries=carried_by"]
+cords.carries=["carries-carried_by"]
 cords.closed=["openable@is:openable","closed@is:closed"]
 
 cords.container=["container@is:container"]

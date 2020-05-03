@@ -161,7 +161,7 @@ ishml.Ply= class Ply
 			
 		}
     
-	function remove()
+		function remove()
 		{
 			let smallest = heap[1]
 
@@ -217,6 +217,7 @@ ishml.Ply= class Ply
 
 			return smallest
 		}
+		
 		if (destination instanceof ishml.Knot){var target=destination.toPly()}
 		else {var target=destination}
 		if (via)
@@ -292,134 +293,13 @@ ishml.Ply= class Ply
 	{
 		//$.place.kitchen.contains.knife.retie("in<contains").to($.place.foyer)
 		this.untie()
-		return this.tie(cordage)
+		return this.knot.tie(cordage)
 	}
 	get tangle()
 	{
 		return new ishml.Tangle(this)
 	}
-	tie(...someCordage)
-	{
-/*$.thing.cup.tie("cord:ply").to(otherKnot/otherPly) --one-way relation converse===null
-$.thing.cup.tie("cord:ply=otherCord:otherPly").to(otherKnot/otherPly) --converse relation converse === another ply
-$.thing.cup.tie("cord:ply-otherCord:otherPly").to(otherKnot/otherPly) --mutual relation converse === another ply, but when ply properties updated, other ply is updated automatically because both share the same properties object.
-$.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexive relation converse=== this ply.*/
-
-		var thisPly=this
-		var tie=(from,to)=>
-		{
-			if (from instanceof ishml.Knot)
-			{
-				var fromKnot=from
-			}
-			else
-			{
-				if (from instanceof ishml.Ply)
-				{
-					var fromKnot=from.knot
-				}
-				else
-				{
-					var fromKnot=new ishml.Knot(from)
-				}	
-			}
-			if (to instanceof ishml.Knot)
-			{
-				var toKnot=to
-			}
-			else
-			{
-				if (to instanceof ishml.Ply)
-				{
-					var toKnot=to.knot
-				}
-				else
-				{
-					var toKnot=new ishml.Knot(to)
-				}	
-			}
-			someCordage.forEach((cordage)=>
-			{
-				//parse the cordage
-				var [fore,aft]=cordage.split(/[-=@]/)
-				var mutual=cordage.includes("-")
-				var reflexive=cordage.includes("@")
-				var converse=cordage.includes("=")
-				var [foreCordId,forePlyId]=fore.split(":").map(id=>ishml.util.formatId(id.trim()))
-				if (!forePlyId){forePlyId=toKnot.id}
-				//create the new fore ply
-				var forePly=new ishml.Ply(forePlyId,toKnot)
-				forePly.from=fromKnot
-				forePly.cord=foreCordId
-				if (fromKnot.hasOwnProperty(foreCordId))
-				{
-					fromKnot[foreCordId][forePlyId]=forePly
-				}	
-				else
-				{
-					var cord = new ishml.Cord()
-					cord.id=foreCordId
-					cord[forePlyId]=forePly
-					fromKnot[foreCordId]=cord
-				}
-
-//exit:north=entrance:south
-//foyer.exit.north points to kitchen
-//foyer.exit.north.converse equivalent to foyer.exit.north.entrance.south which points back to foyer
-//kitchen.entrance.south points to foyer
-//kitchen.entrance.south.converse equivalent to  kitchen.entrance.south.exit.north which points back to foyer			
-				if (mutual || converse || reflexive)
-				{
-					//create the new aft ply
-					var [aftCordId,aftPlyId]=aft.split(":").map(id=>ishml.util.formatId(id.trim()))	
-					if (!aftCordId){aftCordId=foreCordId}
-					
-
-					if (reflexive)
-					{
-						if (!aftPlyId){aftPlyId=foreCordId}
-						var aftPly=new ishml.Ply(aftPlyId,toKnot)
-					}
-					else 
-					{
-						if (!aftPlyId){aftPlyId=toKnot.id}
-						var aftPly=new ishml.Ply(aftPlyId,fromKnot)
-					}
-
-					aftPly.from=toKnot
-					aftPly.cord=aftCordId
-
-					if (toKnot.hasOwnProperty(aftCordId))
-					{
-						toKnot[aftCordId][aftPlyId]=aftPly
-					}	
-					else
-					{
-						var cord = new ishml.Cord()
-						cord.id=aftCordId
-						cord[aftPlyId]=aftPly
-						toKnot[aftCordId]=cord
-					}
-
-					forePly.converse=aftPly
-					aftPly.converse=forePly
-				}
-			})
-		}		
-		
-		var from =(...someKnots)=>
-		{
-			someKnots.forEach(knot=>tie(knot,thisPly.knot))	
-			return thisPly
-		}
-
-		var to = (...someKnots)=>
-		{
-			someKnots.forEach(knot=>tie(thisPly.knot,knot))
-			return thisPly
-		}
-		return {to:to, from:from}
-	}
+	
 
 	untie()
 	{
@@ -429,12 +309,12 @@ $.room.kitchen.exit.north removes the exit north tie to foyer and returns north.
 
 $.room.kitchen.exit.north.untie()
 */
-		var cord=this.cord
-		delete cord[this.id]
+		delete this.from[this.cord][this.id]
+		//delete cord[this.id]
 		var converse=this.converse
-		if (this.converse)
+		if (converse)
 		{
-			delete converse.cord[converse.id]
+			delete converse.from[converse.cord][converse.id]
 		}
 		return this
 	}
@@ -473,7 +353,7 @@ ishml.Ply.handler=
 		var knot=Reflect.get(target,"knot")
 		if (knot)
 		{
-			if(knot.hasOwnProperty(property))
+			if(Reflect.has(knot,property))
 			{
 				
 				return knot[property]
