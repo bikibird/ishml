@@ -17,6 +17,8 @@ ishml.Rule=function Rule()
 		Object.defineProperty(this, "mismatch", {value:(interpretation)=>false, writable: true})
 		Object.defineProperty(this, "separator", {value:/^\s/, writable: true})
 		Object.defineProperty(this, "regex", {value:false, writable: true})
+		//for composing
+		Object.defineProperty(this, "phrases", {value:[], writable: true})
 		return this
 	}
 	else
@@ -30,7 +32,7 @@ ishml.Rule.prototype.clone =function()
 
 	function _clone(rule)
 	{
-		var clonedRule= new ishml.Rule().configure({caseSensitive:rule.caseSensitive, entire:rule.entire, filter:rule.filter, full:rule.full, greedy:rule.greedy, keep:rule.keep,longest:rule.longest, minimum:rule.minimum, maximum:rule.maximum, mode:rule.mode, mismatch:rule.mismatch, regex:rule.regex, semantics:rule.semantics, separator:rule.separator})
+		var clonedRule= new ishml.Rule().configure({caseSensitive:rule.caseSensitive, entire:rule.entire, filter:rule.filter, full:rule.full, greedy:rule.greedy, keep:rule.keep,longest:rule.longest, minimum:rule.minimum, maximum:rule.maximum, mode:rule.mode, mismatch:rule.mismatch, regex:rule.regex, semantics:rule.semantics, separator:rule.separator,phrases:rule.phrases})
 		var entries=Object.entries(rule)
 		entries.forEach(([key,value])=>
 		{
@@ -50,7 +52,7 @@ ishml.Rule.prototype.clone =function()
 	return _clone(this)
 }	
 //DEFECT Entire not documented.
-ishml.Rule.prototype.configure =function({caseSensitive, entire,filter, full, greedy, keep, longest, minimum,maximum, mode,mismatch, regex, semantics, separator}={})
+ishml.Rule.prototype.configure =function({caseSensitive, entire,filter, full, greedy, keep, longest, minimum,maximum, mode,mismatch, regex, semantics, separator, shuffle, phrases}={})
 {
 
 	if(caseSensitive !== undefined){this.caseSensitive=caseSensitive}
@@ -67,6 +69,7 @@ ishml.Rule.prototype.configure =function({caseSensitive, entire,filter, full, gr
 	if(regex !== undefined){this.regex=regex}
 	if(semantics !== undefined){this.semantics=semantics}
 	if(separator !== undefined){this.separator=separator}
+	if(phrases !== undefined){this.phrases=phrases}
 	return this
 }
 ishml.Rule.prototype.parse =function(text,lexicon)
@@ -399,3 +402,6 @@ ishml.Rule.prototype.snip =function(key,rule)
 	}	
 	return this		
 }
+
+
+

@@ -28,15 +28,29 @@ $.place.bar.knot.configure({
 $
     .tie(...cords.fixture,"small@is","brass@is").to("hook")
 	.tie(...cords.thing,...cords.wearable,"dark@is","black@is","velvet@is").to("cloak")
-	.tie(...cords.thing,...cords.wearable,"black@is","left@is").to("left_shoe")
+.tie(...cords.thing,...cords.wearable,"black@is","left@is").to("left_shoe")
 	.tie(...cords.thing,...cords.wearable,"black@is","right@is").to("right_shoe")
 	.tie(...cords.thing).to("cup")
 	.tie(...cords.thing).to("saucer")
 	.tie(...cords.thing).to("table")
 
+$.thing.cloak.configure({
+	name:"cloak",
+	description:"the blackest black velvet."
+})	
+
+$.place.bar.knot.configure({
+	name:"Bar",
+	description:`The bar, much rougher than you'd have guessed after the opulence of the foyer to the north, is completely empty. There seems to be some sort of message scrawled in the sawdust on the floor.`
+}) 
+
+
 /*Actors*/
 $
 	.tie(...cords.actor).to("player")
+
+$.actor.player.configure(templates.pronouns.epicene)
+
 
 /*staging*/
 
@@ -55,8 +69,8 @@ lexicon
 	/*nouns*/
 	.register("hook","peg").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.fixture.hook})
 	.register("cloak").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.cloak})
-	.register("shoe").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.left_shoe.plies.add($.thing.right_shoe)})
-	.register("shoes").as({part:"noun", number:ishml.enum.number.plural, select:()=>$.thing.left_shoe.plies.add($.thing.right_shoe)})
+	.register("shoe").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.left_shoe.cord.add($.thing.right_shoe)})
+	.register("shoes").as({part:"noun", number:ishml.enum.number.plural, select:()=>$.thing.left_shoe.cord.add($.thing.right_shoe)})
 
 
 	/*adjectives*/
@@ -77,3 +91,16 @@ lexicon
 
 /*plot*/
 
+function interpolate(literals, ...expressions) {
+	let string = ``
+	for (const [i, val] of expressions.entries()) {
+	  string += literals[i] + val
+	}
+	string += literals[literals.length - 1]
+	return string
+  }
+
+function test(literals, ...expressions) {
+	console.log(literals)
+	return expressions
+  }

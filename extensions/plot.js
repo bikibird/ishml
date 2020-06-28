@@ -28,7 +28,7 @@ plot.scope
 plot.scope.subjectHasDirectObject
     .add(plot.scope.subjectCarriesDirectObject)
     .add(plot.scope.subjectWearsDirectObject)
-    .add(plot.scope.subjectCarriesDirectObjectImplied)
+
     
 plot.action
     .add("dropping","dropping action")
@@ -66,7 +66,6 @@ plot.main.dialog.input.narrate=function(twist)
     
                     })
 
-               console.log(command.verb)
             })
         })
         if (interpretations.length===1)
@@ -97,17 +96,17 @@ plot.scope.subjectHasDirectObject.narrate=function(command)
             return this
         }
 
-        var  droppable=command.directObject
-            .worn_by(command.subject).tangle
-            .add(command.directObject.carried_by(command.subject).tangle)
+       var  droppable=command.directObject
+            .worn_by(command.subject)
+            .add(command.directObject.carried_by(command.subject))
 
-                
         if(droppable.isEmpty)
         {
             command.salience=2
             command.perform=()=>
             {
-                this.yarn.say(`<p>You want to drop something, but you don't even have it.</p>`).last("#story")
+                
+                this.yarn.say(`<p>You want to drop it, but you don't even have it.</p>`).last("#story")
                 
             }
             return this
@@ -139,11 +138,45 @@ plot.action.dropping.narrate=function(command)
    
    if (command.salience>=5)
    {
+       console.log(command)
         command.perform=()=>
         {
+            console.log(command)
             command.directObject=command.directObject
-                .cross(command.indirectObject).per((thing,place)=>thing.untie().tie(...cords.in).to(place).in(place)).tangle
-            this.yarn.say(`<p>You dropped it.</p>`).last("#story")
+                .cross(command.indirectObject).per((thing,place)=>thing.untie().tie(...cords.in).to(place).in(place))
+          /* this.yarn.say(`<p>You drop ${command.directObject.first(1).name}.</p>`).last("#story")
+
+            this.yarn
+                .say`blah blah ${command.directObject.ul(thing=>thing.a(thing.name).addClass("ishml-choice").data()).addClass("ishml=comman-list")}`
+                .last("#story")*/
+
+            this.yarn
+            .say(`You drop the 
+                <ol class="ishml-comma-list">
+                    ${command.directObject.recite(thing=>`<li><a class="ishml-choice">${thing.name}</a></li>
+                </ol>`)}`)
+            .last("#story")
+
+            yarn.say `You drop the <ol class="ishml-comma-list">`
+
+                command.directObject.say(thing=>`<li><a class="ishml-choice">${thing.name}</a></li>
+                </ol>`)
+            .last("#story")
+
+            `You drop the <ol class="ishml-comma-list">[<li><a class="ishml-choice">{name}</a></li>]</ol>`
+
+
+        }
+
+
+
+
+            
+
+
+            
+
+            
         }
    }    
    return this 

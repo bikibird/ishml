@@ -1,5 +1,6 @@
 var story = story || new ishml.Yarn()  
 var $ = story.net
+
 var cords={}
 /*cords*/
 cords.actor=["actor@"]
@@ -40,6 +41,16 @@ cords.closedDoor=[...cords.door, ...cords.closed]
 cords.openDoor=[...cords.door, ...cords.open]
 cords.lockedDoor=[...cords.closedDoor, ...cords.locked]
 cords.thing=["thing@is:thing",...cords.portable,...cords.touchable]
+
+var templates={}
+templates.pronouns=
+{
+  epicene:{subjective:"they",objective:"them",reflexive:"themself",possessive:"theirs"},
+  female:{subjective:"she",objective:"her",reflexive:"herself",possessive:"hers"},
+  male:{subjective:"he",objective:"him",reflexive:"himself",possessive:"his"},
+  neuter:{subjective:"it",objective:"it",reflexive:"itself",possessive:"its"}
+}
+
 //$.thing.ring  --forward ply
 //is.ring back ply
 //ring.is.thing --back ply

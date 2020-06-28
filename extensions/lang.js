@@ -1,6 +1,7 @@
 /*lexicon*/
 var grammar = story.grammar || new ishml.Rule()
 var lexicon = story.lexicon || new ishml.Lexicon()
+var pb =story.phrasebook || {}
 lexicon
 
     //adjectives
@@ -67,28 +68,28 @@ grammar.nounPhrase=ishml.Rule()
 grammar.nounPhrase.semantics=(interpretation)=>
 {
     var gist=interpretation.gist
-    var plies=gist.noun.definition.select().tangle
+    var cord=gist.noun.definition.select().cord
     //filter existing noun plies by adjectives
     if (gist.adjectives)
     {
         gist.adjectives.forEach(adjective=>
         {
-            plies=plies.cross(adjective.definition.select().tangle)
+            cord=cord.cross(adjective.definition.select())
             .per((noun,adjective)=>noun.knot===adjective.knot)
         })
     }
     if(gist.adjunct)
     {
-        plies=gist.adjunct.nounPhrase.plies.cross(plies)
+        cord=gist.adjunct.nounPhrase.cord.cross(cord)
             .per((adjunct,noun)=>noun.entwine({ply:adjunct.ply,via:gist.adjunct.relation.definition.cord}).aft)
     } 
     if (gist.conjunct)
     {
-       plies=plies.add(gist.conjunct.nounPhrase.noun.definition.select()).disjoint
+        cord=cord.add(gist.conjunct.nounPhrase.noun.definition.select()).disjoint
        
     }  
 
-    gist.plies=plies
+    gist.cord=cord
 
    return interpretation
 }
@@ -218,11 +219,11 @@ grammar.sentences.command.semantics=(interpretation)=>
 
     if (gist.hasOwnProperty("subject"))
     {
-        command.subject=gist.subject.plies
+        command.subject=gist.subject.cord
     }
     else
     {
-        command.subject=$.actor.player.plies
+        command.subject=$.actor.player.cord
     }
     command.verb=[predicate.verb.definition.plot]
     if (predicate.hasOwnProperty("object"))
@@ -230,11 +231,11 @@ grammar.sentences.command.semantics=(interpretation)=>
         var object=predicate.object
         if (object.hasOwnProperty("directObject"))
         {
-            command.directObject=object.directObject.plies
+            command.directObject=object.directObject.cord
         }
         if (object.hasOwnProperty("indirectObject"))
         {
-            command.directObject=object.indirectObject.plies
+            command.directObject=object.indirectObject.cord
         }
     }
 
@@ -247,3 +248,5 @@ grammar.sentences.command.semantics=(interpretation)=>
 
 story.parser=ishml.Parser({ lexicon: lexicon, grammar: grammar.sentences})
 story.translater= ishml.Parser({ lexicon: lexicon, grammar: grammar.phrasing})
+
+

@@ -48,11 +48,11 @@ ishml.Ply= class Ply
 		}	
 		this.hop=0
 		this.cost=0
-		this.adjunct=null //for adjunctive cording
+		/*this.adjunct=null //for adjunctive cording  What????*/
 		this.advance=null //a ply created during entwining
 		this.retreat=null //a ply created during entwining
 		this.converse=null // a ply created during tying for reflexive, mutual and converse
-		this.cord="" // name of of from knot cord where this ply lives
+		this.cordId="" // name of of from knot cord where this ply lives
 		this.from=null //the knot where this ply lives
 		//this.mutual=false -- not needed just share this.ply mutually
 		return new Proxy(this, ishml.Ply.handler)
@@ -63,10 +63,10 @@ ishml.Ply= class Ply
 		while (ply.retreat){ply=ply.retreat}
 		return ply
 	}
-	get cords()
+	get cord()
 	{
 		
-		return Object.values(this).filter(cord=>cord instanceof ishml.Mesh) 	
+		return new ishml.Cord(this) 	
 	}
 
 	entwine({ply,via=null,condition=()=>true})
@@ -121,7 +121,7 @@ ishml.Ply= class Ply
 		while (ply.advance){ply=ply.advance}
 		return ply
 	}
-	get knots(){return new ishml.Tangle(this.knot)}
+	//get knots(){return new ishml.Tangle(this.knot)}
 	plait()
 	{
 		//create a new ply from this ply.  shallow copy of members.
@@ -131,7 +131,7 @@ ishml.Ply= class Ply
 		plait.hop=this.hop
 		plait.cost=this.cost
 		plait.converse=this.converse // a ply created during tying
-		plait.cord=this.cord // name of of from knot cord where this ply lives
+		plait.cordId=this.cordId // name of of from knot cord where this ply lives
 		plait.from=this.from
 
 		return plait
@@ -288,18 +288,18 @@ ishml.Ply= class Ply
 		}
 		return {aft:null,fore:null}  //not found
 	}
-	get plies(){return new ishml.Tangle(this)}
+	//get plies(){return new ishml.Tangle(this)}
 	retie(cordage)
 	{
 		//$.place.kitchen.contains.knife.retie("in<contains").to($.place.foyer)
 		this.untie()
 		return this.knot.tie(cordage)
 	}
-	get tangle()
+/*	get tangle()
 	{
 		return new ishml.Tangle(this)
 	}
-	
+*/	
 
 	untie()
 	{
@@ -309,12 +309,12 @@ $.room.kitchen.exit.north removes the exit north tie to foyer and returns north.
 
 $.room.kitchen.exit.north.untie()
 */
-		delete this.from[this.cord][this.id]
+		delete this.from[this.cordId][this.id]
 		//delete cord[this.id]
 		var converse=this.converse
 		if (converse)
 		{
-			delete converse.from[converse.cord][converse.id]
+			delete converse.from[converse.cordId][converse.id]
 		}
 		return this
 	}

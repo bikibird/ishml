@@ -249,6 +249,22 @@ ishml.Yarn.prototype.say=function(aText)
 	}
 	return {first:_first,last:_last,instead:_instead}
 }
+
+
+ishml.Yarn.prototype.recite=function(literals, ...expressions)
+{
+
+		
+		let string = ``
+		for (const [i, val] of expressions.entries()) {
+			string += literals[i] + val
+		}
+		string += literals[literals.length - 1]
+		console.log(string)
+		return string+ "test"
+
+}
+
 ishml.Yarn.prototype.restore=function(key)
 {
 	var yarn = this

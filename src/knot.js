@@ -21,7 +21,7 @@ ishml.Knot= class Knot
 	get cord()
 	{
 		//Returns cord with ply representing this knot.
-		return new ishml.Cord(this.toPly(this.id))
+		return new ishml.Cord(this)
 	}
 	get ply()
 	{
@@ -29,7 +29,7 @@ ishml.Knot= class Knot
 		return new ishml.Ply(this.id,this)
 		
 	}
-	get tangle()
+/*	get tangle()
 	{
 		return new ishml.Tangle(this.ply)
 	}
@@ -40,7 +40,7 @@ ishml.Knot= class Knot
 	get plies()
 	{
 		return new ishml.Tangle(this.ply)
-	}
+	}*/
 	get cords()
 	{
 		
@@ -102,9 +102,10 @@ $.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexiv
 				//create the new fore ply
 				var forePly=new ishml.Ply(forePlyId,toKnot)
 				forePly.from=fromKnot
-				forePly.cord=foreCordId
+				forePly.cordId=foreCordId
 				if (fromKnot.hasOwnProperty(foreCordId))
 				{
+					//fromKnot[foreCordId][forePlyId]=forePly
 					fromKnot[foreCordId][forePlyId]=forePly
 				}	
 				else
@@ -139,7 +140,7 @@ $.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexiv
 					}                                                                      
 
 					aftPly.from=toKnot
-					aftPly.cord=aftCordId
+					aftPly.cordId=aftCordId
 
 					if (toKnot.hasOwnProperty(aftCordId))
 					{

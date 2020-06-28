@@ -2,7 +2,7 @@
 /*
 ISC License
 
-Copyright 2019, Jennifer L Schmidt
+Copyright 2019-2020, Jennifer L Schmidt
 
 Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
 
@@ -12,7 +12,7 @@ https://whitewhalestories.com
 */
 
 var ishml = ishml || {}
-//var Ishmael = Ishmael || ishml  //Call me Ishmael.
+//const Ishmael = Ishmael || ishml  //Call me Ishmael.
 ishml.enum=ishml.enum || {}
 ishml.enum.mode={all:Symbol('all'),any:Symbol('any'),apt: Symbol('apt')} 
 ishml.enum.number={singular:Symbol('singular'),plural:Symbol('plural')} 
