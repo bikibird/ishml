@@ -49,7 +49,7 @@ ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^
 			definitions[0]={fuzzy:true}
 			result.token=new ishml.Token(match[0],definitions)
 			result.remainder=searchText.slice(match[0].length)
-			if (separator)
+			if (separator && result.remainder.length>0)
 			{
 				var discard=result.remainder.match(separator)
 				if (discard !== null)

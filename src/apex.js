@@ -14,7 +14,7 @@ https://whitewhalestories.com
 var ishml = ishml || {}
 //const Ishmael = Ishmael || ishml  //Call me Ishmael.
 ishml.enum=ishml.enum || {}
-ishml.enum.mode={all:Symbol('all'),any:Symbol('any'),apt: Symbol('apt')} 
+ishml.enum.mode={all:Symbol('all'),any:Symbol('any'),apt: Symbol('apt'),reset: Symbol('reset')} 
 ishml.enum.number={singular:Symbol('singular'),plural:Symbol('plural')} 
 ishml.enum.pos=
 {

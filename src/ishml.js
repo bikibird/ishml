@@ -2,7 +2,7 @@
 /*
 ISC License
 
-Copyright 2019, Jennifer L Schmidt
+Copyright 2019-2020, Jennifer L Schmidt
 
 Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
 
@@ -12,9 +12,10 @@ https://whitewhalestories.com
 */
 
 var ishml = ishml || {}
-//var Ishmael = Ishmael || ishml  //Call me Ishmael.
+//const Ishmael = Ishmael || ishml  //Call me Ishmael.
 ishml.enum=ishml.enum || {}
-ishml.enum.mode={all:Symbol('all'),any:Symbol('any'),apt: Symbol('apt')} 
+ishml.enum.mode={all:Symbol('all'),any:Symbol('any'),apt: Symbol('apt'),reset: Symbol('reset')} 
+ishml.enum.number={singular:Symbol('singular'),plural:Symbol('plural')} 
 ishml.enum.pos=
 {
 	adjective:Symbol("adjective"),
@@ -92,43 +93,43 @@ ishml.Lexicon.prototype.register = function (...someLexemes)
 	}	
 	return {as:_as.bind(this)}	
 }
-ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^\s+/, lax=false, caseSensitive=false, longest=false, full=false}={}) 
+ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^\s+/, caseSensitive=false, longest=false, full=false}={}) 
 {
 	var _trie = this.trie
 	var _results = []
-	
-	//trim leading separators.
-	if (separator && separator.test(searchText))
-	{
-		var trimmedText=searchText.split(separator,2)[1]
-	}
-	else
-	{
-		var trimmedText=searchText
-	}
 	if(regex)
 	{
-		var match=trimmedText.match(regex)
+		var match=searchText.match(regex)
 		if (match)
 		{
 			var result={}
 			var definitions=[]
 			definitions[0]={fuzzy:true}
 			result.token=new ishml.Token(match[0],definitions)
-			result.remainder=trimmedText.slice(match[0].length)
-			_results.push(result)
-
+			result.remainder=searchText.slice(match[0].length)
+			if (separator && result.remainder.length>0)
+			{
+				var discard=result.remainder.match(separator)
+				if (discard !== null)
+				{
+					result.remainder=result.remainder.slice(discard.length)
+					_results.unshift(result)
+				}
+			}
+			else
+			{
+				_results.unshift(result)
+			}
+			
 		}
 		return _results
-		
 	}
 	else
 	{
-		
-		for (let i=0; i < trimmedText.length; i++)
+		for (let i=0; i < searchText.length; i++)
 		{
-			if (caseSensitive){var character=trimmedText.charAt(i)}
-			else{var character=trimmedText.charAt(i).toLowerCase()}
+			if (caseSensitive){var character=searchText.charAt(i)}
+			else{var character=searchText.charAt(i).toLowerCase()}
 			if ( ! _trie[character])
 			{	
 				if(longest|full)
@@ -144,26 +145,39 @@ ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^
 			}
 			else
 			{	
-				if (_trie[character].definitions)
+				if(_trie[character].definitions)
 				{
-					if (i<trimmedText.length-1)
-					{	
-						if (lax || (separator===false) || (separator && separator.test(trimmedText.substring(i+1))))
+					_trie[character].definitions.forEach(definition=>
+					{
+						if (i<searchText.length-1)
+						{	
+							
+							var result={}
+							result.token=new ishml.Token(searchText.substring(0,i+1),definition)
+							result.remainder=searchText.substring(i+1).slice(0)
+							if (separator)
+							{
+								var discard=result.remainder.match(separator)
+								if (discard !== null)
+								{
+									result.remainder=result.remainder.slice(discard[0].length)
+									_results.unshift(result)
+								}
+							}
+							else
+							{
+								_results.unshift(result)
+							}
+						}
+						else
 						{
 							var result={}
-							result.token=new ishml.Token(trimmedText.substring(0,i+1),_trie[character].definitions)
-							result.remainder=trimmedText.substring(i+1).slice(0)
+							result.token=new ishml.Token(searchText.substring(0),definition)
+							result.remainder=""
 							_results.unshift(result)
-						}
-					}
-					else // if (i===trimmedtext.length-1) 
-					{
-						var result={}
-						result.token=new ishml.Token(trimmedText.substring(0),_trie[character].definitions)
-						result.remainder=""
-						_results.unshift(result)
-					}
-				}
+						}	
+					})
+				}	
 				_trie = _trie[character]
 			}
 		}
@@ -285,7 +299,6 @@ ishml.Rule=function Rule()
 		Object.defineProperty(this, "filter", {value:(definition)=>true, writable: true})
 		Object.defineProperty(this, "greedy", {value:false, writable: true})
 		Object.defineProperty(this, "keep", {value:true, writable: true})
-		Object.defineProperty(this, "lax", {value:false, writable: true})
 		Object.defineProperty(this, "longest", {value:false, writable: true})
 		Object.defineProperty(this, "minimum", {value:1, writable: true})
 		Object.defineProperty(this, "maximum", {value:1, writable: true})
@@ -294,6 +307,8 @@ ishml.Rule=function Rule()
 		Object.defineProperty(this, "mismatch", {value:(interpretation)=>false, writable: true})
 		Object.defineProperty(this, "separator", {value:/^\s/, writable: true})
 		Object.defineProperty(this, "regex", {value:false, writable: true})
+		//for composing
+		Object.defineProperty(this, "phrases", {value:[], writable: true})
 		return this
 	}
 	else
@@ -307,7 +322,7 @@ ishml.Rule.prototype.clone =function()
 
 	function _clone(rule)
 	{
-		var clonedRule= new ishml.Rule().configure({caseSensitive:rule.caseSensitive, entire:rule.entire, filter:rule.filter, full:rule.full, greedy:rule.greedy, keep:rule.keep, lax:rule.lax, longest:rule.longest, minimum:rule.minimum, maximum:rule.maximum, mode:rule.mode, mismatch:rule.mismatch, regex:rule.regex, semantics:rule.semantics, separator:rule.separator})
+		var clonedRule= new ishml.Rule().configure({caseSensitive:rule.caseSensitive, entire:rule.entire, filter:rule.filter, full:rule.full, greedy:rule.greedy, keep:rule.keep,longest:rule.longest, minimum:rule.minimum, maximum:rule.maximum, mode:rule.mode, mismatch:rule.mismatch, regex:rule.regex, semantics:rule.semantics, separator:rule.separator,phrases:rule.phrases})
 		var entries=Object.entries(rule)
 		entries.forEach(([key,value])=>
 		{
@@ -327,7 +342,7 @@ ishml.Rule.prototype.clone =function()
 	return _clone(this)
 }	
 //DEFECT Entire not documented.
-ishml.Rule.prototype.configure =function({caseSensitive, entire,filter, full, greedy, keep, lax, longest, minimum,maximum, mode,mismatch, regex, semantics, separator}={})
+ishml.Rule.prototype.configure =function({caseSensitive, entire,filter, full, greedy, keep, longest, minimum,maximum, mode,mismatch, regex, semantics, separator, shuffle, phrases}={})
 {
 
 	if(caseSensitive !== undefined){this.caseSensitive=caseSensitive}
@@ -336,7 +351,6 @@ ishml.Rule.prototype.configure =function({caseSensitive, entire,filter, full, gr
 	if(full !== undefined){this.full=full}
 	if(greedy !== undefined){this.greedy=greedy}
 	if(keep !== undefined){this.keep=keep}
-	if(lax !== undefined){this.lax=lax}
 	if(longest !== undefined){this.longest=longest}
 	if(minimum !== undefined){this.minimum=minimum}
 	if(maximum !== undefined){this.maximum=maximum}
@@ -345,6 +359,7 @@ ishml.Rule.prototype.configure =function({caseSensitive, entire,filter, full, gr
 	if(regex !== undefined){this.regex=regex}
 	if(semantics !== undefined){this.semantics=semantics}
 	if(separator !== undefined){this.separator=separator}
+	if(phrases !== undefined){this.phrases=phrases}
 	return this
 }
 ishml.Rule.prototype.parse =function(text,lexicon)
@@ -395,8 +410,6 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 						})
 						if (this[key].minimum===0)
 						{
-							
-							//revisedCandidates=revisedCandidates.concat(phrases.filter(p=>p.valid))
 							revisedCandidates=revisedCandidates.concat(phrases.slice(0))
 						}
 						else
@@ -460,8 +473,6 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 							})
 							if (this[key].minimum===0)
 							{
-								
-								//revisedCandidates=phrases.filter(p=>p.valid)
 								revisedCandidates=phrases.slice(0)
 							}
 							else
@@ -562,12 +573,11 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 				//SNIP
 				if (remainder.length>0)
 				{
-					var snippets=lexicon.search(remainder, {regex:rule.regex,separator:rule.separator, lax:rule.lax, caseSensitive:rule.caseSensitive, longest:rule.longest, full:rule.full})
+					var snippets=lexicon.search(remainder, {regex:rule.regex,separator:rule.separator, caseSensitive:rule.caseSensitive, longest:rule.longest, full:rule.full})
 
 					snippets.forEach((snippet)=>
 					{
-						snippet.token.definitions=snippet.token.definitions.filter(this.filter)
-						if (snippet.token.definitions.length>0)
+						if (this.filter(snippet.token.definition))
 						{
 							var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid)
 							if (this.maximum ===1 )
@@ -585,12 +595,7 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 					})
 				}
 			})
-/*			if (this.minimum===0)
-			{
-				revisedCandidates=phrases.filter(p=>p.valid)
-			}
-			else{
-*/			
+			
 			revisedCandidates=phrases.slice(0) //}
 			phrases=[]
 			counter++
@@ -661,19 +666,6 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 	},[])
 	if (results.length>0)
 	{
-	/*	var validResults=results.filter((interpretation)=>
-		{
-			return interpretation.valid
-		})
-		if (validResults.length>0)
-		{
-			return {snippets:validResults}
-		}
-		else
-		{
-			return {snippets:results}
-		}
-	*/
 		return {snippets:results}	
 	}
 	else
@@ -694,29 +686,31 @@ ishml.Rule.prototype.snip =function(key,rule)
 
 		this[key].caseSensitive=this.caseSensitive
 		this[key].full=this.full
-		this[key].lax=this.lax
 		this[key].longest=this.longest
 		this[key].separator=this.separator
 		
 	}	
 	return this		
 }
-ishml.Token=function Token(lexeme="",definitions=[])
+
+
+
+ishml.Token=function Token(lexeme="",definition)
 {
 	if (this instanceof ishml.Token)
 	{
 		this.lexeme=lexeme.slice(0)
-		this.definitions=definitions.slice(0)
+		this.definition=definition
 		return this
 	}
 	else
 	{
-		return new Token(lexeme,definitions)
+		return new Token(lexeme,definition)
 	}
 }
 ishml.Token.prototype.clone=function() 
 {
-	return new ishml.Token(this.lexeme,this.definitions)
+	return new ishml.Token(this.lexeme,this.definition)
 }
 ishml.util={_seed:undefined}
 
@@ -741,14 +735,14 @@ ishml.util.formatId=function(id)
 ishml.util.autoid=ishml.util.enumerator()
 ishml.util.random = function() 
 {
-	this._seed = this._seed * 16807 % 2147483647
-	return (this._seed-1)/2147483646
+	ishml.util._seed =ishml.util._seed* 16807 % 2147483647
+	return (ishml.util._seed-1)/2147483646
 }
 ishml.util.reseed = function(aSeed=Math.floor(Math.random() * 2147483648)) 
 {
-	var seed=aSeed % 2147483647
-	if (seed <= 0){seed += 2147483646}
-	this._seed=seed	
+	//var seed=aSeed % 2147483647
+	//if (seed <= 0){seed += 2147483646}
+	ishml.util._seed=aSeed	
 }
 ishml.util.shuffle=function(anArray,aCount=undefined)
 {
