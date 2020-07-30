@@ -69,11 +69,11 @@ lexicon
 	.register("/").as({part:"factorOp",operation:(a,b)=>a/b})
 	.register("^","**").as({part:"powerOp",operation:(a,b)=>a**b})
 
-var expression=ishml.Rule().configure({lax:true})
-var term=ishml.Rule().configure({lax:true})	
-var power=ishml.Rule().configure({lax:true})
-var group=ishml.Rule().configure({lax:true})
-var number=ishml.Rule().configure({lax:true})
+var expression=ishml.Rule().configure({separator:/^\s*/})
+var term=ishml.Rule().configure({separator:/^\s*/})	
+var power=ishml.Rule().configure({separator:/^\s*/})
+var group=ishml.Rule().configure({separator:/^\s*/})
+var number=ishml.Rule().configure({separator:/^\s*/})
 
 expression.snip("term",term).snip("operations")
 expression.operations.snip("operator").snip("operand",term)
@@ -159,7 +159,7 @@ console.log(parser.analyze("(2^3-3)*4")) // 20</pre>
 <p>The <code>number</code> rule uses a regular expression instead of the lexicon to match numbers, by defining the <code>regex</code> property.  Note the use of <q>^</q> to anchor the search to the head of the input text.  Since the lexicon is not used for this rule, there is no token definition to be retrieved.  Instead, a token is constructed. The token's lexeme is set to the string returned by the regular expression match.  The token's definition is simply set to <code>{fuzzy:true}</code>.  <p>	
 <h2>Additional Options</h2>
 	<p>Let's look at a few of the options that were used in the calculator grammar to change the default behavior of the rules.</p>	
-<p>This grammar allows white space, but does not require it. <q  class="text-monospace">1 + 1</q> is acceptable, but so is <q class=" text-monospace">1+1</q>. Setting the <code>lax</code> option to <code>true</code> makes separators between lexemes optional.</p>
+<p>This grammar allows white space, but does not require it. <q  class="text-monospace">1 + 1</q> is acceptable, but so is <q class=" text-monospace">1+1</q>. Setting the <code>separator</code> option to <code>{separator:/^\s*/}</code> makes whitespace between lexemes optional.</p>
 <p>By default, the parser expects ambiguity; all combinations of repeating items are consider from minimum to maximum and all potential choices are evaluated; all potential matches against the lexicon from shortest to longest are considered.  This is unnecessary for a calculator. The result of an arithmetic expression is unambigous; there is one and only one answer.  The <code>greedy</code> option causes the parser to only consider the longest series whem <code>maximum</code> is set to more than one.  The <code>longest</code> option causes only longest possible match to be considered when retrieving tokens from the lexicon. For example, in this grammar, ""**" may be used for exponentiation.  The parser doesn't need to consider "**" as two multiplication symbols in a row.  Setting <code>longest</code> to <code>true</code> will avoid the parser even considering the muliplication token when it appears twice in row. Instead it will only consider the longer token for exponentiation. The <code>greedy</code> and <code>longest</code> options allow the parser to operate more efficiently, but should only be used where the grammar is unambiguous.</p>
 	<p>The <code>keep</code> option may be set to false to discard some branches and nodes. In this grammar the left and right parentheses are discarded.  While they do identify the start and end of a group, the parentheses are not actually needed for the calculation.</p>
 
@@ -206,11 +206,11 @@ lexicon
 	.register("/").as({part:"factorOp",operation:(a,b)=>a/b})
 	.register("^","**").as({part:"powerOp",operation:(a,b)=>a**b})
 
-var expression=ishml.Rule().configure({lax:true})
-var term=ishml.Rule().configure({lax:true})	
-var power=ishml.Rule().configure({lax:true})
-var group=ishml.Rule().configure({lax:true})
-var number=ishml.Rule().configure({lax:true})
+var expression=ishml.Rule().configure({separator:/^\s*/})
+var term=ishml.Rule().configure({separator:/^\s*/})	
+var power=ishml.Rule().configure({separator:/^\s*/})
+var group=ishml.Rule().configure({separator:/^\s*/})
+var number=ishml.Rule().configure({separator:/^\s*/})
 
 expression.snip("term",term).snip("operations")
 expression.operations.snip("operator").snip("operand",term)
