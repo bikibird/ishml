@@ -112,7 +112,7 @@ ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^
 				var discard=result.remainder.match(separator)
 				if (discard !== null)
 				{
-					result.remainder=result.remainder.slice(discard.length)
+					if (discard !==""){result.remainder=result.remainder.slice(discard.length)}
 					_results.unshift(result)
 				}
 			}
@@ -160,7 +160,7 @@ ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^
 								var discard=result.remainder.match(separator)
 								if (discard !== null)
 								{
-									result.remainder=result.remainder.slice(discard[0].length)
+									if (discard !==""){result.remainder=result.remainder.slice(discard[0].length)}
 									_results.unshift(result)
 								}
 							}
