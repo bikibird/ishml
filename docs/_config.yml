@@ -1,4 +1,4 @@
-ishml: "https://cdn.jsdelivr.net/gh/bikibird/ishml@0.1.8/src/ishml.js"
+ishml: "https://cdn.jsdelivr.net/gh/bikibird/ishml@0.1.7/src/ishml.js"
 defaults:
   -
     scope:
