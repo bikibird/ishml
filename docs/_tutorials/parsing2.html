@@ -158,14 +158,18 @@ nounPhrase.semantics=(interpretation)=>
     {
         return false
     }
-    if (gist.adjectives.every(token=>token.definition.key===gist.noun.definition.key))
-    {
-        return true
+        if (gist.adjectives)
+        {
+        if (gist.adjectives.every(token=>token.definition.key===gist.noun.definition.key))
+        {
+            return true
+        }
+        else
+        {
+            return false
+        }
     }
-    else
-    {
-        return false
-    }
+    return true
 }
 /*Note (a)*/
 
@@ -337,14 +341,18 @@ nounPhrase.semantics=(interpretation)=>
     {
         return false
     }
-    if (gist.adjectives.every(token=>token.definition.key===gist.noun.definition.key))
-    {
-        return true
+        if (gist.adjectives)
+        {
+        if (gist.adjectives.every(token=>token.definition.key===gist.noun.definition.key))
+        {
+            return true
+        }
+        else
+        {
+            return false
+        }
     }
-    else
-    {
-        return false
-    }
+    return true
 }
 
 nounPhrase.mismatch=(interpretation)=>
