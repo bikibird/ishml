@@ -158,7 +158,14 @@ nounPhrase.semantics=(interpretation)=>
     {
         return false
     }
-    else {return true}
+    if (gist.adjectives.every(token=>token.definition.key===gist.noun.definition.key))
+    {
+        return true
+    }
+    else
+    {
+        return false
+    }
 }
 /*Note (a)*/
 
@@ -219,7 +226,7 @@ command.semantics=(interpretation)=>
 <h2>Semantics</h2>
 <p>So far, we have only discussed rules as defining a syntax tree.  The rules validate the input text as having the correct phrase structure, but syntax alone cannot determine if the input is meaningful or simply well structured nonsense. </p>
 <p>To discard interpretations that are nonsensical, we define a rule's <code>.semantics</code> property with a function that will return <code>true</code> for meainingful or <code>false</code> for nonsensical. After a rule's syntactic processing is complete, the function defined by the <code>.semantics</code> property is called with the branch of the syntax tree currently under consideration, an instance of <code>ISHML.Interpretation</code>, passed as the argument. This allows us to compare nodes in the branch and render judgements about the interpretation.  It is also possible to alter the structure of the branch by editing the interpretation's <code>.gist</code> property. </p>
-<p>Study the definition for <code>nounPhrase.semantics</code> in <a href="#codeListing1">Code Listing 1</a>.  If the <code>article</code> node is present in the branch, then we want throw away all definitions in the <code>noun</code> node where the definition's <code>.role</code> property is set to "npc" since people are not referred to with an article.  If, after cleaning up the definitions, there are no definitions left for the noun, then we discard the branch as nonsense and return <code>false</code>.</p>
+<p>Study the definition for <code>nounPhrase.semantics</code> in <a href="#codeListing1">Code Listing 1</a>.  If the <code>article</code> node is present in the branch, then we want throw away all definitions in the <code>noun</code> node where the definition's <code>.role</code> property is set to "npc" since people are not referred to with an article.  We also want to make sure that all the <code>adjectives</code> refer to the <code>noun</code> of the <code>nounPhrase</code> and throw away all interpretations that have an <code>adjective</code> incorrect definition. If the <code>nounPhrase</code> fails theset tests, then we discard the branch as nonsense and return <code>false</code>.</p>
 <p>The <code>command</code> rule also has <code>.semantics</code> defined.  In this case we're not checking for nonsense.  Instead, we're flattening out the tree structure to make easier to work with and more consistent.  Without the semantics function, the noun of the subject is pretty easily accessed: <code>.gist.subject.noun</code>. However, the noun of the direct object is not: <code>.gist.object.directObject.nounPhrase.noun</code>.  The semantics function for <code>command</code> moves the <code>directObject</code> and <code>indirectObject</code> nodes to directly below the root node, becoming siblings to <code>subject</code>. The function always returns <code>true</code> because it makes no judgements about the meaning of the interpretation, just restructures it.  You may argue that we're stretching the meaning of the term semantics past its limits and you might be right, but in the context of the ISHML API, semantics encompasses any sort of processing that is done after syntactic analysis.</p>
 
 
@@ -330,7 +337,14 @@ nounPhrase.semantics=(interpretation)=>
     {
         return false
     }
-    else {return true}
+    if (gist.adjectives.every(token=>token.definition.key===gist.noun.definition.key))
+    {
+        return true
+    }
+    else
+    {
+        return false
+    }
 }
 
 nounPhrase.mismatch=(interpretation)=>

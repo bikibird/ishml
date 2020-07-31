@@ -293,7 +293,7 @@ var example5 = parser.analyze("Take the really pretty ruby slipper")</pre>
                             <li>Why is the value of <code>example1.interpretations[0].gist.nounPhrase.adjectives</code> an array containing a token instead of just the token itself? (Hint: review <a href="#codelisting2">Code Listing 2</a>.)</li>
                         </ol>
                     </li>
-                    <li>Enter <code>console.log(example2)</code> in the command console. Did <code>example2</code> parse successfully? How many interpretations were returned?
+                    <li>Enter <code>console.log(example2)</code> in the command console. Did <code>example2</code> parse successfully?
                         <ol>
                             <li>Why is it valid to omit the word "the" in the input text?</li>
                             <li>How is the syntax tree affected by the missing article in the input text?</li>
@@ -318,7 +318,7 @@ var example5 = parser.analyze("Take the really pretty ruby slipper")</pre>
             <div id="a3" class="collapse" aria-labelledby="q3" data-parent="#q3">
                 <div class="card-body">
                     <ol class="card-text">
-                        <li>Yes, the value of <code>example1.success</code> is <code>true</code>. One interpretation was returned in the array, <code>example1.interpretations</code>
+                        <li>Yes, the value of <code>example1.success</code> is <code>true</code>. Two interpretations were returned in the array, <code>example1.interpretations</code>.  In the first interpretation <q>ruby</q> was defined as referencing the slipper.  In the second interpretation it was defined as referencing the ring.  From a syntactic point of view both interpretations are valid, but from a semantic point of view only the first interpretation defines ruby correctly.  In  <a href="{{ site.baseurl }}{% link _tutorials/parsing2.html %}">part two</a> we'll learn how to write a semantics function to narrow the interpretation to the correct definition. 
                             <ol>
                                 <li>A successful interpretation consumes all input text.</li>
                                 <li>The syntax tree is contained in <code>example1.interpretations[0].gist</code>. The <code>.gist</code> property of the interpretation is the root node of the syntax tree.
@@ -330,8 +330,7 @@ var example5 = parser.analyze("Take the really pretty ruby slipper")</pre>
                                 <li>The <code>maximum</code> option for the <code>.adjectives</code> rule was set to more than 1.</li>
                             </ol>
                         </li>
-                        <li>Yes, the value of <code>example2.success</code> is <code>true</code>. One interpretation was returned in the array,
-                            <code>example2.interpretations</code>
+                        <li>Yes, the value of <code>example2.success</code> is <code>true</code>. 
                             <ol>
                                 <li>The <code>minimum</code> option for the article rule was set to 0.</li>
                                 <li>There is no article property in the syntax tree. <code>example3.interpretations[0].gist.article</code> is <code>undefined</code>.</li>
@@ -341,8 +340,8 @@ var example5 = parser.analyze("Take the really pretty ruby slipper")</pre>
                         </li>
                         <li>No, the value of <code>example4.success</code> is <code>false</code>.
                             <ol>
-                                <li>Two partial interpretations were generated: "take ruby slipper", where ruby is an adjective, and "take ruby", where ruby is a noun.  These interpretations fit the grammar, but they only partially consumme the input text. </li>
-                                <li>The leftover input text is in the interpretation's <code>.remainder</code> property, <code>example4.interpretations[0].remainder</code>.</li>
+                                <li>Two partial interpretations were generated with ruby interpreted as an adjective, <q>take ruby slipper,</q> and two where ruby is a a noun, "take ruby."  These interpretations fit the grammar, but they only partially consumme the input text.</li>
+                                <li>The leftover input text is in the interpretation's <code>.remainder</code> property, <code>example4.interpretations[0].remainder</code>.   When parsing fails, all attempted interpretations are offered, with the array sorted from longest to shortest remainder.</li>
                             </ol>
                         </li>
                         <li>No, the value of <code>example5.success</code> is <code>false</code>.  The input text does not match the <code>command</code> rule. The text <q>really pretty</q> does not match the <code>adjectives</code> rule or the <code>noun</code> rule.  Therefore, the <code>nounPhrase</code> rule fails, which causes the <code>command</code> rule to fail. By the way, it is possible to match text not found in the lexicon by using the <a href="{{ site.baseurl }}{% link api.html %}#rule"><code>regex</code></a> option. Regular expressions are cover in <a href="{{ site.baseurl }}{% link _tutorials/parsing2.html %}">part two</a> of this tutorial.</li>
