@@ -270,8 +270,9 @@ ishml.Parser.prototype.analyze=function(text)
 		}
 	})
 	if (completeInterpretations.length>0)
-	{	
-		return {success:true, interpretations:completeInterpretations}
+	{	var validInterpretations=completeInterpretations.filter(interpretation=>interpretation.gist.valid===true)
+		if(validInterpretations) {return {success:true, interpretations:validInterpretations}}
+		else {return {success:true, interpretations:completeInterpretations}}
 	}
 	else
 	{
