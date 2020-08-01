@@ -1,385 +1,271 @@
-ishml.Phrase=function Phrase() 
-{
-	if (this instanceof ishml.Phrase)
-	{
-		Object.defineProperty(this, "caseSensitive", {value:false, writable: true})
-		Object.defineProperty(this, "full", {value:false, writable: true})
-		Object.defineProperty(this, "filter", {value:(definition)=>true, writable: true})
-		Object.defineProperty(this, "greedy", {value:false, writable: true})
-		Object.defineProperty(this, "keep", {value:true, writable: true})
-		Object.defineProperty(this, "lax", {value:false, writable: true})
-		Object.defineProperty(this, "longest", {value:false, writable: true})
-		Object.defineProperty(this, "minimum", {value:1, writable: true})
-		Object.defineProperty(this, "maximum", {value:1, writable: true})
-		Object.defineProperty(this, "mode", {value:0, writable: true})
-		Object.defineProperty(this, "semantics", {value:(interpretation)=>true, writable: true})
-		Object.defineProperty(this, "separator", {value:/^\s/, writable: true})
-		Object.defineProperty(this, "regex", {value:false, writable: true})
-		return this
-	}
-	else
-	{
-		return new Phrase()
-	}
-}
+/*
+anonoymous phrases:
+var a=ishml.Phrase`There is ${ishml.Phrase(["cat","dog", "bird"]).next().cap()} in ${ishml.Phrase(["hat","box", "nest"]).cap().join({separator:", "})}.`
 
-ishml.Phrase.prototype.clone =function()
-{
-	var circularReferences=new Set()
+By reference phrases:
+var animals=ishml.Phrase(["cat","dog", "bird"])
+var a=ishml.Phrase`You may choose a ${animal:animals.join({separator:" "})}. You chose a ${{animal:animals.next()}}}`
 
-	function _clone(phrase)
+
+
+Named phrases:
+var a=ishml.Phrase`There is ${{animal:ishml.Phrase(["cat","dog", "bird"]).next().cap()}} in ${{container:ishml.Phrase(["hat","box", "nest"]).cap().join({separator:", "})}}.`
+
+Data subsitution:
+a({animal:[{value:"baboon",size:5},{value:"flea",size:1},{value:"badger",size:3}],container:[{value:"shoebox",size:1},{value:"bed",size:5},{value:"cave",size:5}]}).say()
+
+
+factory function:
+
+var a=()=>ishml.Phrase`There is ${{animal:ishml.Phrase(["cat","dog", "bird"]).next()}} in ${{container:ishml.Phrase(["hat","box", "nest"]).next()}}.`
+var b=a()
+var c=a()
+
+
+*/
+ishml.Phrase=function Phrase(literals, ...expressions)
+{
+	var result={phrases:[],placeholders:{}}
+	if (literals.length>0)
 	{
-		var clonedPhrase= new ishml.Phrase().configure({caseSensitive:phrase.caseSensitive, filter:phrase.filter, full:phrase.full, greedy:phrase.greedy, keep:phrase.keep, lax:phrase.lax, longest:phrase.longest, minimum:phrase.minimum, maximum:phrase.maximum, mode:phrase.mode, regex:phrase.regex, semantics:phrase.semantics, separator:phrase.separator})
-		var entries=Object.entries(phrase)
-		entries.forEach(([key,value])=>
+		if (literals[0].length !== 0)
 		{
-			if (circularReferences.has(value))
-			{
-				clonedPhrase[key]=value
-			}
-			else
-			{
-				circularReferences.add(value)
-				clonedPhrase[key]=_clone(value)
-			}
 			
-		})
-		return clonedPhrase
-	}	
-	return _clone(this)
-}	
-ishml.Phrase.prototype.configure =function({caseSensitive, filter, full, greedy, keep, lax, longest, minimum,maximum, mode, regex, semantics, separator}={})
-{
-
-	if(caseSensitive !== undefined){this.caseSensitive=caseSensitive}
-	if(filter !== undefined){this.filter=filter}
-	if(full !== undefined){this.full=full}
-	if(greedy !== undefined){this.greedy=greedy}
-	if(keep !== undefined){this.keep=keep}
-	if(lax !== undefined){this.lax=lax}
-	if(longest !== undefined){this.longest=longest}
-	if(minimum !== undefined){this.minimum=minimum}
-	if(maximum !== undefined){this.maximum=maximum}
-	if(mode !== undefined){this.mode=mode}
-	if(regex !== undefined){this.regex=regex}
-	if(semantics !== undefined){this.semantics=semantics}
-	if(separator !== undefined){this.separator=separator}
-	return this
-}
-ishml.Phrase.prototype.parse =function(text,lexicon)
-{
-	var someText=text.slice(0)
-	var results=[]
-	var problem=false
-	var keys=Object.keys(this)
-	if (keys.length>0)
-	//non-terminal
-	{
-		switch (this.mode) 
+			result.phrases.push({value:literals[0]})
+		}
+		var index=1
+		expressions.forEach(phrase=>
 		{
-			case ishml.enum.mode.all:
-				if (this.maximum ===1 ){var candidates=[new ishml.Interpretation({},someText)]}
-				else {var candidates=[new ishml.Interpretation([],someText)]}
-				var counter = 0
-				var phrases=[]
-				var revisedCandidates=candidates.slice(0)
-				while (counter<this.maximum)
+			if (!(typeof phrase === "function"))
+			{
+				var key=Object.keys(phrase)[0]
+				result.placeholders[key]=phrase[key]
+				result.phrases.push({value:phrase[key]})
+			}
+			else {result.phrases.push({value:phrase})}
+			if (literals[index].length>0)
+			{
+				result.phrases.push({value:literals[index]})
+			}
+			index++
+		})
+		if (index < literals.length)
+		{
+			result.phrases=result.phrases.concat(literals.slice(index).map(literal=>({value:literal})))
+		}	
+	}	
+	var ishml_phrase=function(data)
+	{
+		if(data)
+		{
+			if (data instanceof Array)
+			{
+				result.phrases=data.map(phrase=>
 				{
-					for (let key of keys)
-					{
-						revisedCandidates.forEach(({gist,remainder=false})=>
-						{	
-							//SNIP
-							if (remainder.length>0)
-							{
-								var {snippets,error}=this[key].parse(remainder.slice(0),lexicon) 
-								snippets.forEach((snippet)=>
-								{
-									var phrase=new ishml.Interpretation(gist,snippet.remainder)
-									if (this.maximum ===1 )
-									{
-										if(this[key].keep){phrase.gist[key]=snippet.gist}
-									}
-									else 
-									{
-										if(phrase.gist.length===counter){phrase.gist.push({})}
-										if(this[key].keep){phrase.gist[counter][key]=snippet.gist}
-									}
-									phrases.push(phrase)
-								})
-								if (snippets.length===0)
-								{
-									
-									if (error.error)
-									{
-										if(!problem)
-										{
-											problem={error:{}}
-										}
-										problem.error[key]=error.error
-									}
-								}
-								
-								console.log(problem)	
-							}  
-						})
-						if (this[key].minimum===0)
-						{
-							revisedCandidates=revisedCandidates.concat(phrases.slice(0))
-						}
-						else{revisedCandidates=phrases.slice(0)}
-						
-						phrases=[]
-					}
-					counter++
-					if (revisedCandidates.length===0)
-					{
-						break
-					}
+					if (typeof phrase === "string"){return {value:phrase}}
 					else
 					{
-						if (counter >= this.minimum)
-						{
-							if (this.greedy){results=revisedCandidates.slice(0)}
-							else {results=results.concat(revisedCandidates)}
-						}
+						if (phrase.hasOwnProperty("value")){return phrase}
+						else {return Object.assign({value:Object.values(phrase)[0]})}
 					}
-				}
-				break
-			case ishml.enum.mode.any:
-					if (this.maximum ===1 ){var candidates=[new ishml.Interpretation({},someText)]}
-					else {var candidates=[new ishml.Interpretation([],someText)]}
-					var revisedCandidates=candidates.slice(0)
-					for (let key of keys)
-					{
-						var counter = 0
-						var phrases=[]
-						
-						while (counter<this.maximum)
-						{
-							revisedCandidates.forEach(({gist,remainder})=>
-							{
-							//SNIP
-								if (remainder.length>0)
-								{
-									var {snippets,error}=this[key].parse(remainder.slice(0),lexicon) 
-									snippets.forEach((snippet)=>
-									{
-										var phrase=new ishml.Interpretation(gist,snippet.remainder)
-										if (this.maximum ===1 )
-										{
-											if(this[key].keep){phrase.gist=snippet.gist}
-										}
-										else 
-										{
-											if(phrase.gist.length===counter){phrase.gist.push({})}
-											if(this[key].keep){phrase.gist[counter]=snippet.gist}
-										}
-										phrases.push(phrase)
-									})
-								}
-								if (snippets.length===0)
-								{
-									
-									if (error.error)
-									{
-										if(!problem)
-										{
-											problem={error:{}}
-										}
-										problem.error[key]=error.error
-									}
-								}
-								console.log(problem)
-							})
-							
-							revisedCandidates=phrases.slice(0)
-							phrases=[]
-							counter++
-							if (revisedCandidates.length===0){break}
-							else
-							{
-								if (this.greedy){results=revisedCandidates.slice(0)}
-								else {results=results.concat(revisedCandidates)}
-							}
-						}
-						revisedCandidates=candidates.slice(0)  //go see if there are more alternatives that work.	
-					}
-					break
-			case ishml.enum.mode.apt:
-				if (this.maximum ===1 ){var candidates=[new ishml.Interpretation({},someText)]}
-				else {var candidates=[new ishml.Interpretation([],someText)]}
-				var revisedCandidates=candidates.slice(0)
-				for (let key of keys)
-				{
-					var counter = 0
-					var phrases=[]
-					
-					while (counter<this.maximum)
-					{
-						revisedCandidates.forEach(({gist,remainder})=>
-						{
-							//SNIP
-							if (remainder.length>0)
-							{
-								var {snippets,error}=this[key].parse(remainder.slice(0),lexicon) 
-								snippets.forEach((snippet)=>
-								{
-									var phrase=new ishml.Interpretation(gist,snippet.remainder)
-									if (this.maximum ===1 )
-									{
-										if(this[key].keep){phrase.gist=snippet.gist}
-									}
-									else 
-									{
-										if(phrase.gist.length===counter){phrase.gist.push({})}
-										if(this[key].keep){phrase.gist[counter]=snippet.gist}
-									}
-									phrases.push(phrase)
-								})
-							}
-							if (snippets.length===0 )
-							{
-								
-								if (error.error)
-								{
-									if(!problem)
-									{
-										problem={error:{}}
-									}
-									problem.error[key]=error.error
-								}
-							}
-							console.log(problem)
-						})
-						
-						revisedCandidates=phrases.slice(0)
-						phrases=[]
-						counter++
-						if (revisedCandidates.length===0){break}
-						else
-						{
-							if (this.greedy){results=revisedCandidates.slice(0)}
-							else {results=results.concat(revisedCandidates)}
-						}
-					}
-					if (results.length>0){break} //found something that works, stop looking.
-					revisedCandidates=candidates.slice(0)//try again with next key.	
-				}
-				break
-		}
-	}
-	else
-	{
-	//terminal
-
-		if (this.maximum ===1 ){var candidates=[new ishml.Interpretation({},someText)]}
-		else {var candidates=[new ishml.Interpretation([],someText)]}
-		var revisedCandidates=candidates.slice(0)
-		
-		var counter = 0
-		var phrases=[]
-		var phrase = this
-		while (counter<this.maximum)
-		{
-			revisedCandidates.forEach(({gist,remainder})=>
-			{
-				//SNIP
-				if (remainder.length>0)
-				{
-					var snippets=lexicon.search(remainder, {regex:phrase.regex,separator:phrase.separator, lax:phrase.lax, caseSensitive:phrase.caseSensitive, longest:phrase.longest, full:phrase.full})
-
-					snippets.forEach((snippet)=>
-					{
-						snippet.token.definitions=snippet.token.definitions.filter(this.filter)
-						if (snippet.token.definitions.length>0)
-						{
-							var phrase=new ishml.Interpretation(gist,snippet.remainder)
-							if (this.maximum ===1 )
-							{
-								if(this.keep){phrase.gist=snippet.token}
-							}
-							else 
-							{
-								if(phrase.gist.length===counter){phrase.gist.push({})}
-								if(this.keep){phrase.gist[counter]=snippet.token}
-							}
-							phrases.push(phrase)
-						}	
-					})
-					if (snippets.length===0  && counter < this.minimum)
-					{
-						if(!problem)
-						{
-							problem={error:remainder}
-						}
-						
-
-					}
-					
-				}
-			})
-
-			revisedCandidates=phrases.slice(0)
-			phrases=[]
-			counter++
-			if (revisedCandidates.length===0)
-			{
-				
-				break
+				})
 			}
 			else
 			{
-				if (this.greedy){results=revisedCandidates.slice(0)}
-				else {results=results.concat(revisedCandidates)}
+				if(!(data===ishml.enum.mode.reset))
+				{
+					Object.keys(data).forEach(key=>
+					{
+						if(result.placeholders.hasOwnProperty(key))
+						{
+							//result.placeholders[key].populate(data[key])
+							result.placeholders[key](data[key])
+						}
+
+					})
+				}	
 			}
+			return ishml_phrase
 		}
-		
-	}	
-	if (results.length>0)
-	{	
-		return {snippets:results.reduce((revisedResults, interpretation) =>
-		{
-			var revisedInterpretation=this.semantics(interpretation)
-			if (revisedInterpretation)
-			{
-				if (revisedInterpretation === true)
-				{
-					interpretation.error=problem.error
-					revisedResults.push(interpretation)
-				}
-				else
-				{
-					revisedInterpretation.error=problem.error
-					revisedResults.push(revisedInterpretation)
-				}
-			}
-			return revisedResults
-
-		},[]),error:problem}
+		else {return result}
 	}
-	else
-	{
-		return {snippets:[], error:problem}
-	}	
+	
+	Object.assign(ishml_phrase,ishml.Phrase.transform)
+	//ishml_phrase.populate=ishml_phrase //DEFECT:Needed anymore?
+	
+	return ishml_phrase
 }
-ishml.Phrase.prototype.say =function(key,phrase)
-{
-//DEFECT:Should be using arrays.
-	if (phrase instanceof ishml.Phrase)
-	{
-		this[key]=phrase
-	}
-	else
-	{
-		this[key]=new ishml.Phrase()
+//A transform function when called that returns a function that returns the actual transformation.  The transformation returns either text or an object countaining the phrases array and list of placeholders.  
+ishml.Phrase.transform={}
 
-		this[key].caseSensitive=this.caseSensitive
-		this[key].full=this.full
-		this[key].lax=this.lax
-		this[key].longest=this.longest
-		this[key].separator=this.separator
-		
-	}	
-	return this		
+ishml.Phrase.transform.say=function(documentSelector)
+{
+	var {phrases}=this()
+	var saying= phrases.reduce((result,phrase)=>
+	{
+		if (typeof phrase.value === "function" )
+		{
+			if (phrase.value.name==="ishml_phrase"){var phrasing=phrase.value.say()}
+			else{var phrasing= phrase.value()}
+			return result+phrasing
+		}
+		else {return result+phrase.value}
+	},"")
+	if (documentSelector)
+	{
+		var targetNodes = document.querySelectorAll(documentSelector)
+		var fragment = document.createElement("template")
+    	fragment.innerHTML = saying
+    	fragment= fragment.content
+		var _prepend = ()=>
+		{
+			targetNodes.forEach(node=>node.prepend(fragment))
+			return saying
+		}	
+		var _append = ()=>
+		{
+			targetNodes.forEach(node=>node.append(fragment))
+			return saying
+		}
+		var _replace= ()=>
+		{
+			targetNodes.forEach(node=>
+			{
+				while(node.firstChild){node.removeChild(node.firstChild)}
+				node.append(fragment)
+			})
+			return saying
+		}
+		return {prepend:_prepend,append:_append,replace:_replace}
+	}
+	else 
+	{
+		return saying
+	}
+}
+ishml.Phrase.transform.next=function()
+{
+	var counter=0
+	var target=this
+	var ishml_phrase=function(data)
+	{	
+		if (data)
+		{
+			//target.populate(data)
+			target(data)
+			counter=0
+			return ishml_phrase
+		}
+		else
+		{
+			var {phrases,placeholders}=target(data)
+
+			var result={phrases:[phrases[counter]],placeholders:placeholders}	
+
+			
+			counter++
+			if (counter===phrases.length){counter=0}
+			
+			return result
+		}	
+	}
+	Object.assign(ishml_phrase,ishml.Phrase.transform)
+	//ishml_phrase.populate=target.populate
+	return ishml_phrase
+}
+
+ishml.Phrase.transform.cap=function()
+{
+	var target=this
+	var ishml_phrase=function(data)
+	{	
+		if (data)
+		{
+			target(data)
+			return ishml_phrase
+		}
+		else
+		{
+			var {phrases,placeholders}=target(data)
+			phrases=phrases.map(phrase=>
+			{
+				if (phrase.value.length>0)
+				{
+					revisedPhrase=Object.assign({},phrase)
+					revisedPhrase.value=phrase.value[0].toUpperCase()+phrase.value.slice(1)
+					return revisedPhrase
+				}	
+			})
+		}	
+		var result={phrases:phrases,placeholders:placeholders}	
+		return result
+	}
+	Object.assign(ishml_phrase,ishml.Phrase.transform)
+	//ishml_phrase.populate=target.populate
+	return ishml_phrase
+}
+ishml.Phrase.transform.indentity=function()
+{
+	var target=this
+	ishml_phrase=function(data)
+	{	
+		if (data)
+		{
+			target(data)
+			return ishml_phrase
+		}
+		else
+		{
+			var {phrases,placeholders}=target(data)
+			var result={phrases:phrases,placeholders:placeholders}	
+			return result
+		}
+	}
+
+	Object.assign(ishml_phrase,ishml.Phrase.transform)
+	//ishml_phrase.populate=target.populate
+	return ishml_phrase
+}
+
+ishml.Phrase.transform.join=function(options)
+{
+	var {separator=" ",trim=true}=options
+	var target=this
+	var ishml_phrase=function(data)
+	{	
+		if (data)
+		{
+			target(data)
+			return ishml_phrase
+		}
+		else
+		{
+			var {phrases,placeholders}=target()
+			var last=phrases.length-1
+			var phrase=phrases.reduce((result,phrase,index,)=>
+			{
+				if (typeof phrase.value === "function" )
+				{
+					if (phrase.value.name==="ishml_phrase")
+					{
+						
+						var phrasing=phrase.value.say()+((index===last && trim)?"":separator)
+					}
+					else{var phrasing= phrase.value()}
+					return result+phrasing+((index===last && trim)?"":separator)
+				}
+				else 
+				{
+					return result+phrase.value+((index===last && trim)?"":separator)
+				}
+			},"")	
+			phrase={value:phrase}
+			var result={phrases:[phrase],placeholders:placeholders}	
+			
+			return result
+		}	
+	}
+	Object.assign(ishml_phrase,ishml.Phrase.transform)
+	//ishml_phrase.populate=target.populate
+	return ishml_phrase
 }
