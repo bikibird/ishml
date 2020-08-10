@@ -5,8 +5,7 @@ var a=ishml.Phrase`There is ${ishml.Phrase(["cat","dog", "bird"]).next().cap()} 
 By reference phrases:
 var animals=ishml.Phrase(["cat","dog", "bird"])
 
-var a=ishml.Phrase`You may choose a ${animals:animals.join({separator:" "})}. You chose a ${{animal:animals.next()}}`
-var a=ishml.Phrase`You may choose a ${animals:animals.join({separator:" "})}. You chose a ${{animal:animals.next()}}`
+var a=ishml.Phrase`You may choose a ${{animals:animals.join({separator:" "})}}. You chose a ${{animal:animals.next()}}`
 
 Named phrases:
 var a=ishml.Phrase`There is ${{animal:ishml.Phrase(["cat","dog", "bird"]).next().cap()}} in ${{container:ishml.Phrase(["hat","box", "nest"]).cap().join({separator:", "})}}.`
@@ -38,14 +37,14 @@ var a=ishml.Phrase`There is something ${{animal:ishml.Phrase(["cat","dog", "bird
 */
 ishml.Phrase=function Phrase(literals, ...expressions)
 {
-	var result={phrases:[],placeholders:{}}
-	var concordance={}
+	var phrases=[]
+	var concordance={key:{},index:{}}
 	if (literals.length>0)
 	{
 		if (literals[0].length !== 0)
 		{
 			
-			result.phrases.push({value:literals[0]})
+			phrases.push({value:literals[0]})
 			
 		}
 		var index=1
@@ -55,23 +54,24 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 			if (typeof phrase === "object")  //phrase is an object. AKA named phrase
 			{
 				var key=Object.keys(phrase)[0]
-				result.placeholders[key]=phrase[key]
 				var normalizedPhrase=Object.assign({value:phrase[key]},phrase)
-				concordance[result.phrases.push(normalizedPhrase)-1]=key
+				var counter=phrases.push(normalizedPhrase)-1
+				concordance.index[counter]=key
+				concordance.key[key]=counter
 			}
 			else //anonymous phrase
-			{result.phrases.push({value:phrase})}
+			{phrases.push({value:phrase})}
 			if (literals[index].length>0)
 			{
-				result.phrases.push({value:literals[index]})
+				phrases.push({value:literals[index]})
 			}
 			index++
 		})
 		if (index < literals.length)
 		{
-			result.phrases=result.phrases.concat(literals.slice(index).map(literal=>({value:literal})))
+			phrases=phrases.concat(literals.slice(index).map(literal=>({value:literal})))
 		}
-		result.total=result.phrases.length	
+		
 	}	
 	var ishml_phrase=function(data)
 	{
@@ -79,7 +79,7 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 		{
 			if (data instanceof Array)
 			{
-				result.phrases=data.map(phrase=>
+				phrases=data.map(phrase=> //normalize phrases
 				{
 					if (typeof phrase === "string"){return {value:phrase}}
 					else
@@ -95,9 +95,9 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 				{
 					Object.keys(data).forEach(key=>
 					{
-						if(result.placeholders.hasOwnProperty(key))
+						if(concordance.key.hasOwnProperty(key))
 						{
-							result.placeholders[key](data[key])
+							phrases[concordance.key[key]].value(data[key])
 						}
 
 					})
@@ -105,78 +105,101 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 			}
 			return ishml_phrase
 		}
-		else {return result}
+		else {return phrases}
 	}
-	ishml.Phrase.attach(ishml_phrase, result.placeholders,concordance)
+	ishml.Phrase.attach(ishml_phrase,concordance)
 	return ishml_phrase
 }
-ishml.Phrase.attach=function(ishml_phrase,placeholders,concordance)
+ishml.Phrase.attach=function(ishml_phrase,concordance)
 {
-	var say=function(documentSelector)
+	var toString=function(phrases)
 	{
-		var {phrases,placeholders,index:phraseIndex,total}=this()
-		var saying= phrases.reduce((result,phrase,index)=>
+		var text= phrases.reduce((result,phrase)=>
 		{
-			if (phrase.hasOwnProperty("if")){var mainClause=phrase.if()}
-			else {var mainClause=true}	
-			if (mainClause)
+			if(typeof phrase.value ==="object")
 			{
-				if (typeof phrase.value === "function" )
+				if (phrase.value.hasOwnProperty("value"))
 				{
-					if (phrase.value._isIshmlPhrase)
-					{
-						var phrasing=phrase.value.say()
-					}
-					else
-					{
-						var phrasing=phrase.value()
-					}
-					phrase.text=phrasing
+					var value=phrase.value.value
 				}
-				else
-				{
-					phrase.text=phrase.value
-
-				}
-			}	
-			else
-			{
-				if (typeof phrase.else === "function" )
-				{
-					if (phrase.else._isIshmlPhrase)
-					{
-						var phrasing=phrase.else.say()
-					}
-					else
-					{
-						var phrasing=phrase.else()
-					}
-					phrase.text=phrasing
-				}
-				else
-				{
-					phrase.text=phrase.else || ""
-				}
-					
+				else {var value=Object.values(phrase.value)[0]}
 			}
-			if(isFinite(phraseIndex)){phrase.index=phraseIndex}
-			if(isFinite(total)){phrase.total=total}
-			if(this._concordance.hasOwnProperty(index))
-			{					
-				this[this._concordance[index]]=phrase
-			}
+			else {var value=phrase.value}
 			if (phrase.silent)
 			{
 				if (typeof phrase.silent === "string")
 				{
 					new RegExp(phrase.silent+ "+$");
-  					return result.replace(new RegExp(phrase.silent+ "+$"), "");
+					return result.replace(new RegExp(phrase.silent+ "+$"), "");
 				}
 				return result
 			}
-			else {return result+phrase.text}
+			else {return result+value}
 		},"")
+		return text
+	}
+	var flatten=function()
+	{
+		var result=[]
+		var phrases=this()
+		
+		phrases.forEach((phrase,index)=>
+		{
+			if (phrase.hasOwnProperty("if"))
+			{
+				if (phrase.if())
+				{
+					var clause=phrase.value
+				}
+				else
+				{
+					if (phrase.hasOwnProperty("else"))
+					{
+						var clause=phrase.else
+					}
+					else
+					{
+						var clause=""
+					}
+				}
+			}
+			else {var clause=phrase.value}
+			if (typeof clause === "function" )
+			{
+				if (clause._isIshmlPhrase)
+				{
 
+					var flattenedPhrases=clause.flatten()
+					var meta={}
+					var data={}
+					flattenedPhrases.forEach(phrase=>
+					{
+						console.log(phrase)
+						meta=Object.assign(meta, phrase.meta)
+						data=Object.assign(data, phrase.value)
+					})
+					if(this._concordance.index.hasOwnProperty(index))
+					{					
+						this[this._concordance.index[index]]={text:toString(flattenedPhrases),meta:meta,data:data}
+					}
+					result=result.concat(flattenedPhrases)
+				}
+				else
+				{
+					result=result.concat({value:clause()})
+				}
+			}
+			else {result.push({value:clause,meta:phrase.meta})}
+
+			
+		})
+		return result
+		
+	}
+		
+	var say=function(documentSelector) //generates text output
+	{
+		var saying=toString(this.flatten())
 		if (documentSelector)
 		{
 			var targetNodes = document.querySelectorAll(documentSelector)
@@ -214,14 +237,14 @@ ishml.Phrase.attach=function(ishml_phrase,placeholders,concordance)
 		Object.defineProperty(ishml_phrase,key,{value:ishml.Phrase.transform[key],writable:true})
 
 	})
-	Object.keys(placeholders).forEach(key=>
+	Object.keys(concordance.key).forEach(key=>
 	{
-		ishml_phrase[key]=""
+		ishml_phrase[key]={}
 	})
 	Object.defineProperty(ishml_phrase,"_concordance",{value:concordance,writable:true})
 	Object.defineProperty(ishml_phrase,"_isIshmlPhrase",{value:true,writable:true})
+	Object.defineProperty(ishml_phrase,"flatten",{value:flatten,writable:true})
 	Object.defineProperty(ishml_phrase,"say",{value:say,writable:true})
-	
 }
 //A transform function when called that returns a function that returns the actual transformation.  The transformation returns either text or an object countaining the phrases array and list of placeholders.  
 ishml.Phrase.transform={}
@@ -237,21 +260,21 @@ ishml.Phrase.transform.cap=function()
 		}
 		else
 		{
-			var {phrases,placeholders,index,total}=target(data)
+			var phrases=target(data)
 			phrases=phrases.map(phrase=>
 			{
 				if (phrase.value.length>0)
 				{
 					revisedPhrase=Object.assign({},phrase)
 					revisedPhrase.value=phrase.value[0].toUpperCase()+phrase.value.slice(1)
+					revisedPhrase.meta.cap=true
 					return revisedPhrase
 				}	
 			})
 		}	
-		var result={phrases:phrases,placeholders:placeholders,index:index,total:total}	
-		return result
+		return phrases
 	}
-	ishml.Phrase.attach(ishml_phrase,target,target._concordance)
+	ishml.Phrase.attach(ishml_phrase,target._concordance)
 	return ishml_phrase
 }
 ishml.Phrase.transform.indentity=function()
@@ -266,13 +289,12 @@ ishml.Phrase.transform.indentity=function()
 		}
 		else
 		{
-			var {phrases,placeholders,index,total}=target(data)
-			var result={phrases:phrases,placeholders:placeholders,index:index,total:total}	
-			return result
+			var phrases=target(data)
+			return phrases.slice(0)
 		}
 	}
 
-	ishml.Phrase.attach(ishml_phrase,target,target._concordance)
+	ishml.Phrase.attach(ishml_phrase,target._concordance)
 	return ishml_phrase
 }
 
@@ -289,7 +311,7 @@ ishml.Phrase.transform.join=function(options)
 		}
 		else
 		{
-			var {phrases,placeholders}=target()
+			var phrases=target()
 			var last=phrases.length-1
 			var phrase=phrases.reduce((result,phrase,index,)=>
 			{
@@ -310,13 +332,14 @@ ishml.Phrase.transform.join=function(options)
 					return result+phrase.value+((index===last && trim)?"":separator)
 				}
 			},"")	
-			phrase={value:phrase}
-			var result={phrases:[phrase],placeholders:placeholders,index:0,total:1}	
+			phrase={value:phrase,meta:{join:true}}
+			
+			var result=[phrase]	
 			
 			return result
 		}	
 	}
-	ishml.Phrase.attach(ishml_phrase,target,target._concordance)
+	ishml.Phrase.attach(ishml_phrase,target._concordance)
 	return ishml_phrase
 }
 ishml.Phrase.transform.next=function()
@@ -334,16 +357,17 @@ ishml.Phrase.transform.next=function()
 		}
 		else
 		{
-			var {phrases,placeholders}=target(data)
-
-			var result={phrases:[phrases[counter]],placeholders:placeholders, index:counter,total:phrases.length}	
+			var phrases=target(data)
+			var phrase=phrases[counter]
+			phrase.meta={index:counter,total:phrases.length}
+			
 			counter++
 			if (counter===phrases.length){counter=0}
 			
-			return result
+			return [phrase]
 		}	
 	}
-	ishml.Phrase.attach(ishml_phrase,target,target._concordance)
+	ishml.Phrase.attach(ishml_phrase,target._concordance)
 	return ishml_phrase
 }
 ishml.Phrase.transform.repeat=function(count)
@@ -358,18 +382,16 @@ ishml.Phrase.transform.repeat=function(count)
 		}
 		else
 		{
-			var {phrases,placeholders}=target(data)
+			var {phrases}=target(data)
 			var revisedPhrases=[]
 			for (let i=0; i<count; i++ )
 			{
 				revisedPhrases=revisedPhrases.concat(phrases)
 			}
-			
-			var result={phrases:revisedPhrases,placeholders:placeholders}	
-			return result
+			return revisedPhrases
 		}	
 	}	
-	ishml.Phrase.attach(ishml_phrase,target,target._concordance)
+	ishml.Phrase.attach(ishml_phrase,target._concordance)
 	return ishml_phrase
 }	
 
