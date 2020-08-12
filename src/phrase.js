@@ -175,8 +175,9 @@ ishml.Phrase.attach=function(ishml_phrase,concordance)
 					flattenedPhrases.forEach(phrase=>
 					{
 						console.log(phrase)
-						meta=Object.assign(meta, phrase.meta)
-						data=Object.assign(data, phrase.value)
+						//meta=Object.assign(meta, phrase.meta)
+						meta=phrase.meta
+						data=phrase.value
 					})
 					if(this._concordance.index.hasOwnProperty(index))
 					{					
@@ -313,28 +314,24 @@ ishml.Phrase.transform.join=function(options)
 		{
 			var phrases=target()
 			var last=phrases.length-1
+			var data=[]
 			var phrase=phrases.reduce((result,phrase,index,)=>
 			{
-				if (typeof phrase.value === "function" )
+				if (phrase.value._isIshmlPhrase)
 				{
-					if (phrase.value._isIshmlPhrase)
-					{
-						var phrasing=phrase.value.say()+((index===last && trim)?"":separator)
-					}
-					else
-					{
-						var phrasing=phrase.value()+((index===last && trim)?"":separator)
-					}
-					return result+phrasing+((index===last && trim)?"":separator)
+					var value=phrase.value()
+					if (typeof value==="object"){var phrasing=value.value}
+					else {var phrasing=value}
 				}
 				else 
 				{
-					return result+phrase.value+((index===last && trim)?"":separator)
+					if (typeof phrase.value ==="object"){var phrasing=phrase.value.value}
+					else {var phrasing=phrase.value}
 				}
+				return result+phrasing+((index===last && trim)?"":separator)
 			},"")	
-			phrase={value:phrase,meta:{join:true}}
 			
-			var result=[phrase]	
+			var result=[{value:phrase,meta:{join:true}}]	
 			
 			return result
 		}	
