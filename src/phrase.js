@@ -32,7 +32,7 @@ var a=ishml.Phrase`There is a ${{animal:ishml.Phrase(["cat","dog", "bird"]).next
 var a=ishml.Phrase`There is a ${{animal:ishml.Phrase(["cat","dog", "bird"]).next()}} in ${{container:"a hat", if:()=>a.animal.text==="cat"}}.`
 
 Silent:
-var a=ishml.Phrase`There is something ${{animal:ishml.Phrase(["cat","dog", "bird"]).next(),silent:" "}} in ${{container:"a hat", if:()=>a.animal.text==="cat",else:"the house"}}.`
+var a=ishml.Phrase`There is something ${{animal:ishml.Phrase(["cat","dog", "bird"]).next(),silent:"rad"}} in ${{container:"a hat", if:()=>a.animal.text==="cat",else:"the house"}}.`
 
 */
 ishml.Phrase=function Phrase(literals, ...expressions)
@@ -105,102 +105,117 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 			}
 			return ishml_phrase
 		}
-		else {return phrases}
+		else 
+		{
+			var result=[]
+			phrases.forEach((phrase,index)=>
+			{
+				var silent=phrase.silent
+				if (phrase.hasOwnProperty("if"))
+				{
+					if (phrase.if())
+					{
+						var clause=phrase.value
+					}
+					else
+					{
+						if (phrase.hasOwnProperty("else"))
+						{
+							var clause=phrase.else
+						}
+						else
+						{
+							var clause=""
+						}
+					}
+				}
+				else {var clause=phrase.value}
+				if (typeof clause === "function" )
+				{
+					if (clause._isIshmlPhrase)
+					{
+						var subPhrases=clause()
+						var data={}
+						data.text= subPhrases.reduce((result,phrase)=>
+						{
+							if(typeof phrase.value ==="object")
+							{
+								data=Object.assign(data,phrase)
+								if (phrase.value.hasOwnProperty("value"))
+								{
+									var text=phrase.value.value
+								}
+								else {var text=Object.values(phrase.value)[0]}
+
+							}
+							else {var text=phrase.value}
+							return result+text
+							
+						},"")
+						if(ishml_phrase._concordance.index.hasOwnProperty(index))
+						{
+							if (subPhrases.length===1)
+							{
+								ishml_phrase[ishml_phrase._concordance.index[index]]=data
+							}
+							else
+							{
+								ishml_phrase[ishml_phrase._concordance.index[index]]=data
+							}					
+							
+						}
+						if (silent)
+						{
+							if (silent !== true)
+							{
+								var last=result.length-1
+								if(last >=0)
+								{
+								
+									if (typeof silent==="string")
+									{
+										result[last].value=result[last].value.replace(new RegExp(silent+ "+$"), "")
+									}
+									else
+									{
+										result[last].value=result[last].value.replace(silent, "")
+									}
+								}
+							}	
+						}
+						else 
+						{
+							result.push(data)	
+						}
+						
+					}
+					else  //isIshmlPhrase === false  function === true
+					{
+						result=result.concat({value:clause()})
+					}
+				}
+				else 
+				{
+					if(typeof phrase.value ==="object")
+					{
+						result.push(clause)
+					}
+					else{result.push({value:clause})}	
+				}
+				
+			})
+			return result
+		}
 	}
 	ishml.Phrase.attach(ishml_phrase,concordance)
 	return ishml_phrase
 }
 ishml.Phrase.attach=function(ishml_phrase,concordance)
 {
-	var toString=function(phrases)
-	{
-		var text= phrases.reduce((result,phrase)=>
-		{
-			if(typeof phrase.value ==="object")
-			{
-				if (phrase.value.hasOwnProperty("value"))
-				{
-					var value=phrase.value.value
-				}
-				else {var value=Object.values(phrase.value)[0]}
-			}
-			else {var value=phrase.value}
-			if (phrase.silent)
-			{
-				if (typeof phrase.silent === "string")
-				{
-					new RegExp(phrase.silent+ "+$");
-					return result.replace(new RegExp(phrase.silent+ "+$"), "");
-				}
-				return result
-			}
-			else {return result+value}
-		},"")
-		return text
-	}
-	var flatten=function()
-	{
-		var result=[]
-		var phrases=this()
-		
-		phrases.forEach((phrase,index)=>
-		{
-			if (phrase.hasOwnProperty("if"))
-			{
-				if (phrase.if())
-				{
-					var clause=phrase.value
-				}
-				else
-				{
-					if (phrase.hasOwnProperty("else"))
-					{
-						var clause=phrase.else
-					}
-					else
-					{
-						var clause=""
-					}
-				}
-			}
-			else {var clause=phrase.value}
-			if (typeof clause === "function" )
-			{
-				if (clause._isIshmlPhrase)
-				{
-
-					var flattenedPhrases=clause.flatten()
-					var meta={}
-					var data={}
-					flattenedPhrases.forEach(phrase=>
-					{
-						console.log(phrase)
-						//meta=Object.assign(meta, phrase.meta)
-						meta=phrase.meta
-						data=phrase.value
-					})
-					if(this._concordance.index.hasOwnProperty(index))
-					{					
-						this[this._concordance.index[index]]={text:toString(flattenedPhrases),meta:meta,data:data}
-					}
-					result=result.concat(flattenedPhrases)
-				}
-				else
-				{
-					result=result.concat({value:clause()})
-				}
-			}
-			else {result.push({value:clause,meta:phrase.meta})}
-
-			
-		})
-		return result
-		
-	}
 		
 	var say=function(documentSelector) //generates text output
 	{
-		var saying=toString(this.flatten())
+		var saying=this().reduce((result,item)=>result+item.value,"")
 		if (documentSelector)
 		{
 			var targetNodes = document.querySelectorAll(documentSelector)
@@ -244,7 +259,6 @@ ishml.Phrase.attach=function(ishml_phrase,concordance)
 	})
 	Object.defineProperty(ishml_phrase,"_concordance",{value:concordance,writable:true})
 	Object.defineProperty(ishml_phrase,"_isIshmlPhrase",{value:true,writable:true})
-	Object.defineProperty(ishml_phrase,"flatten",{value:flatten,writable:true})
 	Object.defineProperty(ishml_phrase,"say",{value:say,writable:true})
 }
 //A transform function when called that returns a function that returns the actual transformation.  The transformation returns either text or an object countaining the phrases array and list of placeholders.  
@@ -268,7 +282,6 @@ ishml.Phrase.transform.cap=function()
 				{
 					revisedPhrase=Object.assign({},phrase)
 					revisedPhrase.value=phrase.value[0].toUpperCase()+phrase.value.slice(1)
-					revisedPhrase.meta.cap=true
 					return revisedPhrase
 				}	
 			})
@@ -314,8 +327,8 @@ ishml.Phrase.transform.join=function(options)
 		{
 			var phrases=target()
 			var last=phrases.length-1
-			var data=[]
-			var phrase=phrases.reduce((result,phrase,index,)=>
+			var data={}
+			data.value=phrases.reduce((result,phrase,index,)=>
 			{
 				if (phrase.value._isIshmlPhrase)
 				{
@@ -325,15 +338,17 @@ ishml.Phrase.transform.join=function(options)
 				}
 				else 
 				{
-					if (typeof phrase.value ==="object"){var phrasing=phrase.value.value}
+					if (typeof phrase.value ==="object")
+					{
+						var phrasing=phrase.value.value
+						data=object.assign(data,phrase.value)
+					}
 					else {var phrasing=phrase.value}
 				}
 				return result+phrasing+((index===last && trim)?"":separator)
 			},"")	
-			
-			var result=[{value:phrase,meta:{join:true}}]	
-			
-			return result
+
+			return [data]
 		}	
 	}
 	ishml.Phrase.attach(ishml_phrase,target._concordance)
@@ -356,8 +371,9 @@ ishml.Phrase.transform.next=function()
 		{
 			var phrases=target(data)
 			var phrase=phrases[counter]
-			phrase.meta={index:counter,total:phrases.length}
-			
+			//phrase.index=counter
+			//phrase.data=phrases
+
 			counter++
 			if (counter===phrases.length){counter=0}
 			
