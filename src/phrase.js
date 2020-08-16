@@ -27,13 +27,20 @@ var c=a()
 
 Conditional:
 
-var a=ishml.Phrase`There is a ${{animal:ishml.Phrase(["cat","dog", "bird"]).next()}}${{container:" in a hat", if:()=>a.animal.text==="cat",else:" in the house"}}.`
+var a=ishml.Phrase`There is a ${{animal:ishml.Phrase(["cat","dog", "bird"]).next()}}${{container:" in a hat", if:(root)=>root.animal.value==="cat",else:" in the house"}}.`
 
-var a=ishml.Phrase`There is a ${{animal:ishml.Phrase(["cat","dog", "bird"]).next()}} in ${{container:"a hat", if:()=>a.animal.text==="cat"}}.`
+var a=ishml.Phrase`There is a ${{animal:ishml.Phrase(["cat","dog", "bird"]).next()}} in ${{container:"a hat", if:(root)=>root.animal.value==="cat"}}.`
 
 Silent:
 var a=ishml.Phrase`There is something ${{animal:ishml.Phrase(["cat","dog", "bird"]).next(),silent:" "}} in ${{container:"a hat", if:()=>a.animal.value==="cat",else:"the house"}}.`
 
+Recursive
+data ={item:{value:"aaa", item:{value:"bbb",item:{value:"ccc"}}}}
+var list=ishml.Phrase`<li>${{item:ishml.Phrase(["cat","dog", "bird"])}}${item:list}</li>`
+
+Looping
+
+var a =ishml.Phrase`<ol>${ishml.Phrase`<li>${{item:ishml.Phrase(["cat","dog", "bird"])}}</li>`.for("item")}</ol>`
 */
 ishml.Phrase=function Phrase(literals, ...expressions)
 {
@@ -120,7 +127,7 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 				
 				if (phrase.hasOwnProperty("if"))
 				{
-					if (phrase.if())
+					if (phrase.if(ishml_phrase))
 					{
 						var clause=phrase.value
 					}
