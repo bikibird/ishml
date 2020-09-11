@@ -235,10 +235,15 @@ prefixes and suffixes
 _.prefix(ishml.lang.a).named("a")
 _.prefix(ishm.lang.an).named("an")
 _.prefix(x=>toUpperCase(x)).named("cap")
-_.prefix(x=>x+"ing").named("cap")
+_.prefix(x=>x+"ing").named("ing")
 var a=_`I saw ${_.cap.an(["otter","zebra","penguin"].pick())} ${_(["walk,sleep,eat"]).pick().ing} at the zoo.`
 
 cap(an([]))
+
+//then
+
+_.series(["cat","dog","flea"]).then("pick")
+_.series(["cat","dog","flea"]).then(()=>"")
 
 */
 ishml.Phrase=function Phrase(literals, ...expressions)
@@ -282,6 +287,7 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 	}	
 	var ishml_phrase=function(...data)
 	{
+		
 		populate=(data,index)=>
 		{
 			if (data instanceof Array) //if array and this phrase terminal, replace phrases with normalized data array.
@@ -492,15 +498,6 @@ ishml.Phrase.attach=function(ishml_phrase,target)
 		Object.defineProperty(ishml_phrase,key,{value:ishml.Phrase.transform[key],writable:true})
 
 	})
-	
-	
-
-	/*Object.keys(ishml.Phrase.prefixHandler.prefixes).forEach(key=>
-	{
-		Object.defineProperty(ishml_phrase,key,{value:ishml.Phrase.prefixHandler.prefixes[key],writable:true})
-
-	})*/
-
 	if (target._isIshmlPhrase)
 	{
 		Object.assign(ishml_phrase,target)
@@ -515,6 +512,7 @@ ishml.Phrase.attach=function(ishml_phrase,target)
 		})
 		Object.defineProperty(ishml_phrase,"_concordance",{value:target,writable:true})
 	}
+	
 	Object.defineProperty(ishml_phrase,"terminal",{value:Object.keys(ishml_phrase._concordance.index).length===0,writable:true})
 	Object.defineProperty(ishml_phrase,"_isIshmlPhrase",{value:true,writable:true})
 	Object.defineProperty(ishml_phrase,"say",{value:say,writable:true})
@@ -527,33 +525,43 @@ ishml.Phrase.attach=function(ishml_phrase,target)
 }
 //A transform function when called that returns a function that returns the actual transformation.  The transformation returns either text or an object countaining the phrases array and list of placeholders.  
 
-ishml.Phrase.curve={}//some handy curve functions.
-ishml.Phrase.curve.serial=function(index,length)
+ishml.Phrase.mode={}//some handy modes for pick transform.
+ishml.Phrase.mode.favor=function({length}={})
 {
-	var revised=index+1
-	if (revised>length){return {revised:0,reset:true}}
-	else {return {revised:revised,reset:true}}
+	var c=length*(length+1)*Math.random()
+	return {index:length-Math.floor((Math.sqrt(1+4*c)-1)/2)-1,length:length}
 }
-ishml.Phrase.curve.uniform=function(index,length)
-{
-	var revised=Math.floor(Math.random()*length)
-	if (revised>length){return {revised:0,reset:true}}
-	else {return {revised:revised,reset:true}}
-}
-ishml.Phrase.curve.decreasing=function(index,length)
-{
-	var interval=length*(length+1)/2
-	var random=Math.floor(Math.random()*denominator)
-	var min=0
-	var max=0
-	for (let i = 0; i < length; i++)
-	{
 
-		accummulator+=(length-i)/denominator
-		if (random< >accummulator){break}
+ishml.Phrase.mode.random=function({length}={})
+{
+	return {index:Math.floor(Math.random()*length),length:length}
+}
+
+ishml.Phrase.mode.serial=function({index=-1,length}={})
+{
+	index++
+	if (index===length){index=0}
+	return {index:index,length:length}
+}
+ishml.Phrase.mode.serialThenRandom=function({index=-1,length,random=false})
+{
+	if (random)
+	{
+		return {index:Math.floor(Math.random()*length),length:length, random:true}
 	}
-	return {revised:i}
+	else
+	{
+		index++
+		if (index===length)
+		{
+			index=0
+			random=true
+		}
+		return {index:index,length:length,random:random}
+	}	
+	
 }	
+
 
 ishml.Phrase.prefix=function(modifier,returnsString=true)
 {
@@ -635,49 +643,10 @@ ishml.Phrase.prefixHandler=
 ishml.Phrase.suffix={}
 ishml.Phrase.transform={}
 
-ishml.Phrase.transform.join=function(options={})
-{
-	var {separator="",trim=true}=options
-	var target=this
-	var ishml_phrase=function(...data)
-	{	
-		if (data.length>0)
-		{
-			target(...data)
-			return ishml_phrase
-		}
-		else
-		{
-			var phrases=target()
-			var last=phrases.length-1
-			var data={}
-			data.value=phrases.reduce((result,phrase,index,)=>
-			{
-				if (phrase.value._isIshmlPhrase)
-				{
-					var value=phrase.value()
-					if (typeof value==="object"){var phrasing=value.value}
-					else {var phrasing=value}
-				}
-				else 
-				{
-					if (typeof phrase.value ==="object")
-					{
-						var phrasing=phrase.value.value
-						data=object.assign(data,phrase.value)
-					}
-					else {var phrasing=phrase.value}
-				}
-				return result+phrasing+((index===last && trim)?"":separator)
-			},"")	
 
-			return [data]
-		}	
-	}
-	ishml.Phrase.attach(ishml_phrase,target)
-	return ishml_phrase
-}
-ishml.Phrase.transform.pick=function()
+
+//pick({mode:ishml.Phrase.mode.serial or random or favor,})
+ishml.Phrase.transform.cycle=function()
 {
 	var counter=0
 	var target=this
@@ -717,10 +686,303 @@ ishml.Phrase.transform.pick=function()
 			}
 			
 			return [phrase]
+		}
+	}
+	ishml.Phrase.attach(ishml_phrase,target)
+	return ishml_phrase		
+}
+ishml.Phrase.transform.join=function({separator="", trim=true}={})
+{
+	var target=this
+	var ishml_phrase=function(...data)
+	{	
+		if (data.length>0)
+		{
+			target(...data)
+			return ishml_phrase
+		}
+		else
+		{
+			var phrases=target()
+			var last=phrases.length-1
+			var data={}
+			data.value=phrases.reduce((result,phrase,index,)=>
+			{
+				if (phrase.value._isIshmlPhrase)
+				{
+					var value=phrase.value()
+					if (typeof value==="object"){var phrasing=value.value}
+					else {var phrasing=value}
+				}
+				else 
+				{
+					if (typeof phrase.value ==="object")
+					{
+						var phrasing=phrase.value.value
+						data=object.assign(data,phrase.value)
+					}
+					else {var phrasing=phrase.value}
+				}
+				return result+phrasing+((index===last && trim)?"":separator)
+			},"")	
+
+			return [data]
 		}	
 	}
 	ishml.Phrase.attach(ishml_phrase,target)
 	return ishml_phrase
+}
+
+ishml.Phrase.transform.favor=function()
+{
+	var target=this
+	var ishml_phrase=function(...data)
+	{	
+		if (data.length>0)
+		{
+			target(...data)
+			counter=0
+			return ishml_phrase
+		}
+		else
+		{
+			var phrases=target()
+			if(phrases.length===0)
+			{
+				var phrase={value:""}
+				return [phrase]
+			}
+			else
+			{
+				var c=phrases.length*(phrases.length+1)*Math.random()
+				var counter=phrases.length-Math.floor((Math.sqrt(1+4*c)-1)/2)-1
+				var phrase=phrases[counter] 
+				phrase.index=counter
+				phrase.total=phrases.length
+
+			}
+
+			return [phrase]
+		}
+	}
+	ishml.Phrase.attach(ishml_phrase,target)
+	return ishml_phrase		
+}
+ishml.Phrase.transform.first=function(count=1)
+{
+	var target=this
+
+	var ishml_phrase=function(...data)
+	{	
+		if (data.length>0)
+		{
+			target(...data)
+			return ishml_phrase
+		}
+		else
+		{
+			return target().slice(0,count)
+		}
+	}
+	ishml.Phrase.attach(ishml_phrase,target)
+	return ishml_phrase		
+}
+ishml.Phrase.transform.fixed=function()
+{
+	var target=this
+	var result =null
+	var ishml_phrase=function(...data)
+	{	
+		if (data.length>0)
+		{
+			target(...data)
+			result=full
+			return ishml_phrase
+		}
+		else
+		{
+			if (!result){result=target()}
+			return result
+			
+		}
+	}
+	ishml.Phrase.attach(ishml_phrase,target)
+	return ishml_phrase		
+}
+ishml.Phrase.transform.last=function(count=1)
+{
+	var target=this
+
+	var ishml_phrase=function(...data)
+	{	
+		if (data.length>0)
+		{
+			target(...data)
+			return ishml_phrase
+		}
+		else
+		{
+			return target().slice(-count)
+		}
+	}
+	ishml.Phrase.attach(ishml_phrase,target)
+	return ishml_phrase		
+}
+
+ishml.Phrase.transform.once=function()
+{
+	var target=this
+	var done =false
+	var ishml_phrase=function(...data)
+	{	
+		if (data.length>0)
+		{
+			target(...data)
+			done = false
+			return ishml_phrase
+		}
+		else
+		{
+			if (done){return [{value:""}]}
+			else
+			{
+				done = true
+				return target()
+			}
+			
+		}
+	}
+	ishml.Phrase.attach(ishml_phrase,target)
+	return ishml_phrase		
+}
+//_`<li>${{animal:_(["goose","chicken","rhino"]).series()}}</li>`.per("animal")
+ishml.Phrase.transform.per=function(id)
+{
+	var target=this
+	
+	var counter=0
+	var placeholder=id
+	var ishml_phrase=function(...data)
+	{	
+		if (data.length>0)
+		{
+			target(...data)
+			length=data.length
+			return ishml_phrase
+		}
+		else
+		{
+			var length =target._concordance.phrases[target._concordance.key[placeholder]].value._concordance.phrases.length
+			if(length===0)
+			{
+				var phrase={value:""}
+				return [phrase]
+			}
+			else
+			{
+				var revisedPhrases=[]
+				for (let index = 0; index < length; index++)
+				{
+					var phrases=target()
+					revisedPhrases=revisedPhrases.concat(phrases)
+					
+				}
+				
+				return revisedPhrases
+			}	
+		}
+	}
+	ishml.Phrase.attach(ishml_phrase,target)
+	return ishml_phrase		
+}
+ishml.Phrase.transform.pick=function()
+{
+	var target=this
+	var ishml_phrase=function(...data)
+	{	
+		if (data.length>0)
+		{
+			target(...data)
+			return ishml_phrase
+		}
+		else
+		{
+			var phrases=target()
+			if(phrases.length===0)
+			{
+				var phrase={value:""}
+				return [phrase]
+			}
+			else
+			{
+				var counter=Math.floor(Math.random()*phrases.length)
+				var phrase=phrases[counter] 
+				phrase.index=counter
+				phrase.total=phrases.length
+
+			}
+
+			return [phrase]
+		}
+	}
+	ishml.Phrase.attach(ishml_phrase,target)
+	return ishml_phrase		
+}
+
+//_.(["cat","dog","frog"]).series({then:""})  
+//_.(["cat","dog","frog"]).series({then:ishml.Phrase().pick())
+ishml.Phrase.transform.series=function({then=""}={})
+{
+	var counter=0
+	var ended =false
+	var target1=this
+	if (typeof then ==="function"){target2=then}
+	else {target2 = ()=>[then]}
+	target=target1
+	var ishml_phrase=function(...data)
+	{	
+		if (data.length>0)
+		{
+			target=target1
+			target(...data)
+			counter=0
+			ended=false
+			return ishml_phrase
+		}
+		else
+		{
+			
+			var phrases=target()
+			if (target===target1)
+			{
+				if(phrases.length===0)
+				{
+					var phrase={value:then, ended:true}
+					return [phrase]
+				}
+				else
+				{
+					var phrase=phrases[counter] 
+					phrase.index=counter
+					phrase.total=phrases.length
+
+				}
+
+				counter++
+				if (counter===phrases.length)
+				{
+					target=target2  //transfer control over to then
+					target(phrases) 
+					counter=0
+				}
+				return [phrase]
+			}
+			else {return phrases}
+			
+		}
+	}
+	ishml.Phrase.attach(ishml_phrase,target)
+	return ishml_phrase		
 }
 ishml.Phrase.transform.until=function(condition)
 {
