@@ -1,0 +1,20 @@
+<html>
+    <head>
+    </head>
+    <body>
+    <script src="verbs.js"></script>
+    <script src="verbTrie.js"></script>
+    <script>var ishml={}</script>
+    
+    <script src="../phrase.js"></script>
+    <script src="../english.js"></script>
+	<script>
+		var irregular=verbs.filter(entry=>
+	{
+		if(entry[3]===ishml.lang.en(entry[0])){return false}
+		else {return true}
+	})		
+	</script>
+    </body>
+
+</html> 

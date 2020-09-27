@@ -12,7 +12,8 @@ ishml.Yarn=function Yarn(seed)
 		this.translator= null
 		this.viewpoint="2nd person singular"
 		this.setting="present"
-		ishml.util.reseed(seed)
+
+		//ishml.util.reseed(seed)  --DEFECT
 		this.net=new ishml.Knot("$")
 		this.harken()
 		this.undo={}
