@@ -371,11 +371,18 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 						{
 							var data={}
 							var subPhrases=clause()
-							data.value= subPhrases.reduce((result,subPhrase)=>
+							data.value= subPhrases.reduce((result,subPhrase,index)=>
 							{
 								Object.assign(data,subPhrase)
+								if (clause._concordance.index.hasOwnProperty(index))
+								{
+									data[clause._concordance.index[index]]=clause._phrases[index].value
+								}
+								
 								return result+subPhrase.value
-							},"")	
+							},"")
+							//Object.assign(data, clause._concordance.tags)
+							Object.assign(clause, clause._concordance.tags)	
 						}
 
 					}
@@ -384,7 +391,7 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 				{
 					var placeholder=ishml_phrase[ishml_phrase._concordance.index[index]]
 					Object.keys(placeholder).forEach(key=>delete placeholder[key])
-					Object.assign(placeholder,data)
+					Object.assign(placeholder,data)  
 				}
 				var evaluatedPhrase=Object.assign({},data)
 				var silent=phrase.silent
@@ -415,7 +422,7 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 		
 	}
 	Object.defineProperty(ishml_phrase,"_phrases",{value:[],writable:true})
-	Object.defineProperty(ishml_phrase,"_concordance",{value:{key:{},index:{}},writable:true})
+	Object.defineProperty(ishml_phrase,"_concordance",{value:{key:{},index:{},tags:{}},writable:true})
 	ishml_phrase.seed=ishml.util.random().seed
 	
 	if (literals && literals.length>0)
@@ -427,11 +434,15 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 		}
 		else
 		{
+			if (typeof literals=== "string") //() notation
+			{
+				literals=[literals].concat(expressions)
+				expressions=[]
+			}
+
 			if (literals[0].length !== 0)
 			{
-				
 				ishml_phrase._phrases.push({value:literals[0]})
-				
 			}
 			var index=1
 			if(expressions.length>0)
@@ -1042,8 +1053,8 @@ ishml.Phrase.transform.series=function({then=""}={})
 
 ishml.Phrase.suffix.shuffled=function()
 {
-	//ishml.Phrase(["cat","dog", "bird"]).shuffled.cycle()
-	//ishml.Phrase(["cat","dog", "bird"]).shuffled.fixed.cycle()
+	//ishml.Phrase(["cat","dog", "bird"]).shuffled.cycle
+	//ishml.Phrase(["cat","dog", "bird"]).shuffled.fixed.cycle
 	var target=this
 	var result =null
 	var ishml_phrase=function(...data)
@@ -1072,6 +1083,32 @@ ishml.Phrase.suffix.shuffled=function()
 	}
 	return ishml_phrase	
 			
+}
+
+ishml.Phrase.transform.tag=function(id)
+{
+	var target=this
+	var phrases =[]
+	var ishml_phrase=function(...data)
+	{	
+		if (data.length>0)
+		{
+			target(...data)
+			phrases=[]
+			return ishml_phrase
+		}
+		else
+		{
+			phrases=target()
+			var taggedIshmlPhrase=ishml.Phrase(phrases)
+			ishml_phrase._concordance.tags[id]=taggedIshmlPhrase
+			return phrases
+		}
+		
+	}
+	ishml.Phrase.attach(ishml_phrase,target)
+	ishml_phrase.reset=function(){}
+	return ishml_phrase		
 }
 
 ishml.Phrase.transform.until=function(condition)
