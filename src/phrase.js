@@ -58,6 +58,9 @@ var a=ishml.Phrase`There is a ${{animal:ishml.Phrase(["cat","dog", "bird"]).pick
 
 var a=ishml.Phrase`There is a ${{animal:ishml.Phrase(["cat","dog", "bird"]).pick()}} in ${{container:"a hat", if:(root)=>root.animal.value==="cat"}}.`
 
+var a=_`There is a ${_(["cat","dog", "bird"]).pick().tag("animal")}${_` in a hat`.if(x=>x.animal.value==="cat").else` in the house`}.`
+
+
 Silent:
 var a=ishml.Phrase`There is something ${{animal:ishml.Phrase(["cat","dog", "bird"]).pick(),silent:" "}} in ${{container:"a hat", if:()=>a.animal.value==="cat",else:"the house"}}.`
 
@@ -276,16 +279,16 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 					})
 				}	
 			}
-			else  //this phrase non-terminal, but using anonymous data.  Match to nth entry in the concordance.
+			/*else  //this phrase non-terminal, but using anonymous data.  Match to nth entry in the concordance.
 			{
 				if(!(data===ishml.enum.mode.reset))
 				{
 					var key=Object.values(ishml_phrase._concordance.index)[index]
 					ishml_phrase._phrases[ishml_phrase._concordance.key[key]].value(data)
 				}	
-			}	
+			}*/	
 		}
-		else
+		/*else
 		{
 			if(!(data===ishml.enum.mode.reset))  //if data is an object, match members to named phrases
 			{
@@ -298,7 +301,7 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 
 				})
 			}	
-		}
+		}*/
 	}
 	var ishml_phrase=function(...data)
 	{
@@ -315,7 +318,7 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 					
 				}
 			)	
-
+			ishml_phrase.text=""
 			return ishml_phrase
 			
 		}
@@ -325,33 +328,13 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 			//convert phrases into an array of {value:string, whatever:whatever}
 			ishml_phrase._phrases.forEach((phrase,index)=>
 			{
-				//phrase.value is either a string, a function, ishml.Phrase, any of which must be evaluated  Phrase.whatever must be captured {value:evaluation, whatever}
-				
-				if (phrase.hasOwnProperty("if"))
-				{
-					if (phrase.if(ishml_phrase))
-					{
-						var clause=phrase.value
-					}
-					else
-					{
-						if (phrase.hasOwnProperty("else"))
-						{
-							var clause=phrase.else
-						}
-						else
-						{
-							var clause=""
-						}
-					}
-				}
-				else {var clause=phrase.value}
-
+				var clause=phrase.value
 				var clauseType=typeof clause
-				if (clauseType=== "string")  //value is string
+				if (clauseType=== "string"  || clauseType=== "number")  //value is string
 				{
-					var data =Object.assign({},phrase)
-					data.value=clause
+					var data =Object.assign({},phrase) //grab the meta data and data already gathered
+					data.value=clause.toString()
+					
 				}
 				else
 				{
@@ -369,32 +352,35 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 						}
 						if (clause._isIshmlPhrase) //clause is an ishml_phrase
 						{
+									
 							var data={}
 							var subPhrases=clause()
+							Object.assign(ishml_phrase,clause.getTags())  //always evaluate clause before getting tags
 							data.value= subPhrases.reduce((result,subPhrase,index)=>
 							{
 								Object.assign(data,subPhrase)
-								if (clause._concordance.index.hasOwnProperty(index))
+								/*if (clause._concordance.index.hasOwnProperty(index))
 								{
 									data[clause._concordance.index[index]]=clause._phrases[index].value
-								}
+								}*/
 								
 								return result+subPhrase.value
 							},"")
+							
 							//Object.assign(data, clause._concordance.tags)
-							Object.assign(clause, clause._concordance.tags)	
+							//Object.assign(clause, clause._concordance.tags)	
 						}
 
 					}
 				}
-				if(ishml_phrase._concordance.index.hasOwnProperty(index))
+				/*if(ishml_phrase._concordance.index.hasOwnProperty(index))
 				{
 					var placeholder=ishml_phrase[ishml_phrase._concordance.index[index]]
 					Object.keys(placeholder).forEach(key=>delete placeholder[key])
 					Object.assign(placeholder,data)  
-				}
+				}*/
 				var evaluatedPhrase=Object.assign({},data)
-				var silent=phrase.silent
+				/*var silent=phrase.silent
 				if (silent)
 				{
 					if (silent !== true)
@@ -414,16 +400,18 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 						}
 					}
 					evaluatedPhrase.value=""	
-				}
+				}*/
 				evaluation.push(evaluatedPhrase)
 			})
+			
+			ishml_phrase.text=evaluation.reduce((text,data)=>text+data.value,"")
 			return evaluation
 		}
 		
 	}
 	Object.defineProperty(ishml_phrase,"_phrases",{value:[],writable:true})
-	Object.defineProperty(ishml_phrase,"_concordance",{value:{key:{},index:{},tags:{}},writable:true})
-	ishml_phrase.seed=ishml.util.random().seed
+	//Object.defineProperty(ishml_phrase,"_concordance",{value:{key:{},index:{},tags:{}},writable:true})
+	
 	
 	if (literals && literals.length>0)
 	{
@@ -451,7 +439,7 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 				expressions.forEach(phrase=> 
 				{
 					
-					if (typeof phrase === "object")  //phrase is an object. AKA named phrase
+					/*if (typeof phrase === "object")  //phrase is an object. AKA named phrase
 					{
 						var key=Object.keys(phrase)[0]
 						var normalizedPhrase=Object.assign({value:phrase[key]},phrase)
@@ -462,10 +450,16 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 					}
 					else //anonymous phrase
 					{ishml_phrase._phrases.push({value:phrase})}
+					*/
+					ishml_phrase._phrases.push({value:phrase})
 					if (literals[index].length>0)
 					{
 						ishml_phrase._phrases.push({value:literals[index]})
 					}
+				/*	if(phrase._isIshmlPhrase)
+					{
+						Object.assign(ishml_phrase,phrase._concordance.tags)
+					}*/
 					index++
 				})
 			}
@@ -481,10 +475,13 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 		}
 	}
 	else{Object.defineProperty(ishml_phrase,"_terminal",{value:true,writable:true})}	
-	ishml.Phrase.attach(ishml_phrase,ishml_phrase._concordance)
+	ishml.Phrase.attach(ishml_phrase,null)
+	
 	ishml_phrase.reset=function(){}
 	return ishml_phrase
 }
+
+
 ishml.Phrase.attach=function(ishml_phrase,target)
 {
 
@@ -493,9 +490,11 @@ ishml.Phrase.attach=function(ishml_phrase,target)
 		//if (data.length>0){this(...data)}
 		if (Number.isInteger(seed))
 		{
-			this._concordance.seed=seed
+			this._seed=seed
 		}
-		this.text=this().reduce((result,item)=>result+item.value,"")
+
+		//this.text=this().reduce((result,item)=>result+item.value,"")
+		this()
 		return this
 	}
 	var htmlTemplate=function()
@@ -525,6 +524,20 @@ ishml.Phrase.attach=function(ishml_phrase,target)
 		})
 		return this
 	}	
+	var getTags=function()
+	{
+		var tags={}
+		if(this._target){Object.assign(tags,this._target.getTags())}
+		return tags
+	}
+	var getTaggedPhrases=function() 
+	{
+		var tags={}
+		if(this._id){tags[this._id]=this._tag}
+		if(this._target){Object.assign(tags,this._target.getTags())}
+		return tags
+	}
+
 	Object.keys(ishml.Phrase.suffix).forEach(key=>
 	{
 		Object.defineProperty(ishml_phrase,key,{get:ishml.Phrase.suffix[key]})
@@ -535,24 +548,29 @@ ishml.Phrase.attach=function(ishml_phrase,target)
 		Object.defineProperty(ishml_phrase,key,{value:ishml.Phrase.transform[key],writable:true})
 
 	})
-	if (target._isIshmlPhrase)
+	if (target && target._isIshmlPhrase)
 	{
 		Object.assign(ishml_phrase,target)
-		Object.defineProperty(ishml_phrase,"_concordance",{value:target._concordance,writable:true})
+		//Object.defineProperty(ishml_phrase,"_concordance",{value:target._concordance,writable:true})
 		Object.defineProperty(ishml_phrase,"_phrases",{value:target._phrases,writable:true})
 		Object.defineProperty(ishml_phrase,"_terminal",{value:target._terminal,writable:true})
 	}
-	else
+	/*else
 	{
 		Object.keys(target.key).forEach(key=>
 		{
 			ishml_phrase[key]={}
 		})
 		//Object.defineProperty(ishml_phrase,"_concordance",{value:target,writable:true})
-	}
+	}*/
 	
 	Object.defineProperty(ishml_phrase,"_isIshmlPhrase",{value:true,writable:true})
+	Object.defineProperty(ishml_phrase,"_target",{value:target,writable:true})
+	Object.defineProperty(ishml_phrase,"_tag",{value:null,writable:true})
+	Object.defineProperty(ishml_phrase,"getTags",{value:getTags,writable:true})
+	Object.defineProperty(ishml_phrase,"getTaggedPhrases",{value:getTaggedPhrases,writable:true})
 	Object.defineProperty(ishml_phrase,"say",{value:say,writable:true})
+	Object.defineProperty(ishml_phrase,"_seed",{value:ishml.util.random().seed,writable:true})
 	Object.defineProperty(ishml_phrase,"prepend",{value:prepend,writable:true})
 	Object.defineProperty(ishml_phrase,"append",{value:append,writable:true})
 	Object.defineProperty(ishml_phrase,"replace",{value:replace,writable:true})
@@ -655,16 +673,22 @@ ishml.Phrase.transform.concur=function(condition)
 		if (data.length>0)
 		{
 			target(...data)
+			ishml_phrase.text=""
 			return ishml_phrase
 		}
 		else
 		{
 
 			var phrases=target()
-			return phrases.filter((phrase)=>
+			Object.assign(ishml_phrase,target)
+			phrases= phrases.filter((phrase)=>
 			{
 				return condition(phrase)
 			})
+
+			ishml_phrase.text =phrases.reduce((text,data)=>text+data.value,"")
+			return phrases
+
 		}
 	}	
 	ishml.Phrase.attach(ishml_phrase,target)
@@ -681,22 +705,23 @@ ishml.Phrase.suffix.cycle=function()
 		{
 			target(...data)
 			counter=0
+			ishml_phrase.text=""
 			return ishml_phrase
 		}
 		else
 		{
+			
 			var phrases=target()
+			Object.assign(ishml_phrase,target)
 			if(phrases.length===0)
 			{
-				var phrase={value:"",index:0, total:0, reset:true}
-				return [phrase]
+				Object.assign(ishml_phrase,{index:0, total:0, reset:true})
+				return [{value:""}]
 			}
 			else
 			{
 				var phrase=phrases[counter] 
-				phrase.index=counter
-				phrase.total=phrases.length
-
+				Object.assign(ishml_phrase,{index:counter, total:phrases.length, reset:false})
 			}
 
 			counter++
@@ -704,13 +729,14 @@ ishml.Phrase.suffix.cycle=function()
 			{
 				counter=0
 				target.reset()
-				phrase.reset=true
+				ishml_phrase.reset=true
 			}
 			else
 			{
-				phrase.reset=false
+				ishml_phrase.reset=false
 			}
-			
+			ishml_phrase.text =phrase.value
+			Object.assign(ishml_phrase,phrase)
 			return [phrase]
 		}
 	}
@@ -726,11 +752,13 @@ ishml.Phrase.transform.join=function({separator="", trim=true}={})
 		if (data.length>0)
 		{
 			target(...data)
+			ishml_phrase.text=""
 			return ishml_phrase
 		}
 		else
 		{
 			var phrases=target()
+			Object.assign(ishml_phrase,target)
 			var last=phrases.length-1
 			var data={}
 			data.value=phrases.reduce((result,phrase,index,)=>
@@ -752,7 +780,7 @@ ishml.Phrase.transform.join=function({separator="", trim=true}={})
 				}
 				return result+phrasing+((index===last && trim)?"":separator)
 			},"")	
-
+			ishml_phrase.text =data.value
 			return [data]
 		}	
 	}
@@ -770,14 +798,17 @@ ishml.Phrase.suffix.favor=function()
 		{
 			target(...data)
 			counter=0
+			ishml_phrase.text=""
 			return ishml_phrase
 		}
 		else
 		{
 			var phrases=target()
+			Object.assign(ishml_phrase,target)
 			if(phrases.length===0)
 			{
 				var phrase={value:""}
+				Object.assign(ishml_phrase,phrase)
 				return [phrase]
 			}
 			else
@@ -789,7 +820,8 @@ ishml.Phrase.suffix.favor=function()
 				phrase.total=phrases.length
 
 			}
-
+			ishml_phrase.text =phrase.value
+			Object.assign(ishml_phrase,phrase)
 			return [phrase]
 		}
 	}
@@ -806,11 +838,15 @@ ishml.Phrase.transform.first=function(count=1)
 		if (data.length>0)
 		{
 			target(...data)
+			ishml_phrase.text=""
 			return ishml_phrase
 		}
 		else
 		{
-			return target().slice(0,count)
+			var phrases=target().slice(0,count)
+			Object.assign(ishml_phrase,target)
+			ishml_phrase.text =phrases.reduce((text,data)=>text+data.value,"")
+			
 		}
 	}
 	ishml.Phrase.attach(ishml_phrase,target)
@@ -820,19 +856,27 @@ ishml.Phrase.transform.first=function(count=1)
 ishml.Phrase.suffix.fixed=function()
 {
 	var target=this
-	var result =null
+	var phrases =null
 	var ishml_phrase=function(...data)
 	{	
 		if (data.length>0)
 		{
 			target(...data)
-			result=null
+			phrases=null
+			ishml_phrase.text=""
 			return ishml_phrase
 		}
 		else
 		{
-			if (!result){result=target()}
-			return result
+			if (!phrases)
+			{
+				phrases=target()
+				Object.assign(ishml_phrase,target)
+				ishml_phrase.text=phrases.reduce((text,data)=>text+data.value,"")
+				
+			}
+
+			return phrases
 			
 		}
 	}
@@ -849,11 +893,15 @@ ishml.Phrase.transform.last=function(count=1)
 		if (data.length>0)
 		{
 			target(...data)
+			ishml_phrase.text=""
 			return ishml_phrase
 		}
 		else
 		{
-			return target().slice(-count)
+			var phrases=target().slice(-count)
+			Object.assign(ishml_phrase,target)
+			ishml_phrase.text=phrases.reduce((text,data)=>text+data.value,"")
+			return phrases
 		}
 	}
 	ishml.Phrase.attach(ishml_phrase,target)
@@ -891,23 +939,24 @@ ishml.Phrase.transform.last=function(count=1)
 ishml.Phrase.transform.per=function(id)
 {
 	var target=this
-	
-	var counter=0
-	var placeholder=id
+	var tag=id
 	var ishml_phrase=function(...data)
 	{	
 		if (data.length>0)
 		{
 			target(...data)
 			length=data.length
+			ishml_phrase.text=""
 			return ishml_phrase
 		}
 		else
 		{
-			var length =target._phrases[target._concordance.key[placeholder]].value._phrases.length
+			//var length =target._phrases[target._concordance.key[placeholder]].value._phrases.length
+			var length=ishml_phrase[tag]._phrases.length
 			if(length===0)
 			{
 				var phrase={value:""}
+				this.text =""
 				return [phrase]
 			}
 			else
@@ -916,10 +965,11 @@ ishml.Phrase.transform.per=function(id)
 				for (let index = 0; index < length; index++)
 				{
 					var phrases=target()
+					Object.assign(ishml_phrase,target)
 					revisedPhrases=revisedPhrases.concat(phrases)
 					
 				}
-				
+				ishml_phrase.text=revisedPhrases.reduce((text,data)=>text+data.value,"")
 				return revisedPhrases
 			}	
 		}
@@ -936,14 +986,18 @@ ishml.Phrase.suffix.pick=function()
 		if (data.length>0)
 		{
 			target(...data)
+			ishml_phrase.text=""
 			return ishml_phrase
 		}
 		else
 		{
 			var phrases=target()
+			Object.assign(ishml_phrase,target)
 			if(phrases.length===0)
 			{
 				var phrase={value:""}
+				ishml_phrase.text=""
+				Object.assign(ishml_phrase,phrase)
 				return [phrase]
 			}
 			else
@@ -954,7 +1008,8 @@ ishml.Phrase.suffix.pick=function()
 				phrase.total=phrases.length
 
 			}
-
+			ishml_phrase.text=phrase
+			Object.assign(ishml_phrase,phrase)
 			return [phrase]
 		}
 	}
@@ -973,6 +1028,7 @@ ishml.Phrase.transform.repeat=function(condition)
 		if (data.length>0)
 		{
 			target(...data)
+			ishml_phrase.text=""
 			return ishml_phrase
 		}
 		else
@@ -984,9 +1040,11 @@ ishml.Phrase.transform.repeat=function(condition)
 			do
 			{
 				var phrases=target()
+				Object.assign(ishml_phrase,target)
 				revisedPhrases=revisedPhrases.concat(phrases)
 				counter++
 			} while (counter<repetitions)
+			ishml_phrase.text=revisedPhrases.reduce((text,data)=>text+data.value,"")
 			return revisedPhrases
 		}
 	}	
@@ -1012,17 +1070,21 @@ ishml.Phrase.transform.series=function({then=""}={})
 			target(...data)
 			counter=0
 			ended=false
+			ishml_phrase.text=""
 			return ishml_phrase
 		}
 		else
 		{
 			
 			var phrases=target()
+			Object.assign(ishml_phrase,target)
 			if (target===target1)
 			{
 				if(phrases.length===0)
 				{
 					var phrase={value:then, ended:true}
+					ishml_phrase.text=phrase.value
+					Object.assign(ishml_phrase,phrase)
 					return [phrase]
 				}
 				else
@@ -1040,9 +1102,16 @@ ishml.Phrase.transform.series=function({then=""}={})
 					target(phrases) 
 					counter=0
 				}
+				ishml_phrase.text=phrase.value
+				Object.assign(ishml_phrase,phrase)
 				return [phrase]
 			}
-			else {return phrases}
+			else 
+			{
+				ishml_phrase.text=phrases.reduce((text,data)=>text+data.value,"")
+				Object.assign(ishml_phrase,phrase)
+				return phrases
+			}
 			
 		}
 	}
@@ -1063,6 +1132,7 @@ ishml.Phrase.suffix.shuffled=function()
 		{
 			target(...data)
 			result=null
+			ishml_phrase.text=""
 			return ishml_phrase
 		}
 		else
@@ -1070,7 +1140,10 @@ ishml.Phrase.suffix.shuffled=function()
 			if (!result)
 			{
 				result=ishml.util.shuffle(target())
+				Object.assign(ishml_phrase,target)
 			}
+
+			ishml_phrase.text=result.result.reduce((text,data)=>text+data.value,"")
 			return result.result
 			
 		}
@@ -1095,18 +1168,27 @@ ishml.Phrase.transform.tag=function(id)
 		{
 			target(...data)
 			phrases=[]
+			ishml_phrase.text=""
 			return ishml_phrase
 		}
 		else
 		{
 			phrases=target()
-			var taggedIshmlPhrase=ishml.Phrase(phrases)
-			ishml_phrase._concordance.tags[id]=taggedIshmlPhrase
+			var id=ishml_phrase._id
+			ishml_phrase.text=phrases.reduce((text,data)=>text+data.value,"")
+			ishml_phrase._tag=ishml.Phrase(phrases.map((phrase)=>
+			{
+				return Object.assign({},phrase)
+			}))
+			Object.assign(ishml_phrase._tag,target)
+			ishml_phrase._tag._id=null
 			return phrases
 		}
-		
 	}
 	ishml.Phrase.attach(ishml_phrase,target)
+	ishml_phrase._id=id
+	ishml_phrase.getTags=ishml_phrase.getTaggedPhrases
+	//ishml_phrase._concordance.tags[id]=ishml_phrase
 	ishml_phrase.reset=function(){}
 	return ishml_phrase		
 }
@@ -1121,6 +1203,7 @@ ishml.Phrase.transform.until=function(condition)
 		if (data.length>0)
 		{
 			target(...data)
+			ishml_phrase.text=""
 			return ishml_phrase
 		}
 		else
@@ -1129,9 +1212,12 @@ ishml.Phrase.transform.until=function(condition)
 			do 
 			{
 				var phrases=target()
+				Object.assign(ishml_phrase,target)
 				revisedPhrases=revisedPhrases.concat(phrases)
 			}
 			while (!untilCondition(target))
+			ishml_phrase.text=revisedPhrases.reduce((text,data)=>text+data.value,"")
+			
 			return revisedPhrases
 		}
 	}	
@@ -1149,6 +1235,7 @@ ishml.Phrase.transform.while=function(condition)
 		if (data.length>0)
 		{
 			target(...data)
+			ishml_phrase.text=""
 			return ishml_phrase
 		}
 		else
@@ -1157,9 +1244,11 @@ ishml.Phrase.transform.while=function(condition)
 			do 
 			{
 				var phrases=target()
+				Object.assign(ishml_phrase,target)
 				revisedPhrases=revisedPhrases.concat(phrases)
 			}
 			while (whileCondition(target))
+			ishml_phrase.text=revisedphrases.reduce((text,data)=>text+data.value,"")
 			return revisedPhrases
 		}
 	}	
@@ -1200,6 +1289,7 @@ ishml.Phrase.transform.cap=function()
 		if (data.length>0)
 		{
 			target(...data)
+			ishml_phrase.text=""
 			return ishml_phrase
 		}
 		else
@@ -1248,12 +1338,15 @@ ishml.Phrase.phraseModifier=function(modifier)
 				if (data.length>0)
 				{
 					target(...data)
+					ishml_phrase.text=""
 					return ishml_phrase
 				}
 				else
 				{
-					var phrases=target()
-					return modifier(phrases)()
+					var phrases=modifier(target())()
+					Object.assign(ishml_phrase,target)
+					ishml_phrase.text=phrases.reduce((text,data)=>text+data.value,"")
+					return phrases
 				}
 			}	
 			ishml.Phrase.attach(ishml_phrase,target)
@@ -1274,12 +1367,15 @@ ishml.Phrase.phraseModifier=function(modifier)
 				if (data.length>0)
 				{
 					target(...data)
+					ishml_phrase.text=""
 					return ishml_phrase
 				}
 				else
 				{
-					var phrases=target()
-					return modifier(phrases)()
+					var phrases=modifier(target())()
+					Object.assign(ishml_phrase,target)
+					ishml_phrase.text=phrases.reduce((text,data)=>text+data.value,"")
+					return phrases
 				}
 			}	
 			ishml.Phrase.attach(ishml_phrase,target)
@@ -1310,16 +1406,20 @@ ishml.Phrase.modifier=function(modifier)
 				if (data.length>0)
 				{
 					target(...data)
+					ishml_phrase.text=""
 					return ishml_phrase
 				}
 				else
 				{
-					var phrases=target()
-					return phrases.map(phrase=>
+					var phrases=target().map(phrase=>
 					{
 						phrase.value=modifier(phrase)
 						return phrase
 					})
+					Object.assign(ishml_phrase,target)
+					ishml_phrase.text=phrases.reduce((text,data)=>text+data.value,"")
+					return phrases
+
 				}
 			}	
 			ishml.Phrase.attach(ishml_phrase,target)
@@ -1341,16 +1441,19 @@ ishml.Phrase.modifier=function(modifier)
 				if (data.length>0)
 				{
 					target(...data)
+					ishml_phrase.text=""
 					return ishml_phrase
 				}
 				else
 				{
-					var phrases=target()
-					return phrases.map(phrase=>
+					var phrases=target().map(phrase=>
 					{
 						phrase.value=modifier(phrase)
 						return phrase
 					})
+					Object.assign(ishml_phrase,target)
+					ishml_phrase.text=phrases.reduce((text,data)=>text+data.value,"")
+					return phrases
 				}
 			}	
 			ishml.Phrase.attach(ishml_phrase,target)
