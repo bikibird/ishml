@@ -737,8 +737,7 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 	}
 	else{Object.defineProperty(ishml_phrase,"_terminal",{value:true,writable:true})}	
 	ishml.Phrase.attach(ishml_phrase,null)
-	
-	ishml_phrase.reset=function(){}
+	Object.defineProperty(ishml_phrase,"_reset",{value:function(){},writable:true})
 	return ishml_phrase
 }
 
@@ -883,7 +882,7 @@ ishml.Phrase.transform.concur=function(condition)
 		}
 	}	
 	ishml.Phrase.attach(ishml_phrase,target)
-	ishml_phrase.reset=function(){target.reset()}
+	Object.defineProperty(ishml_phrase,"_reset",{value:function(){target._reset()},writable:true})
 	return ishml_phrase
 }
 ishml.Phrase.suffix.cycle=function()
@@ -919,7 +918,7 @@ ishml.Phrase.suffix.cycle=function()
 			if (counter===phrases.length)
 			{
 				counter=0
-				target.reset()
+				target._reset()
 				ishml_phrase.reset=true
 			}
 			else
@@ -932,7 +931,7 @@ ishml.Phrase.suffix.cycle=function()
 		}
 	}
 	ishml.Phrase.attach(ishml_phrase,target)
-	ishml_phrase.reset=function(){target.reset()}
+	Object.defineProperty(ishml_phrase,"_reset",{value:function(){target._reset()},writable:true})
 	return ishml_phrase		
 }
 
@@ -970,7 +969,7 @@ ishml.Phrase.transform.else=function(...alternative)
 		}
 	}
 	ishml.Phrase.attach(ishml_phrase,target)
-	ishml_phrase.reset=function(){target.reset()}
+	Object.defineProperty(ishml_phrase,"_reset",{value:function(){target._reset()},writable:true})
 	return ishml_phrase
 }
 ishml.Phrase.transform.join=function({separator="", trim=true}={})
@@ -1014,7 +1013,7 @@ ishml.Phrase.transform.join=function({separator="", trim=true}={})
 		}	
 	}
 	ishml.Phrase.attach(ishml_phrase,target)
-	ishml_phrase.reset=function(){target.reset()}
+	Object.defineProperty(ishml_phrase,"_reset",{value:function(){target._reset()},writable:true})
 	return ishml_phrase
 }
 
@@ -1055,7 +1054,7 @@ ishml.Phrase.suffix.favor=function()
 		}
 	}
 	ishml.Phrase.attach(ishml_phrase,target)
-	ishml_phrase.reset=function(){target.reset()}
+	Object.defineProperty(ishml_phrase,"_reset",{value:function(){target._reset()},writable:true})
 	return ishml_phrase		
 }
 ishml.Phrase.transform.first=function(count=1)
@@ -1079,7 +1078,7 @@ ishml.Phrase.transform.first=function(count=1)
 		}
 	}
 	ishml.Phrase.attach(ishml_phrase,target)
-	ishml_phrase.reset=function(){target.reset()}
+	Object.defineProperty(ishml_phrase,"_reset",{value:function(){target._reset()},writable:true})
 	return ishml_phrase		
 }
 ishml.Phrase.suffix.fixed=function()
@@ -1110,7 +1109,7 @@ ishml.Phrase.suffix.fixed=function()
 		}
 	}
 	ishml.Phrase.attach(ishml_phrase,target)
-	ishml_phrase.reset=function(){}
+	Object.defineProperty(ishml_phrase,"_reset",{value:function(){},writable:true})
 	return ishml_phrase		
 }
 //var b=_`They had ${_([{value:"cat",size:3,adj:"sleepy"},{value:"dog",size:3,adj:"bouncy"},{value:"mouse",size:3,adj:"nervous"}]).pick.tag("animal").s.tag("animals")} at the petstore.  So I got a ${x=>x.animal}.  How many ${x=>x.animals} do you have?  My ${x=>x.animal} is ${x=>x.animal.adj}{x=>if(x.animal.size <3){" and also small"}else{" and also big"}}.`
@@ -1151,7 +1150,7 @@ ishml.Phrase.transform.if=function(condition=()=>true)
 		}
 	}
 	ishml.Phrase.attach(ishml_phrase,target)
-	ishml_phrase.reset=function(){target.reset()}
+	Object.defineProperty(ishml_phrase,"_reset",{value:function(){target._reset()},writable:true})
 	return ishml_phrase
 }
 
@@ -1176,7 +1175,7 @@ ishml.Phrase.transform.last=function(count=1)
 		}
 	}
 	ishml.Phrase.attach(ishml_phrase,target)
-	ishml_phrase.reset=function(){target.reset()}
+	Object.defineProperty(ishml_phrase,"_reset",{value:function(){target._reset()},writable:true})
 	return ishml_phrase		
 }
 //_`<li>${{animal:_(["goose","chicken","rhino"]).series()}}</li>`.per("animal")
@@ -1218,7 +1217,7 @@ ishml.Phrase.transform.per=function(id)
 		}
 	}
 	ishml.Phrase.attach(ishml_phrase,target)
-	ishml_phrase.reset=function(){target.reset()}
+	Object.defineProperty(ishml_phrase,"_reset",{value:function(){target._reset()},writable:true})
 	return ishml_phrase		
 }
 ishml.Phrase.suffix.pick=function()
@@ -1257,7 +1256,7 @@ ishml.Phrase.suffix.pick=function()
 		}
 	}
 	ishml.Phrase.attach(ishml_phrase,target)
-	ishml_phrase.reset=function(){target.reset()}
+	Object.defineProperty(ishml_phrase,"_reset",{value:function(){target._reset()},writable:true})
 	return ishml_phrase		
 }
 ishml.Phrase.transform.repeat=function(condition)
@@ -1292,7 +1291,7 @@ ishml.Phrase.transform.repeat=function(condition)
 		}
 	}	
 	ishml.Phrase.attach(ishml_phrase,target)
-	ishml_phrase.reset=function(){target.reset()}
+	Object.defineProperty(ishml_phrase,"_reset",{value:function(){target._reset()},writable:true})
 	return ishml_phrase
 }
 //_.(["cat","dog","frog"]).series({then:""})  
@@ -1359,14 +1358,14 @@ ishml.Phrase.transform.series=function({then=""}={})
 		}
 	}
 	ishml.Phrase.attach(ishml_phrase,target)
-	ishml_phrase.reset=function(){target.reset()}
+	Object.defineProperty(ishml_phrase,"_reset",{value:function(){target._reset()},writable:true})
 	return ishml_phrase		
 }
 
-ishml.Phrase.suffix.shuffled=function()
+ishml.Phrase.suffix.shuffle=function()
 {
-	//ishml.Phrase(["cat","dog", "bird"]).shuffled.cycle
-	//ishml.Phrase(["cat","dog", "bird"]).shuffled.fixed.cycle
+	//ishml.Phrase(["cat","dog", "bird"]).shuffle.cycle
+	//ishml.Phrase(["cat","dog", "bird"]).shuffle.fixed.cycle
 	var target=this
 	var result =null
 	var ishml_phrase=function(...data)
@@ -1392,11 +1391,7 @@ ishml.Phrase.suffix.shuffled=function()
 		}
 	}
 	ishml.Phrase.attach(ishml_phrase,target)
-	ishml_phrase.reset=function()
-	{
-		target.reset()
-		result=null
-	}
+	Object.defineProperty(ishml_phrase,"_reset",{value:function(){target._reset();result=null},writable:true})
 	return ishml_phrase	
 			
 }
@@ -1431,7 +1426,7 @@ ishml.Phrase.transform.tag=function(id)
 	ishml.Phrase.attach(ishml_phrase,target)
 	ishml_phrase._id=id
 	ishml_phrase.getTags=ishml_phrase.getTaggedPhrases
-	ishml_phrase.reset=function(){}
+	Object.defineProperty(ishml_phrase,"_reset",{value:function(){target._reset()},writable:true})
 	return ishml_phrase		
 }
 
@@ -1464,7 +1459,7 @@ ishml.Phrase.transform.until=function(condition)
 		}
 	}	
 	ishml.Phrase.attach(ishml_phrase,target)
-	ishml_phrase.reset=function(){target.reset()}
+	Object.defineProperty(ishml_phrase,"_reset",{value:function(){target._reset()},writable:true})
 	return ishml_phrase
 }	
 ishml.Phrase.transform.while=function(condition)
@@ -1495,7 +1490,7 @@ ishml.Phrase.transform.while=function(condition)
 		}
 	}	
 	ishml.Phrase.attach(ishml_phrase,target)
-	ishml_phrase.reset=function(){target.reset()}
+	Object.defineProperty(ishml_phrase,"_reset",{value:function(){target._reset()},writable:true})
 	return ishml_phrase
 }
 
@@ -1568,7 +1563,7 @@ ishml.Phrase.phraseModifier=function(modifier)
 				}
 			}	
 			ishml.Phrase.attach(ishml_phrase,target)
-			ishml_phrase.reset=function(){target.reset}
+			Object.defineProperty(ishml_phrase,"_reset",{value:function(){target._reset()},writable:true})
 			return ishml_phrase
 		}
 		ishml.Phrase.suffix[id]=suffixer
@@ -1612,7 +1607,7 @@ ishml.Phrase.modifier=function(modifier)
 				}
 			}	
 			ishml.Phrase.attach(ishml_phrase,target)
-			ishml_phrase.reset=function(){target.reset}
+			Object.defineProperty(ishml_phrase,"_reset",{value:function(){target._reset()},writable:true})
 			return ishml_phrase
 		}
 		ishml.Phrase[id]=new Proxy(prefixer,ishml.Phrase.prefixHandler)
