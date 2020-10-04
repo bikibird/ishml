@@ -10,7 +10,7 @@
             ],
             "type": "shell",
             "command": [
-                "cat src\\apex.js, src\\interpretation.js, src\\lexicon.js, src\\parser.js, src\\regex.js, src\\rule.js, src\\token.js, src\\util.js | sc src\\ishml.js"
+                "cat src\\apex.js, src\\interpretation.js, src\\lexicon.js, src\\parser.js, src\\phrase.js, src\\regex.js, src\\rule.js, src\\token.js, src\\util.js | sc src\\ishml.js"
             ],
             "group": {
                 "kind": "build",
@@ -22,7 +22,7 @@
             "label": "make ishml-lp",
             "type": "shell",
             "command": [
-                "cat src\\apex.js, src\\interpretation.js, src\\lexicon.js, src\\parser.js, src\\regex.js, src\\rule.js, src\\token.js, src\\util.js | sc src\\ishml-lp.js"
+                "cat src\\apex.js, src\\interpretation.js, src\\lexicon.js, src\\parser.js, src\\phrase.js, src\\regex.js, src\\rule.js, src\\token.js, src\\util.js | sc src\\ishml-lp.js"
             ],
             "group": {
                 "kind": "build",

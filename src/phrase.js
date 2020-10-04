@@ -1,4 +1,31 @@
 /*
+***Creating phrases
+
+//default data
+var _=ishml.Phrase
+
+var example1 = _`Hello world.`  //template literal notation
+var example2 = _("Venus","Earth","Mars") //simple list
+var example3 = _(["Venus","Earth","Mars"]) //simple list
+var example4 = _([{value:"Venus", position:2},{value:"Earth", position:3},{value:"Mars", position:4}])// complex list
+_([{planet:"Venus", position:2},{planet:"Earth", position:3},{planet:"Mars", position:4}])// complex list
+
+
+//Nested phrases
+var example6 = _`Hello ${_("Venus","Earth","Mars")}.`  //inline nested template
+var example7 = _`Hello ${example2}.`
+
+**** populating phrases
+
+example2("mercury","jupiter","saturn")
+example2("mercury","jupiter","saturn")
+
+
+
+//deferred population
+var example5 =_()
+
+
 ***anonoymous phrases:
 var saying=ishml.Phrase`The ${ishml.Phrase(["cat","dog", "bird"]).pick()} is in the ${ishml.Phrase(["hat","box", "nest", "car"]).pick(})}.`
 
@@ -254,70 +281,71 @@ _.series(["cat","dog","flea"]).then(()=>"")
 */
 ishml.Phrase=function Phrase(literals, ...expressions)
 {
-	var populate=(data,index=0)=>
+	var populate=(data)=>
 	{
-		if (data instanceof Array) //if array and this phrase terminal, replace phrases with normalized data array.
+		if (data instanceof Array) //Treat as terminal phrase
 		{
-			if (ishml_phrase._terminal)
+			if (data.length===0){ishml_phrase._phrasesphrases=[]}
+			else
 			{
-				if (data.length===0){phrases=[]}
-				else
+				ishml_phrase._phrases=data.map(phrase=> //normalize phrases
 				{
-					ishml_phrase._phrases=data.map(phrase=> //normalize phrases
+					if (typeof phrase === "string"){return {value:phrase}}
+					else
 					{
-						if (typeof phrase === "string"){return {value:phrase}}
-						else
+						if (phrase.hasOwnProperty("value")){return phrase}
+						else 
 						{
-							if (phrase.hasOwnProperty("value")){return phrase}
-							else 
-							{
-								var revisedPhrase=Object.assign({},phrase)
-								revisedPhrase.value=Object.values(phrase)[0]
-								return revisedPhrase
-							}
+							var revisedPhrase=Object.assign({},phrase)
+							revisedPhrase.value=Object.values(phrase)[0]
+							return revisedPhrase
 						}
-					})
-				}	
-			}
-			/*else  //this phrase non-terminal, but using anonymous data.  Match to nth entry in the concordance.
-			{
-				if(!(data===ishml.enum.mode.reset))
-				{
-					var key=Object.values(ishml_phrase._concordance.index)[index]
-					ishml_phrase._phrases[ishml_phrase._concordance.key[key]].value(data)
-				}	
-			}*/	
-		}
-		/*else
-		{
-			if(!(data===ishml.enum.mode.reset))  //if data is an object, match members to named phrases
-			{
-				Object.keys(data).forEach(key=>
-				{
-					if(ishml_phrase._concordance.key.hasOwnProperty(key))
-					{
-						ishml_phrase._phrases[ishml_phrase._concordance.key[key]].value(data[key])
 					}
-
 				})
 			}	
-		}*/
+		}
+		else  //object  attempt to match to tags
+		{
+			ishml_phrase._phrases.forEach(phrase=>
+			{
+				if (phrase.value._isIshmlPhrase)
+				{
+					var tags=phrase.value.getTags()
+					
+					for (const tag of Object.keys(tags))
+					{
+						if (data.hasOwnProperty(tag))
+						{
+							phrase.value(data[tag])
+							break
+						}
+					}
+				}
+			})
+		}
 	}
 	var ishml_phrase=function(...data)
 	{
 		if (data.length>0)  //we have data
 		{			
-			data.forEach((item,index)=>
+			/*data.forEach((item,index)=>
+			{
+				if(item._isIshmlPhrase) // DEFECT: is this feature needed?
 				{
-					if(item._isIshmlPhrase)
-					{
-						var phrases=[item.say().text]
-						populate(phrases,index)
-					}
-					else {populate(item,index)}
-					
+					var phrases=[item.say().text]
+					populate(phrases,index)
 				}
-			)	
+				else {populate(item,index)}
+				
+			})*/
+			if (data.length >1 ) // data is simple list of args
+			{
+				populate(data)
+			}	
+			else  //unwrap arg array
+			{
+				populate(data[0])
+			}	
 			ishml_phrase.text=""
 			return ishml_phrase
 			
@@ -352,55 +380,20 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 						}
 						if (clause._isIshmlPhrase) //clause is an ishml_phrase
 						{
-									
+							clause.setContainer(ishml_phrase)		
 							var data={}
 							var subPhrases=clause()
 							Object.assign(ishml_phrase,clause.getTags())  //always evaluate clause before getting tags
-							data.value= subPhrases.reduce((result,subPhrase,index)=>
+							data.value= subPhrases.reduce((result,subPhrase)=>
 							{
 								Object.assign(data,subPhrase)
-								/*if (clause._concordance.index.hasOwnProperty(index))
-								{
-									data[clause._concordance.index[index]]=clause._phrases[index].value
-								}*/
-								
+
 								return result+subPhrase.value
 							},"")
-							
-							//Object.assign(data, clause._concordance.tags)
-							//Object.assign(clause, clause._concordance.tags)	
 						}
-
 					}
 				}
-				/*if(ishml_phrase._concordance.index.hasOwnProperty(index))
-				{
-					var placeholder=ishml_phrase[ishml_phrase._concordance.index[index]]
-					Object.keys(placeholder).forEach(key=>delete placeholder[key])
-					Object.assign(placeholder,data)  
-				}*/
 				var evaluatedPhrase=Object.assign({},data)
-				/*var silent=phrase.silent
-				if (silent)
-				{
-					if (silent !== true)
-					{
-						var last=evaluation.length-1
-						if(last >=0)
-						{
-						
-							if (typeof silent==="string")
-							{
-								evaluation[last].value=evaluation[last].value.replace(new RegExp(silent+ "+$"), "")
-							}
-							else
-							{
-								evaluation[last].value=evaluation[last].value.replace(silent, "")
-							}
-						}
-					}
-					evaluatedPhrase.value=""	
-				}*/
 				evaluation.push(evaluatedPhrase)
 			})
 			
@@ -410,9 +403,6 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 		
 	}
 	Object.defineProperty(ishml_phrase,"_phrases",{value:[],writable:true})
-	//Object.defineProperty(ishml_phrase,"_concordance",{value:{key:{},index:{},tags:{}},writable:true})
-	
-	
 	if (literals && literals.length>0)
 	{
 		if (expressions.length===0)
@@ -438,28 +428,11 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 				Object.defineProperty(ishml_phrase,"_terminal",{value:false,writable:true})
 				expressions.forEach(phrase=> 
 				{
-					
-					/*if (typeof phrase === "object")  //phrase is an object. AKA named phrase
-					{
-						var key=Object.keys(phrase)[0]
-						var normalizedPhrase=Object.assign({value:phrase[key]},phrase)
-						var counter=ishml_phrase._phrases.push(normalizedPhrase)-1
-						ishml_phrase._concordance.index[counter]=key
-						ishml_phrase._concordance.key[key]=counter
-						ishml_phrase[key]={}
-					}
-					else //anonymous phrase
-					{ishml_phrase._phrases.push({value:phrase})}
-					*/
 					ishml_phrase._phrases.push({value:phrase})
 					if (literals[index].length>0)
 					{
 						ishml_phrase._phrases.push({value:literals[index]})
 					}
-				/*	if(phrase._isIshmlPhrase)
-					{
-						Object.assign(ishml_phrase,phrase._concordance.tags)
-					}*/
 					index++
 				})
 			}
@@ -487,13 +460,10 @@ ishml.Phrase.attach=function(ishml_phrase,target)
 
 	var say=function(seed) //generates text output
 	{
-		//if (data.length>0){this(...data)}
 		if (Number.isInteger(seed))
 		{
 			this._seed=seed
 		}
-
-		//this.text=this().reduce((result,item)=>result+item.value,"")
 		this()
 		return this
 	}
@@ -537,6 +507,11 @@ ishml.Phrase.attach=function(ishml_phrase,target)
 		if(this._target){Object.assign(tags,this._target.getTags())}
 		return tags
 	}
+	var setContainer=function(container)
+	{
+		this._container=container
+		if(this._target){this._target.setContainer(container)}
+	}
 
 	Object.keys(ishml.Phrase.suffix).forEach(key=>
 	{
@@ -551,94 +526,25 @@ ishml.Phrase.attach=function(ishml_phrase,target)
 	if (target && target._isIshmlPhrase)
 	{
 		Object.assign(ishml_phrase,target)
-		//Object.defineProperty(ishml_phrase,"_concordance",{value:target._concordance,writable:true})
 		Object.defineProperty(ishml_phrase,"_phrases",{value:target._phrases,writable:true})
 		Object.defineProperty(ishml_phrase,"_terminal",{value:target._terminal,writable:true})
 	}
-	/*else
-	{
-		Object.keys(target.key).forEach(key=>
-		{
-			ishml_phrase[key]={}
-		})
-		//Object.defineProperty(ishml_phrase,"_concordance",{value:target,writable:true})
-	}*/
-	
-	Object.defineProperty(ishml_phrase,"_isIshmlPhrase",{value:true,writable:true})
-	Object.defineProperty(ishml_phrase,"_target",{value:target,writable:true})
-	Object.defineProperty(ishml_phrase,"_tag",{value:null,writable:true})
+	Object.defineProperty(ishml_phrase,"append",{value:append,writable:true})
+	Object.defineProperty(ishml_phrase,"_container",{value:null,writable:true})
 	Object.defineProperty(ishml_phrase,"getTags",{value:getTags,writable:true})
 	Object.defineProperty(ishml_phrase,"getTaggedPhrases",{value:getTaggedPhrases,writable:true})
+	Object.defineProperty(ishml_phrase,"htmlTemplate",{value:htmlTemplate,writable:true})
+	Object.defineProperty(ishml_phrase,"_isIshmlPhrase",{value:true,writable:true})
+	Object.defineProperty(ishml_phrase,"prepend",{value:prepend,writable:true})
+	Object.defineProperty(ishml_phrase,"replace",{value:replace,writable:true})
 	Object.defineProperty(ishml_phrase,"say",{value:say,writable:true})
 	Object.defineProperty(ishml_phrase,"_seed",{value:ishml.util.random().seed,writable:true})
-	Object.defineProperty(ishml_phrase,"prepend",{value:prepend,writable:true})
-	Object.defineProperty(ishml_phrase,"append",{value:append,writable:true})
-	Object.defineProperty(ishml_phrase,"replace",{value:replace,writable:true})
+	Object.defineProperty(ishml_phrase,"setContainer",{value:setContainer,writable:true})
+	Object.defineProperty(ishml_phrase,"_target",{value:target,writable:true})
+	Object.defineProperty(ishml_phrase,"_tag",{value:null,writable:true})
 	Object.defineProperty(ishml_phrase,"text",{value:"",writable:true})
-	Object.defineProperty(ishml_phrase,"htmlTemplate",{value:htmlTemplate,writable:true})
-
-}
-//A transform function when called that returns a function that returns the actual transformation.  The transformation returns either text or an object countaining the phrases array and list of placeholders.  
-
-
-/*ishml.Phrase.prefix=function(modifier,returnsString=true)
-{
-	var named= id=>
-	{
-		if (returnsString)
-		{
-			//Convert to ishml phrase generator instead.
-			var prefixer=(data)=>
-			{
-				if (typeof data=== "function")
-				{
-					var target=data()
-					if (target._isIshmlPhrase)
-					{
-						target=[target.say().text]
-					}
-					
-				}
-				if(!target instanceof Array)
-				{
-					target=[target]
-				}
-				
-				var ishml_phrase=function(...data)
-				{	
-					if (data.length>0)
-					{
-						target(...data)
-						return ishml_phrase
-					}
-					else
-					{
-						var phrases=target()
-						phrases.forEach(phrase=>
-						{
-							phrase.value=modifier(phrase.value)
-						})
-						return phrases.slice(0)
-					}
-				}	
-				ishml.Phrase.attach(ishml_phrase,target)
-				return ishml_phrase(data)
-			}
-		}
-		else
-		{
-			
-				var prefixer=(data)=>modifier(data)
-
-		}
 	
-		ishml.Phrase[id]=new Proxy(prefixer,ishml.Phrase.prefixHandler)
-		
-		return this
-	}	
-
-	return {named:named}	
-}*/
+}
 
 ishml.Phrase.prefixHandler=
 {
@@ -648,15 +554,12 @@ ishml.Phrase.prefixHandler=
 	
 		if (property==="nextPrefix"){return prefix} //bare property without proxy
 		
-		var nextPrefix= ishml.Phrase[property].nextPrefix//Reflect.get(target,property,receiver)
+		var nextPrefix= ishml.Phrase[property].nextPrefix
 		var prefixer=(data)=>
 		{	
-			
 			return prefix(nextPrefix(data))//a.b(data) becomes a(b(data))
-			
 		}
 		return new Proxy(prefixer,this)
-		
 	}
 }
 ishml.Phrase.suffix={}
@@ -743,6 +646,44 @@ ishml.Phrase.suffix.cycle=function()
 	ishml.Phrase.attach(ishml_phrase,target)
 	ishml_phrase.reset=function(){target.reset()}
 	return ishml_phrase		
+}
+
+//var b=_`They had ${_([{value:"cat",size:3,adj:"sleepy"},{value:"dog",size:3,adj:"bouncy"},{value:"mouse",size:1,adj:"nervous"}]).pick.tag("animal").s.tag("animals")} at the petstore.  So I got a ${x=>x.animal}.  How many ${x=>x.animals} do you have?  My ${x=>x.animal} is ${x=>x.animal.adj}${_` and also small`.if(x=>x.animal.size<3).else` and also fluffy`}.
+ishml.Phrase.transform.else=function(...alternative)
+{
+	var elsePhrase= ishml.Phrase(...alternative)
+	var target=this
+	var ishml_phrase=function(...data)
+	{	
+		if (data.length>0)
+		{
+			target(...data)
+			ishml_phrase.text=""
+			return ishml_phrase
+		}
+		else
+		{
+			var phrases=target()
+			if (phrases.length===1 && phrases[0].value==="")
+			{
+				phrases=elsePhrase()
+				Object.assign(ishml_phrase,elsePhrase)
+				ishml_phrase._id=null
+				ishml_phrase.text=phrases.reduce((text,data)=>text+data.value,"")
+				return phrases
+			}
+			else
+			{
+				Object.assign(ishml_phrase,target)
+				ishml_phrase._id=null
+				ishml_phrase.text=phrases.reduce((text,data)=>text+data.value,"")
+				return phrases
+			}	
+		}
+	}
+	ishml.Phrase.attach(ishml_phrase,target)
+	ishml_phrase.reset=function(){target.reset()}
+	return ishml_phrase
 }
 ishml.Phrase.transform.join=function({separator="", trim=true}={})
 {
@@ -884,6 +825,48 @@ ishml.Phrase.suffix.fixed=function()
 	ishml_phrase.reset=function(){}
 	return ishml_phrase		
 }
+//var b=_`They had ${_([{value:"cat",size:3,adj:"sleepy"},{value:"dog",size:3,adj:"bouncy"},{value:"mouse",size:3,adj:"nervous"}]).pick.tag("animal").s.tag("animals")} at the petstore.  So I got a ${x=>x.animal}.  How many ${x=>x.animals} do you have?  My ${x=>x.animal} is ${x=>x.animal.adj}{x=>if(x.animal.size <3){" and also small"}else{" and also big"}}.`
+
+ishml.Phrase.transform.if=function(condition=()=>true)
+{
+	var target=this
+	var rule
+	if (typeof condition ==="function"){rule=condition}
+	else {rule = ()=>condition}
+
+	var ishml_phrase=function(...data)
+	{	
+		if (data.length>0)
+		{
+			target(...data)
+			ishml_phrase.text=""
+			return ishml_phrase
+		}
+		else
+		{
+			if(rule(ishml_phrase._container))
+			{
+				var phrases=target()
+				Object.assign(ishml_phrase,target)
+				ishml_phrase._id=null
+				ishml_phrase.text=phrases.reduce((text,data)=>text+data.value,"")
+				return phrases
+			}
+			else
+			{
+				var phrase={value:""}
+				ishml_phrase.text=phrase.value
+				Object.assign(ishml_phrase,phrase)
+				ishml_phrase.text=""
+				return [phrase]
+			}
+		}
+	}
+	ishml.Phrase.attach(ishml_phrase,target)
+	ishml_phrase.reset=function(){target.reset()}
+	return ishml_phrase
+}
+
 ishml.Phrase.transform.last=function(count=1)
 {
 	var target=this
@@ -908,33 +891,6 @@ ishml.Phrase.transform.last=function(count=1)
 	ishml_phrase.reset=function(){target.reset()}
 	return ishml_phrase		
 }
-
-/*ishml.Phrase.transform.suffix=function()
-{
-	var target=this
-	var done =false
-	var ishml_phrase=function(...data)
-	{	
-		if (data.length>0)
-		{
-			target(...data)
-			done = false
-			return ishml_phrase
-		}
-		else
-		{
-			if (done){return [{value:""}]}
-			else
-			{
-				done = true
-				return target()
-			}
-			
-		}
-	}
-	ishml.Phrase.attach(ishml_phrase,target)
-	return ishml_phrase		
-}*/
 //_`<li>${{animal:_(["goose","chicken","rhino"]).series()}}</li>`.per("animal")
 ishml.Phrase.transform.per=function(id)
 {
@@ -951,7 +907,6 @@ ishml.Phrase.transform.per=function(id)
 		}
 		else
 		{
-			//var length =target._phrases[target._concordance.key[placeholder]].value._phrases.length
 			var length=ishml_phrase[tag]._phrases.length
 			if(length===0)
 			{
@@ -1188,7 +1143,6 @@ ishml.Phrase.transform.tag=function(id)
 	ishml.Phrase.attach(ishml_phrase,target)
 	ishml_phrase._id=id
 	ishml_phrase.getTags=ishml_phrase.getTaggedPhrases
-	//ishml_phrase._concordance.tags[id]=ishml_phrase
 	ishml_phrase.reset=function(){}
 	return ishml_phrase		
 }
@@ -1257,59 +1211,6 @@ ishml.Phrase.transform.while=function(condition)
 	return ishml_phrase
 }
 
-
-/***************DEFECT: examples of custom transforms.  Remove from final release and add to documentation.  */
-
-ishml.Phrase.transform.identity=function()
-{
-	var target=this
-	var ishml_phrase=function(...data)
-	{	
-		if (data.length>0)
-		{
-			target(...data)
-			return ishml_phrase
-		}
-		else
-		{
-			var phrases=target()
-			return phrases.slice(0)
-		}
-	}
-
-	ishml.Phrase.attach(ishml_phrase,target)
-	ishml_phrase.reset=function(){target.reset()}
-	return ishml_phrase
-}
-ishml.Phrase.transform.cap=function()
-{
-	var target=this
-	var ishml_phrase=function(...data)
-	{	
-		if (data.length>0)
-		{
-			target(...data)
-			ishml_phrase.text=""
-			return ishml_phrase
-		}
-		else
-		{
-			var phrases=target()
-			phrases=phrases.map(phrase=>
-			{
-				if (phrase.value.length>0)
-				{
-					revisedPhrase=Object.assign({},phrase)
-					revisedPhrase.value=phrase.value[0].toUpperCase()+phrase.value.slice(1)
-					return revisedPhrase
-				}	
-			})
-		}	
-		return phrases
-	}
-	ishml.Phrase.attach(ishml_phrase,target)
-	return ishml_phrase
-}
 ishml.Phrase.phraseModifier=function(modifier)
 {
 
@@ -1387,7 +1288,7 @@ ishml.Phrase.phraseModifier=function(modifier)
 	return {prefix:prefix,suffix:suffix}
 }	
 ishml.Phrase.modifier=function(modifier)
-{  //DEFECT: should do deep copy of phrases.
+{ 
 	if (modifier._isIshmlPhrase){return ishml.Phrase.phraseModifier(modifier)}
 	var prefix= id=>
 	{
@@ -1465,5 +1366,4 @@ ishml.Phrase.modifier=function(modifier)
 		return this
 	}
 	return {prefix:prefix,suffix:suffix}
-
 }
