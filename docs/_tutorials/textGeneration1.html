@@ -1,14 +1,9 @@
 ---
 title: Text Generation Part 1
+status: future
 ---
-<html>
-<head>
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-<!--link rel="stylesheet" type="text/css" href="{{ site.url }}{{ site.baseurl }}/whitewhale.css" /-->
-<link rel="stylesheet" type="text/css" href="../whitewhale.css" /-->
-</head>
-<body>
+<h1>WARNING: Do not use!  Under construction!</h1>
+
 <div class="container mt-4">
 <h1>Text generation Part One</h1>
 <p class="lead">Prerequisites: You should have a <a href="https://developer.mozilla.org/en-US/docs/Learn">basic working knowledge</a> of JavaScript and HTML and have read about <a href="{{ site.baseurl }}{% link index.html %}">getting started</a>.</p>
@@ -16,7 +11,7 @@ integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw
 <h1 onclick="myPhrase.say().replace('#greeting')" id="greeting"></h1>	
 <p>Code Listing 1 below is the <i>Hello World</i> web page for the <code>ISHML.Phrase</code> API.  Create this web page and load it in your web browser.  You should see a greeting for one of eight planets.  Clicking the  "click here" link will update the greeting.</p>
 <div class="row"><div class="col">
-    <script async src="//jsfiddle.net/cowboy/HvAJf/embed/"></script>
+    <script async src="//jsfiddle.net/bikibird/uq3h0yom/embed/html,js,result/?menuColor=17a2b8&fontColor=ffffff"></script>
 <pre id="codelisting1" class="prettyprint linenums bg-jumbotron shadow lang-js float-left mr-4" title="Code Listing 1">
 &lt;html&gt;
     &lt;body&gt;
@@ -74,11 +69,11 @@ planets([{planet:"Venus", position:2},{planet:"Earth", position:3},{planet:"Mars
 var myPhrase=_`Hello, ${planets.tag("planet")}. ${_().tag("remark")}`
 myPhrase({planet:["Venus","Earth","Mars"],remark:["Long time no see.","I'm home.","Good to be back."]})</pre></div></div>
 
-        <p>Continue to <a href="{{ site.baseurl }}{% link _tutorials/parsing2.html %}">part two</a> to learn about more complex grammars, including choice rules and semantic analysis.</p>
+
     </div>    
 		<!--script src="{{ site.ishml }}"--></script>
-		<script src="../../src/ishml.js"></script>
-		<script src="../../src/en-us.js"></script>
+		<script src="https://cdn.jsdelivr.net/gh/bikibird/ishml@a02bbd7/src/ishml.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/bikibird/ishml@a02bbd7/src/en-us.js"></script>
 
 		<script>
 		//Code Listing 1-- Hello World
@@ -87,5 +82,4 @@ myPhrase({planet:["Venus","Earth","Mars"],remark:["Long time no see.","I'm home.
 			myPhrase.say().replace("#greeting")
 		</script>
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
- DEFECT: remove elements replicated by default layout.       
-</body></html>        
+       
