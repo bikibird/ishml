@@ -8,24 +8,9 @@ status: pending
 <p>ISHML's text generation API is accessed via a call to <code>ISHML.Phrase</code>.  The API facilitates the creation of complex text generation functions using a templating system based on Javascript's <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals">template literal</a> notation. Specifically, <code>ishml.Phrase</code> is a tag function that may be used with template literal notation or standard function call notation. It returns a custom text generation function. <b>Note: this tutorial refers to the function returned by <code>ishml.Phrase</code> as a <q>phrase</q>. Anytime you see the word phrase, think custom text generation function.</b>  We will start with simple phrases and then advance to nested, recursive, conditional, and looping text generation as well as introduce various phrase prefixes, and suffixes. You will get the most out of this tutorial if you experiment with the examples. The code listings below are embedded as scripts for this web page. You may examine and interact with the examples through your <a href="https://developer.mozilla.org/en-US/docs/Learn/Common_questions/What_are_browser_developer_tools">browser's developer tools</a>.</p>
 <h1 onclick="myPhrase.say().replace('#greeting')" id="greeting"></h1>	
 <p>Code Listing 1 below is the <i>Hello World</i> web page for the <code>ISHML.Phrase</code> API.  Create this web page and load it in your web browser.  You should see a greeting for one of eight planets.  Clicking the  "click here" link will update the greeting.</p>
-<div class="row"><div class="col">
-    <script async src="//jsfiddle.net/bikibird/uq3h0yom/embed/"></script>
-<pre id="codelisting1" class="prettyprint linenums bg-jumbotron shadow lang-js float-left mr-4" title="Code Listing 1">
-&lt;html&gt;
-    &lt;body&gt;
-        &lt;h1&gt; id="greeting"&gt;Hello, World&lt;/h1&gt;
-        &lt;p&gt;Welcome to text generation using ISHML phrases.  
-        &lt;a onclick='myPhrase.say().replace("#greeting")'&gt;Click here&lt;/a&gt;.&lt;/p&gt;
-        &lt;script src="../../src/ishml.js"&gt;&lt/script&gt;
-        &lt;script src="../../src/en-us.js"&gt;&lt/script&gt;
-        &lt;script&gt;
-            var _=ishml.Phrase
-            var myPhrase=_`Hello, ${_("Mecury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune").shuffle.cycle}`
-            myPhrase.say().replace("#greeting")
-        &lt;/script&gt;
-    &lt;/body&gt;
-&lt;/html&gt;
-</pre></div></div>
+<div class="row"><div class="col bg-info">
+    <script async src="//jsfiddle.net/bikibird/uq3h0yom/embed/html,js,result/"></script>
+</div></div>
 <p>Line 6 loads the ISHML library.  This library provides <code>ishml.Phrase</code>. Line 7 loads an optional library of modern american english prefixes and suffixes to be used with phrases.  We will be using this library in some of the upcoming examples.  Lines 9 through 11 give a small taste of how phrases work. In line 9, we assign <code>ishml.Phrase</code> to a variable represented by an underscore.  This is simply for convenience so that we don't have to type out <code>ishml.Phrase</code> over and over. The underscore was chosen because it reflect's the "fill in the blanks" nature of text generation. Line 10 demonstrates the creation of a nested phrase. The outer phrase, <q>Hello, _____</q>, has an expression, denoted by <code>${...}</code>, which is also a phrase.  The inner phrase fills in the blank of the outer phrase with a random planet each time the text is generated. Line 11 does the actual work of generating the text and places it inside the <code>&lt;h1&gt;</code> element.</p>
 <h1>Creating Phrases</h1>
 <p>The above example showed that phrases may be created using template literal notation or standard function call notation. Listing 2 shows several styles of phrase creation. Some styles are more convenient than others unders certain circumstances.</p>
