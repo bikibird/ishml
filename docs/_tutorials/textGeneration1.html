@@ -1,0 +1,91 @@
+---
+title: Text Generation Part 1
+---
+<html>
+<head>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<!--link rel="stylesheet" type="text/css" href="{{ site.url }}{{ site.baseurl }}/whitewhale.css" /-->
+<link rel="stylesheet" type="text/css" href="../whitewhale.css" /-->
+</head>
+<body>
+<div class="container mt-4">
+<h1>Text generation Part One</h1>
+<p class="lead">Prerequisites: You should have a <a href="https://developer.mozilla.org/en-US/docs/Learn">basic working knowledge</a> of JavaScript and HTML and have read about <a href="{{ site.baseurl }}{% link index.html %}">getting started</a>.</p>
+<p>ISHML's text generation API is accessed via a call to <code>ISHML.Phrase</code>.  The API facilitates the creation of complex text generation functions using a templating system based on Javascript's <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals">template literal</a> notation. Specifically, <code>ishml.Phrase</code> is a tag function that may be used with template literal notation or standard function call notation. It returns a custom text generation function. <b>Note: this tutorial refers to the function returned by <code>ishml.Phrase</code> as a <q>phrase</q>. Anytime you see the word phrase, think custom text generation function.</b>  We will start with simple phrases and then advance to nested, recursive, conditional, and looping text generation as well as introduce various phrase prefixes, and suffixes. You will get the most out of this tutorial if you experiment with the examples. The code listings below are embedded as scripts for this web page. You may examine and interact with the examples through your <a href="https://developer.mozilla.org/en-US/docs/Learn/Common_questions/What_are_browser_developer_tools">browser's developer tools</a>.</p>
+<h1 onclick="myPhrase.say().replace('#greeting')" id="greeting"></h1>	
+<p>Code Listing 1 below is the <i>Hello World</i> web page for the <code>ISHML.Phrase</code> API.  Create this web page and load it in your web browser.  You should see a greeting for one of eight planets.  Clicking the  "click here" link will update the greeting.</p>
+<div class="row"><div class="col">
+    <script async src="//jsfiddle.net/cowboy/HvAJf/embed/"></script>
+<pre id="codelisting1" class="prettyprint linenums bg-jumbotron shadow lang-js float-left mr-4" title="Code Listing 1">
+&lt;html&gt;
+    &lt;body&gt;
+        &lt;h1&gt; id="greeting"&gt;Hello, World&lt;/h1&gt;
+        &lt;p&gt;Welcome to text generation using ISHML phrases.  
+        &lt;a onclick='myPhrase.say().replace("#greeting")'&gt;Click here&lt;/a&gt;.&lt;/p&gt;
+        &lt;script src="../../src/ishml.js"&gt;&lt/script&gt;
+        &lt;script src="../../src/en-us.js"&gt;&lt/script&gt;
+        &lt;script&gt;
+            var _=ishml.Phrase
+            var myPhrase=_`Hello, ${_("Mecury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune").shuffle.cycle}`
+            myPhrase.say().replace("#greeting")
+        &lt;/script&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+</pre></div></div>
+<p>Line 6 loads the ISHML library.  This library provides <code>ishml.Phrase</code>. Line 7 loads an optional library of modern american english prefixes and suffixes to be used with phrases.  We will be using this library in some of the upcoming examples.  Lines 9 through 11 give a small taste of how phrases work. In line 9, we assign <code>ishml.Phrase</code> to a variable represented by an underscore.  This is simply for convenience so that we don't have to type out <code>ishml.Phrase</code> over and over. The underscore was chosen because it reflect's the "fill in the blanks" nature of text generation. Line 10 demonstrates the creation of a nested phrase. The outer phrase, <q>Hello, _____</q>, has an expression, denoted by <code>${...}</code>, which is also a phrase.  The inner phrase fills in the blank of the outer phrase with a random planet each time the text is generated. Line 11 does the actual work of generating the text and places it inside the <code>&lt;h1&gt;</code> element.</p>
+<h1>Creating Phrases</h1>
+<p>The above example showed that phrases may be created using template literal notation or standard function call notation. Listing 2 shows several styles of phrase creation. Some styles are more convenient than others unders certain circumstances.</p>
+
+<div class="row"><div class="col">
+<pre id="codelisting2" class="prettyprint linenums bg-jumbotron shadow lang-js float-left mr-4" title="Code Listing 2">
+//Code Listing 2
+var _=ishml.Phrase
+var example1 = _`Hello, world.`  //template literal notation
+var example2a = _("Venus","Earth","Mars") //simple list
+var example2b = _(["Venus","Earth","Mars"]) //simple list
+var example3a = _([{value:"Venus", position:2},{value:"Earth", position:3},{value:"Mars", position:4}])// complex list
+var example3b = _({value:"Venus", position:2},{value:"Earth", position:3},{value:"Mars", position:4})// complex list
+var example4a = _`Hello ${example3a}.`  //nested template
+var example4b = _`Hello ${_("Venus","Earth","Mars")}.`  //inline nested 
+var example5a =_(example1, example4a, "Hello, darkness my old friend.") //mixed list of functions and strings
+var example5b =_([example1, example4b, "Hello, darkness my old friend."]) //mixed list of functions and strings
+var example6a =_()  //Deferred population
+var example6b =_``  //Deferred population
+</pre></div></div>
+<p>Example 1 defines a phrase by using template literal notation. (If you are unfamiliar with template literals and tagged templates, please be sure to <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals">read up</a> on them before continuing this tutorial.)  Instead of containing the string, <q>Hello, world</q>, <code>example1</code> is a function that holds <q>Hello, world</q> in an array.</p>
+<p>Examples 2, 3, and 5 show the creation of phrases using standard function call notation. The <i>a</i> variation of the examples show each data value passed as a separate argument.  The <i>b</i> variation passes in a single array of values.  Both variations produce identical results.  While it is common for the data to be a series of strings, you may also pass in complex data objects, ISHML phrases, or even functions that return ISHML phrases, strings, or numbers.  You may mix any of these types freely. </p>
+<p>Examples 4a and 4b are nested phrases, which mix both notation styles.  The outer phrase is defined using template literal notation.  The expression inside the template, denoted by <code>${...}</code>, is a phrase. Acceptable expressions are expression that evaluate to phrases, strings, numbers, or functions that when called during evaluation return phrases, strings, or numbers.</p>
+<p>Examples 6a and 6b are empty phrases devoid of data.  Leaving the data out of nested phrases can sometimes make the code easier to read.  Data may always be added or replaced after the initial creation of a phrase.  </p>
+
+<h1>Populating Phrases</h1>
+<p>Phrase data may be updated anytime by calling the phrase with data.  Listing 3 shows some examples of populating phrases with data.</p>
+<div class="row"><div class="col">
+    <pre id="codelisting3" class="prettyprint linenums bg-jumbotron shadow lang-js float-left mr-4" title="Code Listing 3">//Code Listing 3
+var _=ishml.Phrase
+var planets = _("Venus","Earth","Mars") 
+var greeting =_`Hello, ${planets}.`    
+//populate by simple list
+planets("Mercury","Ceres","Pluto","Jupiter","Saturn") 
+//populate by complex data
+planets({value:"Venus", position:2},{value:"Earth", position:3},{value:"Mars", position:4})
+planets([{planet:"Venus", position:2},{planet:"Earth", position:3},{planet:"Mars", position:4}])    
+//populate nested phrase
+var myPhrase=_`Hello, ${planets.tag("planet")}. ${_().tag("remark")}`
+myPhrase({planet:["Venus","Earth","Mars"],remark:["Long time no see.","I'm home.","Good to be back."]})</pre></div></div>
+
+        <p>Continue to <a href="{{ site.baseurl }}{% link _tutorials/parsing2.html %}">part two</a> to learn about more complex grammars, including choice rules and semantic analysis.</p>
+    </div>    
+		<!--script src="{{ site.ishml }}"--></script>
+		<script src="../../src/ishml.js"></script>
+		<script src="../../src/en-us.js"></script>
+
+		<script>
+		//Code Listing 1-- Hello World
+			var _=ishml.Phrase
+			var myPhrase=_`Hello, ${_("Mecury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune").shuffle.cycle}`
+			myPhrase.say().replace("#greeting")
+		</script>
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+ DEFECT: remove elements replicated by default layout.       
+</body></html>        
