@@ -1,0 +1,16 @@
+<html>
+	<body>
+		<h1 id="greeting">Hello, World</h1>
+
+		<p>Welcome to text generation using ISHML phrases.  
+		<a onclick='myPhrase.say().replace("#greeting")'>Click here</a>.</p>
+
+		<script src="../../src/ishml.js"></script>
+		<script src="../../src/en-us.js"></script>
+		<script>
+			var _=ishml.Phrase
+			var myPhrase=_`Hello, ${_("Mecury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune").shuffle.cycle}`
+			myPhrase.say().replace("#greeting")
+		</script>
+	</body>
+</html>
