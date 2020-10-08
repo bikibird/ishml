@@ -21,7 +21,7 @@
           <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
             {% assign pages = (site.tutorials | sort: 'title' ) %}
             {% for page in pages %}
-            {% if page.title != 'pending' %}
+            {% if page.status != 'pending' %}
               <a class="dropdown-item" href="{{ site.baseurl }}{{ page.url }}">{{page.title}}</a>
             {% endif %} 
             {% endfor %}
