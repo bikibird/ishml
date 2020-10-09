@@ -24,19 +24,9 @@ status: pending
 
 <h1>Populating Phrases</h1>
 <p>Phrase data may be updated anytime by calling the phrase with data.  Listing 3 shows some examples of populating phrases with data.</p>
-<div class="row"><div class="col">
-    <pre id="codelisting3" class="prettyprint linenums bg-jumbotron shadow lang-js float-left mr-4" title="Code Listing 3">//Code Listing 3
-var _=ishml.Phrase
-var planets = _("Venus","Earth","Mars") 
-var greeting =_`Hello, ${planets}.`    
-//populate by simple list
-planets("Mercury","Ceres","Pluto","Jupiter","Saturn") 
-//populate by complex data
-planets({value:"Venus", position:2},{value:"Earth", position:3},{value:"Mars", position:4})
-planets([{planet:"Venus", position:2},{planet:"Earth", position:3},{planet:"Mars", position:4}])    
-//populate nested phrase
-var myPhrase=_`Hello, ${planets.tag("planet")}. ${_().tag("remark")}`
-myPhrase({planet:["Venus","Earth","Mars"],remark:["Long time no see.","I'm home.","Good to be back."]})</pre></div></div>
+
+phwym1ns
+<iframe width="100%" height="300" src="//jsfiddle.net/bikibird/phwym1ns/latest/embedded/js/?fontColor=ffffff&menuColor=17a2b8" allowfullscreen="allowfullscreen" allowpaymentrequest frameborder="0" class="shadow"></iframe>
 
 
     </div>    
