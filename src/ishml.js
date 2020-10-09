@@ -580,8 +580,7 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 				ishml_phrase._phrases=data.map(phrase=> //normalize phrases
 				{
 					var phraseType=typeof phrase
-					if (phraseType === "string" || phraseType === "function"){return {value:phrase}}
-					else
+					if (phrase instanceof Object)
 					{
 
 						if (phrase.hasOwnProperty("value")){return phrase}
@@ -591,6 +590,11 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 							revisedPhrase.value=Object.values(phrase)[0]
 							return revisedPhrase
 						}
+					}
+					else
+					{
+						if (phraseType === "string" || phraseType === "function"){return {value:phrase}}
+						else{return{value:phrase.toString()}}
 					}
 				})
 			}	
@@ -619,16 +623,6 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 	{
 		if (data.length>0)  //we have data
 		{			
-			/*data.forEach((item,index)=>
-			{
-				if(item._isIshmlPhrase) // DEFECT: is this feature needed?
-				{
-					var phrases=[item.say().text]
-					populate(phrases,index)
-				}
-				else {populate(item,index)}
-				
-			})*/
 			if (data.length >1 ) // data is simple list of args
 			{
 				populate(data)
