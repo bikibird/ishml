@@ -9,14 +9,14 @@ status: pending
 <h1>Hello, World</h1>	
 <p>Listing 1 below shows the <i>Hello World</i> web page for <code>ishml.Phrase</code>.  If you click on the results tab, you will see a greeting. Clicking the results tab again or clicking on the <q>Click here</q> link updates the greeting.</p>
 
-<iframe id="listing1" width="100%" height="200" src="//jsfiddle.net/bikibird/w40tvp6f/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="shadow" title="Listing 1"></iframe>
+<iframe id="listing1" width="100%" height="200" src="//jsfiddle.net/bikibird/w40tvp6f/latest/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="shadow" title="Listing 1"></iframe>
 
 <p>Switch to the HTML tab.  The ishml.js script provides access to <code>ishml.Phrase</code>. the second script, en-us.js, is an optional library of modern american english prefixes and suffixes to be used with phrases. Both scripts are often used together for English language text generation.</p>
 <p>Switch to the Javascript tab and study the code. First, we assign <code>ishml.Phrase</code> to a variable represented by an underscore.  This is simply for convenience so that we don't have to type out <code>ishml.Phrase</code> over and over. The underscore was chosen because it reflects the "fill in the blanks" nature of text generation. Next we assign a phrase to the myPhrase variable. This phrase happens to be a nested phrase. The outer phrase, <q>Hello, _____</q>, has an expression, denoted by <code>${...}</code>, which is also a phrase.  The inner phrase fills in the blank of the outer phrase with a random planet each time the text is generated. The lasst line of script does the actual work of generating the text and places it inside the <code>h1</code> element.</p>
 <h1>Creating Phrases</h1>
 <p>The syntax for creating phrases is designed to get out of your way and let you have a sense of the text to be generated just by glancing at the code.  Sometimes template literal notation is preferred, sometimes standard function call notation is easier.  Sometimes a deeply nested inline structure is the most straightforward, sometimes it is less confusing to predefine the inner phrases separately and then reference them in the outer phrase. It is often just a matter of style and as you become more familiar with phrases, you will develop your own style.  Listing 2 below demonstrates many styles of phrase creation.</p>
 
-<iframe id="listing2" width="100%" height="300" src="//jsfiddle.net/bikibird/t5dx8aj1/embedded/js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="shadow"  title="Listing 2"></iframe>
+<iframe id="listing2" width="100%" height="300" src="//jsfiddle.net/bikibird/t5dx8aj1/latest/embedded/js/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="shadow"  title="Listing 2"></iframe>
 
 
 <p>Example 1 defines a phrase by using template literal notation. (If you are unfamiliar with template literals and tagged templates, please be sure to <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals">read up</a> on them before continuing this tutorial.)  Unlike standard template literals, <code>ishml.Phrase</code> returns a text generation function, not a simple string. The actual string, <q>Hello, world</q>, in <code>example1</code> is hidden away in an array attached to the function.</p>
@@ -27,14 +27,14 @@ status: pending
 <h1>Populating Phrases</h1>
 <p>Phrase data may be updated anytime by calling the phrase with data.  Listing 3 shows some examples of populating phrases with data.</p>
 
-<iframe id="listing3" width="100%" height="300" src="//jsfiddle.net/bikibird/phwym1ns/embedded/js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="shadow"  title="Listing 3"></iframe>
+<iframe id="listing3" width="100%" height="300" src="//jsfiddle.net/bikibird/phwym1ns/latest/embedded/js/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="shadow"  title="Listing 3"></iframe>
 <p>Examine how the <code>worlds</code> phrase is populated.  Is is being populated with a list of arguments or an array of values. The incoming data will completely replace the phrase's internal array of data.</p>
 <p> Often, we want to be more selective when populating a phrase and send data to to specific sub-phrases. This is done by tagging the sub-phrases when the phrase is defined.  Study the definition of <code>myPhrase</code>.  The phrase uses template literal notations and contains two expressions, which are phrases.   The sub-phrases have the <code>tag</code> suffix appended to them.  This assigns an ID tag to each of the phrases, <q>planet</q> and <q>remark</q>. Tagged phrases provide a means for referencing specific sub-phrases when populating the outer phrase. In this example myPhrase is called with an Object as an argument.  The property keys of the Object are matched against the ID tags of the sub-phrases and the data contained in each matching property of the Object is sent to populate the sub-phrase.</p>
 
 <h1>Saying Something</h1>
 <p>Now that we know how to define and populate phrases, let's use them to generate text.</p>
 
-<iframe id="listing4" width="100%" height="300" src="//jsfiddle.net/bikibird/zejfst01/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="shadow"  title="Listing 4"></iframe>
+<iframe id="listing4" width="100%" height="300" src="//jsfiddle.net/bikibird/zejfst01/latest/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="shadow"  title="Listing 4"></iframe>
 
 <p>Say</p>
 </div>    
