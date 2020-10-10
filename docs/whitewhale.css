@@ -10,7 +10,7 @@
 }
 .spoiler:hover, .spoiler:focus{
   filter: blur(0px) contrast(100%);
-  border: none 
+  outline: none 
 }
 .bg-jumbotron{background-color: rgba(23, 162, 184, 0.075); }
 pre.prettyprint{
