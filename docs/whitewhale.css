@@ -4,7 +4,7 @@
   overflow-y: auto;
 }
 .spoiler {
-	filter: blur(5px);
+	filter: blur(2px);
 	transition-property: filter;
 	transition-duration: .4s;
 }
