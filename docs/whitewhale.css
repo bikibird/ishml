@@ -4,12 +4,12 @@
   overflow-y: auto;
 }
 .spoiler {
-	filter: blur(2px);
+	filter: blur(3px) contrast(175%);
 	transition-property: filter;
 	transition-duration: .4s;
 }
 .spoiler:hover, .spoiler:focus {
-	filter: blur(0px);
+	filter: blur(0px) contrast(100%);
 }
 .bg-jumbotron{background-color: rgba(23, 162, 184, 0.075); }
 pre.prettyprint{
