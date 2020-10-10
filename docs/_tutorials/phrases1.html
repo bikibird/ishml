@@ -34,10 +34,18 @@ status: pending
 <h1>Saying Something</h1>
 <p>Now that we know how to define and populate phrases, let's generate some text.</p>
 
-<iframe id="listing4" width="100%" height="350" src="//jsfiddle.net/bikibird/ohkpn7gu/latest/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="shadow"  title="Listing 4"></iframe>
+<iframe id="listing4" width="100%" height="320" src="//jsfiddle.net/bikibird/ohkpn7gu/latest/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="shadow"  title="Listing 4"></iframe>
 
 <p>Examine the Javascript in listing 4 above.  Phrases are evaluated by calling the phrase's <code>say()</code> method. This method updates the phrase's <code>text</code> property with the generated text string and then returns the phrase. The first <code>console.log()</code> demonstrates accessing the generated text.  The second demonstrates generating and accessing the text in one statement.</p>
 <p>Phrases also provide methods for updating web pages. The <code>replace()</code> method takes a <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors">CSS selector string</a> as its argument. This method replaces the contents of all elements in the HTML document matching the selector string with the generated text. <code>append()</code> and <code>prepend()</code> work in a similar manner accept that they append and prepend the elements' contents.  click on the result tab above to see a live demonstration.</p>
+<div class="card mt-4 mb-4">
+	<div class="card-header" id="q2">
+		<p class="text-info">Exercise 1</p>
+	</div>
+	<div class="card-body">
+		<p class="card-text">Click the <i>>edit in JSFiddle</i> link in listing 4.  Change the Javascript code so that the exact same generated text appears in each paragraph.  Hint: recall that <code>.say()</code> regenerates new text each time it is called.</p>
+	</div>
+</div>
 <p>Continue to <a href="{{ site.baseurl }}{% link _tutorials/phrases2.html %}">part two</a> to learn about phrase suffixes.</p>
 
 </div>    
