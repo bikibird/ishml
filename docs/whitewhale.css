@@ -9,7 +9,8 @@
 	transition-duration: .4s;
 }
 .spoiler:hover, .spoiler:focus{
-	filter: blur(0px) contrast(100%);
+  filter: blur(0px) contrast(100%);
+  border: none 
 }
 .bg-jumbotron{background-color: rgba(23, 162, 184, 0.075); }
 pre.prettyprint{
