@@ -1,10 +1,10 @@
 .scroll{
-    height: calc(100vh - 56px);  
+  height: calc(100vh - 56px);  
   overflow-x: hidden;
   overflow-y: auto;
 }
 .spoiler {
-	filter: blur(10px);
+	filter: blur(5px);
 	transition-property: filter;
 	transition-duration: .4s;
 }
