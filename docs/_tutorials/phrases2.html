@@ -7,7 +7,7 @@ status: pending
 <p class="lead">Prerequisites: You should have read <a href="{{ site.baseurl }}{% link _tutorials/phrases1.html %}">Text Generation Part One</a>.</p>
 
 <h1>Built-in Suffixes</h1>	
-<p>When phrases are created, the text strings, sub-phrases, number, and functions that make up the phrase are stored in an array that belongs to the function.  when <code>.say()</code> is called, the default behavior is to join all the members of the array together after evaluating the members that are themselves phrases or functions. Suffixes modify that behavior.</p>
+<p>When phrases are created, the text strings, sub-phrases, numbers, and functions that make up the phrase are stored in an array that belongs to the function.  when <code>.say()</code> is called, the default behavior is to join all the items of the array together. If an item istelf is a phrase or function, it will be evaluated before concatenation.  Sometimes we want the <code>.say()</code> method to generate text following other rules.  Defining a phrase with one or more suffixes changes the rules for text generation.</p>
 
 <iframe id="listing1" width="100%" height="200" src="//jsfiddle.net/bikibird/wn0pLyu8/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="shadow" title="Listing 1"></iframe>
 

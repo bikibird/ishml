@@ -10,10 +10,11 @@ var example3 = _(["Venus","Earth","Mars"]) //simple list
 var example4 = _([{value:"Venus", position:2},{value:"Earth", position:3},{value:"Mars", position:4}])// complex list
 _([{planet:"Venus", position:2},{planet:"Earth", position:3},{planet:"Mars", position:4}])// complex list
 
+var example5 =_()  //Deferred population
 
 //Nested phrases
 var example6 = _`Hello ${_("Venus","Earth","Mars")}.`  //inline nested template
-var example7 = _`Hello ${example2}.`
+var example7 = _`Hello ${example2}.`  //nested template
 
 **** populating phrases
 
@@ -290,9 +291,10 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 			{
 				ishml_phrase._phrases=data.map(phrase=> //normalize phrases
 				{
-					if (typeof phrase === "string"){return {value:phrase}}
-					else
+					var phraseType=typeof phrase
+					if (phrase instanceof Object)
 					{
+
 						if (phrase.hasOwnProperty("value")){return phrase}
 						else 
 						{
@@ -300,6 +302,11 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 							revisedPhrase.value=Object.values(phrase)[0]
 							return revisedPhrase
 						}
+					}
+					else
+					{
+						if (phraseType === "string" || phraseType === "function"){return {value:phrase}}
+						else{return{value:phrase.toString()}}
 					}
 				})
 			}	
@@ -328,16 +335,6 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 	{
 		if (data.length>0)  //we have data
 		{			
-			/*data.forEach((item,index)=>
-			{
-				if(item._isIshmlPhrase) // DEFECT: is this feature needed?
-				{
-					var phrases=[item.say().text]
-					populate(phrases,index)
-				}
-				else {populate(item,index)}
-				
-			})*/
 			if (data.length >1 ) // data is simple list of args
 			{
 				populate(data)
@@ -354,7 +351,7 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 		{
 			var evaluation=[]
 			//convert phrases into an array of {value:string, whatever:whatever}
-			ishml_phrase._phrases.forEach((phrase,index)=>
+			ishml_phrase._phrases.forEach((phrase)=>
 			{
 				var clause=phrase.value
 				var clauseType=typeof clause
@@ -403,49 +400,73 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 		
 	}
 	Object.defineProperty(ishml_phrase,"_phrases",{value:[],writable:true})
-	if (literals && literals.length>0)
+	if (literals)
 	{
-		if (expressions.length===0)
+		if( literals.hasOwnProperty("raw"))
 		{
-			Object.defineProperty(ishml_phrase,"_terminal",{value:true,writable:true})
-			populate(literals)
-		}
-		else
-		{
-			if (typeof literals=== "string") //() notation
+			if (expressions.length===0)
 			{
-				literals=[literals].concat(expressions)
-				expressions=[]
-			}
-
-			if (literals[0].length !== 0)
-			{
-				ishml_phrase._phrases.push({value:literals[0]})
-			}
-			var index=1
-			if(expressions.length>0)
-			{
-				Object.defineProperty(ishml_phrase,"_terminal",{value:false,writable:true})
-				expressions.forEach(phrase=> 
-				{
-					ishml_phrase._phrases.push({value:phrase})
-					if (literals[index].length>0)
-					{
-						ishml_phrase._phrases.push({value:literals[index]})
-					}
-					index++
-				})
+				Object.defineProperty(ishml_phrase,"_terminal",{value:true,writable:true})
+				populate(literals)
 			}
 			else
 			{
-				Object.defineProperty(ishml_phrase,"_terminal",{value:true,writable:true})
-			}	
-			
-			if (index < literals.length)
-			{
-				ishml_phrase._phrases=ishml_phrase._phrases.concat(literals.slice(index).map(literal=>({value:literal})))
+				if (typeof literals=== "string") //() notation
+				{
+					literals=[literals].concat(expressions)
+					expressions=[]
+				}
+
+				if (literals[0].length !== 0)
+				{
+					ishml_phrase._phrases.push({value:literals[0]})
+				}
+				var index=1
+				if(expressions.length>0)
+				{
+					Object.defineProperty(ishml_phrase,"_terminal",{value:false,writable:true})
+					expressions.forEach(phrase=> 
+					{
+						ishml_phrase._phrases.push({value:phrase})
+						if (literals[index].length>0)
+						{
+							ishml_phrase._phrases.push({value:literals[index]})
+						}
+						index++
+					})
+				}
+				else
+				{
+					Object.defineProperty(ishml_phrase,"_terminal",{value:true,writable:true})
+				}	
+				
+				if (index < literals.length)
+				{
+					ishml_phrase._phrases=ishml_phrase._phrases.concat(literals.slice(index).map(literal=>({value:literal})))
+				}
 			}
 		}
+		else
+		{
+			if (expressions.length >0 ) // data is simple list of args
+			{
+				expressions.unshift(literals)
+				populate(expressions)
+				Object.defineProperty(ishml_phrase,"_terminal",{value:true,writable:true})
+			}	
+			else  
+			{
+				if (literals instanceof Array)
+				{
+					Object.defineProperty(ishml_phrase,"_terminal",{value:true,writable:true})
+				}
+				else //object
+				{
+					Object.defineProperty(ishml_phrase,"_terminal",{value:false,writable:true})
+				}
+				populate(literals)
+			}
+		}	
 	}
 	else{Object.defineProperty(ishml_phrase,"_terminal",{value:true,writable:true})}	
 	ishml.Phrase.attach(ishml_phrase,null)
