@@ -4,12 +4,15 @@
   overflow-y: auto;
 }
 .spoiler {
-	filter: blur(5px) contrast(200%);
+	filter: blur(0.5em);
 	transition-property: filter;
 	transition-duration: .4s;
 }
-.spoiler:hover, .spoiler:focus{
-  filter: blur(0px) contrast(100%);
+.spoiler:hover{
+  filter: blur(0.18em);
+}
+.spoiler:focus{
+  filter: blur(0em);
   outline: none 
 }
 .bg-jumbotron{background-color: rgba(23, 162, 184, 0.075); }
