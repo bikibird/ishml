@@ -575,9 +575,9 @@ ishml.Phrase.prefixHandler=
 		if (property==="nextPrefix"){return prefix} //bare property without proxy
 		
 		var nextPrefix= ishml.Phrase[property].nextPrefix
-		var prefixer=(data)=>
+		var prefixer=(...data)=>
 		{	
-			return prefix(nextPrefix(data))//a.b(data) becomes a(b(data))
+			return prefix(nextPrefix(...data))//a.b(data) becomes a(b(data))
 		}
 		return new Proxy(prefixer,this)
 	}
@@ -624,7 +624,7 @@ ishml.Phrase._setReceiver=function(...data)
 	{
 		if (data[0]._isIshmlPhrase)
 		{
-			var receiver=data
+			var receiver=data[0]
 		}
 		else
 		{
@@ -887,8 +887,8 @@ ishml.Phrase.transform.first=function(count=1)
 	Object.defineProperty(ishml_phrase,"_reset",{value:function(){receiver._reset()},writable:true})
 	return ishml_phrase		
 }
-//_.shuffle.cycle("cat", "dog","mouse") vs. _.shuffle.fix.cycle("cat", "dog","mouse")
-ishml.Phrase.fix=function(...anIshmlPhrase)
+//_.shuffle.cycle("cat", "dog","mouse") vs. _.cycle.pin.shuffle("cat", "dog","mouse")
+ishml.Phrase.pin=new Proxy(function(...anIshmlPhrase)
 {
 	var receiver=ishml.Phrase._setReceiver(...anIshmlPhrase)
 	var phrases =null
@@ -918,7 +918,7 @@ ishml.Phrase.fix=function(...anIshmlPhrase)
 	ishml.Phrase.attach(ishml_phrase,receiver)
 	Object.defineProperty(ishml_phrase,"_reset",{value:function(){},writable:true})
 	return ishml_phrase		
-}
+},ishml.Phrase.prefixHandler)
 //var b=_`They had ${_([{value:"cat",size:3,adj:"sleepy"},{value:"dog",size:3,adj:"bouncy"},{value:"mouse",size:3,adj:"nervous"}]).pick.tag("animal").s.tag("animals")} at the petstore.  So I got a ${x=>x.animal}.  How many ${x=>x.animals} do you have?  My ${x=>x.animal} is ${x=>x.animal.adj}{x=>if(x.animal.size <3){" and also small"}else{" and also big"}}.`
 
 ishml.Phrase.transform.if=function(condition=()=>true)
