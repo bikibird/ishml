@@ -7,7 +7,7 @@ status: pending
 <p class="lead">Prerequisites: You should have read <a href="{{ site.baseurl }}{% link _tutorials/phrases1.html %}">Text Generation Part One</a>.</p>
 
 <h1>Anatomy of a Phrase</h1>	
-<p>Stored inside of the phrase's array are the text strings, sub-phrases, numbers, and functions that make up the phrase. When a phrase's <code>.say()</code> method is called, the default behavior is to join all the elements of the array together.  If an array element is a phrase or function, it will be evaluated before concatenation. The resulting string is then assigned to the phrase's <code>text</code> property.  We can change the default behavior for generating the text string by adding modifiers. Modifiers that appear before the data section of the phrase definition are called prefixes and those appearing after are called suffixes. The general format of a phrase definition using prefixes and suffixes looks something like this.</p>
+<p>Stored inside of the phrase's array are the text strings, sub-phrases, numbers, and functions that make up the phrase. When a phrase's <code>.say()</code> method is called, the default behavior is to join all the elements of the array together.  If an array element is a phrase or function, it will be evaluated before concatenation. The resulting string is then assigned to the phrase's <code>text</code> property.  We can change the default behavior for generating the text string by adding modifiers. Modifiers that appear before the data section of the phrase definition are called prefixes and those appearing after are called suffixes.</p>
 <pre><code>
 	//Standard function call notation
 	var a = _.prefix1.prefix2.etc(data).suffix1.suffix2.etc
@@ -15,9 +15,9 @@ status: pending
 	var b = _.prefix1.prefix2.etc`data`.suffix1.suffix2.etc
 </code></pre>
 <h1>Prefixes</h1>
-<p>Let's look at a few prefixs</p>
+<p>Let's look at a few prefixes</p>
 <span class="badge badge-info">Listing 1</span>
-<iframe id="listing1" width="100%" height="200" src="//jsfiddle.net/bikibird/wn0pLyu8/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow" title="Listing 1"></iframe>
+<iframe id="listing1" width="100%" height="250" src="//jsfiddle.net/bikibird/40nh7ev2/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow" title="Listing 1"></iframe>
 <h2>Default, Pick, and Cycle</h2>
 <p>Switch to the Javascript tab in listing 1.  The phrase defined for <code>defaultPhrase</code> evaluates to "Hello, MecuryVenusEarthMars." This behavior may be changed by adding a suffix.</p>
 <p>Adding the <code>.pick</code> suffix to the inner phrase of <code>pickPhrase</code> causes a planet to be chosen completely at random, like rolling a pair of dice.  Adding the <code>.cycle</code> suffix causes the planets to be selected in order, looping around to the begin again once the list is exhausted.</p>
