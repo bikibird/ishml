@@ -906,7 +906,7 @@ ishml.Phrase.transform.concur=function(condition) //pos
 	Object.defineProperty(ishml_phrase,"_reset",{value:function(){receiver._reset()},writable:true})
 	return ishml_phrase
 }
-ishml.Phrase.setReceiver=function(...data)
+ishml.Phrase._setReceiver=function(...data)
 {
 	if (typeof data[0] ==="function")
 	{
@@ -929,7 +929,7 @@ ishml.Phrase.setReceiver=function(...data)
 ishml.Phrase.cycle= new Proxy(function(...anIshmlPhrase)
 {
 	var counter=0
-	var receiver=setReceiver(...anIshmlPhrase)
+	var receiver=ishml.Phrase._setReceiver(...anIshmlPhrase)
 	var ishml_phrase=function(...data)
 	{	
 		if (data.length>0)
@@ -1113,7 +1113,7 @@ ishml.Phrase.transform.join=function({separator="", trim=true}={})
 
 ishml.Phrase.favor=new Proxy(function(...anIshmlPhrase)
 {
-	var receiver=setReceiver(...anIshmlPhrase)
+	var receiver=ishml.Phrase._setReceiver(...anIshmlPhrase)
 	var ishml_phrase=function(...data)
 	{	
 		if (data.length>0)
@@ -1178,7 +1178,7 @@ ishml.Phrase.transform.first=function(count=1)
 //_.shuffle.cycle("cat", "dog","mouse") vs. _.shuffle.fix.cycle("cat", "dog","mouse")
 ishml.Phrase.fix=function(...anIshmlPhrase)
 {
-	var receiver=setReceiver(...anIshmlPhrase)
+	var receiver=ishml.Phrase._setReceiver(...anIshmlPhrase)
 	var phrases =null
 	var ishml_phrase=function(...data)
 	{	
@@ -1317,7 +1317,7 @@ ishml.Phrase.transform.per=function(id)
 }
 ishml.Phrase.pick=new Proxy(function(...anIshmlPhrase)
 {
-	var receiver=setReceiver(...anIshmlPhrase)
+	var receiver=ishml.Phrase._setReceiver(...anIshmlPhrase)
 	var ishml_phrase=function(...data)
 	{	
 		if (data.length>0)
@@ -1395,7 +1395,7 @@ ishml.Phrase.series=new Proxy(function(...anIshmlPhrase)
 {
 	var counter=0
 	var ended =false
-	var receiver=setReceiver(...anIshmlPhrase)
+	var receiver=ishml.Phrase._setReceiver(...anIshmlPhrase)
 	var ishml_phrase=function(...data)
 	{	
 		if (data.length>0)
@@ -1457,7 +1457,7 @@ ishml.Phrase.shuffle=new Proxy(function(...anIshmlPhrase)
 {
 	//ishml.Phrase(["cat","dog", "bird"]).shuffle.cycle
 	//ishml.Phrase(["cat","dog", "bird"]).shuffle.fixed.cycle
-	var receiver=setReceiver(...anIshmlPhrase)
+	var receiver=ishml.Phrase._setReceiver(...anIshmlPhrase)
 	var result =null
 	var ishml_phrase=function(...data)
 	{	
@@ -1592,7 +1592,7 @@ ishml.Phrase.phraseModifier=function(modifier)
 	{
 		var prefixer=(...anIshmlPhrase)=>
 		{
-			var receiver=setReceiver(...anIshmlPhrase)
+			var receiver=ishml.Phrase._setReceiver(...anIshmlPhrase)
 			var ishml_phrase=function(...data)
 			{	
 				if (data.length>0)
@@ -1653,7 +1653,7 @@ ishml.Phrase.modifier=function(modifier)
 	{
 		var prefixer=(...anIshmlPhrase)=>
 		{
-			var receiver=setReceiver(...anIshmlPhrase)
+			var receiver=ishml.Phrase._setReceiver(...anIshmlPhrase)
 			var ishml_phrase=function(...data)
 			{	
 				if (data.length>0)
