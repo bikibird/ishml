@@ -7,14 +7,15 @@ status: pending
 <p class="lead">Prerequisites: You should have read <a href="{{ site.baseurl }}{% link _tutorials/phrases1.html %}">Text Generation Part One</a>.</p>
 
 <h1>Anatomy of a Phrase</h1>	
-<p>Stored inside of a phrase's array are the text strings, sub-phrases, numbers, and functions that make up the phrase. When a phrase's <code>.say()</code> method is called, the phrase is evaluated and the phrase's <code>text</code> property is updated.  The default evaluation is to join all the elements of the array together.  If an array element is another phrase or a function, it will be evaluated before concatenation.   We can change the default evaluation by adding modifiers. Modifiers that are methods of <code>ishml.Phrase</code> are called <b>prefixes<b>.  Modifiers that are methods of the text generation function (aka, the <q>phrase</q>) created by <code>ishml.Phrase</code> are called <b>suffixes</b>.  A key characteristic of modifiers is that they always return a new phrase.  Modifiers maybe chained together to create complex phrases with just a single line of code. </p>
+<p>Stored inside of a phrase's array are the text strings, sub-phrases, numbers, and functions that make up the phrase. When a phrase's <code>.say()</code> method is called, the phrase is evaluated and the phrase's <code>text</code> property is updated.  The default evaluation is to join all the elements of the array together.  If an array element is another phrase or a function, it will be evaluated before concatenation.   We can change the default evaluation by adding modifiers to the phrase's definition. Modifiers that are methods of <code>ishml.Phrase</code> are called <b>prefixes</b>.  Modifiers that are methods of the text generation function created by <code>ishml.Phrase</code> are called <b>suffixes</b>.  A key characteristic of modifiers is that they always return a new phrase.  Modifiers maybe chained together to create complex phrases with just a single line of code. </p>
 
 <h1>Prefixes</h1>
-<p>The JavasScript tab in listing 1 shows a few examples of using prefixes.</p>
+<p>A complete list of the built-in prefixes is available in the <a href="{{ site.baseurl }}{% link _api %}">API Reference</a>. The JavasScript tab in listing 1 shows a few examples of prefixes in use.</p>
 <span class="badge badge-info">Listing 1</span>
 <iframe id="listing1" width="100%" height="250" src="//jsfiddle.net/bikibird/40nh7ev2/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow" title="Listing 1"></iframe>
-<p>Switch to the Javascript tab in listing 1.  The phrase defined for <code>defaultPhrase</code> evaluates to "Hello, MecuryVenusEarthMars." This behavior may be changed by adding a suffix.</p>
-<p>Adding the <code>.pick</code> suffix to the inner phrase of <code>pickPhrase</code> causes a planet to be chosen completely at random, like rolling a pair of dice.  Adding the <code>.cycle</code> suffix causes the planets to be selected in order, looping around to the begin again once the list is exhausted.</p>
+<p>The phrase defined for <code>umodifiedPhrase</code> evaluates to "JackJillJamal went to the humane society and came home with dogcatocelotemu." </p>
+<p>Adding the <code>.pick</code> prefix to the inner phrases of <code>pickPhrase</code> causes a name and an animal to be chosen completely at random, like rolling a pair of dice each time <code>.say</code> is called. The inner phrases of <code>cyclePhrase</code> usses the <code>.cycle</code> prefix to cause names and animals to be selected in order, looping around to the begin again once the list is exhausted.</p>
+
 
 <h2>Series</h2>
 <p>Examine the Javascript tab in listing 1.  The phrase defined for <code>defaultPhrase</code> evaluates to "Hello, MecuryVenusEarthMars." This behavior may be changed by adding a suffix.</p>
