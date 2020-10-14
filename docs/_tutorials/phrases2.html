@@ -31,7 +31,6 @@ status: pending
 <iframe id="listing3" width="100%" height="300" src="//jsfiddle.net/bikibird/ob3815mu/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow" title="Listing 3"></iframe>
 <h3>Pinning Things Down</h3>
 <p>The last example in Listing 3 introduces the <code>.pin</code> prefix. Normally, when the cycle repeats, the <code>.cycle</code> prefix sends a reset command to the prefix to the right of it and each prefix then resets itself and passes the reset command down the prefix chain.  However, the <code>.pin</code> prefix stops the reset command from propagating further. The behavior of <code>shufflePhrase</code> is to reshuffle the list everytime the cycle completes a loop through the list.  The addition of the <code>.pin</code> prefix in <code>pinShufflePhrase</code> stops the reset command before it reaches <code>.shuffle</code>, which prevents the list from being reshuffled. </p>
-
 <h3>Series</h3>
 <p>Like <code>.pick</code>, the <code>.series</code> prefix selects the elements from the phrase's array one at a time. However, <code>.series</code> selects the elements in order. Once it comes to the end of the list, it returns the empty string.  See Listing 4.</p>
 <span class="badge badge-info">Listing 4</span>
