@@ -1289,7 +1289,20 @@ ishml.Phrase.transform.per=function(id)
 		}
 		else
 		{
-			var length=ishml_phrase[tag]._phrases.length
+			for (const phrase of ishml_phrase._phrases)
+			{
+				if (phrase.value._isIshmlPhrase)
+				{
+					var tags=phrase.value.getTags()
+					if (tags.hasOwnProperty(tag))
+					{
+						var length=phrase.value._phrases.length
+						break
+					}
+					
+				}
+			}
+
 			if(length===0)
 			{
 				var phrase={value:""}

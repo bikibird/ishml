@@ -320,5 +320,4 @@ ishml.Phrase.modifier(item=>"un"+item.value).prefix("un")
 ishml.Phrase.modifier(item=>"dis"+item.value).prefix("dis")
 ishml.Phrase.modifier(item=>item.value+"ing").suffix("ing")
 
-
-ishml.Phrase.phraseModifier((data)=>_`${{item:_().cycle}}${{separator:", ", if:x=>x.item.index < x.item.total-1 && x.item.total>2}}${{separator:" and ", if:x=>x.item.index===0 && x.item.total===2}}${{separator:"and ", if:x=>x.item.index===x.item.total-2 && x.item.total>2}}`.until(x=>x.item.reset).join()(data)).prefix("list")
+ishml.Phrase.phraseModifier((data)=>_`${_.cycle(data).tag("item")}${_`, `.if(x=>x.item.index < x.item.total-1 && x.item.total>2)}${_` and `.if(x=>x.item.index===0 && x.item.total===2)}${_`and `.if(x=>x.item.index===x.item.total-2 && x.item.total>2)}`.per("item").join()({item:data})).prefix("list")
