@@ -24,12 +24,13 @@ status: pending
 <h2>Random Prefixes</h2>
 <p>There are three prefixes that inject randomness into phrase evaluation in different ways. The <code>.pick</code> prefix selects an element from the phrase's array purely at random, like rolling a pair of dice.</p>
 
-<p>The <code>.favor</code> prefix weights the selection so that the elements at the beginning of the phrase's array are more likely to be selected than the elements at the endo of the array. Specifically, the mathematical odds of selecting element <var>i</var> of an array of length <var>n</var> is (<var>n</var> - <var>i</var>) out of <var>n</var> * (<var>n</var> + 1) /2.  For example, for an array with length 5, the element with an index of 0 would be selected one third of the time.  An element with and index of 4 would be select one fifteenth of the time. </p>
+<p>The <code>.favor</code> prefix weights the selection so that the elements at the beginning of the phrase's array are more likely to be selected than the elements at the endo of the array. Specifically, the mathematical odds of selecting element <var>i</var> of an array of length <var>n</var> is ( <var>n</var> - <var>i</var> ) out of <var>n</var> * ( <var>n</var> + 1 ) / 2.  For example, for an array with length 5, the element with an index of 0 would be selected one third of the time.  An element with and index of 4 would be select one fifteenth of the time. </p>
 <p>The <code>.pick</code> and <code>.favor</code> prefixes will sometimes generate the same alternative more than one time in a row since they choose purely at random with no memory of past selections. The <code>.shuffle</code> prefix shuffles the elements of the array like a deck of cards.  When used in conjunction with <code>.cycle</code> it ensures that each alternative will be dealt out in random order before reshuffling the array when the cycle repeats.</p>
 <p>Listing 3 shows some examples of random text generation.</p>
 <span class="badge badge-info">Listing 3</span>
-<iframe id="listing3" width="100%" height="250" src="//jsfiddle.net/bikibird/ob3815mu/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow" title="Listing 3"></iframe>
-
+<iframe id="listing3" width="100%" height="300" src="//jsfiddle.net/bikibird/ob3815mu/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow" title="Listing 3"></iframe>
+<h2>Pinning Things Down</h2>
+<p>The last example in Listing 3 introduces the <code>.pin</code> prefix. Normally, when the cycle repeats, the <code>.cycle</code> prefix sends a reset command to the prefix to the right of it and each prefix then resets itself and passes that command down the prefix chain.  However, the <code>.pin</code> prefix stops the reset command from propagating further. The behavior of <code>shufflePhrase</code> is to reshuffle the list everytime the cycle completes a loop through the list.  The addition of the <code>.pin</code> prefix stops the reset before it reaches <code>.shuffle</code>, which prevents the list from being reshuffled. </p>
 
 <h2>Series</h2>
 <p>Examine the Javascript tab in listing 1.  The phrase defined for <code>defaultPhrase</code> evaluates to "Hello, MecuryVenusEarthMars." This behavior may be changed by adding a suffix.</p>
