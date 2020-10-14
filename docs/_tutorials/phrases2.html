@@ -21,7 +21,7 @@ status: pending
 <span class="badge badge-info">Listing 2</span>
 <iframe id="listing2" width="100%" height="250" src="//jsfiddle.net/bikibird/9uvfsam1/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow" title="Listing 2"></iframe>
 <p>Examine the JavaScript in Listing 2.  The <code>example1</code> phrase applies the appropriate indefinite article to the list as a whole.  The <code>example2</code> phrase applies the indefinite article to each animal individually before creating the list. This is solely due to the order in which the prefixes are chained.</p>
-<h2>Random Prefixes</h2>
+<h3>Random Prefixes</h3>
 <p>There are three prefixes that inject randomness into phrase evaluation in different ways. The <code>.pick</code> prefix selects an element from the phrase's array purely at random, like rolling a pair of dice.</p>
 
 <p>The <code>.favor</code> prefix weights the selection so that the elements at the beginning of the phrase's array are more likely to be selected than the elements at the endo of the array. Specifically, the mathematical odds of selecting element <var>i</var> of an array of length <var>n</var> is ( <var>n</var> - <var>i</var> ) out of <var>n</var> * ( <var>n</var> + 1 ) / 2.  For example, for an array with length 5, the element with an index of 0 would be selected one third of the time.  An element with and index of 4 would be select one fifteenth of the time. </p>
@@ -31,9 +31,15 @@ status: pending
 <iframe id="listing3" width="100%" height="300" src="//jsfiddle.net/bikibird/ob3815mu/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow" title="Listing 3"></iframe>
 <h3>Pinning Things Down</h3>
 <p>The last example in Listing 3 introduces the <code>.pin</code> prefix. Normally, when the cycle repeats, the <code>.cycle</code> prefix sends a reset command to the prefix to the right of it and each prefix then resets itself and passes the reset command down the prefix chain.  However, the <code>.pin</code> prefix stops the reset command from propagating further. The behavior of <code>shufflePhrase</code> is to reshuffle the list everytime the cycle completes a loop through the list.  The addition of the <code>.pin</code> prefix in <code>pinShufflePhrase</code> stops the reset command before it reaches <code>.shuffle</code>, which prevents the list from being reshuffled. </p>
-<h3>Saying Random Things</h3>
-<h2>Series</h2>
-<p>Examine the Javascript tab in listing 1.  The phrase defined for <code>defaultPhrase</code> evaluates to "Hello, MecuryVenusEarthMars." This behavior may be changed by adding a suffix.</p>
+
+<h3>Series</h3>
+<p>Like <code>.pick</code>, the <code>.series</code> prefix selects the elements from the phrase's array one at a time. However, <code>.series</code> selects the elements in order. Once it comes to the end of the list, it returns the empty string.  See Listing 4.</p>
+<span class="badge badge-info">Listing 4</span>
+<iframe id="listing4" width="100%" height="250" src="//jsfiddle.net/bikibird/j8po9L5q/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow" title="Listing 4"></iframe>
+
+
+<h3>Tag, You're It</h3>
+<p>In <a href="{{ site.baseurl }}{% link _tutorials/phrases1.html %}">Text Generation Part One</a>, we discussed the use of tags.
 <p>Adding the <code>.pick</code> suffix to the inner phrase of <code>pickPhrase</code> causes a planet to be chosen completely at random, like rolling a pair of dice.  Adding the <code>.cycle</code> suffix causes the planets to be selected in order, looping around to the begin again once the list is exhausted.</p>
 
 <p>Switch to the Javascript tab and study the code. First, we assign <code>ishml.Phrase</code> to a variable represented by an underscore.  This is simply for convenience so that we don't have to type out <code>ishml.Phrase</code> over and over. The underscore was chosen because it reflects the "fill in the blanks" nature of text generation. Next we assign a phrase to the myPhrase variable. This phrase happens to be a nested phrase. The outer phrase, <q>Hello, _____</q>, has an expression, denoted by <code>${...}</code>, which is also a phrase.  The inner phrase fills in the blank of the outer phrase with a random planet each time the text is generated. The lasst line of script does the actual work of generating the text and places it inside the <code>h1</code> element.</p>
