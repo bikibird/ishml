@@ -665,7 +665,7 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 						}
 						if (clause._isIshmlPhrase) //clause is an ishml_phrase
 						{
-							clause.setContainer(ishml_phrase)		
+							clause.setOuter(ishml_phrase)		
 							var data={}
 							var subPhrases=clause()
 							Object.assign(ishml_phrase,clause.getTags())  //always evaluate clause before getting tags
@@ -782,11 +782,11 @@ ishml.Phrase.attach=function(ishml_phrase,receiver)
 
 	var say=function(seed) //generates text output
 	{
-		/* Unfinished
-		if (seed>=0 && seed <1)
+		
+		if (seed>=0)
 		{
-			this._seed=seed*
-		}*/
+			this.seed(seed)
+		}
 		this()
 		return this
 	}
@@ -830,10 +830,28 @@ ishml.Phrase.attach=function(ishml_phrase,receiver)
 		if(this._receiver){Object.assign(tags,this._receiver.getTags())}
 		return tags
 	}
-	var setContainer=function(containingPhrase)
+	var seed=function(seed) //generates text output
 	{
-		this.container=containingPhrase
-		if(this._receiver){this._receiver.setContainer(containingPhrase)}
+		if (seed>=0 && seed <1){this._seed=Math.floor(seed* 2147483648)}
+		else
+		{
+			if(!seed){this._seed=ishml.util.random().seed}
+			else{this._seed=seed}
+		}
+		if (this._receiver){this._receiver.seed(this._seed)}
+		this._phrases.forEach(phrase=>
+		{
+			if(phrase.value._isIshmlPhrase)
+			{
+				phrase.value.seed(ishml.util.random(this._seed).seed)
+			}	
+		})
+		return this
+	}
+	var setOuter=function(outerPhrase)
+	{
+		this.outer=outerPhrase
+		if(this._receiver){this._receiver.setOuter(outerPhrase)}
 	}
 
 	Object.keys(ishml.Phrase.suffix).forEach(key=>
@@ -853,7 +871,7 @@ ishml.Phrase.attach=function(ishml_phrase,receiver)
 		Object.defineProperty(ishml_phrase,"_terminal",{value:receiver._terminal,writable:true})
 	}
 	Object.defineProperty(ishml_phrase,"append",{value:append,writable:true})
-	Object.defineProperty(ishml_phrase,"container",{value:null,writable:true})
+	Object.defineProperty(ishml_phrase,"outer",{value:null,writable:true})
 	Object.defineProperty(ishml_phrase,"getTags",{value:getTags,writable:true})
 	Object.defineProperty(ishml_phrase,"getTaggedPhrases",{value:getTaggedPhrases,writable:true})
 	Object.defineProperty(ishml_phrase,"htmlTemplate",{value:htmlTemplate,writable:true})
@@ -862,7 +880,8 @@ ishml.Phrase.attach=function(ishml_phrase,receiver)
 	Object.defineProperty(ishml_phrase,"replace",{value:replace,writable:true})
 	Object.defineProperty(ishml_phrase,"say",{value:say,writable:true})
 	Object.defineProperty(ishml_phrase,"_seed",{value:ishml.util.random().seed,writable:true})
-	Object.defineProperty(ishml_phrase,"setContainer",{value:setContainer,writable:true})
+	Object.defineProperty(ishml_phrase,"seed",{value:seed,writable:true})
+	Object.defineProperty(ishml_phrase,"setOuter",{value:setOuter,writable:true})
 	Object.defineProperty(ishml_phrase,"_receiver",{value:receiver,writable:true})
 	Object.defineProperty(ishml_phrase,"_tag",{value:null,writable:true})
 	Object.defineProperty(ishml_phrase,"text",{value:"",writable:true})
@@ -1150,7 +1169,9 @@ ishml.Phrase.favor=new Proxy(function(...anIshmlPhrase)
 			}
 			else
 			{
-				var c=phrases.length*(phrases.length+1)*Math.random()
+				var {value:random,seed}=ishml.util.random(ishml_phrase._seed)
+				ishml_phrase._seed=seed
+				var c=phrases.length*(phrases.length+1)*random
 				var counter=phrases.length-Math.floor((Math.sqrt(1+4*c)-1)/2)-1
 				var phrase=phrases[counter] 
 				phrase.index=counter
@@ -1241,7 +1262,7 @@ ishml.Phrase.transform.if=function(condition=()=>true)
 		}
 		else
 		{
-			if(rule(ishml_phrase.container))
+			if(rule(ishml_phrase.outer))
 			{
 				var phrases=receiver()
 				Object.assign(ishml_phrase,receiver)
@@ -1367,7 +1388,9 @@ ishml.Phrase.pick=new Proxy(function(...anIshmlPhrase)
 			}
 			else
 			{
-				var counter=Math.floor(Math.random()*phrases.length)
+				var {value:random,seed}=ishml.util.random(ishml_phrase._seed)
+				ishml_phrase._seed=seed
+				var counter=Math.floor(random*phrases.length)
 				var phrase=phrases[counter] 
 				phrase.index=counter
 				phrase.total=phrases.length
@@ -1502,7 +1525,9 @@ ishml.Phrase.shuffle=new Proxy(function(...anIshmlPhrase)
 		{
 			if (!result)
 			{
-				result=ishml.util.shuffle(receiver())
+				var {value:random,seed}=ishml.util.random(ishml_phrase._seed)
+				ishml_phrase._seed=seed
+				result=ishml.util.shuffle(receiver(),random)
 				Object.assign(ishml_phrase,receiver)
 			}
 
