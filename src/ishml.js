@@ -574,13 +574,13 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 	{
 		if (data instanceof Array) //Treat as terminal phrase
 		{
-			if (data.length===0){ishml_phrase._phrasesphrases=[]}
+			if (data.length===0){ishml_phrase._phrases=[]}
 			else
 			{
 				ishml_phrase._phrases=data.map(phrase=> //normalize phrases
 				{
 					var phraseType=typeof phrase
-					if (phrase instanceof Object)
+					if (phraseType ==="object")
 					{
 
 						if (phrase.hasOwnProperty("value")){return phrase}
@@ -740,19 +740,33 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 			{
 				expressions.unshift(literals)
 				populate(expressions)
-				Object.defineProperty(ishml_phrase,"_terminal",{value:true,writable:true})
+				if(expressions.some(expression=>(typeof expression==="function")))
+				{
+					Object.defineProperty(ishml_phrase,"_terminal",{value:false,writable:true})
+				}
+				else
+				{
+					Object.defineProperty(ishml_phrase,"_terminal",{value:true,writable:true})
+				}
 			}	
 			else  
 			{
 				if (literals instanceof Array)
 				{
-					Object.defineProperty(ishml_phrase,"_terminal",{value:true,writable:true})
+					if(literals.some(expression=>(typeof expression==="function")))
+					{
+						Object.defineProperty(ishml_phrase,"_terminal",{value:false,writable:true})
+					}
+					else
+					{
+						Object.defineProperty(ishml_phrase,"_terminal",{value:true,writable:true})
+					}
 				}
 				else //object
 				{
 					Object.defineProperty(ishml_phrase,"_terminal",{value:false,writable:true})
 				}
-				populate(literals)
+				populate(literals) //DEFECT: ishml.Phrase("cat") needs to be (["cat"])
 			}
 		}	
 	}
@@ -768,10 +782,11 @@ ishml.Phrase.attach=function(ishml_phrase,receiver)
 
 	var say=function(seed) //generates text output
 	{
-		if (Number.isInteger(seed))
+		/* Unfinished
+		if (seed>=0 && seed <1)
 		{
-			this._seed=seed
-		}
+			this._seed=seed*
+		}*/
 		this()
 		return this
 	}
@@ -815,10 +830,10 @@ ishml.Phrase.attach=function(ishml_phrase,receiver)
 		if(this._receiver){Object.assign(tags,this._receiver.getTags())}
 		return tags
 	}
-	var setContainer=function(container)
+	var setContainer=function(containingPhrase)
 	{
-		this._container=container
-		if(this._receiver){this._receiver.setContainer(container)}
+		this.container=containingPhrase
+		if(this._receiver){this._receiver.setContainer(containingPhrase)}
 	}
 
 	Object.keys(ishml.Phrase.suffix).forEach(key=>
@@ -838,7 +853,7 @@ ishml.Phrase.attach=function(ishml_phrase,receiver)
 		Object.defineProperty(ishml_phrase,"_terminal",{value:receiver._terminal,writable:true})
 	}
 	Object.defineProperty(ishml_phrase,"append",{value:append,writable:true})
-	Object.defineProperty(ishml_phrase,"_container",{value:null,writable:true})
+	Object.defineProperty(ishml_phrase,"container",{value:null,writable:true})
 	Object.defineProperty(ishml_phrase,"getTags",{value:getTags,writable:true})
 	Object.defineProperty(ishml_phrase,"getTaggedPhrases",{value:getTaggedPhrases,writable:true})
 	Object.defineProperty(ishml_phrase,"htmlTemplate",{value:htmlTemplate,writable:true})
@@ -1226,7 +1241,7 @@ ishml.Phrase.transform.if=function(condition=()=>true)
 		}
 		else
 		{
-			if(rule(ishml_phrase._container))
+			if(rule(ishml_phrase.container))
 			{
 				var phrases=receiver()
 				Object.assign(ishml_phrase,receiver)
@@ -1367,6 +1382,7 @@ ishml.Phrase.pick=new Proxy(function(...anIshmlPhrase)
 	Object.defineProperty(ishml_phrase,"_reset",{value:function(){receiver._reset()},writable:true})
 	return ishml_phrase		
 },ishml.Phrase.prefixHandler)
+
 ishml.Phrase.transform.repeat=function(condition)
 {
 	//var a =ishml.Phrase`<li>${{item:ishml.Phrase(["cat","dog", "bird"]).series()}}</li>`.until((list)=>list.item.reset)
@@ -1402,8 +1418,9 @@ ishml.Phrase.transform.repeat=function(condition)
 	Object.defineProperty(ishml_phrase,"_reset",{value:function(){receiver._reset()},writable:true})
 	return ishml_phrase
 }
-//_.(["cat","dog","frog"]).series.else("mouse")
-//_.(["cat","dog","frog"]).series.else(ishml.Phrase().pick())
+
+//_.(["cat","dog","frog"]).series.then("mouse")
+//_.(["cat","dog","frog"]).series.then(ishml.Phrase().pick())
 ishml.Phrase.series=new Proxy(function(...anIshmlPhrase)
 {
 	var counter=0
