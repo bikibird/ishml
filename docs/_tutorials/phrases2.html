@@ -34,12 +34,11 @@ status: pending
 <h2>Pinning Things Down</h2>
 <p>Listing 5 below introduces the <code>.pin</code> prefix. Normally, when the cycle repeats, the <code>.cycle</code> prefix sends a reset command to the prefix to the right of it and then that prefix resets itself and passes the reset command down the prefix chain.  However, the <code>.pin</code> prefix stops the reset command from propagating further. The behavior of <code>shufflePhrase</code> is to reshuffle the list everytime the cycle completes a loop through the list.  The addition of the <code>.pin</code> prefix in <code>pinShufflePhrase</code> stops the reset command before it reaches <code>.shuffle</code>, which prevents the list from being reshuffled. </p>
 <span class="badge badge-info">Listing 5</span>
-<iframe id="listing5" width="100%" height="300" src="//jsfiddle.net/bikibird/c8pLftxm/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow" title="Listing 5"></iframe>
+<iframe id="listing5" width="100%" height="250" src="//jsfiddle.net/bikibird/c8pLftxm/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow" title="Listing 5"></iframe>
 <h2>Series</h2>
 <p>The <code>.series</code> prefix selects each element from the phrase's array in order, like <code>.cyle</code>, but once it reaches the end of the list, it returns the empty string instead of looping back to the beginning.  See Listing 6. </p>
 <span class="badge badge-info">Listing 6</span>
-<iframe id="listing6" width="100%" height="300" src="//jsfiddle.net/bikibird/cqte4p15/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow" title="Listing 6"></iframe>
-<h2>Series</h2>
+<iframe id="listing6" width="100%" height="250" src="//jsfiddle.net/bikibird/cqte4p15/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow" title="Listing 6"></iframe>
 <p>Continue to <a href="{{ site.baseurl }}{% link _tutorials/phrases3.html %}">part three</a> to learn about phrase suffixes.</p>
 
 </div>    

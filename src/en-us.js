@@ -322,12 +322,38 @@ ishml.Phrase.modifier(item=>ishml.lang.a(item.value)+" "+item.value).prefix("an"
 ishml.Phrase.modifier(item=>ishml.lang.capitalize(ishml.lang.a(item.value))+" "+item.value).prefix("An")
 ishml.Phrase.modifier(item=>ishml.lang.capitalize(item.value)).prefix("cap")
 
+//nouns
 ishml.Phrase.modifier(item=>
 {
-	if (item.number===1){return item.value}
+	if (item.number===ishml.enum.number.singular){return item.value}
 	return ishml.lang.s(item.value)
 }).suffix("s")
-
-ishml.Phrase.modifier(item=>ishml.lang.ing(item.value)).prefix("ing")
+ishml.Phrase.modifier(item=>ishml.lang.z(item.value)).suffix("z")
+//adjectives
+ishml.Phrase.modifier(item=>
+{
+	if(item.degree)
+	{
+		if (item.degree===ishml.enum.degree.positive){return item.value}
+		if (item.degree===ishml.enum.degree.comparative){return ishml.lang.er(item.value)}
+		if (item.degree===ishml.enum.degree.superlative){return ishml.lang.est(item.value)}
+	}
+	else {return ishml.lang.er(item.value)}
+}).suffix("er")	
+ishml.Phrase.modifier(item=>
+{
+	if(item.degree)
+	{
+		if (item.degree===1){return item.value}
+		if (item.degree===2){return ishml.lang.er(item.value)}
+		if (item.degree===3){return ishml.lang.est(item.value)}
+	}
+	else {return ishml.lang.est(item.value)}
+}).suffix("est")	
+//verbs
+ishml.Phrase.modifier(item=>ishml.lang.ing(item.value)).suffix("ing")
+ishml.Phrase.modifier(item=>ishml.lang.vs(item.value)).suffix("vs")
+ishml.Phrase.modifier(item=>ishml.lang.ed(item.value)).suffix("ed")
+ishml.Phrase.modifier(item=>ishml.lang.en(item.value)).suffix("en")
 
 
