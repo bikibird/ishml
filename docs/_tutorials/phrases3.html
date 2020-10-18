@@ -3,11 +3,12 @@ title: Text Generation Part 3
 status: pending
 ---
 <div class="container mt-4">
-<h1>Text generation Part Two</h1>
+<h1>Text generation Part Three</h1>
 <p class="lead">Prerequisites: You should have read <a href="{{ site.baseurl }}{% link _tutorials/phrases2.html %}">Text Generation Part Two</a>.</p>
 
 <h2>Suffixes</h2>	
-<p>Modifiers that are methods of the text generation function created by <code>ishml.Phrase</code> are called <b>suffixes</b>.  An unlimited number of suffixes may by chained together with dot notation to apply layer upon layer of modifications. Suffixes are applied from left to right. That is, the suffix closest to the right parenthesis parenthesis or closing backtick is applied to the phrase first. Then the next closest suffix is applied to that result and so on until the beginning of the chain is reached. If a phrase has prefixes in addition otot suffixes attached, the prefixes are applied first and then the suffixes are applied to the result.  Some suffixes take arguments and must include a pair a parentheses because they are defined as methods of the phrase.  Others suffixes are defined as <a href=https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/get"">getters</a> and the parentheses must be omitted. (The use of getters improves code readablity since the phrases are less cluttered looking.)</p>
+<p>Modifiers that are methods of the text generation function created by <code>ishml.Phrase</code> are called <b>suffixes</b>.  An unlimited number of suffixes may by chained together with dot notation to apply layer upon layer of modifications. Suffixes are applied from left to right. That is, the suffix closest to the right parenthesis parenthesis or closing backtick is applied to the phrase first. Then the next closest suffix is applied to that result and so on until the beginning of the chain is reached. If a phrase also has prefixes attached, the prefixes are applied first and then the suffixes are applied to the result.</p>
+<p> Unlike prefixes, which take a hybrid approach, a suffix is either a method or a <a href=https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/get"">getter</a>. Suffixes that are methods must take arguments and <b>must</b> include a pair a parentheses because they are defined as methods of the phrase.  Others suffixes are defined as <a href=https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/get"">getters</a> and the parentheses <b>must</b> be omitted. The use of getters improves code readablity since the phrases aren't cluttered with empty pairs of parentheses.</p>
 
 <p>Listing 1 shows examples of suffixes in use.  An alphabetical list of all built-in suffixes is available in the <a href="{{ site.baseurl }}{% link api.html %}">API Reference</a>. </p>
 <span class="badge badge-info">Listing 1</span>
