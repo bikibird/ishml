@@ -1355,7 +1355,7 @@ ishml.Phrase.transform.while=function(condition)
 ishml.Phrase.phraseModifier=function(modifier)
 {
 
-	var prefix= id=>
+	var prefix= (id)=>
 	{
 		var prefixer=(...anIshmlPhrase)=>
 		{
@@ -1416,7 +1416,7 @@ ishml.Phrase.phraseModifier=function(modifier)
 ishml.Phrase.modifier=function(modifier)
 { 
 	if (modifier._isIshmlPhrase){return ishml.Phrase.phraseModifier(modifier)}
-	var prefix= id=>
+	var prefix= (id,passArray=false)=>
 	{
 		var prefixer=(...anIshmlPhrase)=>
 		{
@@ -1431,15 +1431,21 @@ ishml.Phrase.modifier=function(modifier)
 				}
 				else
 				{
-					var phrases=receiver().map(phrase=>
+					if (passArray)
 					{
-						phrase.value=modifier(phrase)
-						return phrase
-					})
+						var phrases=modifier(receiver())
+					}
+					else
+					{
+						var phrases=receiver().map(phrase=>
+						{
+							phrase.value=modifier(phrase)
+							return phrase
+						})
+					}	
 					Object.assign(ishml_phrase,receiver)
 					ishml_phrase.text=phrases.reduce((text,data)=>text+data.value,"")
 					return phrases
-
 				}
 			}	
 			ishml.Phrase.attach(ishml_phrase,receiver)
@@ -1451,7 +1457,7 @@ ishml.Phrase.modifier=function(modifier)
 		
 		return this
 	}	
-	var suffix=(id)=>
+	var suffix=(id,passArray=false)=>
 	{
 		var suffixer=function()
 		{
@@ -1466,11 +1472,18 @@ ishml.Phrase.modifier=function(modifier)
 				}
 				else
 				{
-					var phrases=receiver().map(phrase=>
+					if (passArray)
 					{
-						phrase.value=modifier(phrase)
-						return phrase
-					})
+						var phrases=modifier(receiver())
+					}
+					else
+					{
+						var phrases=receiver().map(phrase=>
+						{
+							phrase.value=modifier(phrase)
+							return phrase
+						})
+					}
 					Object.assign(ishml_phrase,receiver)
 					ishml_phrase.text=phrases.reduce((text,data)=>text+data.value,"")
 					return phrases

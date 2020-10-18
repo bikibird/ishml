@@ -7,7 +7,7 @@ status: pending
 <p class="lead">Prerequisites: You should have read <a href="{{ site.baseurl }}{% link _tutorials/phrases2.html %}">Text Generation Part Two</a>.</p>
 
 <h2>Suffixes</h2>	
-<p>Modifiers that are methods of the text generation function created by <code>ishml.Phrase</code> are called <b>suffixes</b>.  An unlimited number of suffixes may by chained together with dot notation to apply layer upon layer of modifications. Suffixes are applied from left to right. That is, the suffix closest to the right parenthesis parenthesis or closing backtick is applied to the base phrase first. Then the next closest suffix is applied to that result and so on until the beginning of the chain is reached. </p>
+<p>Modifiers that are methods of the text generation function created by <code>ishml.Phrase</code> are called <b>suffixes</b>.  An unlimited number of suffixes may by chained together with dot notation to apply layer upon layer of modifications. Suffixes are applied from left to right. That is, the suffix closest to the right parenthesis parenthesis or closing backtick is applied to the phrase first. Then the next closest suffix is applied to that result and so on until the beginning of the chain is reached. If a phrase has prefixes in addition otot suffixes attached, the prefixes are applied first and then the suffixes are applied to the result.  Some suffixes take arguments and must include a pair a parentheses because they are defined as methods of the phrase.  Others suffixes are defined as <a href=https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/get"">getters</a> and the parentheses must be omitted. (The use of getters improves code readablity since the phrases are less cluttered looking.)</p>
 
 <p>Listing 1 shows examples of suffixes in use.  An alphabetical list of all built-in suffixes is available in the <a href="{{ site.baseurl }}{% link api.html %}">API Reference</a>. </p>
 <span class="badge badge-info">Listing 1</span>
@@ -18,67 +18,15 @@ status: pending
 <p>We can overcome this behavior by nesting phrases.  When phrases are nested, the inner phrase is evaluated first and then the outer phrase. The inner, inner phrase of <code>example3</code> first applies <code>.ing</code> to each of the verbs. Once this phrase has been evaulated, the phrase surrounding it turns it into a comma delimited list followed by capitalizing the first letter of result. Phrases may be nested as deeply as needed.</p>
 <h2>Tag</h2>
 <p>We first encountered the <code>.tag()</code> suffix in <a href="{{ site.baseurl }}{% link _tutorials/phrases1.html %}">part one of this tutorial</a>.</p>, where it was used in the context of populating phrases and allowing complex data to reach deep into the phrase to reference specific sub-phrases.</p>
-<p>Adding the <code>.pick</code> prefix to the inner phrases of <code>pickPhrase</code> causes a name and an animal to be chosen at random each time <code>.say</code> is called. The inner phrases of <code>cyclePhrase</code> uses the <code>.cycle</code> prefix to cause names and animals to be selected in order, looping around to the begin again once the list is exhausted.</p>
-<p>The <code>.a</code> prefix adds the appropriate indefinite article, <q>a</q> or <q>an</q> to the animal selected by <code>.pick</code> animal.</p>
-<h2>Prefix Precedence</h2>
-<p>An unlimited number of prefixes may by chained together with dot notation to apply layer upon layer of modifications.  Prefixes are applied from right to left. That is, the prefix closest to the left parenthesis or backtick is applied to the base phrase first. Then the next closest prefix is applied to that result and so on until the beginning of the chain is reached.  Changing the order of prefixes often changes the final result of text generation. </p>
-<span class="badge badge-info">Listing 2</span>
-<iframe id="listing2" width="100%" height="300" src="//jsfiddle.net/bikibird/9uvfsam1/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow" title="Listing 2"></iframe>
-<p>Examine the JavaScript in Listing 2.  The <code>example1</code> phrase applies the appropriate indefinite article to the list as a whole.  The <code>example2</code> phrase applies the indefinite article to each animal individually before creating the list. This is solely due to the order in which the prefixes are chained.  The <code>example3</code> phrase capitalizes the first letter of the phrase.  The <code>example4</code> phrase capitalizes the first letter of each animal.</p>
-<h3>Generating Random Text</h3>
-<p>Three prefixes inject randomness into phrase evaluation, each in different ways. Study Listing 3. The <code>.pick</code> prefix selects an element from the phrase's array purely at random, like rolling a pair of dice.</p>
-<span class="badge badge-info">Listing 3</span>
-<iframe id="listing3" width="100%" height="300" src="//jsfiddle.net/bikibird/ob3815mu/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow" title="Listing 3"></iframe>
-<p>The <code>.favor</code> prefix weights the selection so that there is a decreasing likelihood of an element being selected the further down it is in the list. For example, in an array with 5 elements, the first element is 5 times more likely to be selected than the last element, the second element is 4 times more likely than the last, and so on. Specifically, the mathematical odds of selecting the element at index <var>i</var> of an array of length <var>n</var> is ( <var>n</var> - <var>i</var> ) out of <var>n</var> * ( <var>n</var> + 1 ) / 2.  In an array with 5 elements, this translates to odds of 5:15, 4:15, 3:15, 2:15, and 1:15 for each element respectively.  
-<p>The <code>.pick</code> and <code>.favor</code> prefixes will sometimes generate the same alternative more than one time in a row since they choose purely at random with no memory of past selections. The <code>.shuffle</code> prefix shuffles the elements of the array like a deck of cards.  When used in conjunction with <code>.cycle</code> it ensures that each alternative will be dealt out in random order before reshuffling the array when the cycle repeats.</p>
-<p>ISHML's random number generator is deterministic. In other words, the so-called random selection prefixes are based on a mathematical formula that mimics true randomness. This pseudorandomness is generally good enough for most text generation needs in most applictaions.   Because the results are deterministic, we can actually control the outcomes of the random selection prefix by setting a phrase's <i>seed</i>. Take a look as Listing 4.</p>
-<span class="badge badge-info">Listing 4</span>
-<iframe id="listing4" width="100%" height="300" src="//jsfiddle.net/bikibird/uz8njatv/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow" title="Listing 4"></iframe>
-<p>The <code>example1</code> will produce different results with every click of the Click Me button, even if the script is rerun by clicking on the results link.</p><p>The <code>example2</code> phrase runs through the same sequence starting with taking third in the race and then losing.  Even clicking the results link will not change the outcomes of the races. The fix is in because the phrase's seed was set to a specific value with <code>.seed()</code>, a phrase suffix.  A seed may be any numeric value less than one, but not less than zero.  Setting the seed of a phrase guarantees reproducible results. Different seeds will generate different results.</p>
-<p>Alternatively, the seed may be set using the phrase's <code>.say()</code> method as seen in <code>example3</code>. Because the same seed is used every time this phrase's text is generated, the outcome is always the same.</p>
-<p>Prefixes are applied before suffixes.</p>
-<p>If you want </p>
-<h3>Pinning Things Down</h3>
-<p>The last example in Listing 3 introduces the <code>.pin</code> prefix. Normally, when the cycle repeats, the <code>.cycle</code> prefix sends a reset command to the prefix to the right of it and each prefix then resets itself and passes the reset command down the prefix chain.  However, the <code>.pin</code> prefix stops the reset command from propagating further. The behavior of <code>shufflePhrase</code> is to reshuffle the list everytime the cycle completes a loop through the list.  The addition of the <code>.pin</code> prefix in <code>pinShufflePhrase</code> stops the reset command before it reaches <code>.shuffle</code>, which prevents the list from being reshuffled. </p>
-<h3>Series</h3>
-<p>Like <code>.pick</code>, the <code>.series</code> prefix selects the elements from the phrase's array one at a time. However, <code>.series</code> selects the elements in order. Once it comes to the end of the list, it returns the empty string.  See Listing 4.</p>
-<span class="badge badge-info">Listing 4</span>
-<iframe id="listing4" width="100%" height="250" src="//jsfiddle.net/bikibird/j8po9L5q/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow" title="Listing 4"></iframe>
+<h2>If, Then, and Else <h2>
+<h2>Concur</h2>
+<h2>Recursion</h2>
 
 
-<h3>Tag, You're It</h3>
-<p>In <a href="{{ site.baseurl }}{% link _tutorials/phrases1.html %}">Text Generation Part One</a>, we discussed the use of tags.
-<p>Adding the <code>.pick</code> suffix to the inner phrase of <code>pickPhrase</code> causes a planet to be chosen completely at random, like rolling a pair of dice.  Adding the <code>.cycle</code> suffix causes the planets to be selected in order, looping around to the begin again once the list is exhausted.</p>
 
-<p>Switch to the Javascript tab and study the code. First, we assign <code>ishml.Phrase</code> to a variable represented by an underscore.  This is simply for convenience so that we don't have to type out <code>ishml.Phrase</code> over and over. The underscore was chosen because it reflects the "fill in the blanks" nature of text generation. Next we assign a phrase to the myPhrase variable. This phrase happens to be a nested phrase. The outer phrase, <q>Hello, _____</q>, has an expression, denoted by <code>${...}</code>, which is also a phrase.  The inner phrase fills in the blank of the outer phrase with a random planet each time the text is generated. The lasst line of script does the actual work of generating the text and places it inside the <code>h1</code> element.</p>
-<h1>Creating Phrases</h1>
-<p>The syntax for creating phrases is designed to get out of your way and let you have a sense of the text to be generated just by glancing at the code.  Sometimes template literal notation is preferred, sometimes standard function call notation is easier.  Sometimes a deeply nested inline structure is the most straightforward, sometimes it is less confusing to predefine the inner phrases separately and then reference them in the outer phrase. It is often just a matter of style and as you become more familiar with phrases, you will develop your own style.  Listing 2 below demonstrates many styles of phrase creation.</p>
-<span class="badge badge-info">Listing 2</span>
-<iframe id="listing2" width="100%" height="300" src="//jsfiddle.net/bikibird/t5dx8aj1/latest/embedded/js/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="shadow"  title="Listing 2"></iframe>
-
-<h1>Modern American English Suffixes</h1>
-<h1>Prefixes</h1>
-<p>Example 1 defines a phrase by using template literal notation. (If you are unfamiliar with template literals and tagged templates, please be sure to <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals">read up</a> on them before continuing this tutorial.)  Unlike standard template literals, <code>ishml.Phrase</code> returns a text generation function, not a simple string. The actual string, <q>Hello, world</q>, in <code>example1</code> is hidden away in an array attached to the function.</p>
-<p>Examples 2, 3, and 5 show the creation of phrases using standard function call notation. The <i>a</i> variation of the examples show each data value passed as a separate argument.  The <i>b</i> variation passes in a single array of values.  Both variations produce identical results.  While it is common for the data to be a series of strings, you may also pass in complex data objects, phrases, numbers, or even functions that return phrases, strings, or numbers.  You may mix any of these types freely. </p>
-<p>Examples 4a and 4b are nested phrases, which mix both notation styles.  The outer phrase is defined using template literal notation.  The expression inside the template, denoted by <code>${...}</code>, is a phrase. Acceptable expressions are expression that evaluate to phrases, strings, numbers, or functions that when called during evaluation return phrases, strings, or numbers.</p>
-<p>Examples 6a and 6b are empty phrases devoid of data.  Leaving the data out of nested phrases can sometimes make the code easier to read.  Data may always be added or replaced after the initial creation of a phrase.  </p>
-
-<h1>Populating Phrases</h1>
-<p>Phrase data may be updated anytime by calling the phrase with data.  Listing 3 shows some examples of populating phrases with data.</p>
-
-<iframe id="listing3" width="100%" height="300" src="//jsfiddle.net/bikibird/phwym1ns/latest/embedded/js/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="shadow"  title="Listing 3"></iframe>
-<p>Examine how the <code>worlds</code> phrase is populated.  Is is being populated with a list of arguments or an array of values. The incoming data will completely replace the phrase's internal array of data.</p>
-<p> Often, we want to be more selective when populating a phrase and send data to to specific sub-phrases. This is done by tagging the sub-phrases when the phrase is defined.  Study the definition of <code>myPhrase</code>.  The phrase uses template literal notations and contains two expressions, which are phrases.   The sub-phrases have the <code>tag</code> suffix appended to them.  This assigns an ID tag to each of the phrases, <q>planet</q> and <q>remark</q>. Tagged phrases provide a means for referencing specific sub-phrases when populating the outer phrase. In this example myPhrase is called with an Object as an argument.  The property keys of the Object are matched against the ID tags of the sub-phrases and the data contained in each matching property of the Object is sent to populate the sub-phrase.</p>
-
-<h1>Saying Something</h1>
-<p>Now that we know how to define and populate phrases, let's generate some text.</p>
-
-<iframe id="listing4" width="100%" height="350" src="//jsfiddle.net/bikibird/ohkpn7gu/latest/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="shadow"  title="Listing 4"></iframe>
-
-<p>Examine the Javascript in listing 4 above.  Phrases are evaluated by calling the phrase's <code>say()</code> method. This method updates the phrase's <code>text</code> property with the generated text string and then returns the phrase. The first <code>console.log()</code> demonstrates accessing the generated text.  The second demonstrates generating and accessing the text in one statement.</p>
-<p>Phrases also provide methods for updating web pages. The <code>replace()</code> method takes a <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors">CSS selector string</a> as its argument. This method replaces the contents of all elements in the HTML document matching the selector string with the generated text. <code>append()</code> and <code>prepend()</code> work in a similar manner accept that they append and prepend the elements' contents.  click on the result tab above to see a live demonstration.</p>
 <p>Continue to <!--a href="{{ site.baseurl }}{% link _tutorials/phrases2.html %}">part two</a--> to learn about more complex grammars, including choice rules and semantic analysis.</p>
 
+	
 </div>    
 
        
