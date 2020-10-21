@@ -313,8 +313,8 @@ ishml.lang.est=function(word)
 
 var _ = ishml.Phrase
 
-ishml.Phrase.phraseModifier((data)=>_`${_.cycle(data).tag("item")}${_`, `.if(x=>x.item.index < x.item.total-1 && x.item.total>2)}${_` and `.if(x=>x.item.index===0 && x.item.total===2)}${_`and `.if(x=>x.item.index===x.item.total-2 && x.item.total>2)}`.per("item").join()({item:data})).prefix("list")
-
+ishml.Phrase.factoryModifier((...data)=>_`${_.cycle(...data).tag("en_us_item")}${_`, `.if(x=>x.en_us_item.index < x.en_us_item.total-1 && x.en_us_item.total>2)}${_` and `.if(x=>x.en_us_item.index===0 && x.en_us_item.total===2)}${_`and `.if(x=>x.en_us_item.index===x.en_us_item.total-2 && x.en_us_item.total>2)}`.per("en_us_item").join()
+).prefix("list")
 
 ishml.Phrase.modifier(item=>ishml.lang.a(item.value)+" "+item.value).prefix("a")
 ishml.Phrase.modifier(item=>ishml.lang.capitalize(ishml.lang.a(item.value))+" "+item.value).prefix("A")

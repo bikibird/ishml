@@ -18,14 +18,12 @@ status: pending
 <p>The syntax for creating phrases is designed to get out of your way and let you have a sense of the text to be generated just by glancing at the code.  Sometimes template literal notation is preferred, sometimes standard function call notation is easier.  Sometimes a deeply nested inline structure is the most straightforward, sometimes it is less confusing to predefine the inner phrases separately and then reference them in the outer phrase. It is often just a matter of style and as you become more familiar with phrases, you will develop your own style.  Listing 2 below demonstrates many styles of phrase creation.</p>
 <span class="badge badge-info">Listing 2</span>
 <iframe id="listing2" width="100%" height="300" src="//jsfiddle.net/bikibird/t5dx8aj1/embedded/js/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow"  title="Listing 2"></iframe>
-
-
 <p>Example 1 defines a phrase by using template literal notation. (If you are unfamiliar with template literals and tagged templates, please be sure to <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals">read up</a> on them before continuing this tutorial.)  Unlike standard template literals, <code>ishml.Phrase</code> returns a text generation function, not a simple string. The actual string, <q>Hello, world</q>, in <code>example1</code> is hidden away in an array attached to the function.</p>
 <p>Examples 2, 3, and 5 show the creation of phrases using standard function call notation. The <i>a</i> variation of the examples show each data value passed as a separate argument.  The <i>b</i> variation passes in a single array of values.  Both variations produce identical results.  While it is common for the data to be a series of strings, you may also pass in complex data objects, phrases, numbers, or even functions that return phrases, strings, or numbers.  You may mix any of these types freely. </p>
 <p>Examples 4a and 4b are nested phrases, which mix both notation styles.  The outer phrase is defined using template literal notation.  The expression inside the template, denoted by <code>${...}</code>, is a phrase. Acceptable expressions are expression that evaluate to phrases, strings, numbers, or functions that when called during evaluation return phrases, strings, or numbers.</p>
 <p>Examples 6a and 6b are empty phrases devoid of data.  Leaving the data out of nested phrases can sometimes make the code easier to read.  Data may always be added or replaced after the initial creation of a phrase.  </p>
 
-<h1>Populating Phrases</h1>
+<h1 id="populating">Populating Phrases</h1>
 <p>Phrase data may be updated anytime by calling the phrase with data.  Listing 3 shows some examples of populating phrases with data.</p>
 <span class="badge badge-info">Listing 3</span>
 <iframe id="listing3" width="100%" height="300" src="//jsfiddle.net/bikibird/phwym1ns/embedded/js/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow"  title="Listing 3"></iframe>
