@@ -573,7 +573,7 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 {
 	var populate=(data)=>
 	{
-		if (data instanceof Array) //Treat as terminal phrase
+		if (data instanceof Array) //normalize array and replace _phrases
 		{
 			if (data.length===0){ishml_phrase._phrases=[]}
 			else
@@ -594,8 +594,20 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 					}
 					else
 					{
-						if (phraseType === "string" || phraseType === "function"){return {value:phrase}}
+						if (phraseType==="function")
+						{
+							
+							return {value:phrase}
+						}
+						if (phraseType === "string"){return {value:phrase}}
 						else{return{value:phrase.toString()}}
+					}
+				})
+				ishml_phrase._phrases.forEach(phrase=>
+				{
+					if (phrase.value._isIshmlPhrase)
+					{
+						Object.assign(ishml_phrase,phrase.value) //capture tags
 					}
 				})
 			}	
@@ -609,23 +621,6 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 					ishml_phrase[key](data[key])
 				}	
 			})
-	/*		ishml_phrase._phrases.forEach(phrase=>
-			{
-				phrase.value(data[tag])
-				if (phrase.value._isIshmlPhrase)
-				{
-					var tags=phrase.value.getTags()
-					
-					for (const tag of Object.keys(tags))
-					{
-						if (data.hasOwnProperty(tag))
-						{
-							phrase.value(data[tag])
-							break
-						}
-					}
-				}
-			})*/
 		}
 	}
 	var ishml_phrase=function(...data)
@@ -699,95 +694,67 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 	Object.defineProperty(ishml_phrase,"_phrases",{value:[],writable:true})
 	if (literals)
 	{
+		var index=1
 		if( literals.hasOwnProperty("raw"))
 		{
 			if (expressions.length===0)  //_`blah`
 			{
-				Object.defineProperty(ishml_phrase,"_terminal",{value:true,writable:true})
 				populate(literals)
 			}
-			else //_`blah${}blah`
+			else //_`blah${}blah` interleave literals into expressions.
 			{
-				/*if (typeof literals=== "string") //() notation
-				{
-					literals=[literals].concat(expressions)
-					expressions=[]
-				}*/
-
-				if (literals[0].length !== 0)
-				{
-					ishml_phrase._phrases.push({value:literals[0]})
-				}
-				var index=1
+				
 				if(expressions.length>0)
 				{
-					Object.defineProperty(ishml_phrase,"_terminal",{value:false,writable:true})
-					expressions.forEach(phrase=> 
+					expressions=expressions.reduce((interleaving,expression)=>
 					{
-
-						ishml_phrase._phrases.push({value:phrase})
-						Object.assign(ishml_phrase,phrase)  //pick up tags.
+						interleaving.push({value:expression})
 						if (literals[index].length>0)
 						{
-							ishml_phrase._phrases.push({value:literals[index]})
+							interleaving.push({value:literals[index]})
 						}
 						index++
-					})
+						return interleaving
+					},[])
+					
 				}
-				else
-				{
-					Object.defineProperty(ishml_phrase,"_terminal",{value:true,writable:true})
-				}	
 				
+				if (literals[0].length !== 0)
+				{
+					expressions.unshift(literals[0])
+				
+				}
 				if (index < literals.length)
 				{
-					ishml_phrase._phrases=ishml_phrase._phrases.concat(literals.slice(index).map(literal=>({value:literal})))
+					expressions=expressions.concat(literals.slice(index))
 				}
+				populate(expressions)
 			}
 		}
-		else
+		else //function call notation
 		{
-			var processArgs =(expressions)=>
-			{
-				var isTerminal=true
-				expressions.forEach(phrase=> 
-				{
-
-					ishml_phrase._phrases.push({value:phrase})
-					if (typeof phrase === "function")
-					{
-						isTerminal=false
-						if (phrase._isIshmlPhrase)
-						{
-							Object.assign(ishml_phrase,phrase)  //pick up tags.
-						}
-						
-					}
-				})
-				
-				Object.defineProperty(ishml_phrase,"_terminal",{value:isTerminal,writable:true})
-			}
 			if (expressions.length >0 ) // data is simple list of args
 			{
 				expressions.unshift(literals)
-				//populate(expressions)
-				processArgs(expressions)
+				populate(expressions)
 			}	
 			else  
 			{
 				if (literals instanceof Array)//_(["blah","blah",_()])
 				{
-					processArgs(literals)
+					populate(literals)
 				}
 				else //_("blah") or _(_())
 				{
-					processArgs([literals])
+					if(literals){populate([literals])}
+					else{ishml_phrase._phrases=[]}
+					
 				}
 				
 			}
 		}	
 	}
-	else{Object.defineProperty(ishml_phrase,"_terminal",{value:true,writable:true})}	
+	
 	ishml.Phrase.attach(ishml_phrase,null)
 	Object.defineProperty(ishml_phrase,"_reset",{value:function(){},writable:true})
 	return ishml_phrase
@@ -892,6 +859,10 @@ ishml.Phrase.attach=function(ishml_phrase,receiver)
 		Object.defineProperty(ishml_phrase,"_phrases",{value:receiver._phrases,writable:true})
 		Object.defineProperty(ishml_phrase,"_terminal",{value:receiver._terminal,writable:true})
 	}
+	else
+	{
+		Object.defineProperty(ishml_phrase,"_terminal",{value:ishml_phrase._phrases.some(phrase=>  !(typeof phrase === "function")),writable:true})
+	}
 	Object.defineProperty(ishml_phrase,"append",{value:append,writable:true})
 	Object.defineProperty(ishml_phrase,"outer",{value:null,writable:true})
 	//Object.defineProperty(ishml_phrase,"getTags",{value:getTags,writable:true})
@@ -915,33 +886,30 @@ ishml.Phrase.prefixHandler=
 {
 	get:function(prefix, property) //a.b.c() becomes a(b(c()))
 	{
-		if (property==="nextPrefix"){return prefix} //bare property without proxy
-		
-		var nextPrefix= ishml.Phrase[property].nextPrefix
-		var prefixer=(...data)=>
-		{	
-			return prefix(nextPrefix(...data))//a.b(data) becomes a(b(data))
-		}
-		return new Proxy(prefixer,this)
-	}
-}
-/*ishml.Phrase.contextHandler=
-{
-	get:function(target, property, receiver) 
-	{
-		if (property==="context")
+
+		if (property==="asFunction"){return prefix}  //bare property without proxy
+		if (prefix.name==="tags")//_.tag
 		{
-			//target._depth=target.depth+1
-			return receiver  //proxied ishml_phrase
+			return prefix(property)
+		}
+		if (property==="tags")  //_.prefix...tag
+		{
+			var tagsFunction= ishml.Phrase[property].asFunction
+			return new Proxy(tagsFunction,{get:function(target,property){return prefix(target(property))}})
 		}
 		else
 		{
-			target._tag=property
-			return target  //ishml_phrase
+			var propertyAsFunction= ishml.Phrase[property].asFunction
+			var prefixer=(...data)=>
+			{	
+				return prefix(propertyAsFunction(...data))//a.b(data) becomes a(b(data))
+			}
+			return new Proxy(prefixer,this)
 		}
 	}
-}	*/
-ishml.Phrase.tags= new Proxy(function(tag)
+}
+
+ishml.Phrase.tags= new Proxy( function tags(tag)
 {
 	var receiver=null
 	var ishml_phrase=function(...data)

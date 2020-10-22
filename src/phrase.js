@@ -305,8 +305,20 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 					}
 					else
 					{
-						if (phraseType === "string" || phraseType === "function"){return {value:phrase}}
+						if (phraseType==="function")
+						{
+							
+							return {value:phrase}
+						}
+						if (phraseType === "string"){return {value:phrase}}
 						else{return{value:phrase.toString()}}
+					}
+				})
+				ishml_phrase._phrases.forEach(phrase=>
+				{
+					if (phrase.value._isIshmlPhrase)
+					{
+						Object.assign(ishml_phrase,phrase.value) //capture tags
 					}
 				})
 			}	
@@ -393,73 +405,61 @@ ishml.Phrase=function Phrase(literals, ...expressions)
 	Object.defineProperty(ishml_phrase,"_phrases",{value:[],writable:true})
 	if (literals)
 	{
+		var index=1
 		if( literals.hasOwnProperty("raw"))
 		{
 			if (expressions.length===0)  //_`blah`
 			{
 				populate(literals)
 			}
-			else //_`blah${}blah`
+			else //_`blah${}blah` interleave literals into expressions.
 			{
-				/*if (typeof literals=== "string") //() notation
-				{
-					literals=[literals].concat(expressions)
-					expressions=[]
-				}*/
-
-				if (literals[0].length !== 0)
-				{
-					ishml_phrase._phrases.push({value:literals[0]})
-				}
-				var index=1
+				
 				if(expressions.length>0)
 				{
-					Object.defineProperty(ishml_phrase,"_terminal",{value:false,writable:true})
-					expressions.forEach(phrase=> 
+					expressions=expressions.reduce((interleaving,expression)=>
 					{
-
-						ishml_phrase._phrases.push({value:phrase})
-						Object.assign(ishml_phrase,phrase)  //pick up tags.
+						interleaving.push({value:expression})
 						if (literals[index].length>0)
 						{
-							ishml_phrase._phrases.push({value:literals[index]})
+							interleaving.push({value:literals[index]})
 						}
 						index++
-					})
+						return interleaving
+					},[])
+					
 				}
-				else
-				{
-					Object.defineProperty(ishml_phrase,"_terminal",{value:true,writable:true})
-				}	
 				
+				if (literals[0].length !== 0)
+				{
+					expressions.unshift(literals[0])
+				
+				}
 				if (index < literals.length)
 				{
-					ishml_phrase._phrases=ishml_phrase._phrases.concat(literals.slice(index).map(literal=>({value:literal})))
+					expressions=expressions.concat(literals.slice(index))
 				}
+				populate(expressions)
 			}
 		}
 		else //function call notation
 		{
-			var processArgs =(expressions)=>
-			{
-				
-				Object.defineProperty(ishml_phrase,"_terminal",{value:expressions.some(phrase=>  (typeof phrase === "function")),writable:true})
-			}
 			if (expressions.length >0 ) // data is simple list of args
 			{
 				expressions.unshift(literals)
-				//populate(expressions)
-				processArgs(expressions)
+				populate(expressions)
 			}	
 			else  
 			{
 				if (literals instanceof Array)//_(["blah","blah",_()])
 				{
-					processArgs(literals)
+					populate(literals)
 				}
 				else //_("blah") or _(_())
 				{
-					processArgs([literals])
+					if(literals){populate([literals])}
+					else{ishml_phrase._phrases=[]}
+					
 				}
 				
 			}
@@ -572,7 +572,7 @@ ishml.Phrase.attach=function(ishml_phrase,receiver)
 	}
 	else
 	{
-		Object.defineProperty(ishml_phrase,"_terminal",{value:expressions.some(phrase=>  !(typeof phrase === "function")),writable:true})
+		Object.defineProperty(ishml_phrase,"_terminal",{value:ishml_phrase._phrases.some(phrase=>  !(typeof phrase === "function")),writable:true})
 	}
 	Object.defineProperty(ishml_phrase,"append",{value:append,writable:true})
 	Object.defineProperty(ishml_phrase,"outer",{value:null,writable:true})
