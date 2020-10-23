@@ -930,6 +930,7 @@ ishml.Phrase.tags= new Proxy( function tags(tag)
 			return phrases
 		}
 	}
+	Object.defineProperty(ishml_phrase,"_phrases",{value:[],writable:true})
 	ishml.Phrase.attach(ishml_phrase,receiver)
 	return ishml_phrase
 },ishml.Phrase.prefixHandler)

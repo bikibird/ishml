@@ -61,10 +61,10 @@ ishml.lang.capitalize=function(text)
 	if(text){return `${text[0].toUpperCase()}${text.slice(1)}`}
 	else {return text}
 }
-ishml.lang.vs=function(word)
+ishml.lang.es=function(word)
 {
 	var key=word.toLowerCase()
-	if(ishml.lang.vs.third.hasOwnProperty(key)){return ishml.lang.preserveCase(ishml.lang.vs.third[key],word)}
+	if(ishml.lang.es.third.hasOwnProperty(key)){return ishml.lang.preserveCase(ishml.lang.es.third[key],word)}
 
 	const rules=
 	[
@@ -103,9 +103,9 @@ ishml.lang.vs=function(word)
 		}
 	}
 }
-ishml.lang.vs.trie={h:{p:{a:{r:{g:{o:{e:{m:1}},$:0}}}},c:{n:{u:1,y:{l:1},i:1,e:1,a:1},a:{m:0,$:1},y:0,$:1},s:1},s:{a:{g:{t:9,e:9,$:1},i:1},i:{c:1,l:1,w:1,o:1,d:9},u:{l:{l:1,p:9},c:1,o:1,b:1,r:1},o:9,m:0,$:1},y:{a:0,o:0,e:0,u:0,$:2},x:1,i:{p:1,x:1},o:{d:{a:{n:{i:1}},$:1},g:1,t:{e:1},h:{c:1},i:{d:1},a:1,y:{o:1},s:1,e:{d:1},r:1},f:{l:{a:5},a:{e:{h:5}}},z:{i:3,z:1,t:1},u:{f:1}}
+ishml.lang.es.trie={h:{p:{a:{r:{g:{o:{e:{m:1}},$:0}}}},c:{n:{u:1,y:{l:1},i:1,e:1,a:1},a:{m:0,$:1},y:0,$:1},s:1},s:{a:{g:{t:9,e:9,$:1},i:1},i:{c:1,l:1,w:1,o:1,d:9},u:{l:{l:1,p:9},c:1,o:1,b:1,r:1},o:9,m:0,$:1},y:{a:0,o:0,e:0,u:0,$:2},x:1,i:{p:1,x:1},o:{d:{a:{n:{i:1}},$:1},g:1,t:{e:1},h:{c:1},i:{d:1},a:1,y:{o:1},s:1,e:{d:1},r:1},f:{l:{a:5},a:{e:{h:5}}},z:{i:3,z:1,t:1},u:{f:1}}
 
-ishml.lang.vs.third={have:"has","be":"is"}
+ishml.lang.es.third={have:"has","be":"is"}
 ishml.lang.ed=function(word)
 {
 	var key=word.toLowerCase()
