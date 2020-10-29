@@ -310,27 +310,44 @@ ishml.lang.est=function(word)
 	return ishml.lang.preserveCase("most "+key,word)
 }
 
+var _ = ishml.Template
 
-var _ = ishml.Phrase
+ishml.Template.registerFactory((...data)=> ishml.Template(...data).modify((item)=>`${ishml.lang.a(item)} ${item}`)).as("a")
+ishml.Template.registerFactory((...data)=> ishml.Template(...data).modify((item)=>`${ishml.lang.capitalize(ishml.lang.a(item))} ${item}`)).as("A")
+ishml.Template.an=ishml.Template.a
+ishml.Template.An=ishml.Template.a
+ishml.Template.registerFactory((...data)=> ishml.Template(...data).modify(ishml.lang.capitalize)).as("cap")
+ishml.Template.factoryModifier((...data)=> ishml.Template`${ishml.Templage.cycle(...data).tag("en_us_item")}${ ishml.Template`, `.if(x=>x.en_us_item.index < x.en_us_item.total-1 && x.en_us_item.total>2)}${ ishml.Template` and `.if(x=>x.en_us_item.index===0 && x.en_us_item.total===2)}${ ishml.Template`and `.if(x=>x.en_us_item.index===x.en_us_item.total-2 && x.en_us_item.total>2)}`.per("en_us_item").join()
+).as("list")
 
-ishml.Phrase.factoryModifier((...data)=>_`${_.cycle(...data).tag("en_us_item")}${_`, `.if(x=>x.en_us_item.index < x.en_us_item.total-1 && x.en_us_item.total>2)}${_` and `.if(x=>x.en_us_item.index===0 && x.en_us_item.total===2)}${_`and `.if(x=>x.en_us_item.index===x.en_us_item.total-2 && x.en_us_item.total>2)}`.per("en_us_item").join()
+
+/*ishml.Template.register(class listPhrase extends ishml.Phrase
+	{
+		constructor(...data)
+		{
+			return _`${_.cycle(...data).tag("en_us_item")}${_`, `.if(x=>x.en_us_item.index < x.en_us_item.total-1 && x.en_us_item.total>2)}${_` and `.if(x=>x.en_us_item.index===0 && x.en_us_item.total===2)}${_`and `.if(x=>x.en_us_item.index===x.en_us_item.total-2 && x.en_us_item.total>2)}`.per("en_us_item").join()
+			
+		}
+	}).prefix("list")/*
+
+/*ishml.Template.factoryModifier((...data)=>_`${_.cycle(...data).tag("en_us_item")}${_`, `.if(x=>x.en_us_item.index < x.en_us_item.total-1 && x.en_us_item.total>2)}${_` and `.if(x=>x.en_us_item.index===0 && x.en_us_item.total===2)}${_`and `.if(x=>x.en_us_item.index===x.en_us_item.total-2 && x.en_us_item.total>2)}`.per("en_us_item").join()
 ).prefix("list")
 
-ishml.Phrase.modifier(item=>ishml.lang.a(item.value)+" "+item.value).prefix("a")
-ishml.Phrase.modifier(item=>ishml.lang.capitalize(ishml.lang.a(item.value))+" "+item.value).prefix("A")
-ishml.Phrase.modifier(item=>ishml.lang.a(item.value)+" "+item.value).prefix("an")
-ishml.Phrase.modifier(item=>ishml.lang.capitalize(ishml.lang.a(item.value))+" "+item.value).prefix("An")
-ishml.Phrase.modifier(item=>ishml.lang.capitalize(item.value)).prefix("cap")
+ishml.Template.modifier(item=>ishml.lang.a(item.value)+" "+item.value).prefix("a")
+ishml.Template.modifier(item=>ishml.lang.capitalize(ishml.lang.a(item.value))+" "+item.value).prefix("A")
+ishml.Template.modifier(item=>ishml.lang.a(item.value)+" "+item.value).prefix("an")
+ishml.Template.modifier(item=>ishml.lang.capitalize(ishml.lang.a(item.value))+" "+item.value).prefix("An")
+ishml.Template.modifier(item=>ishml.lang.capitalize(item.value)).prefix("cap")
 
 //nouns
-ishml.Phrase.modifier(item=>
+ishml.Template.modifier(item=>
 {
 	if (item.number===ishml.enum.number.singular){return item.value}
 	return ishml.lang.s(item.value)
 }).suffix("s")
-ishml.Phrase.modifier(item=>ishml.lang.z(item.value)).suffix("z")
+ishml.Template.modifier(item=>ishml.lang.z(item.value)).suffix("z")
 //adjectives
-ishml.Phrase.modifier(item=>
+ishml.Template.modifier(item=>
 {
 	if(item.degree)
 	{
@@ -340,7 +357,7 @@ ishml.Phrase.modifier(item=>
 	}
 	else {return ishml.lang.er(item.value)}
 }).suffix("er")	
-ishml.Phrase.modifier(item=>
+ishml.Template.modifier(item=>
 {
 	if(item.degree)
 	{
@@ -351,9 +368,9 @@ ishml.Phrase.modifier(item=>
 	else {return ishml.lang.est(item.value)}
 }).suffix("est")	
 //verbs
-ishml.Phrase.modifier(item=>ishml.lang.ing(item.value)).suffix("ing")
-ishml.Phrase.modifier(item=>ishml.lang.vs(item.value)).suffix("vs")
-ishml.Phrase.modifier(item=>ishml.lang.ed(item.value)).suffix("ed")
-ishml.Phrase.modifier(item=>ishml.lang.en(item.value)).suffix("en")
+ishml.Template.modifier(item=>ishml.lang.ing(item.value)).suffix("ing")
+ishml.Template.modifier(item=>ishml.lang.vs(item.value)).suffix("vs")
+ishml.Template.modifier(item=>ishml.lang.ed(item.value)).suffix("ed")
+ishml.Template.modifier(item=>ishml.lang.en(item.value)).suffix("en")
 
-
+*/

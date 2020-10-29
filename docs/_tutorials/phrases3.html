@@ -18,7 +18,9 @@ status: pending
 <p>When a phrase has both prefixes and suffixes attached, the prefixes are applied first and then suffixes are applied to the result.  This sometimes leads to unintended results like <code>example2</code> in the listing above.  Only the last verb has the <q>ing</q> ending applied to it because the phrase was first turned into a list and capitalized before adding <q>ing</q> to the end of of the resulting text. </p>
 <p>This behavior may be changed by nesting phrases.  When phrases are nested, the inner phrase is evaluated first and then the outer phrase. The inner, inner phrase of <code>example3</code> first applies <code>.ing</code> to each of the verbs. Once this phrase has been evaulated, the phrase surrounding it turns it into a comma delimited list followed by capitalizing the first letter of result. There are no restrictions on how deeply a phrase may be nested.</p>
 <h2>Tag</h2>
-<p>We first encountered the <code>.tag()</code> suffix in <a href="{{ site.baseurl }}{% link _tutorials/phrases1.html %}">part one of this tutorial</a>, where it was used to label inner phrases for data population.  The  <code>.tag()</code> also provides a means of reusing the results of inner phrases in other parts of an outer phrase.  Consider Listing 2.</p>
+<p>We first encountered the <code>.tag()</code> suffix in <a href="{{ site.baseurl }}{% link _tutorials/phrases1.html %}">part one of this tutorial</a>, where it was used to tag phrases for data population.  Tagged phrases can also be reused elsewhere within a containing phrase. Examine the JavaScript in listing 2.</p>
+
+zt3aL6r4
 
 <h2>If, Then, and Else <h2>
 <h2>Concur</h2>

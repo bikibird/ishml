@@ -1,234 +1,262 @@
- /*
-The ${"thing"} in the ${"place"} is ${"state"}.
-var thing= ishml.Template(["cat","dog","bird"])
-var li=ishml.template`<li>${item:items}</li>`
-var test=ishml.Template`The ${"thing"} in the ${"place"} is ${"state"}. Poor ${"thing"}.`
-var test=ishml.Template`The ${{thing:ishml.template`cat`}} in the ${"place"} is ${"state"}. Poor ${"thing"}.`
-var test=ishml.Template`The ${{list:li.recite(thing)}} in the ${"place"} is ${"state"}. Poor ${"thing"}.`
-Creates enumerable properties as templates: this.thing, this.place, this.state
-
-passages[0]="The "
-passages[1]=this.thing
-passages[2]=" in the "
-passages[3]=this.place
-passages[4]=" is "
-passages[5]=this.state
-passages[6]=". Poor "
-passages[7]=this.thing
-passages[8]="."
-
-Emmpty strings should be excluded from template array.
-
-test.thing.phrasing(["ball","cat","flower"])
-test.phrasing({thing:["ball","cat","flower"],place:["backyard", "alley","shoebox"]})
-
-Expressions may also reference other Templates:
-
-var test4=ishml.Template`${test1}${test2}($test3}`
-
-var test4=ishml.Template`${test1}${test2}($test3}`
-
-var test=ishml.Template
-`${"name"} bought <ol>${{things:ishml.Template`<li>${"thing"}</li>`.join()}}</ol>`
-test.name.rephrase(["Alice","Bob"])
-test.things.rephrase(["yo-yo", "gum", "pencils"])
-
-.join, .shuffle, .cycle, .list .end .repeat
-
-
-*/
-ishml.Template = function Template(literals, ...expressions) 
+ishml.Template=function(...precursor){return new ishml.Phrase(...precursor)}
+ishml.Template.templateHandler=
 {
-	if (this instanceof ishml.Template) 
+	get:function(template, property) //a.b.c() becomes a(b(c()))
 	{
-		var self=this
-		Object.defineProperty(this, "passages", { value: [], writable: true })
-		Object.defineProperty(this, Symbol.iterator, { value:self, writable: true })
-		Object.defineProperty(this, "generator", { value:self.choose, writable: true })
-		Object.defineProperty(this, "behaviors", { value: [], writable: true })
-		this.rephrase(literals,...expressions)
-		
-
-	}
-	else 
-	{
-		return new Template(literals, ...expressions)
-	}
-}
-
-//{random, shuffle, cycle, last, repeat, sticky}
-ishml.Template.prototype.choose = function(options)
-{
-	var self=this
-	this.next=(function* (options)
-	{
-		var result=""
-		self.passages.forEach(passage=>
+		if (property==="asFunction"){return template}  //bare property without proxy
+		if (template.name==="tags")//_.tag
 		{
-
-			if (passage instanceof ishml.Template)
-			{
-
-				result = passage.next().value.toLocaleString()
-			}
-			else
-			{
-				result = passage.toLocaleString()
-			}
-			yield ({value:result, done:false})
-		})
-		return ({value:result, done:true})
-		
-	})(options).next
-
-	this.generator=ishml.Template.prototype.choose.bind(this,options)
-	
-	return this
-}
-ishml.Template.prototype.hello=function*(options)
-{
-	while(true)
-	{
-		yield "hello"
-	}	
-}
-
-ishml.Template.prototype.reset=function()
-{
-	this.generator()
-	return this
-}
-ishml.Template.prototype.join = function (options)
-{
-	this.next=()=>
-	{
-		var result=""
-		this.passages.forEach(passage=>
-		{
-
-			if (passage instanceof ishml.Template)
-			{
-
-				result += passage.next().value.toLocaleString()
-			}
-			else
-			{
-				result += passage.toLocaleString()
-			}
-		})
-		return {value:result, done:true}
-	}
-	this.generator= ishml.Template.prototype.join.bind(this,options)
-	return this
-}
-/*ishml.Template.prototype.join = function(options)
-{
-	const self=this
-	const joiner=(function*({ repeat="-1", last="", seperator=""}={})
-	{
-		var result=""
-		self.passages.forEach(passage=>
-		{
-
-			if (passage instanceof ishml.Template)
-			{
-
-				result += passage.next().value.toLocaleString()
-			}
-			else
-			{
-				result += passage.toLocaleString()
-			}
-		})
-		while (true)
-		{
-			yield result
-		}	
-	})(options)
-	this.iterator=joiner
-	this.generator=ishml.Template.prototype.join.bind(this,options)
-	return this
-}
-*/	
-ishml.Template.prototype.compose = function ()
-{
-	var result=""
-		this.passages.forEach(passage=>
-		{
-
-			if (passage instanceof ishml.Template)
-			{
-
-				result += passage.compose()
-			}
-			else
-			{
-				if(this.isIterator(passage))
-				{
-					result += passage.next.value.toLocaleString()
-				}
-				else
-				{
-					result += passage.toLocaleString()
-				}
-			}
-		})
-}	
-
-
-
-ishml.Template.prototype.rephrase = function(literals, ...expressions)
-{
-	var index=0
-		expressions.forEach(passage=>
-		{
-			
-			if (literals[index].length !== 0)
-			{
-				this.passages.push(literals[index])
-			}
-			if(typeof passage ==="string" )
-			{
-				//placeholder template
-				if (!this.hasOwnProperty(passage))
-				{
-					this[passage]=ishml.Template``
-				}
-				this.passages.push(this[passage])
-			}
-			else
-			{
-				if(passage instanceof ishml.Template || this.isIterator(passage))
-				{
-					//anonymout template
-					passages.push(passage)
-				}
-				else
-				{
-					
-					//named template
-					var key=Object.keys(passage)[0]
-					
-					if (passage[key] instanceof ishml.Template)
-					{
-						if (!this.hasOwnProperty(key))
-						{
-							this[key]=passage[key]
-						}
-
-						
-						this.passages.push(this[key])
-					}
-					
-				}
-			}
-			index++
-		}) 
-		if (index<literals.length)
-		{
-			this.passages=this.passages.concat(literals.slice(index).filter(value=>value.length>0))
+			return template(property)
 		}
-		this.reset()
-		return this
+		var propertyAsFunction= ishml.Template[property].asFunction
+		if (property==="tags")  //_.template...tag
+		{
+			return new Proxy(propertyAsFunction,{get:function(target,property){return template(target(property))}})
+		}
+		else
+		{
+			return new Proxy((...precursor)=>template(propertyAsFunction(...precursor)),ishml.Template.templateHandler)
+			
+				
+				//return template(propertyAsFunction(...precursor))//a.b(data) becomes a(b(data))
+		}
+	}
 }
+ishml.Template.registerClass=function(phraseClass)
+{
+	var as= (id)=>
+	{
+		ishml.Template[id]=new Proxy((...precursor)=>new phraseClass(...precursor),ishml.Template.templateHandler)
+	}
+	return {as:as}	
+}
+ishml.Template.registerFactory=function(phraseFactory)
+{
+	var as= (id)=>
+	{
+		ishml.Template[id]=new Proxy(phraseFactory,ishml.Template.templateHandler)
+	}
+	return {as:as}	
+}
+//cycle
+ishml.Template.registerFactory((...data)=>
+{
+	var counter=0
+	return new class cyclePhrase extends ishml.Phrase
+	{
+		populate(...data)
+		{
+			super.populate(...data)
+			counter=0
+		}
+		generate()
+		{
+			var phrases=this._precursor?.generate()??super.generate()
+			if(phrases.length===0)
+			{
+				Object.assign(this,{index:0, total:0, reset:true})
+				this.text=""
+				return phrases
+			}
+			else
+			{
+				var phrase=Object.assign({},phrases[counter] )
+				Object.assign(phrase,{index:counter, total:phrases.length, reset:false})
+			}
+			counter++
+			if (counter>phrases.length-1)
+			{
+				counter=0
+				this._reset()
+				phrase.reset=true
+			}
+			Object.assign(this,phrase)
+			this.text=phrase.value
+			return [phrase]
+		}
+		
+	}(...data)
+}).as("cycle")
+//favor
+ishml.Template.registerClass( class favorPhrase extends ishml.Phrase
+	{
 
+		generate()
+		{
+			var phrases=this._precursor?.generate()??super.generate()
+			if(phrases.length===0)
+			{
+				Object.assign(this,{index:0, total:0, reset:true})
+				this.text=""
+				return phrases
+			}
+			else
+			{
+				var {value:random,seed}=ishml.util.random(this._seed)
+				this._seed=seed
+				var c=phrases.length*(phrases.length+1)*random
+				var counter=phrases.length-Math.floor((Math.sqrt(1+4*c)-1)/2)-1
+				var phrase=Object.assign({},phrases[counter] )
+				phrase.index=counter
+				phrase.total=phrases.length
+				Object.assign(this,phrase)
+				this.text=phrase.value
+				return [phrase]
+			}
+		}
+		
+	}).as("favor")
+//pick
+ishml.Template.registerClass( class pickPhrase extends ishml.Phrase
+	{
+		generate()
+		{
+			var phrases=this._precursor?.generate()??super.generate()
+			if(phrases.length===0)
+			{
+				Object.assign(this,{index:0, total:0, reset:true})
+				this.text=""
+				return phrases
+			}
+			else
+			{
+				var {value:random,seed}=ishml.util.random(this._seed)
+				this._seed=seed
+				var counter=Math.floor(random*phrases.length)
+				var phrase=Object.assign({},phrases[counter] )
+				phrase.index=counter
+				phrase.total=phrases.length
+				Object.assign(this,phrase)
+				this.text=phrase.value
+				return [phrase]
+			}
+		}
+		
+	}).as("pick")
+//series
+ishml.Template.registerFactory((...data)=>
+{
+	var counter=0
+	var ended =false
+	return new class seriesPhrase extends ishml.Phrase
+	{
+		populate(...data)
+		{
+			super.populate(...data)
+			ended=false
+			counter=0
+		}
+		generate()
+		{
+			var phrases=this._precursor?.generate()??super.generate()
+			if (ended)
+			{
+				this.text=""
+				this.value=""
+				return [ {value:""}]
+			}
+			else
+			{
+				if(phrases.length===0)
+				{
+					Object.assign(this,{index:0, total:0, reset:true})
+					this.text=""
+					return phrases
+				}
+				else
+				{
+					var phrase=Object.assign({},phrases[counter] )
+					Object.assign(phrase,{index:counter, total:phrases.length, reset:false})
+				}
+				counter++
+				if (counter>phrases.length-1)
+				{
+					
+						ended=true
+		
+					counter=0
+					this._reset()
+					phrase.reset=true
+				}
+			}	
+			Object.assign(this,phrase)
+			this.text=phrase.value
+			return [phrase]
+		}
+		_reset(){return this.precursor?._reset()}
+	}(...data)
+}).as("series")
+//shuffle
+ishml.Template.registerFactory((...data)=>
+{
+	var reshuffle =true
+	var phrases=[]
+	return new class shufflePhrase extends ishml.Phrase
+	{
+		generate()
+		{
+			if (reshuffle)
+			{
+				phrases=this._precursor?.generate()??super.generate()
+				var {value:random,seed}=ishml.util.random(this._seed)
+				this._seed=seed
+				phrases=ishml.util.shuffle(phrases,random).result
+				reshuffle=false
+			}
+			this.text=phrases.map(phrase=>phrase.value).join("")
+			return phrases
+		}
+		_reset()
+		{
+			super._reset()
+			reshuffle=true
+			return this
+		}
+		
+	}(...data)
+}).as("shuffle")
+//pin
+ishml.Template.registerFactory((...data)=>
+{
+	var pin =true
+	var phrases=[]
+	return new class pinPhrase extends ishml.Phrase
+	{
+		populate(...data)
+		{
+			super.populate(...data)
+			pin =true
+		}
+		generate()
+		{
+			if (pin)
+			{
+				phrases=this._precursor?.generate()??super.generate()
+				pin=false
+			}
+			this.text=phrases.map(phrase=>phrase.value).join("")
+			return phrases
+		}
+		_reset()
+		{
+			if(pin)
+			{
+				super._reset()
+			}
+		}
+	}(...data)
+}).as("pin")
+//tags
+ishml.Template.registerFactory(function tags (tag)
+{
+	return new class tagsPhrase extends ishml.Phrase
+	{
+		generate()
+		{
+			var phrases=this._context[tag].generate()
+			Object.assign(this,this._context[tag])
+			this.text=this._context[tag]
+			return phrases
+		}
+	}	
+}).as("tags")

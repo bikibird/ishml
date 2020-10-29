@@ -70,44 +70,16 @@ ishml.Phrase =class Phrase
 			}
 		}(this)
 	}
-	generate()
+	_evaluate(subPhrase)
 	{
-		this._phrases=this._precursor?.generate() ?? this._phrases
-		var evaluation=[]
-		this._phrases.forEach((phrase,index)=>
+		if (subPhrase instanceof ishml.Phrase)
+		{ 
+			return {value:subPhrase.generate().map(subPhrase=>subPhrase.value).join("")}
+		}
+		else
 		{
-			var clause=phrase.value
-			var clauseType=typeof clause
-			if (clauseType=== "string"  || clauseType=== "number")  //value is string
-			{
-				var data =Object.assign({},phrase) //grab the meta data and data already gathered
-				data.value=clause.toString()
-				
-			}
-			else
-			{
-				if (clauseType==="function")  
-				{
-						clause=clause(this)  //evaluate to string, number, or ishml Phrase
-				}		
-				if (clause instanceof ishml.Phrase) //clause is an ishml_phrase
-				{
-					var data={}
-					var subPhrases=clause.generate()
-					data.value= subPhrases.map(subPhrase=>subPhrase.value).join("")
-				}
-				else
-				{
-					data={value:clause.toString()}
-				}
-				
-			}
-			var evaluatedPhrase=Object.assign({},data)
-			evaluation.push(evaluatedPhrase)
-		})
-		
-		this.text=evaluation.map(data=>data.value).join("")
-		return evaluation
+			return {value:subPhrase.toString()}
+		}	
 	}
 	first(count=1)
 	{
@@ -120,6 +92,30 @@ ishml.Phrase =class Phrase
 				return phrases
 			}
 		}(this)
+	}
+	generate()
+	{
+		this._phrases=this._precursor?.generate() ?? this._phrases
+		var evaluation=[]
+		//defer evaluation of functions to second pass
+		this._phrases.forEach((phrase,index)=>
+		{
+			if (! (phrase.value instanceof Function))
+			{
+				evaluation[index]=Object.assign(Object.assign({},phrase),this._evaluate(phrase.value))
+			}
+		})
+		this._phrases.forEach((phrase,index)=>
+		{
+			if (evaluation[index]===undefined)  
+			{
+				var deferredPhrase=phrase.value(this)
+				evaluation[index]=Object.assign(Object.assign({},phrase),this._evaluate(deferredPhrase))
+			}	
+		})
+		
+		this.text=evaluation.map(data=>data.value).join("")
+		return evaluation
 	}
 	htmlTemplate()
 	{
@@ -146,6 +142,19 @@ ishml.Phrase =class Phrase
 					this.text=""
 					return []
 				}
+			}
+		}(this)
+	}
+	join({separator="", trim=true}={})
+	{
+		return new class joinPhrase extends ishml.Phrase
+		{
+			generate()
+			{
+				var phrases=this._precursor.generate()
+				var last=phrases.length-1
+				this.text=phrases.map(phrase=>phrase.value).reduce((result,phrase,index,)=>result+phrase+((index===last && trim)?"":separator),"")	
+				return [this.text]
 			}
 		}(this)
 	}
@@ -191,7 +200,7 @@ ishml.Phrase =class Phrase
 					var phrases=this._precursor.generate()
 					revisedPhrases=revisedPhrases.concat(phrases)
 				}while(!this._context[tag].reset)
-				this.text=revisedPhrases.mape(data=>data.value).join("")
+				this.text=revisedPhrases.map(data=>data.value).join("")
 				return revisedPhrases		
 			}
 	}(this)
@@ -383,3 +392,31 @@ ishml.Phrase =class Phrase
 	}
 }
 ishml.Phrase.prototype.then=ishml.Phrase.prototype.else
+ishml.Phrase.registerClass=function(phraseClass)
+{
+	var as= (id)=>
+	{
+		Object.defineProperty(ishml.Phrase.prototype,id,
+		{
+			get()
+			{
+			  return new phraseClass(this)
+			}
+		})
+	}
+	return {as:as}	
+}
+ishml.Phrase.registerFactory=function(phraseFactory)
+{
+	var as= (id)=>
+	{
+		Object.defineProperty(ishml.Phrase.prototype,id,
+		{
+			get()
+			{
+				return phraseFactory(this)
+			}
+		})
+	}
+	return {as:as}	
+}
