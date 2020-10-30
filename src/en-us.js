@@ -317,9 +317,10 @@ ishml.Template.registerFactory((...data)=> ishml.Template(...data).modify((item)
 ishml.Template.an=ishml.Template.a
 ishml.Template.An=ishml.Template.a
 ishml.Template.registerFactory((...data)=> ishml.Template(...data).modify(ishml.lang.capitalize)).as("cap")
-ishml.Template.factoryModifier((...data)=> ishml.Template`${ishml.Templage.cycle(...data).tag("en_us_item")}${ ishml.Template`, `.if(x=>x.en_us_item.index < x.en_us_item.total-1 && x.en_us_item.total>2)}${ ishml.Template` and `.if(x=>x.en_us_item.index===0 && x.en_us_item.total===2)}${ ishml.Template`and `.if(x=>x.en_us_item.index===x.en_us_item.total-2 && x.en_us_item.total>2)}`.per("en_us_item").join()
+ishml.Template.registerFactory((...data)=> ishml.Template`${ishml.Template.cycle(...data).tag("en_us_item")}${ishml.Template`, `.if(x=>x.en_us_item.index < x.en_us_item.total-1 && x.en_us_item.total>2)}${ ishml.Template` and `.if(x=>x.en_us_item.index===0 && x.en_us_item.total===2)}${ ishml.Template`and `.if(x=>x.en_us_item.index===x.en_us_item.total-2 && x.en_us_item.total>2)}`.per("en_us_item").join()
 ).as("list")
 
+ishml.Phrase.registerFactory( precursor => precursor.modify(ishml.lang.ing)).as("ing")
 
 /*ishml.Template.register(class listPhrase extends ishml.Phrase
 	{
