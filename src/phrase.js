@@ -43,6 +43,20 @@ ishml.Phrase =class Phrase
 		targetNodes.forEach(node=>node.append(this.htmlTemplate().content))
 		return this
 	}
+	concur(condition)
+	{
+		if (typeof condition ==="function"){var rule=condition}
+		else {var rule = ()=>condition}
+		return new class concurPhrase extends ishml.Phrase
+		{
+			generate()
+			{
+				this.results=this._precursor.generate().filter(phrase=>rule(this._context,phrase))
+				this.text=this.results.map(phrase=>phrase.value).join("")
+				return this.results
+			}
+		}(this)
+	}
 	contextualize(innerPhrase)
 	{
 		var precursor =innerPhrase ?? this._precursor
@@ -187,7 +201,7 @@ ishml.Phrase =class Phrase
 				this.results=this._precursor.generate().map(phrase=>
 				{
 					var modifiedPhrase=Object.assign({},phrase)
-					modifiedPhrase.value=modifier(phrase.value)
+					modifiedPhrase=modifier(phrase)
 					return modifiedPhrase
 				})	
 				this.text=this.results.map(phrase=>phrase.value).join("")
@@ -210,7 +224,7 @@ ishml.Phrase =class Phrase
 				this.text=this.results.map(data=>data.value).join("")
 				return this.results	
 			}
-	}(this)
+		}(this)
 	}
 	prepend(documentSelector="#story")
 	{
@@ -337,6 +351,7 @@ ishml.Phrase =class Phrase
 		}
 		return this
 	}
+	
 	replace(documentSelector="#story")
 	{
 		var targetNodes = document.querySelectorAll(documentSelector)
@@ -351,6 +366,24 @@ ishml.Phrase =class Phrase
 	{ 
 		this._precursor?._reset()
 		return this
+	}
+	repeat(condition)
+	{
+		if (typeof condition ==="function"){var rule=condition}
+		else {var rule = ()=>condition}
+		return new class repeatPhrase extends ishml.Phrase
+		{
+			generate()
+			{
+				this.results=[]
+				do
+				{
+					this.results=this.results.concat(this._precursor.generate())
+				}while(rule(this._context))
+				this.text=this.results.map(data=>data.value).join("")
+				return this.results	
+			}
+		}(this)
 	}
 	say(seed) //generates text output
 	{
@@ -397,11 +430,29 @@ ishml.Phrase =class Phrase
 			}
 		}(this)
 	}
+	while(condition)
+	{
+		if (typeof condition ==="function"){var rule=condition}
+		else {var rule = ()=>condition}
+		return new class whilePhrase extends ishml.Phrase
+		{
+			generate()
+			{
+				this.results=[]
+				while(rule(this._context))
+				{
+					this.results=this.results.concat(this._precursor.generate())
+				}
+				this.text=this.results.map(data=>data.value).join("")
+				return this.results	
+			}
+		}(this)
+	}
 }
 ishml.Phrase.prototype.then=ishml.Phrase.prototype.else
-ishml.Phrase.registerClass=function(phraseClass)
+ishml.Phrase.defineClass=function(id)
 {
-	var as= (id)=>
+	var as= (phraseClass)=>
 	{
 		Object.defineProperty(ishml.Phrase.prototype,id,
 		{
@@ -413,9 +464,9 @@ ishml.Phrase.registerClass=function(phraseClass)
 	}
 	return {as:as}	
 }
-ishml.Phrase.registerFactory=function(phraseFactory)
+ishml.Phrase.define=function(id)
 {
-	var as= (id)=>
+	var as= (phraseFactory)=>
 	{
 		Object.defineProperty(ishml.Phrase.prototype,id,
 		{

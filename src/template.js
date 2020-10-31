@@ -22,24 +22,23 @@ ishml.Template.templateHandler=
 		}
 	}
 }
-ishml.Template.registerClass=function(phraseClass)
+ishml.Template.defineClass=function(id)
 {
-	var as= (id)=>
+	var as= (phraseClass)=>
 	{
 		ishml.Template[id]=new Proxy((...precursor)=>new phraseClass(...precursor),ishml.Template.templateHandler)
 	}
 	return {as:as}	
 }
-ishml.Template.registerFactory=function(phraseFactory)
+ishml.Template.define=function(id)
 {
-	var as= (id)=>
+	var as= (phraseFactory)=>
 	{
 		ishml.Template[id]=new Proxy(phraseFactory,ishml.Template.templateHandler)
 	}
 	return {as:as}	
 }
-//cycle
-ishml.Template.registerFactory((...data)=>
+ishml.Template.define("cycle").as((...data)=>
 {
 	var counter=0
 	return new class cyclePhrase extends ishml.Phrase
@@ -76,65 +75,61 @@ ishml.Template.registerFactory((...data)=>
 		}
 		
 	}(...data)
-}).as("cycle")
-//favor
-ishml.Template.registerClass( class favorPhrase extends ishml.Phrase
+})
+ishml.Template.defineClass("favor").as( class favorPhrase extends ishml.Phrase
+{
+	generate()
 	{
-
-		generate()
+		var phrases=this._precursor?.generate()??super.generate()
+		if(phrases.length===0)
 		{
-			var phrases=this._precursor?.generate()??super.generate()
-			if(phrases.length===0)
-			{
-				Object.assign(this,{index:0, total:0, reset:true})
-				this.text=""
-				return phrases
-			}
-			else
-			{
-				var {value:random,seed}=ishml.util.random(this._seed)
-				this._seed=seed
-				var c=phrases.length*(phrases.length+1)*random
-				var counter=phrases.length-Math.floor((Math.sqrt(1+4*c)-1)/2)-1
-				var phrase=Object.assign({},phrases[counter] )
-				phrase.index=counter
-				phrase.total=phrases.length
-				Object.assign(this,phrase)
-				this.text=phrase.value
-				return [phrase]
-			}
+			Object.assign(this,{index:0, total:0, reset:true})
+			this.text=""
+			return phrases
 		}
-		
-	}).as("favor")
-//pick
-ishml.Template.registerClass( class pickPhrase extends ishml.Phrase
+		else
+		{
+			var {value:random,seed}=ishml.util.random(this._seed)
+			this._seed=seed
+			var c=phrases.length*(phrases.length+1)*random
+			var counter=phrases.length-Math.floor((Math.sqrt(1+4*c)-1)/2)-1
+			var phrase=Object.assign({},phrases[counter] )
+			phrase.index=counter
+			phrase.total=phrases.length
+			Object.assign(this,phrase)
+			this.text=phrase.value
+			return [phrase]
+		}
+	}
+	
+})
+ishml.Template.defineClass("pick").as( class pickPhrase extends ishml.Phrase
+{
+	generate()
 	{
-		generate()
+		var phrases=this._precursor?.generate()??super.generate()
+		if(phrases.length===0)
 		{
-			var phrases=this._precursor?.generate()??super.generate()
-			if(phrases.length===0)
-			{
-				Object.assign(this,{index:0, total:0, reset:true})
-				this.text=""
-				return phrases
-			}
-			else
-			{
-				var {value:random,seed}=ishml.util.random(this._seed)
-				this._seed=seed
-				var counter=Math.floor(random*phrases.length)
-				var phrase=Object.assign({},phrases[counter] )
-				phrase.index=counter
-				phrase.total=phrases.length
-				Object.assign(this,phrase)
-				this.text=phrase.value
-				return [phrase]
-			}
+			Object.assign(this,{index:0, total:0, reset:true})
+			this.text=""
+			return phrases
 		}
-		
-	}).as("pick")
-//series
-ishml.Template.registerFactory((...data)=>
+		else
+		{
+			var {value:random,seed}=ishml.util.random(this._seed)
+			this._seed=seed
+			var counter=Math.floor(random*phrases.length)
+			var phrase=Object.assign({},phrases[counter] )
+			phrase.index=counter
+			phrase.total=phrases.length
+			Object.assign(this,phrase)
+			this.text=phrase.value
+			return [phrase]
+		}
+	}
+	
+})
+ishml.Template.define("series").as((...data)=>
 {
 	var counter=0
 	var ended =false
@@ -185,9 +180,8 @@ ishml.Template.registerFactory((...data)=>
 		}
 		_reset(){return this.precursor?._reset()}
 	}(...data)
-}).as("series")
-//shuffle
-ishml.Template.registerFactory((...data)=>
+})
+ishml.Template.define("shuffle").as((...data)=>
 {
 	var reshuffle =true
 	var phrases=[]
@@ -214,9 +208,8 @@ ishml.Template.registerFactory((...data)=>
 		}
 		
 	}(...data)
-}).as("shuffle")
-//pin
-ishml.Template.registerFactory((...data)=>
+})
+ishml.Template.define("pin").as((...data)=>
 {
 	var pin =true
 	var phrases=[]
@@ -245,9 +238,8 @@ ishml.Template.registerFactory((...data)=>
 			}
 		}
 	}(...data)
-}).as("pin")
-//tags
-ishml.Template.registerFactory(function tags (tag)
+})
+ishml.Template.define("tags").as(function tags (tag)
 {
 	return new class tagsPhrase extends ishml.Phrase
 	{
@@ -259,4 +251,4 @@ ishml.Template.registerFactory(function tags (tag)
 			return phrases
 		}
 	}	
-}).as("tags")
+})
