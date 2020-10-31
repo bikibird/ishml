@@ -575,11 +575,15 @@ ishml.Phrase =class Phrase
 					{
 						data=literals
 					}
-					else //_("blah") or _(_()) _(), {}
+					else //populate("blah") or populate(), populate({})
 					{
-						if(literals){data=[literals]}
+						if(literals)
+						{
+							if (literals instanceof Object){data = literals}
+							else {data=[literals]}
+							
+						}
 						else {data=[]}
-						
 					}
 				}
 			}
@@ -628,13 +632,13 @@ ishml.Phrase =class Phrase
 				})
 			}	
 		}
-		else  //object  attempt to match to tags  //DEFECT Review
+		else  //object  attempt to match to tags 
 		{
 			Object.keys(this).forEach(key=>
 			{
 				if (data.hasOwnProperty(key))
 				{
-					this[key](data[key])
+					this[key].populate(data[key])
 				}	
 			})
 		}
