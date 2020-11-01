@@ -201,8 +201,7 @@ ishml.Phrase =class Phrase
 				this.results=this._precursor.generate().map(phrase=>
 				{
 					var modifiedPhrase=Object.assign({},phrase)
-					modifiedPhrase=modifier(phrase)
-					return modifiedPhrase
+					return Object.assign(modifiedPhrase,{value:modifier(phrase)})
 				})	
 				this.text=this.results.map(phrase=>phrase.value).join("")
 				return this.results
@@ -286,13 +285,12 @@ ishml.Phrase =class Phrase
 					{
 						data=literals
 					}
-					else //populate("blah") or populate(), populate({})
+					else //populate("blah") or populate(), populate({properties}) 
 					{
 						if(literals)
-						{
+						{	
 							if (literals instanceof Object){data = literals}
 							else {data=[literals]}
-							
 						}
 						else {data=[]}
 					}
@@ -345,12 +343,13 @@ ishml.Phrase =class Phrase
 		}
 		else  //object  attempt to match to tags 
 		{
-			Object.keys(this).forEach(key=>
+
+			Object.keys(data).forEach(key=>
 			{
-				if (data.hasOwnProperty(key))
+				if (this.hasOwnProperty(key))
 				{
 					this[key].populate(data[key])
-				}	
+				}
 			})
 		}
 		return this
