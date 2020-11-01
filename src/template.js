@@ -4,12 +4,12 @@ ishml.Template.templateHandler=
 	get:function(template, property) //a.b.c() becomes a(b(c()))
 	{
 		if (property==="asFunction"){return template}  //bare property without proxy
-		if (template.name==="tags")//_.tag
+		if (template.name==="context")//_.tag
 		{
 			return template(property)
 		}
 		var propertyAsFunction= ishml.Template[property].asFunction
-		if (property==="tags")  //_.template...tag
+		if (property==="context")  //_.template...tag
 		{
 			return new Proxy(propertyAsFunction,{get:function(target,property){return template(target(property))}})
 		}
@@ -239,7 +239,7 @@ ishml.Template.define("pin").as((...data)=>
 		}
 	}(...data)
 })
-ishml.Template.define("tags").as(function tags (tag)
+ishml.Template.define("context").as(function tags (tag)
 {
 	return new class tagsPhrase extends ishml.Phrase
 	{
