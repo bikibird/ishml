@@ -311,14 +311,16 @@ ishml.lang.est=function(word)
 }
 ishml.lang.est.superlatives={bad:"worst",far:"farthest",good:"best"}
 
+/*** Templates ***/
+
 ishml.Template.define("a").as((...data)=> ishml.Template(...data).modify(item=>`${ishml.lang.a(item.value)} ${item.value}`))
 ishml.Template.define("A").as((...data)=> ishml.Template(...data).modify(item=>`${ishml.lang.capitalize(ishml.lang.a(item.value))} ${item.value}`))
 ishml.Template.an=ishml.Template.a
 ishml.Template.An=ishml.Template.a
 
 ishml.Template.define("cap").as((...data)=> ishml.Template(...data).modify(item=>ishml.lang.capitalize(item.value)))
-ishml.Phrase.define("ed").as( precursor => precursor.modify(item=>Object.assign(item,{value:ishml.lang.ed(item.value)})))
-ishml.Phrase.define("en").as( precursor => precursor.modify(item=>Object.assign(item,{value:ishml.lang.en(item.value)})))
+ishml.Phrase.define("ed").as( precursor => precursor.modify(item=>ishml.lang.ed(item.value)))
+ishml.Phrase.define("en").as( precursor => precursor.modify(item=>ishml.lang.en(item.value)))
 ishml.Phrase.define("er").as (precursor => 
 {
 	return precursor.modify(item=>
@@ -326,13 +328,13 @@ ishml.Phrase.define("er").as (precursor =>
 		if(item.degree)
 		{
 			if (item.degree===ishml.enum.degree.positive){return item}
-			if (item.degree===ishml.enum.degree.comparative){return Object.assign(item,{value:ishml.lang.er(item.value)})}
-			if (item.degree===ishml.enum.degree.superlative){return Object.assign(item,{value:ishml.lang.est(item.value)})}
+			if (item.degree===ishml.enum.degree.comparative){return ishml.lang.er(item.value)}
+			if (item.degree===ishml.enum.degree.superlative){return ishml.lang.est(item.value)}
 		}
-		else {return Object.assign(item,{value:ishml.lang.er(item.value)})}
+		else {return ishml.lang.er(item.value)}
 	})
 })
-ishml.Phrase.define("es").as( precursor => precursor.modify(item=>Object.assign(item,{value:ishml.lang.es(item.value)})))
+ishml.Phrase.define("es").as( precursor => precursor.modify(item=>ishml.lang.es(item.value)))
 ishml.Phrase.define("est").as (precursor => 
 {
 	return precursor.modify(item=>
@@ -340,13 +342,13 @@ ishml.Phrase.define("est").as (precursor =>
 		if(item.degree)
 		{
 			if (item.degree===ishml.enum.degree.positive){return item}
-			if (item.degree===ishml.enum.degree.comparative){return Object.assign(item,{value:ishml.lang.er(item.value)})}
-			if (item.degree===ishml.enum.degree.superlative){return Object.assign(item,{value:ishml.lang.est(item.value)})}
+			if (item.degree===ishml.enum.degree.comparative){return ishml.lang.er(item.value)}
+			if (item.degree===ishml.enum.degree.superlative){return ishml.lang.est(item.value)}
 		}
-		else {return Object.assign(item,{value:ishml.lang.est(item.value)})}
+		else {return ishml.lang.est(item.value)}
 	})
 })
-ishml.Phrase.define("ing").as( precursor => precursor.modify(item=>Object.assign(item,{value:ishml.lang.ing(item.value)})))
+ishml.Phrase.define("ing").as( precursor => precursor.modify(item=>ishml.lang.ing(item.value)))
 ishml.Template.define("list").as((...data)=> ishml.Template`${ishml.Template.cycle(...data).tag("en_us_item")}${ishml.Template`, `.if(x=>x.en_us_item.index < x.en_us_item.total-1 && x.en_us_item.total>2)}${ ishml.Template` and `.if(x=>x.en_us_item.index===0 && x.en_us_item.total===2)}${ ishml.Template`and `.if(x=>x.en_us_item.index===x.en_us_item.total-2 && x.en_us_item.total>2)}`.per("en_us_item").join()
 )
 ishml.Phrase.define("s").as (precursor => 
@@ -354,9 +356,9 @@ ishml.Phrase.define("s").as (precursor =>
 	return precursor.modify(item=>
 	{
 		if (item.number===ishml.enum.number.singular){return item}
-		return Object.assign(item,{value:ishml.lang.s(item.value)})
+		return ishml.lang.s(item.value)
 	})
 })
-ishml.Phrase.define("z").as(precursor =>precursor.modify(item=>Object.assign(item,{value:ishml.lang.z(item.value)})))
+ishml.Phrase.define("z").as(precursor =>precursor.modify(item=>ishml.lang.z(item.value)))
 
 var _=ishml.Template
