@@ -9,16 +9,13 @@ ishml.Template.templateHandler=
 			return template(property)
 		}
 		var propertyAsFunction= ishml.Template[property].asFunction
-		if (property==="context")  //_.template...tag
+		if (property==="context") 
 		{
 			return new Proxy(propertyAsFunction,{get:function(target,property){return template(target(property))}})
 		}
 		else
 		{
 			return new Proxy((...precursor)=>template(propertyAsFunction(...precursor)),ishml.Template.templateHandler)
-			
-				
-				//return template(propertyAsFunction(...precursor))//a.b(data) becomes a(b(data))
 		}
 	}
 }
@@ -148,7 +145,7 @@ ishml.Template.define("series").as((...data)=>
 			{
 				this.text=""
 				this.value=""
-				return [ {value:""}]
+				return []
 			}
 			else
 			{
