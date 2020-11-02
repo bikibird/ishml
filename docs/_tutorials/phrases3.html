@@ -13,14 +13,14 @@ status: pending
 <p>Listing 1 shows examples of suffixes in use.  An alphabetical list of all built-in suffixes is available in the <a href="{{ site.baseurl }}{% link api.html %}">API Reference</a>. </p>
 <span class="badge badge-info">Listing 1</span>
 <iframe id="listing1" width="100%" height="275" src="//jsfiddle.net/bikibird/60senow4/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow" title="Listing 1"></iframe>
-<p>The <code>example1</code> phrase demonstratins the <code>.ing</code> suffix, which turns a verb into a gerund.  The <i>en-us.js</i> script extends <code>ishml.Phrase</code> to provide a library of many <a href="{{ site.baseurl }}{% link api.html %}">modern American-English suffixes</a> for nouns, adjectives, and verbs.</p>
-<h2>Combining Prefixes and Suffixes</h2>
-<p>When a phrase has both prefixes and suffixes attached, the prefixes are applied first and then suffixes are applied to the result.  This sometimes leads to unintended results like <code>example2</code> in the listing above.  Only the last verb has the <q>ing</q> ending applied to it because the phrase was first turned into a list and capitalized before adding <q>ing</q> to the end of of the resulting text. </p>
+<p>The <code>example1</code> phrase demonstrates the <code>.ing</code> suffix, which turns a verb into a gerund.  The <i>en-us.js</i> script extends <code>ishml.Phrase</code> to provide a library of many <a href="{{ site.baseurl }}{% link api.html %}">modern American-English suffixes</a> for nouns, adjectives, and verbs.</p>
+<p>When a phrase has both prefixes and suffixes attached, the prefixes are applied first and then suffixes are applied to the result.  This sometimes leads to unintended results like <code>example2</code> in the listing above.  Only the last verb has the <q>ing</q> ending applied to it because the list prefix was applied first. Then the list text was capitalized before finally adding <q>ing</q> to the end of the resulting text. </p>
 <p>This behavior may be changed by nesting phrases.  When phrases are nested, the inner phrase is evaluated before the outer phrase. The inner, inner phrase of <code>example3</code> first applies <code>.ing</code> to each of the verbs. Once this phrase has been evaulated, the phrase surrounding it turns it into a comma delimited list followed by capitalizing the first letter of result. There are no restrictions on how deeply a phrase may be nested.</p>
 <h2>Tags in Context</h2>
 <p>We first encountered the <code>.tag()</code> suffix in <a href="{{ site.baseurl }}{% link _tutorials/phrases1.html %}">part one of this tutorial</a>, where it was used to tag phrases for data population.  Tagged phrases can also be reused elsewhere within a containing phrase. Examine the JavaScript in listing 2.</p>
 
-zt3aL6r4
+<span class="badge badge-info">Listing 2</span>
+<iframe id="listing2" width="100%" height="275" src="//jsfiddle.net/bikibird/60senow4/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow" title="Listing 2"></iframe>
 
 <h2>If, Then, and Else <h2>
 <h2>Concur</h2>
