@@ -52,7 +52,6 @@ ishml.Phrase =class Phrase
 			generate()
 			{
 				this.results=this._precursor.generate().filter(phrase=>rule(this._context,phrase))
-			//Object.assign(this,this._precursor)
 				this.text=this.results.map(phrase=>phrase.value).join("")
 				return this.results
 			}
@@ -64,15 +63,14 @@ ishml.Phrase =class Phrase
 		if (precursor===null){return this}  //end of the line
 		precursor._context=this._context
 		if (precursor._precursor){precursor.contextualize(precursor._precursor)}
-		Object.assign(this,precursor) //capture tags
+		Object.assign(this,precursor) //promote tags
+		Object.keys(precursor).forEach(key=>
+		{
+			delete precursor[key]
+		})
 		return this
 	}
-	get data()
-	{
-		var target=this
-		while (target?._phrases.length===0){target=target._precursor}
-		return target
-	}
+	
 	else(literals,...expressions)
 	{
 		var alternativePhrase=new ishml.Phrase(literals,...expressions)
@@ -85,15 +83,12 @@ ishml.Phrase =class Phrase
 				if (this.results.length===0)
 				{
 					this.results=alternativePhrase.generate()
-					//Object.assign(this,alternativePhrase)
 					this.text=alternativePhrase.text
 				}
 				else 
 				{
-					//Object.assign(this,this._precursor)
 					this.text=this._precursor.text
 				}
-				
 				return this.results
 			}
 		}(this)
@@ -116,7 +111,6 @@ ishml.Phrase =class Phrase
 			generate()
 			{
 				this.results=this._precursor.generate().slice(0,count)
-				//Object.assign(this,this._precursor)
 				this.text=this.results.map(phrase=>phrase.value).join("")
 				return this.results
 			}
@@ -138,11 +132,10 @@ ishml.Phrase =class Phrase
 		{
 			if (this.results[index]===undefined  )  
 			{
-				var deferredPhrase=phrase.value(this)
+				var deferredPhrase=phrase.value(this._context)
 				this.results[index]=Object.assign(Object.assign({},phrase),this._evaluate(deferredPhrase))
 			}	
 		})
-	//Object.assign(this,this._precursor)
 		this.text=this.results.map(data=>data.value).join("")
 		return this.results
 	}
@@ -161,10 +154,8 @@ ishml.Phrase =class Phrase
 				generate()
 			{
 				this.results=this._precursor.generate()
-				//Object.assign(this,this._precursor)
 				if(rule(this._context))
 				{
-					//Object.assign(this,this._precursor)
 					this.text=this._precursor.text
 					return this.results
 				}
@@ -184,7 +175,6 @@ ishml.Phrase =class Phrase
 			generate()
 			{
 				this.results=this._precursor.generate()
-				//Object.assign(this,this._precursor)
 				var last=this.results.length-1
 				this.text=this.results.map(phrase=>phrase.value).reduce((result,phrase,index,)=>result+phrase+((index===last && trim)?"":separator),"")	
 				this.results=[{value:this.text}]
@@ -216,7 +206,6 @@ ishml.Phrase =class Phrase
 					var modifiedPhrase=Object.assign({},phrase)
 					return Object.assign(modifiedPhrase,{value:modifier(phrase)})
 				})	
-				//Object.assign(this,modifiedPhrase)
 				this.text=this.results.map(phrase=>phrase.value).join("")
 				return this.results
 			}
@@ -370,7 +359,11 @@ ishml.Phrase =class Phrase
 		}
 		return this
 	}
-	
+	refresh()
+	{ 
+		this._precursor?.refresh()
+		return this
+	}
 	replace(documentSelector="#story")
 	{
 		var targetNodes = document.querySelectorAll(documentSelector)
@@ -381,11 +374,6 @@ ishml.Phrase =class Phrase
 		})
 		return this
 	}	
-	_reset()
-	{ 
-		this._precursor?._reset()
-		return this
-	}
 	repeat(condition)
 	{
 		if (typeof condition ==="function"){var rule=condition}
@@ -431,6 +419,11 @@ ishml.Phrase =class Phrase
 			}	
 		})
 		return this
+	}
+	get chosen()
+	{
+		if (this.results.length>0){return this.results[0]}
+		else{return {}}
 	}
 	tag(id)
 	{

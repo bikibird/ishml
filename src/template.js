@@ -52,7 +52,8 @@ ishml.Template.define("cycle").as((...data)=>
 			{
 				Object.assign(this,{index:0, total:0, reset:true})
 				this.text=""
-				return phrases
+				this.results=phrases
+				return this.results
 			}
 			else
 			{
@@ -63,12 +64,13 @@ ishml.Template.define("cycle").as((...data)=>
 			if (counter>phrases.length-1)
 			{
 				counter=0
-				this._reset()
+				this.refresh()
 				phrase.reset=true
 			}
 			Object.assign(this,phrase)
 			this.text=phrase.value
-			return [phrase]
+			this.results=[phrase]
+			return this.results
 		}
 		
 	}(...data)
@@ -82,7 +84,8 @@ ishml.Template.defineClass("favor").as( class favorPhrase extends ishml.Phrase
 		{
 			Object.assign(this,{index:0, total:0, reset:true})
 			this.text=""
-			return phrases
+			this.results=phrases
+			return this.results
 		}
 		else
 		{
@@ -95,7 +98,8 @@ ishml.Template.defineClass("favor").as( class favorPhrase extends ishml.Phrase
 			phrase.total=phrases.length
 			Object.assign(this,phrase)
 			this.text=phrase.value
-			return [phrase]
+			this.results=[phrase]
+			return this.results
 		}
 	}
 	
@@ -109,7 +113,8 @@ ishml.Template.defineClass("pick").as( class pickPhrase extends ishml.Phrase
 		{
 			Object.assign(this,{index:0, total:0, reset:true})
 			this.text=""
-			return phrases
+			this.results=phrases
+			return this.results
 		}
 		else
 		{
@@ -121,10 +126,23 @@ ishml.Template.defineClass("pick").as( class pickPhrase extends ishml.Phrase
 			phrase.total=phrases.length
 			Object.assign(this,phrase)
 			this.text=phrase.value
-			return [phrase]
+			this.results=[phrase]
+			return this.results
 		}
 	}
 	
+})
+ishml.Template.define("refresh").as((...precursor)=>
+{
+	return new class refreshPhrase extends ishml.Phrase
+	{
+		generate()
+		{
+			this._precursor.refresh()
+			this.results=this._precursor?.generate()??super.generate()
+			return this.results
+		}
+	}(...precursor)
 })
 ishml.Template.define("series").as((...data)=>
 {
@@ -144,16 +162,17 @@ ishml.Template.define("series").as((...data)=>
 			if (ended)
 			{
 				this.text=""
-				this.value=""
-				return []
-			}
+				//this.value=""
+				this.results=[]
+				return this.results			}
 			else
 			{
 				if(phrases.length===0)
 				{
-					Object.assign(this,{index:0, total:0, reset:true})
+					//Object.assign(this,{index:0, total:0, reset:true})
 					this.text=""
-					return phrases
+					this.results=[]
+					return this.results
 				}
 				else
 				{
@@ -167,39 +186,39 @@ ishml.Template.define("series").as((...data)=>
 						ended=true
 		
 					counter=0
-					this._reset()
+					this.refresh()
 					phrase.reset=true
 				}
 			}	
 			Object.assign(this,phrase)
 			this.text=phrase.value
-			return [phrase]
+			this.results=[phrase]
+			return this.results
 		}
-		_reset(){return this.precursor?._reset()}
+		refresh(){return this.precursor?.refresh()}
 	}(...data)
 })
 ishml.Template.define("shuffle").as((...data)=>
 {
 	var reshuffle =true
-	var phrases=[]
 	return new class shufflePhrase extends ishml.Phrase
 	{
 		generate()
 		{
 			if (reshuffle)
 			{
-				phrases=this._precursor?.generate()??super.generate()
+				this.results=this._precursor?.generate()??super.generate()
 				var {value:random,seed}=ishml.util.random(this._seed)
 				this._seed=seed
-				phrases=ishml.util.shuffle(phrases,random).result
+				this.results=ishml.util.shuffle(this.results,random).result
 				reshuffle=false
 			}
-			this.text=phrases.map(phrase=>phrase.value).join("")
-			return phrases
+			this.text=this.results.map(phrase=>phrase.value).join("")
+			return this.results
 		}
-		_reset()
+		refresh()
 		{
-			super._reset()
+			super.refresh()
 			reshuffle=true
 			return this
 		}
@@ -209,7 +228,6 @@ ishml.Template.define("shuffle").as((...data)=>
 ishml.Template.define("pin").as((...data)=>
 {
 	var pin =true
-	var phrases=[]
 	return new class pinPhrase extends ishml.Phrase
 	{
 		populate(...data)
@@ -221,17 +239,17 @@ ishml.Template.define("pin").as((...data)=>
 		{
 			if (pin)
 			{
-				phrases=this._precursor?.generate()??super.generate()
+				this.results=this._precursor?.generate()??super.generate()
 				pin=false
 			}
 			this.text=phrases.map(phrase=>phrase.value).join("")
-			return phrases
+			return this.results
 		}
-		_reset()
+		refresh()
 		{
 			if(pin)
 			{
-				super._reset()
+				super.refresh()
 			}
 		}
 	}(...data)
@@ -242,10 +260,10 @@ ishml.Template.define("context").as(function tags (tag)
 	{
 		generate()
 		{
-			var phrases=this._context[tag].generate()
+			this.results=this._context[tag].generate()
 			Object.assign(this,this._context[tag])
 			this.text=this._context[tag]
-			return phrases
+			return this.results
 		}
 	}	
 })
