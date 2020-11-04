@@ -64,7 +64,7 @@ ishml.Template.define("cycle").as((...data)=>
 			if (counter>phrases.length-1)
 			{
 				counter=0
-				this.refresh()
+				this._reset()
 				phrase.reset=true
 			}
 			Object.assign(this,phrase)
@@ -138,7 +138,7 @@ ishml.Template.define("refresh").as((...precursor)=>
 	{
 		generate()
 		{
-			this._precursor.refresh()
+			this._precursor._reset()
 			this.results=this._precursor?.generate()??super.generate()
 			return this.results
 		}
@@ -186,7 +186,7 @@ ishml.Template.define("series").as((...data)=>
 						ended=true
 		
 					counter=0
-					this.refresh()
+					this._reset()
 					phrase.reset=true
 				}
 			}	
@@ -195,7 +195,7 @@ ishml.Template.define("series").as((...data)=>
 			this.results=[phrase]
 			return this.results
 		}
-		refresh(){return this.precursor?.refresh()}
+		_reset(){return this.precursor?._reset()}
 	}(...data)
 })
 ishml.Template.define("shuffle").as((...data)=>
@@ -216,9 +216,9 @@ ishml.Template.define("shuffle").as((...data)=>
 			this.text=this.results.map(phrase=>phrase.value).join("")
 			return this.results
 		}
-		refresh()
+		_reset()
 		{
-			super.refresh()
+			super._reset()
 			reshuffle=true
 			return this
 		}
@@ -245,11 +245,11 @@ ishml.Template.define("pin").as((...data)=>
 			this.text=phrases.map(phrase=>phrase.value).join("")
 			return this.results
 		}
-		refresh()
+		_reset()
 		{
 			if(pin)
 			{
-				super.refresh()
+				super._reset()
 			}
 		}
 	}(...data)

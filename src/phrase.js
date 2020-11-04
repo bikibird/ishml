@@ -359,9 +359,9 @@ ishml.Phrase =class Phrase
 		}
 		return this
 	}
-	refresh()
+	_reset()
 	{ 
-		this._precursor?.refresh()
+		this._precursor?._reset()
 		return this
 	}
 	replace(documentSelector="#story")
@@ -420,7 +420,7 @@ ishml.Phrase =class Phrase
 		})
 		return this
 	}
-	get chosen()
+	get data()
 	{
 		if (this.results.length>0){return this.results[0]}
 		else{return {}}
