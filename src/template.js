@@ -4,12 +4,13 @@ ishml.Template.templateHandler=
 	get:function(template, property) //a.b.c() becomes a(b(c()))
 	{
 		if (property==="asFunction"){return template}  //bare property without proxy
-		if (template.name==="context")//_.tag
+		
+		if (template.name==="tags")//_.tag
 		{
 			return template(property)
 		}
 		var propertyAsFunction= ishml.Template[property].asFunction
-		if (property==="context") 
+		if (property==="tags") 
 		{
 			return new Proxy(propertyAsFunction,{get:function(target,property){return template(target(property))}})
 		}
@@ -27,6 +28,8 @@ ishml.Template.defineClass=function(id)
 	}
 	return {as:as}	
 }
+
+//_.list(_.("aaa","bbb","ccc").tag("myTag",))
 ishml.Template.define=function(id)
 {
 	var as= (phraseFactory)=>
@@ -44,13 +47,14 @@ ishml.Template.define("cycle").as((...data)=>
 		{
 			super.populate(...data)
 			counter=0
+			return this
 		}
 		generate()
 		{
-			var phrases=this._precursor?.generate()??super.generate()
+			var phrases=super.generate()
 			if(phrases.length===0)
 			{
-				Object.assign(this,{index:0, total:0, reset:true})
+				//Object.assign(this,{index:0, total:0, reset:true})
 				this.text=""
 				this.results=phrases
 				return this.results
@@ -67,7 +71,7 @@ ishml.Template.define("cycle").as((...data)=>
 				this._reset()
 				phrase.reset=true
 			}
-			Object.assign(this,phrase)
+			//Object.assign(this,phrase)
 			this.text=phrase.value
 			this.results=[phrase]
 			return this.results
@@ -82,7 +86,7 @@ ishml.Template.defineClass("favor").as( class favorPhrase extends ishml.Phrase
 		var phrases=this._precursor?.generate()??super.generate()
 		if(phrases.length===0)
 		{
-			Object.assign(this,{index:0, total:0, reset:true})
+			//Object.assign(this,{index:0, total:0, reset:true})
 			this.text=""
 			this.results=phrases
 			return this.results
@@ -96,7 +100,7 @@ ishml.Template.defineClass("favor").as( class favorPhrase extends ishml.Phrase
 			var phrase=Object.assign({},phrases[counter] )
 			phrase.index=counter
 			phrase.total=phrases.length
-			Object.assign(this,phrase)
+			//Object.assign(this,phrase)
 			this.text=phrase.value
 			this.results=[phrase]
 			return this.results
@@ -111,7 +115,7 @@ ishml.Template.defineClass("pick").as( class pickPhrase extends ishml.Phrase
 		var phrases=this._precursor?.generate()??super.generate()
 		if(phrases.length===0)
 		{
-			Object.assign(this,{index:0, total:0, reset:true})
+			//Object.assign(this,{index:0, total:0, reset:true})
 			this.text=""
 			this.results=phrases
 			return this.results
@@ -124,7 +128,7 @@ ishml.Template.defineClass("pick").as( class pickPhrase extends ishml.Phrase
 			var phrase=Object.assign({},phrases[counter] )
 			phrase.index=counter
 			phrase.total=phrases.length
-			Object.assign(this,phrase)
+			//Object.assign(this,phrase)
 			this.text=phrase.value
 			this.results=[phrase]
 			return this.results
@@ -155,6 +159,7 @@ ishml.Template.define("series").as((...data)=>
 			super.populate(...data)
 			ended=false
 			counter=0
+			return this
 		}
 		generate()
 		{
@@ -190,7 +195,7 @@ ishml.Template.define("series").as((...data)=>
 					phrase.reset=true
 				}
 			}	
-			Object.assign(this,phrase)
+			//Object.assign(this,phrase)
 			this.text=phrase.value
 			this.results=[phrase]
 			return this.results
@@ -234,6 +239,7 @@ ishml.Template.define("pin").as((...data)=>
 		{
 			super.populate(...data)
 			pin =true
+			return this
 		}
 		generate()
 		{
@@ -254,15 +260,14 @@ ishml.Template.define("pin").as((...data)=>
 		}
 	}(...data)
 })
-ishml.Template.define("context").as(function tags (tag)
+ishml.Template.define("tags").as(function tags(tag)
 {
 	return new class tagsPhrase extends ishml.Phrase
 	{
 		generate()
 		{
-			this.results=this._context[tag].generate()
-			Object.assign(this,this._context[tag])
-			this.text=this._context[tag]
+			this.results=this.tags[tag].generate()
+			this.text=this.tags[tag].text
 			return this.results
 		}
 	}	
