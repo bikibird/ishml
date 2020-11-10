@@ -291,7 +291,7 @@ ishml.Phrase =class Phrase
 {
 	constructor(...precursor) 
 	{
-		Object.defineProperty(this,"_phrases",{value:[],writable:true})
+		Object.defineProperty(this,"phrases",{value:[],writable:true})
 		Object.defineProperty(this,"results",{value:[],writable:true})
 		Object.defineProperty(this,"_seed",{value:ishml.util.random().seed,writable:true})
 		Object.defineProperty(this,"tags",{value:{},writable:true})
@@ -328,7 +328,7 @@ ishml.Phrase =class Phrase
 	{
 		Object.assign(catalog,this)
 		Object.keys(this).forEach(key=>{delete this[key]})
-		this._phrases.forEach(phrase=>
+		this.phrases.forEach(phrase=>
 		{
 			if (phrase.value instanceof ishml.Phrase)
 			{
@@ -374,7 +374,7 @@ ishml.Phrase =class Phrase
 	generate()
 	{
 		this.results=[]
-		this._phrases.forEach((phrase,index)=>
+		this.phrases.forEach((phrase,index)=>
 		{
 			if (phrase.value instanceof ishml.Phrase) 
 			{
@@ -492,10 +492,6 @@ ishml.Phrase =class Phrase
 			}
 		}(this)
 	}
-	get phrases()
-	{
-		return this._phrases
-	}
 	populate(literals, ...expressions)
 	{
 		var data=[]
@@ -562,12 +558,12 @@ ishml.Phrase =class Phrase
 				}
 			}
 		}				
-		if (data instanceof Array) //normalize array and replace _phrases
+		if (data instanceof Array) //normalize array and replace phrases
 		{
-			if (data.length===0){this._phrases=[]}
+			if (data.length===0){this.phrases=[]}
 			else
 			{
-				this._phrases=data.map(phrase=> //normalize phrases
+				this.phrases=data.map(phrase=> //normalize phrases
 				{
 					var phraseType=typeof phrase
 					if (phraseType ==="object")
@@ -601,7 +597,18 @@ ishml.Phrase =class Phrase
 		}
 		else  // ishml phrase or simple data object
 		{
-			Object.keys(data).forEach(key=>{this.tags[key]?.populate(data[key])})
+			Object.keys(data).forEach(key=>
+			{
+				if (this.tags.hasOwnProperty(key))
+				{
+					var target=this.tags[key]
+					while(target.phrases.length===1 && target.phrases[0].value instanceof ishml.Phrase)
+					{
+						target=target.phrases[0].value
+					}
+					target.populate(data[key])
+				}
+			})
 		}
 		return this
 	}
@@ -612,7 +619,7 @@ ishml.Phrase =class Phrase
 	}
 	_reset()
 	{ 
-		this._phrases.forEach(phrase=>
+		this.phrases.forEach(phrase=>
 		{
 			if(phrase.value instanceof ishml.Phrase){phrase.value._reset()}	
 		})
@@ -664,7 +671,7 @@ ishml.Phrase =class Phrase
 			if(!seed){this._seed=ishml.util.random().seed}
 			else{this._seed=seed}
 		}
-		this._phrases.forEach(phrase=>
+		this.phrases.forEach(phrase=>
 		{
 			if(phrase.value instanceof ishml.Phrase)
 			{
