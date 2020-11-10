@@ -28,8 +28,6 @@ ishml.Template.defineClass=function(id)
 	}
 	return {as:as}	
 }
-
-//_.list(_.("aaa","bbb","ccc").tag("myTag",))
 ishml.Template.define=function(id)
 {
 	var as= (phraseFactory)=>
@@ -54,7 +52,6 @@ ishml.Template.define("cycle").as((...data)=>
 			var phrases=super.generate()
 			if(phrases.length===0)
 			{
-				//Object.assign(this,{index:0, total:0, reset:true})
 				this.text=""
 				this.results=phrases
 				return this.results
@@ -71,12 +68,10 @@ ishml.Template.define("cycle").as((...data)=>
 				this._reset()
 				phrase.reset=true
 			}
-			//Object.assign(this,phrase)
 			this.text=phrase.value
 			this.results=[phrase]
 			return this.results
 		}
-		
 	}(...data)
 })
 ishml.Template.defineClass("favor").as( class favorPhrase extends ishml.Phrase
@@ -86,7 +81,6 @@ ishml.Template.defineClass("favor").as( class favorPhrase extends ishml.Phrase
 		var phrases=this._precursor?.generate()??super.generate()
 		if(phrases.length===0)
 		{
-			//Object.assign(this,{index:0, total:0, reset:true})
 			this.text=""
 			this.results=phrases
 			return this.results
@@ -100,7 +94,6 @@ ishml.Template.defineClass("favor").as( class favorPhrase extends ishml.Phrase
 			var phrase=Object.assign({},phrases[counter] )
 			phrase.index=counter
 			phrase.total=phrases.length
-			//Object.assign(this,phrase)
 			this.text=phrase.value
 			this.results=[phrase]
 			return this.results
@@ -115,7 +108,6 @@ ishml.Template.defineClass("pick").as( class pickPhrase extends ishml.Phrase
 		var phrases=this._precursor?.generate()??super.generate()
 		if(phrases.length===0)
 		{
-			//Object.assign(this,{index:0, total:0, reset:true})
 			this.text=""
 			this.results=phrases
 			return this.results
@@ -128,13 +120,11 @@ ishml.Template.defineClass("pick").as( class pickPhrase extends ishml.Phrase
 			var phrase=Object.assign({},phrases[counter] )
 			phrase.index=counter
 			phrase.total=phrases.length
-			//Object.assign(this,phrase)
 			this.text=phrase.value
 			this.results=[phrase]
 			return this.results
 		}
 	}
-	
 })
 ishml.Template.define("refresh").as((...precursor)=>
 {
@@ -167,14 +157,12 @@ ishml.Template.define("series").as((...data)=>
 			if (ended)
 			{
 				this.text=""
-				//this.value=""
 				this.results=[]
 				return this.results			}
 			else
 			{
 				if(phrases.length===0)
 				{
-					//Object.assign(this,{index:0, total:0, reset:true})
 					this.text=""
 					this.results=[]
 					return this.results
@@ -187,15 +175,12 @@ ishml.Template.define("series").as((...data)=>
 				counter++
 				if (counter>phrases.length-1)
 				{
-					
-						ended=true
-		
+					ended=true
 					counter=0
 					this._reset()
 					phrase.reset=true
 				}
 			}	
-			//Object.assign(this,phrase)
 			this.text=phrase.value
 			this.results=[phrase]
 			return this.results

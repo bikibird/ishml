@@ -30,19 +30,9 @@ ishml.Phrase =class Phrase
 			}
 		}(this)
 	}
-	//_list(_("aaa","bbb","ccc").tag("test")) 
-	//ishml.Template`${ishml.Template.cycle(...data).tag("item",ishml.enum.tag.prefix)}`
-
 	get catalog()
 	{
 		this._catalogTags()
-	/*	this._phrases.forEach(phrase=>
-		{
-			if (phrase.value instanceof ishml.Phrase)
-			{
-				Object.assign(phrase.value.tags,this.tags)
-			}
-		})*/
 		return this
 	}
 	_catalogTags(catalog={})
@@ -58,7 +48,6 @@ ishml.Phrase =class Phrase
 		})
 		Object.assign(this.tags,catalog)
 	}
-
 	else(literals,...expressions)
 	{
 		var alternativePhrase=new ishml.Phrase(literals,...expressions)
@@ -80,17 +69,6 @@ ishml.Phrase =class Phrase
 				return this.results
 			}
 		}(this)
-	}
-	_evaluate(subPhrase)
-	{
-		if (subPhrase instanceof ishml.Phrase)
-		{ 
-			//return {value:subPhrase.generate().map(subPhrase=>subPhrase.value).join("")}
-		}
-		else
-		{
-			return {value:subPhrase.toString()}
-		}	
 	}
 	first(count=1)
 	{
