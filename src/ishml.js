@@ -337,6 +337,11 @@ ishml.Phrase =class Phrase
 		})
 		Object.assign(this.tags,catalog)
 	}
+	get data()
+	{
+		if (this.results.length>0){return this.results[0]}
+		else{return {}}
+	}
 	else(literals,...expressions)
 	{
 		var alternativePhrase=new ishml.Phrase(literals,...expressions)
@@ -431,6 +436,17 @@ ishml.Phrase =class Phrase
 				return this.results
 			}
 		}(this)
+	}
+	get inner()
+	{
+		if (this.phrases.length>0 && this.phrases[0].value instanceof ishml.Phrase)
+		{
+			return this.phrases[0].value
+		}
+		else
+		{
+			return null
+		}
 	}
 	join({separator="", trim=true}={})
 	{
@@ -679,11 +695,6 @@ ishml.Phrase =class Phrase
 			}	
 		})
 		return this
-	}
-	get data()
-	{
-		if (this.results.length>0){return this.results[0]}
-		else{return {}}
 	}
 	tag(id)
 	{
