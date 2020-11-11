@@ -101,7 +101,7 @@ ishml.Phrase =class Phrase
 					var deferredPhrase=phrase.value(this.tags)
 					if (deferredPhrase instanceof ishml.Phrase)
 					{
-						this.results=this.results.concat(deferredPhrase.value.generate().map(subPhrase=>Object.assign(Object.assign({},phrase),subPhrase)))
+						this.results=this.results.concat(deferredPhrase.generate().map(subPhrase=>Object.assign(Object.assign({},phrase),subPhrase)))
 					}
 					else
 					{
