@@ -52,8 +52,6 @@ ishml.Template.define("cycle").as((...data)=>
 			var phrases=super.generate()
 			if(phrases.length===0)
 			{
-				this.text=""
-				this.results=phrases
 				return this.results
 			}
 			else
@@ -78,11 +76,9 @@ ishml.Template.defineClass("favor").as( class favorPhrase extends ishml.Phrase
 {
 	generate()
 	{
-		var phrases=this._precursor?.generate()??super.generate()
+		var phrases=super.generate()
 		if(phrases.length===0)
 		{
-			this.text=""
-			this.results=phrases
 			return this.results
 		}
 		else
@@ -105,7 +101,7 @@ ishml.Template.defineClass("pick").as( class pickPhrase extends ishml.Phrase
 {
 	generate()
 	{
-		var phrases=this._precursor?.generate()??super.generate()
+		var phrases=super.generate()
 		if(phrases.length===0)
 		{
 			this.text=""
@@ -132,8 +128,8 @@ ishml.Template.define("refresh").as((...precursor)=>
 	{
 		generate()
 		{
-			this._precursor._reset()
-			this.results=this._precursor?.generate()??super.generate()
+			this._reset()
+			super.generate()
 			return this.results
 		}
 	}(...precursor)
@@ -153,7 +149,7 @@ ishml.Template.define("series").as((...data)=>
 		}
 		generate()
 		{
-			var phrases=this._precursor?.generate()??super.generate()
+			var phrases=super.generate()
 			if (ended)
 			{
 				this.text=""
@@ -197,7 +193,7 @@ ishml.Template.define("shuffle").as((...data)=>
 		{
 			if (reshuffle)
 			{
-				this.results=this._precursor?.generate()??super.generate()
+				super.generate()
 				var {value:random,seed}=ishml.util.random(this._seed)
 				this._seed=seed
 				this.results=ishml.util.shuffle(this.results,random).result
@@ -230,10 +226,10 @@ ishml.Template.define("pin").as((...data)=>
 		{
 			if (pin)
 			{
-				this.results=this._precursor?.generate()??super.generate()
+				super.generate()
 				pin=false
 			}
-			this.text=phrases.map(phrase=>phrase.value).join("")
+			
 			return this.results
 		}
 		_reset()

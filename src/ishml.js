@@ -313,7 +313,8 @@ ishml.Phrase =class Phrase
 		{
 			generate()
 			{
-				this.results=this._generate().filter(phrase=>rule(this.tags,phrase))
+				super.generate()
+				this.results=this.results.filter(phrase=>rule(this.tags,phrase))
 				this.text=this.results.map(phrase=>phrase.value).join("")
 				return this.results
 			}
@@ -349,16 +350,12 @@ ishml.Phrase =class Phrase
 		{
 			generate()
 			{
-				this.results=super.generate()
+				super.generate()
 				
 				if (this.results.length===0)
 				{
 					this.results=alternativePhrase.generate()
 					this.text=alternativePhrase.text
-				}
-				else 
-				{
-					this.text=this.results.map(phrase=>phrase.value).join("")
 				}
 				return this.results
 			}
@@ -370,7 +367,8 @@ ishml.Phrase =class Phrase
 		{
 			generate()
 			{
-				this.results=super.generate().slice(0,count)
+				super.generate()
+				this.results=this.results.slice(0,count)
 				this.text=this.results.map(phrase=>phrase.value).join("")
 				return this.results
 			}
@@ -422,13 +420,8 @@ ishml.Phrase =class Phrase
 		{
 			generate()
 			{
-				this.results=super.generate()
-				if(rule(this.tags))
-				{
-					this.text=this.results.map(phrase=>phrase.value).join("")
-					return this.results
-				}
-				else
+				super.generate()
+				if(!rule(this.tags))
 				{
 					this.results=[]
 					this.text=""
@@ -454,7 +447,7 @@ ishml.Phrase =class Phrase
 		{
 			generate()
 			{
-				this.results=super.generate()
+				super.generate()
 				var last=this.results.length-1
 				this.text=this.results.map(phrase=>phrase.value).reduce((result,phrase,index,)=>result+phrase+((index===last && trim)?"":separator),"")	
 				this.results=[{value:this.text}]
@@ -468,8 +461,8 @@ ishml.Phrase =class Phrase
 		{
 			generate()
 			{
-				this.results=super.generate.slice(-count)
-				this.text=this.results.map(phrase=>phrase.value).join("")
+				super.generate()
+				this.results=this.results.slice(-count)
 				return this.results
 			}
 		}(this)
@@ -480,7 +473,8 @@ ishml.Phrase =class Phrase
 		{
 			generate()
 			{
-				this.results=super.generate().map(phrase=>
+				super.generate()
+				this.results=this.results.map(phrase=>
 				{
 					var modifiedPhrase=Object.assign({},phrase)
 					return Object.assign(modifiedPhrase,{value:modifier(phrase)})
@@ -498,11 +492,12 @@ ishml.Phrase =class Phrase
 		{
 			generate()
 			{
-				this.results=[]
+				var results=[]
 				do 
 				{
-					this.results=this.results.concat(super.generate())
-				}while(!this.tags[tag].data.reset)//while(!this._context[tag].data.reset)
+					results=results.concat(super.generate())
+				}while(!this.tags[tag].data.reset)
+				this.results=results
 				this.text=this.results.map(data=>data.value).join("")
 				return this.results	
 			}
@@ -659,17 +654,18 @@ ishml.Phrase =class Phrase
 		{
 			generate()
 			{
-				this.results=[]
+				var results=[]
 				do
 				{
-					this.results=this.results.concat(super.generate())
-				}while(rule(this.tags))//while(rule(this._context))
+					results=results.concat(super.generate())
+				}while(rule(this.tags))
+				this.results=results
 				this.text=this.results.map(data=>data.value).join("")
 				return this.results	
 			}
 		}(this)
 	}
-	say(seed) //generates text output
+	say(seed) 
 	{
 		
 		if (seed>=0)
@@ -679,7 +675,7 @@ ishml.Phrase =class Phrase
 		this.generate()
 		return this
 	}
-	seed(seed) //generates text output
+	seed(seed) 
 	{
 		if (seed>=0 && seed <1){this._seed=Math.floor(seed* 2147483648)}
 		else
@@ -721,11 +717,12 @@ ishml.Phrase =class Phrase
 		{
 			generate()
 			{
-				this.results=[]
+				var results=[]
 				while(rule(this.tags))
 				{
-					this.results=this.results.concat(super.generate())
+					results=results.concat(super.generate())
 				}
+				this.results=results
 				this.text=this.results.map(data=>data.value).join("")
 				return this.results	
 			}
@@ -1225,8 +1222,6 @@ ishml.Template.define("cycle").as((...data)=>
 			var phrases=super.generate()
 			if(phrases.length===0)
 			{
-				this.text=""
-				this.results=phrases
 				return this.results
 			}
 			else
@@ -1251,11 +1246,9 @@ ishml.Template.defineClass("favor").as( class favorPhrase extends ishml.Phrase
 {
 	generate()
 	{
-		var phrases=this._precursor?.generate()??super.generate()
+		var phrases=super.generate()
 		if(phrases.length===0)
 		{
-			this.text=""
-			this.results=phrases
 			return this.results
 		}
 		else
@@ -1278,7 +1271,7 @@ ishml.Template.defineClass("pick").as( class pickPhrase extends ishml.Phrase
 {
 	generate()
 	{
-		var phrases=this._precursor?.generate()??super.generate()
+		var phrases=super.generate()
 		if(phrases.length===0)
 		{
 			this.text=""
@@ -1305,8 +1298,8 @@ ishml.Template.define("refresh").as((...precursor)=>
 	{
 		generate()
 		{
-			this._precursor._reset()
-			this.results=this._precursor?.generate()??super.generate()
+			this._reset()
+			super.generate()
 			return this.results
 		}
 	}(...precursor)
@@ -1326,7 +1319,7 @@ ishml.Template.define("series").as((...data)=>
 		}
 		generate()
 		{
-			var phrases=this._precursor?.generate()??super.generate()
+			var phrases=super.generate()
 			if (ended)
 			{
 				this.text=""
@@ -1370,7 +1363,7 @@ ishml.Template.define("shuffle").as((...data)=>
 		{
 			if (reshuffle)
 			{
-				this.results=this._precursor?.generate()??super.generate()
+				super.generate()
 				var {value:random,seed}=ishml.util.random(this._seed)
 				this._seed=seed
 				this.results=ishml.util.shuffle(this.results,random).result
@@ -1403,10 +1396,10 @@ ishml.Template.define("pin").as((...data)=>
 		{
 			if (pin)
 			{
-				this.results=this._precursor?.generate()??super.generate()
+				super.generate()
 				pin=false
 			}
-			this.text=phrases.map(phrase=>phrase.value).join("")
+			
 			return this.results
 		}
 		_reset()
