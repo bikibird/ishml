@@ -2,6 +2,7 @@ ishml.Phrase =class Phrase
 {
 	constructor(...precursor) 
 	{
+		Object.defineProperty(this,"_cataloged",{value:false,writable:true})
 		Object.defineProperty(this,"phrases",{value:[],writable:true})
 		Object.defineProperty(this,"results",{value:[],writable:true})
 		Object.defineProperty(this,"_seed",{value:ishml.util.random().seed,writable:true})
@@ -31,12 +32,12 @@ ishml.Phrase =class Phrase
 			}
 		}(this)
 	}
-	get catalog()
+	get contextualized()
 	{
-		this._catalogTags()
+		this._catalog()
 		return this
 	}
-	_catalogTags(catalog={})
+	_catalog(catalog={})
 	{
 		Object.assign(catalog,this)
 		Object.keys(this).forEach(key=>{delete this[key]})
@@ -44,10 +45,11 @@ ishml.Phrase =class Phrase
 		{
 			if (phrase.value instanceof ishml.Phrase)
 			{
-				phrase.value._catalogTags(catalog)
+				phrase.value._catalog(catalog)
 			}
 		})
 		Object.assign(this.tags,catalog)
+		this._cataloged=true
 	}
 	get data()
 	{
@@ -378,11 +380,8 @@ ishml.Phrase =class Phrase
 	}
 	say(seed) 
 	{
-		
-		if (seed>=0)
-		{
-			this.seed(seed)
-		}
+		if (seed>=0){this.seed(seed)}
+		if (!this._cataloged){this._catalog()}
 		this.generate()
 		return this
 	}
