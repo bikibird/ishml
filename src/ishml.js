@@ -1249,7 +1249,7 @@ ishml.Template.define("cycle").as((...data)=>
 				this.text=results[0].value
 			}
 			counter++
-			if (counter>phrases.length-1)
+			if (counter>this.phrases.length-1)
 			{
 				counter=0
 				this._reset()
