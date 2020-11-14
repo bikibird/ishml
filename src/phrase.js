@@ -8,7 +8,7 @@ ishml.Phrase =class Phrase
 		Object.defineProperty(this,"_seed",{value:ishml.util.random().seed,writable:true})
 		Object.defineProperty(this,"tags",{value:{},writable:true})
 		Object.defineProperty(this,"text",{value:"",writable:true})
-		this.populate(...precursor)
+		this._populate(...precursor)
 		return this
 	}
 	append(documentSelector="#story")
@@ -32,7 +32,7 @@ ishml.Phrase =class Phrase
 			}
 		}(this)
 	}
-	get contextualized()
+	get context()
 	{
 		this._catalog()
 		return this
@@ -61,14 +61,24 @@ ishml.Phrase =class Phrase
 		var alternativePhrase=new ishml.Phrase(literals,...expressions)
 		return new class elsePhrase extends ishml.Phrase
 		{
+			constructor(...precursor)
+			{
+				super(...precursor)
+				this.phrases[1]={value:alternativePhrase}
+			}
 			generate()
 			{
-				super.generate()
+				var results=this.phrases[0].value.generate()
 				
-				if (this.results.length===0)
+				if (results.length>0)
 				{
-					this.results=alternativePhrase.generate()
-					this.text=alternativePhrase.text
+					this.results=results
+					this.text=this.phrases[0].value.text
+				}
+				else
+				{
+					this.results=this.phrases[1].value.generate()
+					this.text=this.phrases[1].lvaule.text
 				}
 				return this.results
 			}
@@ -87,10 +97,10 @@ ishml.Phrase =class Phrase
 			}
 		}(this)
 	}
-	generate()
+	generate(phrases=this.phrases)
 	{
 		this.results=[]
-		this.phrases.forEach((phrase,index)=>
+		phrases.forEach((phrase,index)=>
 		{
 			if (phrase.value instanceof ishml.Phrase) 
 			{
@@ -218,6 +228,12 @@ ishml.Phrase =class Phrase
 	}
 	populate(literals, ...expressions)
 	{
+		if (!this._cataloged){this._catalog()}
+		this._populate(literals, ...expressions)
+		return this
+	}
+	_populate(literals, ...expressions)
+	{
 		var data=[]
 		if (literals)
 		{
@@ -270,7 +286,7 @@ ishml.Phrase =class Phrase
 					{
 						data=literals
 					}
-					else //populate("blah") or populate(), populate({properties}) 
+					else //_populate("blah") or _populate(), _populate({properties}) 
 					{
 						if(literals)
 						{	
@@ -330,7 +346,7 @@ ishml.Phrase =class Phrase
 					{
 						target=target.phrases[0].value
 					}
-					target.populate(data[key])
+					target._populate(data[key])
 				}
 			})
 		}
