@@ -1244,7 +1244,7 @@ ishml.Template.define("cycle").as((...data)=>
 			}
 			if(results.length===1)
 			{
-				Object.assign(results[0],{index:counter, total:phrases.length, reset:counter===results.length})
+				Object.assign(results[0],{index:counter, total:this.phrases.length, reset:counter===results.length})
 				this.results=results
 				this.text=result[0].value
 			}
