@@ -32,7 +32,7 @@ ishml.Phrase =class Phrase
 			}
 		}(this)
 	}
-	get context()
+	catalog()
 	{
 		this._catalog()
 		return this
