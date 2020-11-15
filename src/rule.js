@@ -51,7 +51,6 @@ ishml.Rule.prototype.clone =function()
 	}	
 	return _clone(this)
 }	
-//DEFECT Entire not documented.
 ishml.Rule.prototype.configure =function({caseSensitive, entire,filter, full, greedy, keep, longest, minimum,maximum, mode,mismatch, regex, semantics, separator, shuffle, phrases}={})
 {
 

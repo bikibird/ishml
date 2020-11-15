@@ -1252,13 +1252,13 @@ ishml.Template.define("cycle").as((...data)=>
 			if (this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
 			{
 				var results=super.generate()
-				var total=this.results.length-1
+				var total=this.results.length
 				results=results.slice(counter,counter+1)
 			}
 			else
 			{
 				var results=super.generate(this.phrases.slice(counter,counter+1))
-				var total=this.phrases.length-1
+				var total=this.phrases.length
 			}
 			if(results.length===1)
 			{
