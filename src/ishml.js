@@ -380,7 +380,15 @@ ishml.Phrase =class Phrase
 			generate()
 			{
 				super.generate()
+				var total=this.results.length
 				this.results=this.results.slice(0,count)
+				var subtotal=this.results.length
+				this.results.forEach((result,index)=>
+				{
+					result.index=index
+					result.subtotal=subtotal
+					result.total=total
+				})
 				this.text=this.results.map(phrase=>phrase.value).join("")
 				return this.results
 			}
@@ -474,7 +482,15 @@ ishml.Phrase =class Phrase
 			generate()
 			{
 				super.generate()
+				var total=this.results.length
 				this.results=this.results.slice(-count)
+				var subtotal=this.results.length
+				this.results.forEach((result,index)=>
+				{
+					result.index=index
+					result.subtotal=subtotal
+					result.total=total
+				})
 				return this.results
 			}
 		}(this)
@@ -1236,20 +1252,22 @@ ishml.Template.define("cycle").as((...data)=>
 			if (this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
 			{
 				var results=super.generate()
+				var total=this.results.length-1
 				results=results.slice(counter,counter+1)
 			}
 			else
 			{
 				var results=super.generate(this.phrases.slice(counter,counter+1))
+				var total=this.phrases.length-1
 			}
 			if(results.length===1)
 			{
-				Object.assign(results[0],{index:counter, total:this.phrases.length, reset:counter===results.length})
+				Object.assign(results[0],{index:counter, total:total, reset:counter===total-1})
 				this.results=results
 				this.text=results[0].value
 			}
 			counter++
-			if (counter>this.phrases.length-1)
+			if (counter===total)
 			{
 				counter=0
 				this._reset()
@@ -1379,7 +1397,7 @@ ishml.Template.define("series").as((...data)=>
 				}
 				if(results.length===1)
 				{
-					Object.assign(results[0],{index:counter, total:phrases.length, reset:counter===results.length})
+					Object.assign(results[0],{index:counter, total:phrases.length})
 					this.results=results
 					this.text=result[0].value
 				}
@@ -1389,8 +1407,6 @@ ishml.Template.define("series").as((...data)=>
 			{
 				ended=true
 				counter=0
-				this._reset()
-				phrase.reset=true
 			}
 			return this.results
 		}

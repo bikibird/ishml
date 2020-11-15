@@ -91,7 +91,15 @@ ishml.Phrase =class Phrase
 			generate()
 			{
 				super.generate()
+				var total=this.results.length
 				this.results=this.results.slice(0,count)
+				var subtotal=this.results.length
+				this.results.forEach((result,index)=>
+				{
+					result.index=index
+					result.subtotal=subtotal
+					result.total=total
+				})
 				this.text=this.results.map(phrase=>phrase.value).join("")
 				return this.results
 			}
@@ -185,7 +193,15 @@ ishml.Phrase =class Phrase
 			generate()
 			{
 				super.generate()
+				var total=this.results.length
 				this.results=this.results.slice(-count)
+				var subtotal=this.results.length
+				this.results.forEach((result,index)=>
+				{
+					result.index=index
+					result.subtotal=subtotal
+					result.total=total
+				})
 				return this.results
 			}
 		}(this)
