@@ -78,7 +78,7 @@ ishml.Phrase =class Phrase
 				else
 				{
 					this.results=this.phrases[1].value.generate()
-					this.text=this.phrases[1].lvaule.text
+					this.text=this.phrases[1].value.text
 				}
 				return this.results
 			}

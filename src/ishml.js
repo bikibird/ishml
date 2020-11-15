@@ -367,7 +367,7 @@ ishml.Phrase =class Phrase
 				else
 				{
 					this.results=this.phrases[1].value.generate()
-					this.text=this.phrases[1].lvaule.text
+					this.text=this.phrases[1].value.text
 				}
 				return this.results
 			}
@@ -1394,21 +1394,23 @@ ishml.Template.define("series").as((...data)=>
 				if (this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
 				{
 					var results=super.generate()
+					var total=results.length
 					results=results.slice(counter,counter+1)
 				}
 				else
 				{
 					var results=super.generate(this.phrases.slice(counter,counter+1))
+					var total=this.phrases.length
 				}
 				if(results.length===1)
 				{
-					Object.assign(results[0],{index:counter, total:phrases.length})
+					Object.assign(results[0],{index:counter, total:total})
 					this.results=results
-					this.text=result[0].value
+					this.text=results[0].value
 				}
 			}
 			counter++
-			if (counter>phrases.length-1)
+			if (counter===total)
 			{
 				ended=true
 				counter=0
