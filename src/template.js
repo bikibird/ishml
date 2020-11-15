@@ -90,24 +90,27 @@ ishml.Template.defineClass("favor").as( class favorPhrase extends ishml.Phrase
 		{
 			var {value:random,seed}=ishml.util.random(this._seed)
 			this._seed=seed
-			var c=phrases.length*(phrases.length+1)*random
-			var counter=phrases.length-Math.floor((Math.sqrt(1+4*c)-1)/2)-1
+			
 			if (this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
 			{
 				var results=super.generate()
-				var counter=Math.floor(random*results.length)
+				var total=results.length
+				var c=total*(total+1)*random
+				var counter=total-Math.floor((Math.sqrt(1+4*c)-1)/2)-1
 				results=results.slice(counter,counter+1)
 			}
 			else
 			{
-				var counter=Math.floor(random*this.phrases.length)
+				var total=this.phrases.length
+				var c=total*(total+1)*random
+				var counter=total-Math.floor((Math.sqrt(1+4*c)-1)/2)-1
 				var results=super.generate(this.phrases.slice(counter,counter+1))
 			}
 
 			results.forEach(phrase=>
 			{
 				phrase.index=counter
-				phrase.total=this.phrases.length
+				phrase.total=total
 			})
 			this.results=results
 			return this.results
@@ -132,19 +135,21 @@ ishml.Template.defineClass("pick").as( class pickPhrase extends ishml.Phrase
 			if (this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
 			{
 				var results=super.generate()
-				var counter=Math.floor(random*results.length)
+				var total=results.length
+				var counter=Math.floor(random*total)
 				results=results.slice(counter,counter+1)
 			}
 			else
 			{
-				var counter=Math.floor(random*this.phrases.length)
+				var total=this.phrases.length
+				var counter=Math.floor(random*total)
 				var results=super.generate(this.phrases.slice(counter,counter+1))
 			}
 
 			results.forEach(phrase=>
 			{
 				phrase.index=counter
-				phrase.total=this.phrases.length
+				phrase.total=total
 			})
 			this.results=results
 			return this.results
