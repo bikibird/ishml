@@ -1,0 +1,169 @@
+
+***Creating phrases
+Silent:
+var a=ishml.Phrase`There is something ${{animal:ishml.Phrase(["cat","dog", "bird"]).pick(),silent:" "}} in ${{container:"a hat", if:()=>a.animal.value==="cat",else:"the house"}}.`
+
+Looping
+
+var _ =ishml.Phrase //easier to type and read.
+
+var items = _`<li>${{li:_(["cat","dog", "bird"]).pick()}}</li>`.until(x=>x.li.reset)
+var items = _`<li>${{li:_(["cat","dog", "bird"]).pick()}}</li>`.while(x=>!x.li.reset)
+
+
+Simple Correlated Phrases:
+var data={animal:
+	[
+		{value:"cat", container:"hat"},
+		{value:"dog", container:"house"},
+		{value:"bird", container:"nest"}
+	]}
+var a=_`The ${{animal:_``.pick()}} is in the ${{container:x=>x.animal.container}}.`
+a.say(data)
+
+var a=_`The ${{animal:_().pick()}} is in the ${{container:()=>a.animal.container}}.`
+a.say(data)
+
+Complex correlated phrases:
+ (DEFECT: need to implement random for this example.)
+var data={animal:
+	[
+		{value:"cat", container:["hat","bag","box"]},
+		{value:"dog", container:["house","burrow","car"]},
+		{value:"bird", container:["nest","tree","sky"]}
+	]}
+
+
+var a=_`The ${{animal:ishml.Phrase``.pick()}} is in the ${{container:x=>_``.pick()(x.animal.container)}}.`
+
+var container=ishml.Phrase``.join({separator:" "})
+var a=ishml.Phrase`The ${{animal:ishml.Phrase``.pick()}} is in the ${{container:x=>container(x.animal.container)}}.`
+
+a.say(data)
+{li:"cat", list:["hat","bag","box"]},
+		{li:"dog", list:["house","burrow","car"]},
+		{li:"bird", list:["nest","tree","sky"]}
+
+Self nesting phrases:
+  -- simple list
+var data={items:{li:["cat","dog","bird"]}}
+var items=()=>ishml.Phrase`<li>${{li:ishml.Phrase().pick()}}</li>`.until(x=>x.li.reset)
+var list=()=>ishml.Phrase`<ol>${{items:items()}}</ol>`
+
+var a=list()(data)
+var a=list();a(data)
+
+
+
+//outer most phrase has 
+
+
+  -- self nesting list:
+
+var _=ishml.Phrase
+var list=()=>_`<ol>${{items:_`<li>${{li:_().pick()}}${{list:x=>list()(x.li.list),if:x=>x.li.list}}</li>`.until(x=>x.li.reset)}}</ol>`
+var data={items:{li:[{value:"cat",list:{items:{li:["meow","purr"]}}},{value:"dog",list:{items:{li:["bark","howl"]}}},{value:"bird",list:{items:{li:["coo","peep"]}}}]}}
+
+---with hoisting
+
+var items=()=>ishml.Phrase`<li>${{li:ishml.Phrase().pick()}}${{list:x=>list()(x.li.list),if:x=>x.li.list}}</li>`.until(x=>x.li.reset)
+var list=()=ishml.Phrase`<ol>${{items:items()}}</ol>`
+var data={items:{li:[{value:"cat",list:{items:{li:["meow","howl"]}}},{value:"dog",list:{items:{li:["bark","howl"]}}},{value:"bird",list:{items:{li:["coo","peep"]}}}]}}
+
+
+---with sublist
+
+var _=ishml.Phrase
+var sublist={list:x=>list()(x.li.list),if:x=>x.li.list}
+var items=()=>ishml.Phrase`<li>${{li:ishml.Phrase().pick()}}${sublist}</li>`.until(x=>x.li.reset)
+var list=()=>ishml.Phrase`<ol>${{items:items()}}</ol>`
+var data={items:{li:[{value:"cat",list:{items:{li:["meow","howl"]}}},{value:"dog",list:{items:{li:["bark","howl"]}}},{value:"bird",list:{items:{li:["coo","peep"]}}}]}}
+
+var _=ishml.Phrase
+var list=()=>_`<ol>${{items:items()}}</ol>`
+var items=()=>_`<li>${{li:ishml.Phrase().pick()}}${sublist}</li>`.until(x=>x.li.reset)
+var sublist={list:x=>list()(x.li.list),if:x=>x.li.list}
+var data={items:{li:[{value:"cat",list:{items:{li:["meow","howl"]}}},{value:"dog",list:{items:{li:["bark","howl"]}}},{value:"bird",list:{items:{li:["coo","peep"]}}}]}}
+
+
+---comma list
+var _=ishml.Phrase
+var oxfordList=()=>_`${{item:_().pick()}}${{separator:", ", if:x=>x.item.index < x.item.total-1 && x.item.total>2}}${{separator:" and ", if:x=>x.item.index===0 && x.item.total===2}}${{separator:"and ", if:x=>x.item.index===x.item.total-2 && x.item.total>2}}`.until(x=>x.item.reset)
+
+data={item:["cat","dog","bird","horse"]}
+
+var data=["cat","dog","bird","horse"]
+var animals=`Today I went to the country and saw a ${oxfordList({item:["cat","dog","bird","horse"]})} by the river.`
+
+var list=(data,oxford=true)=>
+{
+	if(oxford)
+	{
+		var list=_`${{item:_().pick()}}${{separator:", ", if:x=>x.item.index < x.item.total-1 && x.item.total>2}}${{separator:" and ", if:x=>x.item.index===0 && x.item.total===2}}${{separator:"and ", if:x=>x.item.index===x.item.total-2 && x.item.total>2}}${{nothing:"nothing", if:x=>x.item.value===""}}`.until(x=>x.item.reset)
+	}
+	else
+	{
+		var list=_`${{item:_().pick()}}${{separator:", ", if:x=>x.item.index < x.item.total-2 && x.item.total>2}}${{separator:" and ", if:x=>x.item.index === x.item.total-2 && x.item.total>1}}${{nothing:"nothing", if:x=>x.item.value===""}}`.until(x=>x.item.reset)
+	}	
+	if(data)
+	{
+		return list(data)
+	}
+	else
+	{
+		return list
+	}
+}
+
+---options for pick:
+randomPick({curve:(index,total)=>({min:index/total, max:(index+1)/total}),seed,cycle=(total)=>total, last:"" )
+pick({curve:(index,total)=>{min:index/total, max:(index+1)/total},cycle=(total)=>total, last:ishml.enum.random)
+
+last: "string" or function or ishml.enum.reset
+pick({curve:(index,total)=>({min:index/total, max:(index+1)/total}),seed,cycle=(total)=>total, last:"" )
+
+.shuffle().pick()
+
+
+uniformRandom=(x)=>
+{
+	return Math.floor(Math.random()*x.total)
+}
+
+pick({curve:(index,total)=>({min:index/total, max:(index+1)/total}),seed,cycle=Infinity, last:"" )
+
+pick({curve:(index,array)=>index,reset=(index,array)=>index===array.length, seed,last:(index,array)=>array[array.length-1]})
+
+curve: a function that returns an index into the array.
+cycle: how many times to repeat. Defaults to Infinity. May be number or function.
+last: The value to return once cycle completes.  defaults to "", may also be function
+seed: random number
+
+---Other transforms:
+
+.shuffle({seed:.01})
+.sort((a,b)=>a.item.weight > b.item.weight)
+.filter(x=>x.weight> 10})
+.concur((x,y)=>x.animal.size===y.size)
+.first(value=1)
+.last(value=1)
+})
+ishml.phrase`${gender:}`
+
+
+prefixes and suffixes
+
+_.prefix(ishml.lang.a).named("a")
+_.prefix(ishm.lang.an).named("an")
+_.prefix(x=>toUpperCase(x)).named("cap")
+_.prefix(x=>x+"ing").named("ing")
+var a=_`I saw ${_.cap.an(["otter","zebra","penguin"].pick())} ${_(["walk,sleep,eat"]).pick().ing} at the zoo.`
+
+cap(an([]))
+
+//then
+
+_.series(["cat","dog","flea"]).then("pick")
+_.series(["cat","dog","flea"]).then(()=>"")
+
+//var a =ishml.Template`The ${ishml.Template.pick([{value:"cat",size:2},{value:"dog",size:2}, {value:"bird",size:1}]).tag("pet")} in the ${ishml.Template.pick(ishml.Template([{value:"hat",size:2},{value:"box",size:2}, {value:"nest",size:1}]).concur((tags,place)=>tags.pet.size===place.size))}`
