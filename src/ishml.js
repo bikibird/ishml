@@ -345,34 +345,6 @@ ishml.Phrase =class Phrase
 		if (this.results.length>0){return this.results[0]}
 		else{return {}}
 	}
-	else(literals,...expressions)
-	{
-		var alternativePhrase=new ishml.Phrase(literals,...expressions)
-		return new class elsePhrase extends ishml.Phrase
-		{
-			constructor(...precursor)
-			{
-				super(...precursor)
-				this.phrases[1]={value:alternativePhrase}
-			}
-			generate()
-			{
-				var results=this.phrases[0].value.generate()
-				
-				if (results.length>0)
-				{
-					this.results=results
-					this.text=this.phrases[0].value.text
-				}
-				else
-				{
-					this.results=this.phrases[1].value.generate()
-					this.text=this.phrases[1].value.text
-				}
-				return this.results
-			}
-		}(this)
-	}
 	first(count=1)
 	{
 		return new class firstPhrase extends ishml.Phrase
@@ -397,7 +369,7 @@ ishml.Phrase =class Phrase
 	generate(phrases=this.phrases)
 	{
 		this.results=[]
-		phrases.forEach((phrase,index)=>
+		phrases.forEach((phrase)=>
 		{
 			if (phrase.value instanceof ishml.Phrase) 
 			{
@@ -431,24 +403,6 @@ ishml.Phrase =class Phrase
 		var template = document.createElement("template")
 		template.innerHTML = this.text
 		return template
-	}
-	if(condition)
-	{
-		if (typeof condition ==="function"){var rule=condition}
-		else {var rule = ()=>condition}
-		return new class ifPhrase extends ishml.Phrase
-		{
-			generate()
-			{
-				super.generate()
-				if(!rule(this.tags))
-				{
-					this.results=[]
-					this.text=""
-				}
-				return this.results
-			}
-		}(this)
 	}
 	get inner()
 	{
@@ -680,25 +634,6 @@ ishml.Phrase =class Phrase
 		})
 		return this
 	}	
-	repeat(condition)
-	{
-		if (typeof condition ==="function"){var rule=condition}
-		else {var rule = ()=>condition}
-		return new class repeatPhrase extends ishml.Phrase
-		{
-			generate()
-			{
-				var results=[]
-				do
-				{
-					results=results.concat(super.generate())
-				}while(rule(this.tags))
-				this.results=results
-				this.text=this.results.map(data=>data.value).join("")
-				return this.results	
-			}
-		}(this)
-	}
 	say(seed) 
 	{
 		if (seed>=0){this.seed(seed)}
@@ -728,6 +663,34 @@ ishml.Phrase =class Phrase
 		this[id]=this
 		return this
 	}
+	get then()
+	{
+		var primaryPhrase=this
+		return new Proxy((...precursor) => new class thenPhrase extends ishml.Phrase
+		{
+			constructor()
+			{
+				super()
+				this.phrases[0]={value:primaryPhrase}
+				this.phrases[1]={value:new ishml.Phrase(...precursor)}
+			}
+			generate()
+			{
+				var results=this.phrases[0].value.generate()
+				if (results.length>0)
+				{
+					this.results=results
+					this.text=this.phrases[0].value.text
+				}
+				else
+				{
+					this.results=this.phrases[1].value.generate()
+					this.text=this.phrases[1].value.text
+				}
+				return this.results
+			}
+		},ishml.Template.templateHandler)
+	}
 	transform(transformer)
 	{
 		return new class transformPhrase extends ishml.Phrase
@@ -740,40 +703,6 @@ ishml.Phrase =class Phrase
 			}
 		}(this)
 	}
-	while(condition)
-	{
-		if (typeof condition ==="function"){var rule=condition}
-		else {var rule = ()=>condition}
-		return new class whilePhrase extends ishml.Phrase
-		{
-			generate()
-			{
-				var results=[]
-				while(rule(this.tags))
-				{
-					results=results.concat(super.generate())
-				}
-				this.results=results
-				this.text=this.results.map(data=>data.value).join("")
-				return this.results	
-			}
-		}(this)
-	}
-}
-ishml.Phrase.prototype.then=ishml.Phrase.prototype.else
-ishml.Phrase.defineClass=function(id)
-{
-	var as= (phraseClass)=>
-	{
-		Object.defineProperty(ishml.Phrase.prototype,id,
-		{
-			get()
-			{
-			  return new phraseClass(this)
-			}
-		})
-	}
-	return {as:as}	
 }
 ishml.Phrase.define=function(id)
 {
@@ -1318,7 +1247,65 @@ ishml.Template.defineClass("favor").as( class favorPhrase extends ishml.Phrase
 	}
 	
 })
-ishml.Template.defineClass("pick").as( class pickPhrase extends ishml.Phrase
+ishml.Template.define("pick").as((...data)=>
+{
+	var previous
+	return new class pickPhrase extends ishml.Phrase
+	{
+		generate()
+		{
+			if(this.phrases.length===0)
+			{
+				this.text=""
+				this.results=[]
+				return this.results
+			}
+			else
+			{
+				var {value:random,seed}=ishml.util.random(this._seed)
+				this._seed=seed
+				if (this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
+				{
+					var results=super.generate()
+					var total=results.length
+					var counter=Math.floor(random*total)
+					if (counter===previous){counter =(counter+1)%total}
+					previous=counter
+					results=results.slice(counter,counter+1)
+				}
+				else
+				{
+					var total=this.phrases.length
+					var counter=Math.floor(random*total)
+					if (counter===previous){counter =(counter+1)%total}
+					previous=counter
+					var results=super.generate(this.phrases.slice(counter,counter+1))
+				}
+
+				results.forEach(phrase=>
+				{
+					phrase.index=counter
+					phrase.total=total
+				})
+				this.results=results
+				return this.results
+			}
+		}
+	}(...data)
+})
+ishml.Template.define("refresh").as((...precursor)=>
+{
+	return new class refreshPhrase extends ishml.Phrase
+	{
+		generate()
+		{
+			this._reset()
+			super.generate()
+			return this.results
+		}
+	}(...precursor)
+})
+ishml.Template.defineClass("roll").as( class rollPhrase extends ishml.Phrase
 {
 	generate()
 	{
@@ -1355,18 +1342,6 @@ ishml.Template.defineClass("pick").as( class pickPhrase extends ishml.Phrase
 			return this.results
 		}
 	}
-})
-ishml.Template.define("refresh").as((...precursor)=>
-{
-	return new class refreshPhrase extends ishml.Phrase
-	{
-		generate()
-		{
-			this._reset()
-			super.generate()
-			return this.results
-		}
-	}(...precursor)
 })
 ishml.Template.define("series").as((...data)=>
 {

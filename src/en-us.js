@@ -349,8 +349,7 @@ ishml.Phrase.define("est").as (precursor =>
 	})
 })
 ishml.Phrase.define("ing").as( precursor => precursor.modify(item=>ishml.lang.ing(item.value)))
-ishml.Template.define("list").as((...data)=> ishml.Template`${ishml.Template.cycle().tag("item")}${ishml.Template`, `.if(tags=>tags.item.data.index < tags.item.data.total-1 && tags.item.data.total>2)}${ ishml.Template` and `.if(tags=>tags.item.data.index===0 && tags.item.data.total===2)}${ ishml.Template`and `.if(tags=>tags.item.data.index===tags.item.data.total-2 && tags.item.data.total>2)}`.per("item").join().populate({item:data.flat()})
-)
+ishml.Template.define("list").as((...data)=> ishml.Template`${ishml.Template.cycle(...data).tag("item")}${tags=>tags.item.data.index < tags.item.data.total-1 && tags.item.data.total>2?", ":""}${tags=>tags.item.data.index===0 && tags.item.data.total===2?" and ":""}${tags=>tags.item.data.index===tags.item.data.total-2 && tags.item.data.total>2?"and ":""}`.per("item").join().catalog())
 ishml.Phrase.define("s").as (precursor => 
 {
 	return precursor.modify(item=>

@@ -118,7 +118,65 @@ ishml.Template.defineClass("favor").as( class favorPhrase extends ishml.Phrase
 	}
 	
 })
-ishml.Template.defineClass("pick").as( class pickPhrase extends ishml.Phrase
+ishml.Template.define("pick").as((...data)=>
+{
+	var previous
+	return new class pickPhrase extends ishml.Phrase
+	{
+		generate()
+		{
+			if(this.phrases.length===0)
+			{
+				this.text=""
+				this.results=[]
+				return this.results
+			}
+			else
+			{
+				var {value:random,seed}=ishml.util.random(this._seed)
+				this._seed=seed
+				if (this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
+				{
+					var results=super.generate()
+					var total=results.length
+					var counter=Math.floor(random*total)
+					if (counter===previous){counter =(counter+1)%total}
+					previous=counter
+					results=results.slice(counter,counter+1)
+				}
+				else
+				{
+					var total=this.phrases.length
+					var counter=Math.floor(random*total)
+					if (counter===previous){counter =(counter+1)%total}
+					previous=counter
+					var results=super.generate(this.phrases.slice(counter,counter+1))
+				}
+
+				results.forEach(phrase=>
+				{
+					phrase.index=counter
+					phrase.total=total
+				})
+				this.results=results
+				return this.results
+			}
+		}
+	}(...data)
+})
+ishml.Template.define("refresh").as((...precursor)=>
+{
+	return new class refreshPhrase extends ishml.Phrase
+	{
+		generate()
+		{
+			this._reset()
+			super.generate()
+			return this.results
+		}
+	}(...precursor)
+})
+ishml.Template.defineClass("roll").as( class rollPhrase extends ishml.Phrase
 {
 	generate()
 	{
@@ -155,18 +213,6 @@ ishml.Template.defineClass("pick").as( class pickPhrase extends ishml.Phrase
 			return this.results
 		}
 	}
-})
-ishml.Template.define("refresh").as((...precursor)=>
-{
-	return new class refreshPhrase extends ishml.Phrase
-	{
-		generate()
-		{
-			this._reset()
-			super.generate()
-			return this.results
-		}
-	}(...precursor)
 })
 ishml.Template.define("series").as((...data)=>
 {
