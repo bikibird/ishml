@@ -300,7 +300,7 @@ ishml.Phrase =class Phrase
 		this._populate(...precursor)
 		return this
 	}
-	get and()
+	get also()
 	{
 		var primaryPhrase=this
 		return new Proxy((...precursor) => new class thenPhrase extends ishml.Phrase
