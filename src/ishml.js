@@ -300,6 +300,34 @@ ishml.Phrase =class Phrase
 		this._populate(...precursor)
 		return this
 	}
+	get and()
+	{
+		var primaryPhrase=this
+		return new Proxy((...precursor) => new class thenPhrase extends ishml.Phrase
+		{
+			constructor()
+			{
+				super()
+				this.phrases[0]={value:primaryPhrase}
+				this.phrases[1]={value:new ishml.Phrase(...precursor)}
+			}
+			generate()
+			{
+				var results=this.phrases[0].value.generate()
+				if (results.length>0)
+				{
+					this.results=results.concat(this.phrases[1].value.generate())
+					this.text=this.phrases[0].value.text+ this.phrases[1].value.text
+				}
+				else
+				{
+					this.results=results
+					this.text=""
+				}
+				return this.results
+			}
+		},ishml.Template.templateHandler)
+	}
 	append(documentSelector="#story")
 	{
 		var targetNodes = document.querySelectorAll(documentSelector)
