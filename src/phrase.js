@@ -189,7 +189,7 @@ ishml.Phrase =class Phrase
 				do 
 				{
 					results=results.concat(super.generate())
-				}while(!this.tags[tag].data.reset)
+				}while(!this.phrases[0].value.tags[tag].data.reset)
 				this.results=results
 				this.text=this.results.map(data=>data.value).join("")
 				return this.results	
