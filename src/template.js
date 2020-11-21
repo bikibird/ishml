@@ -41,9 +41,9 @@ ishml.Template.define("cycle").as((...data)=>
 	var counter=0
 	return new class cyclePhrase extends ishml.Phrase
 	{
-		_populate(...data)
+		populate(literals, ...expressions)
 		{
-			super._populate(...data)
+			super.populate(literals, ...expressions)
 			counter=0
 			return this
 		}
@@ -220,9 +220,9 @@ ishml.Template.define("series").as((...data)=>
 	var ended =false
 	return new class seriesPhrase extends ishml.Phrase
 	{
-		_populate(...data)
+		populate(literals, ...expressions)
 		{
-			super._populate(...data)
+			super.populate(literals, ...expressions)
 			ended=false
 			counter=0
 			return this
@@ -290,6 +290,12 @@ ishml.Template.define("shuffle").as((...data)=>
 			this.text=this.results.map(phrase=>phrase.value).join("")
 			return this.results
 		}
+		
+		populate(literals, ...expressions)
+		{
+			super.populate(literals, ...expressions)
+			reshuffle=true
+		}
 		_reset()
 		{
 			super._reset()
@@ -304,9 +310,9 @@ ishml.Template.define("pin").as((...data)=>
 	var pin =true
 	return new class pinPhrase extends ishml.Phrase
 	{
-		_populate(...data)
+		populate(literals, ...expressions)
 		{
-			super._populate(...data)
+			super.populate(literals, ...expressions)
 			pin =true
 			return this
 		}

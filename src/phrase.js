@@ -198,8 +198,14 @@ ishml.Phrase =class Phrase
 	}
 	populate(literals, ...expressions)
 	{
-		if (!this._cataloged){this._catalog()}
-		this._populate(literals, ...expressions)
+		if(this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
+		{
+			this.phrases[0].value.populate(literals,...expressions)
+		}
+		else
+		{
+			this._populate(literals, ...expressions)
+		}
 		return this
 	}
 	_populate(literals, ...expressions)
@@ -348,7 +354,6 @@ ishml.Phrase =class Phrase
 	say(seed) 
 	{
 		if (seed>=0){this.seed(seed)}
-		if (!this._cataloged){this._catalog()}
 		this.generate()
 		return this
 	}

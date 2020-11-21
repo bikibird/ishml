@@ -5,35 +5,24 @@ status: pending
 <div class="container mt-4">
 <h1>Text generation Part Three</h1>
 <p class="lead">Prerequisites: You should have read <a href="{{ site.baseurl }}{% link _tutorials/phrases2.html %}">Text Generation Part Two</a>.</p>
-<p>The first two parts of this tutorial covered basic text generation.  We are now ready to re-use sub-phrases within a phase and incoporate logic.  However, before we do so, we must give names to the sub-phrases so that we can refer to them elsewhere within the containing phrase.</p>	
+<p>The first two parts of this tutorial covered basic text generation.  We are now ready create some more advanced phrases.  </p>	
 <h2>Tags</h2>
 
-<p>The <code>.tag()</code> suffix allows us to attach a name to a phrase.  We first encountered tags in <a href="{{ site.baseurl }}{% link _tutorials/phrases1.html %}">part one</a>, where they were used to tag phrases for data population.  However, there are other uses for tagged phrases. Examine the JavaScript in listing 2.</p>
+<p></p>The <code>.tag()</code> suffix allows us to attach a name to a phrase.  We first encountered tags in <a href="{{ site.baseurl }}{% link _tutorials/phrases1.html %}">part one</a>, where they were used to tag phrases for data population.  However, there are other uses for tagged phrases. Sub-phrases that are tagged with a name can be reused in a containing phrase and also provides access to additional properties for the sub-phrase. Examine the JavaScript in listing 2.</p>
 
 <span class="badge badge-info">Listing 1</span>
 <iframe id="listing1" width="100%" height="500" scrolling="no" src="//jsfiddle.net/bikibird/krom8puj/embedded/js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow wrap" title="Listing 1"></iframe>
 
-<p>Tagged phrases are available through the <code>tags</code> property of the outermost phrase. It doesn't matter how deeply the tagged sub-phrases are nested; they will always be surfaced to outermost phrase.</p>
+<p>Tagged phrases are available through the <code>.tags</code> prefix.</p>
 
-<p>The first sub-phrase of <code>example1</code> is tagged as <q>pet</q> and is the <code>.pet</code> property of <code>example1</code>. However, we cannot simply refer to <code>example1.tags.pet</code> in a sub-phrase definition becase <code>example1</code> is still undefined. Instead, in the second sub-phrase, <code>_.a.tags.pet</code> is used to refer to the sub-phrase tagged as <q>pet</q>. The <code>.tags</code> prefix provides access to the tags collection of phrases and the <code>.a</code> prefix adds the appropriate indefinite article to the sub-phrase.  During text generation a new animal will be picked at random for each of the two sub-phrases.</p> 
+<p>The first sub-phrase of <code>example1</code> is tagged as <q>pet</q> In the second sub-phrase, <code>_.a.tags.pet</code> is used to refer to the sub-phrase tagged as <q>pet</q>. The <code>.tags</code> prefix provides access to the collection of tagged phrases and it must be followed by the name of the sub-phrase.  The <code>.a</code> prefix adds the appropriate indefinite article to the sub-phrase.  During text generation a new (and different) animal will be picked at random for each of the two sub-phrases.</p> 
 
-<p>Sometimes when referring to a tagged phrase, we don't want to generate entirely new text; we just want repeat the same text that was already generated in an earlier sub-phrase. The third expression in <code>exammple1</code> is an <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions">arrow funciton</a>.  Whenever a function is encountered during text generation, the function is called with the <code>tags</code> as its argument.  This gives the function access to the tagged phrases.  In this case the text property of the <q>pet</q> sub-phrase is returned.</p>
+<p>Sometimes when referring to a tagged phrase, we don't want to generate entirely new text; we just want repeat the same text that was already generated in an earlier sub-phrase. The third expression in <code>exammple1</code> is an <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions">arrow funciton</a>.  Whenever a function is encountered during text generation, the function is called with the tags collection as its argument.  This gives the function access to the tagged phrases.  In this case the text property of the <q>pet</q> sub-phrase is returned.</p>
 
 <p>Study <code>example2</code>. The <q>pet</q> tag refers to the whole phrase, <code>_.a.pick()</code>, which first picks an item and then adds an indefinite article.  When the <q>pet</q> phrase is populated, the data needs to go to the inner <code>pick()</code> phrase, not the outer <code>a</code> phrase, but the tag refers to the phrase as a whole. This does not cause a problem, however, because <code>.populate()</code> will always identify the innermost (terminal) phrase of a tagged phrase and deposit the data there.
-<p>We can reference the data associated with the phrase by using the <code>.data</code> property.  Here, <code>tags=>pet.data.problem</code> returns the problem associated with the selected pet and <code>tags=>tags.pet.data.value</code> returns the primary data associated with the <q>pet</q> phrase, in this case the chosen animal with an indefinite article prepended. In this instance <code>.data.value</code> and <code>.data.animal</code> are equivaluen.  The <code>.populate()</code> method will assign the first property it encounters in an object to  the <code>.value</code> property if <code>.value</code> is not explicitly provided in the data object.</p>
+<p>We can reference the data associated with the phrase by using the <code>.data</code> property.  Here, <code>tags=>pet.data.problem</code> returns the problem associated with the selected pet and <code>tags=>tags.pet.data.value</code> returns the primary data associated with the <q>pet</q> phrase, in this case the selected animal with an indefinite article prepended. In this instance <code>.data.value</code> and <code>.data.animal</code> are equivalent.  This is due to how <code>.populate()</code> works. If the incoming data object does not explicitly have a <code>.value</code> property, it will be created and set to the first property of the incoming data object.</p>
 <p>The <q>pet</q> tag for <code>example2</code> references the pick phrase with the indefinite article prepended. If we want the bare pick phrase, we can use the <code>.inner</code> property of the pet tag, <code>tags=>tags.pet.inner.data.value</code>. We can chain as many <code>.inner</code> properties as needed to reach a deeply nested phrase.</p>  
 <p>Alternatively, we can use parentheses to nest phrases and create tags at different levels of nesting. This is shown in <code>example3</code></p>
-
-	
-	
-	
-	The last expression contains a function, <code>context=>context.pet.text</code>. Anytime a function is encountered during text generation, the function is called with the context phrase as the argument. The <code>.text</code> property of <code>context.pet</code> provides the text that was generated for the frist sub-phrase.</p>
-
-<p>The pet sub-phrase</p>
-
-<h2>If, Then, and Else <h2>
-<h2>Concur</h2>
-<h2>Recursion</h2>
 
 
 
