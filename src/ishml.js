@@ -478,7 +478,7 @@ ishml.Phrase =class Phrase
 				do 
 				{
 					results=results.concat(super.generate())
-				}while(!this.tags[tag].data.reset)
+				}while(!this.phrases[0].value.tags[tag].data.reset)
 				this.results=results
 				this.text=this.results.map(data=>data.value).join("")
 				return this.results	
@@ -487,8 +487,14 @@ ishml.Phrase =class Phrase
 	}
 	populate(literals, ...expressions)
 	{
-		if (!this._cataloged){this._catalog()}
-		this._populate(literals, ...expressions)
+		if(this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
+		{
+			this.phrases[0].value.populate(literals,...expressions)
+		}
+		else
+		{
+			this._populate(literals, ...expressions)
+		}
 		return this
 	}
 	_populate(literals, ...expressions)
@@ -637,7 +643,6 @@ ishml.Phrase =class Phrase
 	say(seed) 
 	{
 		if (seed>=0){this.seed(seed)}
-		if (!this._cataloged){this._catalog()}
 		this.generate()
 		return this
 	}
@@ -1170,9 +1175,9 @@ ishml.Template.define("cycle").as((...data)=>
 	var counter=0
 	return new class cyclePhrase extends ishml.Phrase
 	{
-		_populate(...data)
+		populate(literals, ...expressions)
 		{
-			super._populate(...data)
+			super.populate(literals, ...expressions)
 			counter=0
 			return this
 		}
@@ -1349,9 +1354,9 @@ ishml.Template.define("series").as((...data)=>
 	var ended =false
 	return new class seriesPhrase extends ishml.Phrase
 	{
-		_populate(...data)
+		populate(literals, ...expressions)
 		{
-			super._populate(...data)
+			super.populate(literals, ...expressions)
 			ended=false
 			counter=0
 			return this
@@ -1419,6 +1424,12 @@ ishml.Template.define("shuffle").as((...data)=>
 			this.text=this.results.map(phrase=>phrase.value).join("")
 			return this.results
 		}
+		
+		populate(literals, ...expressions)
+		{
+			super.populate(literals, ...expressions)
+			reshuffle=true
+		}
 		_reset()
 		{
 			super._reset()
@@ -1433,9 +1444,9 @@ ishml.Template.define("pin").as((...data)=>
 	var pin =true
 	return new class pinPhrase extends ishml.Phrase
 	{
-		_populate(...data)
+		populate(literals, ...expressions)
 		{
-			super._populate(...data)
+			super.populate(literals, ...expressions)
 			pin =true
 			return this
 		}
