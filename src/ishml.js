@@ -367,7 +367,7 @@ ishml.Phrase =class Phrase
 			}
 		})
 		Object.assign(this.tags,catalog)
-		Object.assign(this,this.tags)
+		Object.assign(this,catalog)
 	}
 	get data()
 	{
@@ -524,6 +524,7 @@ ishml.Phrase =class Phrase
 		{
 			this._populate(literals, ...expressions)
 		}
+		this.catalog(this.tags)
 		return this
 	}
 	_populate(literals, ...expressions)
@@ -671,7 +672,14 @@ ishml.Phrase =class Phrase
 	}	
 	restrict(...tags)
 	{
-		tags.flat().forEach(tag=>{delete this[tag]})
+		tags.flat().forEach(tag=>delete this[tag])
+		this.phrases.forEach(phrase=>
+		{
+			if (phrase.value instanceof ishml.Phrase)
+			{
+				phrase.value.restrict(...tags)
+			}
+		})
 		return this
 	}
 

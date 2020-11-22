@@ -364,6 +364,7 @@ ishml.Template.define("list").as((...data)=>
 		populate(...data)
 		{
 			this.phrases[0].value._populate({item:data.flat()})
+			this.catalog()
 			return this
 		}
 	}(...data)
