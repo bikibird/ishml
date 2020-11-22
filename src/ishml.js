@@ -291,13 +291,13 @@ ishml.Phrase =class Phrase
 {
 	constructor(...precursor) 
 	{
-		Object.defineProperty(this,"_cataloged",{value:false,writable:true})
 		Object.defineProperty(this,"phrases",{value:[],writable:true})
 		Object.defineProperty(this,"results",{value:[],writable:true})
 		Object.defineProperty(this,"_seed",{value:ishml.util.random().seed,writable:true})
 		Object.defineProperty(this,"tags",{value:{},writable:true})
 		Object.defineProperty(this,"text",{value:"",writable:true})
 		this._populate(...precursor)
+		this.catalog()
 		return this
 	}
 	get also()
@@ -310,6 +310,7 @@ ishml.Phrase =class Phrase
 				super()
 				this.phrases[0]={value:primaryPhrase}
 				this.phrases[1]={value:new ishml.Phrase(...precursor)}
+				this.catalog()
 			}
 			generate()
 			{
@@ -357,7 +358,7 @@ ishml.Phrase =class Phrase
 	_catalog(catalog={})
 	{
 		Object.assign(catalog,this)
-		Object.keys(this).forEach(key=>{delete this[key]})
+		//Object.keys(this).forEach(key=>{delete this[key]})
 		this.phrases.forEach(phrase=>
 		{
 			if (phrase.value instanceof ishml.Phrase)
@@ -366,7 +367,7 @@ ishml.Phrase =class Phrase
 			}
 		})
 		Object.assign(this.tags,catalog)
-		this._cataloged=true
+		Object.assign(this,this.tags)
 	}
 	get data()
 	{
@@ -668,6 +669,12 @@ ishml.Phrase =class Phrase
 		})
 		return this
 	}	
+	restrict(...tags)
+	{
+		tags.flat().forEach(tag=>{delete this[tag]})
+		return this
+	}
+
 	say(seed) 
 	{
 		if (seed>=0){this.seed(seed)}
@@ -706,6 +713,7 @@ ishml.Phrase =class Phrase
 				super()
 				this.phrases[0]={value:primaryPhrase}
 				this.phrases[1]={value:new ishml.Phrase(...precursor)}
+				this.catalog()
 			}
 			generate()
 			{

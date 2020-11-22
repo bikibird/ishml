@@ -357,7 +357,7 @@ ishml.Template.define("list").as((...data)=>
 	{
 		constructor(...data)
 		{
-			super(ishml.Template`${ishml.Template.cycle().tag("item")}${tags=>tags.item.data.index < tags.item.data.total-1 && tags.item.data.total>2?", ":""}${tags=>tags.item.data.index===0 && tags.item.data.total===2?" and ":""}${tags=>tags.item.data.index===tags.item.data.total-2 && tags.item.data.total>2?"and ":""}`.per("item").join().catalog())
+			super(ishml.Template`${ishml.Template.cycle().tag("item")}${tags=>tags.item.data.index < tags.item.data.total-1 && tags.item.data.total>2?", ":""}${tags=>tags.item.data.index===0 && tags.item.data.total===2?" and ":""}${tags=>tags.item.data.index===tags.item.data.total-2 && tags.item.data.total>2?"and ":""}`.per("item").join().restrict("item"))
 			this.populate(...data)
 			return this
 		}
