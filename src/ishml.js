@@ -581,11 +581,12 @@ ishml.Phrase =class Phrase
 					{
 						data=literals
 					}
-					else //_populate("blah") or _populate(), _populate({properties}) 
+					else //_populate("blah") or _populate(), _populate({properties}) _populate(x=>blah)
 					{
 						if(literals)
 						{	
-							if (literals instanceof Object && !(literals instanceof ishml.Phrase) ){data = literals}
+							
+							if (literals instanceof Object && !(literals instanceof ishml.Phrase) && !(literals instanceof Function) ){data = literals}
 							else {data=[literals]}
 						}
 						else {data=[]}
