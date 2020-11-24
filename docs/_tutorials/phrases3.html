@@ -26,14 +26,22 @@ status: pending
 <h2>Metadata</h2>
 <p>Some prefixes expose additional metadata. Phrase definitions that include <code>.cycle</code>, <code>.favor</code>, <code>.first</code>, <code>.last</code>, <code>.pick</code>, <code>.roll</code>, and <code>.series</code> include <code>.index</code> and <code>.total</code> as properties of <code>.data</code>.  The <code>.index</code> property is zero based.  Listing 2 shows examples of using metadata. </p>
 <span class="badge badge-info">Listing 2</span>
-<iframe id="listing1" width="100%" height="500" scrolling="no" src="//jsfiddle.net/bikibird/pct6rdnx/embedded/js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow wrap" title="Listing 2"></iframe>
+<iframe id="listing2" width="100%" height="300" scrolling="no" src="//jsfiddle.net/bikibird/pct6rdnx/embedded/js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow wrap" title="Listing 2"></iframe>
 <p>The <code>.series</code> property requires some special handling when accessing metadata.  Once the entries in the series are depleted, the series returns an empty array for the results and there are no items of metadata to access.  Attempting to access not existent properties will cause an error.  Therefore, we can only access the metadata under certain conditions.  Examine <code>example2</code> in the listing above. The <code>.also</code> suffix signals the start of another <code>ishml.Phrase</code> that will only be evaluated and appended if the preceding phrase returned at least one result. If the preceding series is depleted, the phrase associated with <code>.also</code> will be skipped. Like <code>.then</code>, it is acceptable to chain prefixes after <code>.also</code>.</p>
 <h2>Per</h2>
-<p>The <code>.per</code> suffix repeats a phrase for as many entries as there are in the referenced tagged phrase.  See listing 3.</p>
+<p>The <code>.per</code> suffix repeats a phrase for as many entries as there are in the referenced tagged phrase. Use it whenever you want to iterated through the array of sub-phrases. See listing 3 below.</p>
+
+<span class="badge badge-info">Listing 3</span>
+<iframe id="listing3" width="100%" height="200" scrolling="no" src="//jsfiddle.net/bikibird/csjuthfn/embedded/js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow wrap" title="Listing 3"></iframe>
+
+<h2>Concur</h2>
+<p>The <code>.concur</code> suffix filters a set of sub-phrases so that it conforms to the criteria of a provided rule. See listing 4 below.</p>
+<span class="badge badge-info">Listing 4</span>
+<iframe id="listing4" width="100%" height="800" scrolling="no" src="//jsfiddle.net/bikibird/csjuthfn/embedded/js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow wrap" title="Listing 4"></iframe>
+<p>The <code>example1</code> phrase picks a hobby for each person based on their interest.  To filter the possible hobbies to those that match the person's intersest, we add the <code>.concur</code> suffix to the <q>hobby</q> sub-phrase.  The rule function returns true if the hobby matches the persons interest or false if it does not. This function receives the tags collection as its first parameter and the result of each sub-phrase evalution of the target phrase as the second parameter.  sub-phrases that do not meet the criteria are removed from consideration before <code>.pick</code> is applied.</p>
 
 
-
-<p>Continue to <!--a href="{{ site.baseurl }}{% link _tutorials/phrases2.html %}">part two</a--> to learn about more complex grammars, including choice rules and semantic analysis.</p>
+<p>Continue to <!--a href="{{ site.baseurl }}{% link _tutorials/phrases3.html %}">part two</a--> to learn about recursive phrases.</p>
 
 	
 </div>    
