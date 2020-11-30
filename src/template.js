@@ -84,6 +84,7 @@ ishml.Template.defineClass("favor").as( class favorPhrase extends ishml.Phrase
 		{
 			this.text=""
 			this.results=[]
+			this.tally++
 			return this.results
 		}
 		else
@@ -129,6 +130,7 @@ ishml.Template.define("pick").as((...data)=>
 			{
 				this.text=""
 				this.results=[]
+				this.tally++
 				return this.results
 			}
 			else
@@ -184,6 +186,7 @@ ishml.Template.defineClass("roll").as( class rollPhrase extends ishml.Phrase
 		{
 			this.text=""
 			this.results=[]
+			this.tally++
 			return this.results
 		}
 		else
@@ -233,8 +236,9 @@ ishml.Template.define("series").as((...data)=>
 			{
 				this.text=""
 				this.results=[]
-				return this.results			}
-			
+				this.tally++
+				return this.results
+			}
 			else
 			{
 				if (this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
@@ -343,6 +347,7 @@ ishml.Template.define("tags").as(function tags(tag)
 		{
 			this.results=this.tags[tag].generate()
 			this.text=this.tags[tag].text
+			this.tally=this.tags[tag].tally
 			return this.results
 		}
 	}	

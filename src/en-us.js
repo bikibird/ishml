@@ -349,7 +349,6 @@ ishml.Phrase.define("est").as (precursor =>
 	})
 })
 ishml.Phrase.define("ing").as( precursor => precursor.modify(item=>ishml.lang.ing(item.value)))
-//ishml.Template.define("list").as((...data)=> ishml.Template`${ishml.Template.cycle().tag("item")}${tags=>tags.item.data.index < tags.item.data.total-1 && tags.item.data.total>2?", ":""}${tags=>tags.item.data.index===0 && tags.item.data.total===2?" and ":""}${tags=>tags.item.data.index===tags.item.data.total-2 && tags.item.data.total>2?"and ":""}`.per("item").join().catalog().populate({item:data.flat()}))
 
 ishml.Template.define("list").as((...data)=>
 {
@@ -357,14 +356,13 @@ ishml.Template.define("list").as((...data)=>
 	{
 		constructor(...data)
 		{
-			super(ishml.Template`${ishml.Template.cycle().tag("item")}${tags=>tags.item.data.index < tags.item.data.total-1 && tags.item.data.total>2?", ":""}${tags=>tags.item.data.index===0 && tags.item.data.total===2?" and ":""}${tags=>tags.item.data.index===tags.item.data.total-2 && tags.item.data.total>2?"and ":""}`.per("item").join().restrict("item"))
+			super(ishml.Template`${ishml.Template.cycle().tag("item")}${tags=>tags.item.data.index < tags.item.data.total-1 && tags.item.data.total>2?", ":""}${tags=>tags.item.data.index===0 && tags.item.data.total===2?" and ":""}${tags=>tags.item.data.index===tags.item.data.total-2 && tags.item.data.total>2?"and ":""}`.per("item").join())
 			this.populate(...data)
 			return this
 		}
 		populate(...data)
 		{
-			this.phrases[0].value._populate({item:data.flat()})
-			this.catalog()
+			this.tags.item.populate(...data)
 			return this
 		}
 	}(...data)

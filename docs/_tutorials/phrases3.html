@@ -8,7 +8,7 @@ status: pending
 <p>The first two parts of this tutorial covered basic text generation.  We are now ready create some more advanced phrases.  </p>	
 <h2>Tags</h2>
 
-<p></p>The <code>.tag()</code> suffix allows us to attach a name to a phrase.  We first encountered tags in <a href="{{ site.baseurl }}{% link _tutorials/phrases1.html %}">part one</a>, where they were used to tag phrases for data population.  However, there are other uses for tagged phrases. Sub-phrases that are tagged with a name can be reused in a containing phrase and also provides access to additional properties for the sub-phrase. Examine the JavaScript in listing 2.</p>
+<p>The <code>.tag()</code> suffix allows us to attach a name to a phrase.  We first encountered tags in <a href="{{ site.baseurl }}{% link _tutorials/phrases1.html %}">part one</a>, where they were used to tag phrases for data population.  However, there are other uses for tagged phrases. Sub-phrases that are tagged with a name can be reused in a containing phrase and also provides access to additional properties for the sub-phrase. Examine the JavaScript in listing 2.</p>
 
 <span class="badge badge-info">Listing 1</span>
 <iframe id="listing1" width="100%" height="500" scrolling="no" src="//jsfiddle.net/bikibird/krom8puj/embedded/js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow wrap" title="Listing 1"></iframe>
@@ -41,7 +41,7 @@ status: pending
 <p>The <code>example1</code> phrase picks a hobby for each person based on their interest.  To filter the possible hobbies to those that match the person's intersest, we add the <code>.concur</code> suffix to the <q>hobby</q> sub-phrase.  The rule function returns true if the hobby matches the persons interest or false if it does not. This function receives the tags collection as its first parameter and the result of each sub-phrase evalution of the target phrase as the second parameter.  sub-phrases that do not meet the criteria are removed from consideration before <code>.pick</code> is applied.</p>
 
 
-<p>Continue to <!--a href="{{ site.baseurl }}{% link _tutorials/phrases3.html %}">part two</a--> to learn about recursive phrases.</p>
+<p>Continue to <a href="{{ site.baseurl }}{% link _tutorials/phrases4.html %}">part four</a> to learn about recursive phrases.</p>
 
 	
 </div>    

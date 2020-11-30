@@ -2,10 +2,12 @@ ishml.Phrase =class Phrase
 {
 	constructor(...precursor) 
 	{
+		Object.defineProperty(this,"id",{value:"",writable:true})
 		Object.defineProperty(this,"phrases",{value:[],writable:true})
 		Object.defineProperty(this,"results",{value:[],writable:true})
 		Object.defineProperty(this,"_seed",{value:ishml.util.random().seed,writable:true})
 		Object.defineProperty(this,"tags",{value:{},writable:true})
+		Object.defineProperty(this,"tally",{value:0,writable:true})
 		Object.defineProperty(this,"text",{value:"",writable:true})
 		this._populate(...precursor)
 		this.catalog()
@@ -36,6 +38,7 @@ ishml.Phrase =class Phrase
 					this.results=results
 					this.text=""
 				}
+				this.tally++
 				return this.results
 			}
 		},ishml.Template.templateHandler)
@@ -61,24 +64,51 @@ ishml.Phrase =class Phrase
 			}
 		}(this)
 	}
+	//_.cap.a.pick().tag("test")
 	catalog()
 	{
-		this._catalog()
+		this._catalogUp()
+		this._catalogDown()
 		return this
 	}
-	_catalog(catalog={})
+	_catalogUp()
 	{
-		Object.assign(catalog,this)
-		//Object.keys(this).forEach(key=>{delete this[key]})
+		if (this.id)
+		{
+			this.tags[this.id]=this
+		}
 		this.phrases.forEach(phrase=>
 		{
 			if (phrase.value instanceof ishml.Phrase)
 			{
-				phrase.value._catalog(catalog)
+				var tags= phrase.value._catalogUp()
+				Object.keys(tags).forEach(key=>
+				{
+					if(!this.tags.hasOwnProperty(key))
+					{
+						this.tags[key]=tags[key]
+					} 
+				})
 			}
 		})
-		Object.assign(this.tags,catalog)
-		Object.assign(this,catalog)
+		return this.tags
+	}
+	_catalogDown()
+	{
+		this.phrases.forEach(phrase=>
+		{
+			if (phrase.value instanceof ishml.Phrase)
+			{
+				Object.keys(this.tags).forEach(key=>
+				{
+					if (!phrase.value.tags.hasOwnProperty(key))
+					{
+						phrase.value.tags[key]=this.tags[key]
+					}
+					phrase.value._catalogDown()
+				})
+			}	
+		})
 	}
 	get data()
 	{
@@ -136,6 +166,7 @@ ishml.Phrase =class Phrase
 			}
 		})
 		this.text=this.results.map(data=>data.value).join("")
+		this.tally++
 		return this.results
 	}
 	htmlTemplate()
@@ -221,6 +252,7 @@ ishml.Phrase =class Phrase
 				}while(!this.phrases[0].value.tags[tag].data.reset)
 				this.results=results
 				this.text=this.results.map(data=>data.value).join("")
+				this.tally=this.tally-2
 				return this.results	
 			}
 		}(this)
@@ -235,7 +267,7 @@ ishml.Phrase =class Phrase
 		{
 			this._populate(literals, ...expressions)
 		}
-		this.catalog(this.tags)
+		this.catalog()
 		return this
 	}
 	_populate(literals, ...expressions)
@@ -348,12 +380,12 @@ ishml.Phrase =class Phrase
 			{
 				if (this.tags.hasOwnProperty(key))
 				{
-					var target=this.tags[key]
+					/*var target=this.tags[key]
 					while(target.phrases.length===1 && target.phrases[0].value instanceof ishml.Phrase)
 					{
 						target=target.phrases[0].value
-					}
-					target._populate(data[key])
+					}*/
+					this.tags[key].populate(data[key])
 				}
 			})
 		}
@@ -370,6 +402,7 @@ ishml.Phrase =class Phrase
 		{
 			if(phrase.value instanceof ishml.Phrase){phrase.value._reset()}	
 		})
+		this.tally=0
 		return this
 	}
 	replace(documentSelector="#story")
@@ -382,19 +415,6 @@ ishml.Phrase =class Phrase
 		})
 		return this
 	}	
-	restrict(...tags)
-	{
-		tags.flat().forEach(tag=>delete this[tag])
-		this.phrases.forEach(phrase=>
-		{
-			if (phrase.value instanceof ishml.Phrase)
-			{
-				phrase.value.restrict(...tags)
-			}
-		})
-		return this
-	}
-
 	say(seed) 
 	{
 		if (seed>=0){this.seed(seed)}
@@ -420,8 +440,14 @@ ishml.Phrase =class Phrase
 	}
 	tag(id)
 	{
-		this[id]=this
+		//this[id]=this
+		this.id=id
+		//this.catalog()
 		return this
+	}
+	get tags()
+	{
+		return Object.assign(Object.assign({},this._tags),this._localTags)
 	}
 	get then()
 	{
@@ -448,6 +474,7 @@ ishml.Phrase =class Phrase
 					this.results=this.phrases[1].value.generate()
 					this.text=this.phrases[1].value.text
 				}
+				this.tally++
 				return this.results
 			}
 		},ishml.Template.templateHandler)
