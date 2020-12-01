@@ -1,0 +1,41 @@
+---
+title: Text Generation Part 3
+status: pending
+---
+<div class="container mt-4">
+<h1>Text generation Part Four</h1>
+<p class="lead">Prerequisites: You should have read <a href="{{ site.baseurl }}{% link _tutorials/phrases2.html %}">Text Generation Part Three</a>.</p>
+<p>We are now ready to look at phrase factories and tackle recursion</p>	
+<h2>Phrase Factories</h2>
+
+<p>A phrase factory is a function that generates a new instance of <code>ishml.Phrase</code>. The <code>ishml.Template</code> object and its many prefixes are phrase factories. The suffixes of <code>ishml.Phrase</code> are phrase factories. However, not all methods of <code>ishml.Phrase</code> are phrase factory.  Some merely return the existing phrase rather than a new instance.  Take a look at listing 1</p>
+
+<span class="badge badge-info">Listing 1</span>
+<iframe id="listing1" width="100%" height="500" scrolling="no" src="//jsfiddle.net/bikibird/d5a023vc/embedded/js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow wrap" title="Listing 1"></iframe>
+
+<p>Here an attempt was made to create new phrases from the <code>animal</code> phrase.  It does not work because <code>.populate()</code> merely returns the original animal phrase with new data and does not generate a new phrase. As a result, both <code>example1</code> and <code>example2</code> refer to the same instance of <code>ishml.Phrase </code> that <code>animal</code> does.  Instead of producing an amphibian and a rodent respectively, the examples both produce rodents because that was the last set of data populated.</p>
+
+<p>Listing two below demonstrates how to properly create a phrase factory.</p> 
+
+<span class="badge badge-info">Listing 2</span>
+<iframe id="listing2" width="100%" height="350" scrolling="no" src="//jsfiddle.net/bikibird/0k8jysud/embedded/js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow wrap" title="Listing 2"></iframe>
+<p>A phrase factory is made by simply creating a function that returns new instance of <code>ishml.Phrase</code>. Phrase factories are very useful for recursive phrases. They are also used for extending <code>ishml.Template</code> and <code>ishml.Phrase</code> as we shall see in <a href="{{ site.baseurl }}{% link _tutorials/phrases5.html %}">part five</a></p>
+<h2>Per</h2>
+<p>The <code>.per</code> suffix repeats a phrase for as many entries as there are in the referenced tagged phrase. Use it whenever you want to iterated through the array of sub-phrases. See listing 3 below.</p>
+
+<span class="badge badge-info">Listing 3</span>
+<iframe id="listing3" width="100%" height="250" scrolling="no" src="//jsfiddle.net/bikibird/csjuthfn/embedded/js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow wrap" title="Listing 3"></iframe>
+
+<h2>Concur</h2>
+<p>The <code>.concur</code> suffix filters a set of sub-phrases so that it conforms to the criteria of a provided rule. See listing 4 below.</p>
+<span class="badge badge-info">Listing 4</span>
+<iframe id="listing4" width="100%" height="600" scrolling="no" src="//jsfiddle.net/bikibird/2ohgukb9/embedded/js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow wrap" title="Listing 4"></iframe>
+<p>The <code>example1</code> phrase picks a hobby for each person based on their interest.  To filter the possible hobbies to those that match the person's intersest, we add the <code>.concur</code> suffix to the <q>hobby</q> sub-phrase.  The rule function returns true if the hobby matches the persons interest or false if it does not. This function receives the tags collection as its first parameter and the result of each sub-phrase evalution of the target phrase as the second parameter.  sub-phrases that do not meet the criteria are removed from consideration before <code>.pick</code> is applied.</p>
+
+
+<p>Continue to <a href="{{ site.baseurl }}{% link _tutorials/phrases5.html %}">part five</a> to learn about recursive phrases.</p>
+
+	
+</div>    
+
+       
