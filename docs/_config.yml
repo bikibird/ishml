@@ -1,4 +1,5 @@
 ishml: "https://cdn.jsdelivr.net/gh/bikibird/ishml@0.1.9/src/ishml.js"
+en_us: "https://cdn.jsdelivr.net/gh/bikibird/ishml@0.2.0/src/en-us.js"
 defaults:
   -
     scope:
