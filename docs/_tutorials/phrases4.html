@@ -34,13 +34,16 @@ status: pending
 <iframe id="listing4" width="100%" height="400" scrolling="no" src="//jsfiddle.net/bikibird/e067Lgov/embedded/js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow wrap" title="Listing 4"></iframe>
 
 <p>The phrase factory, <code>inside</code> creates a phrase about opening a random number of containers, each inside the other and eventually revealing a treasure of some sort.  This function is called recursively as long as the result of <code></code>_.favor(...)</code> is a container.</p>
-<h2>Modifying and Extending</h2>
-We have now covered the basics of ISHML's phrases and templates and introduced most of built-in prefixes and suffixes, which should cover the majority of your text generation needs. Occasionally, you may want to use a custom function to modify the results of a phrase.  Listing 5 introduces the <code>.modify</code> suffix.
-
-<span class="badge badge-info shadow">Listing 5</span>
-<iframe id="listing4" width="100%" height="400" scrolling="no" src="//jsfiddle.net/bikibird/5od3v4Le/embedded/js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow wrap" title="Listing 5"></iframe>
-
-	
+<h2>Modifying and Customizing</h2>
+<p>We have now covered the basics of ISHML's phrases and templates and introduced most of built-in prefixes and suffixes, which should cover the majority of your text generation needs. Occasionally, you may want to use a custom function to modify the results of a phrase.  Listing 5 introduces the <code>.modify()</code> suffix in <code>example1</code>.  It takes a callback function as its argument.  During evaluation, each is element in the phrase's result array is sent to the callback function. The callback funtion returns a text string that <code>.modify()</code> replaces in the results array.</p>
+<span class="badge badge-info">Listing 5</span>
+<iframe id="listing5" width="100%" height="400" scrolling="no" src="//jsfiddle.net/bikibird/5od3v4Le/embedded/js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow wrap" title="Listing 5"></iframe>
+<p>While <code>.modify()</code> lets us apply modifications to phrases, the syntax is a bit bulky compared to custom prefixes and suffixes.  Any function that returns a phrase, i.e., a phrase factory, can be defined as a custom prefix or suffix.  In the listing above, the variable <code>prefix</code> is assigned to a phrase factory that does the same uppercase conversion seen in example1.  The static method <code>ishml.Template.define</code> adds the phrase factory to the collection of available prefixes with the name <q>shout</q>.  In <code>example2</code> we see the newly defined <code>.shout</code> prefix in use.</p>
+<p>We may also create simple suffixes that take no parameters by using the static method <code>ishml.Phrase.define</code>.  In the list above we define a suffix called <q>tron</q> to append <q>O-Tron</q> to the ends of phrases.  We use the <code>.tron</code> suffix in <code>example3</code>.</p>
+<p>We could have just as easily made the <code>.tron</code> suffix a prefix, there really isn't much advantage of one over the other.  However, as a general rule, if the intent is to modify the end of the phrase, it is better to create a suffix.  It just makes the subsequent phrase definitions easier to read.</p>
+<h2>Next Steps</h2>
+<p>This has been a brief tour of generation using the ISHML API. We did not cover all of the available prefixes and suffixes.  See the <a href="{{ site.baseurl }}{% link api.html %}">API Reference</a> for complete documentation.</p>
+<p>I will happily answer any questions you may have about text generation on <a href="https://intfiction.org"></a>. Be sure to label your questions with the <span class="badge badge-info">ISHML</span> tag for promptest attention.</p>
 </div>    
 
        
