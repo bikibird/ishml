@@ -61,7 +61,7 @@ var a=list();a(data)
   -- self nesting list:
 
 var _=ishml.Phrase
-var list=()=>_`<ol>${{items:_`<li>${{li:_().pick()}}${{list:x=>list()(x.li.list),if:x=>x.li.list}}</li>`.until(x=>x.li.reset)}}</ol>`
+var ul=_`<ul>${_`<li>${_.cycle().tag("li")}${tags=>list()(x.li.list),if:x=>x.li.list}}</li>`.until(x=>x.li.reset)}}</ul>`
 var data={items:{li:[{value:"cat",list:{items:{li:["meow","purr"]}}},{value:"dog",list:{items:{li:["bark","howl"]}}},{value:"bird",list:{items:{li:["coo","peep"]}}}]}}
 
 ---with hoisting
@@ -167,3 +167,11 @@ _.series(["cat","dog","flea"]).then("pick")
 _.series(["cat","dog","flea"]).then(()=>"")
 
 //var a =ishml.Template`The ${ishml.Template.pick([{value:"cat",size:2},{value:"dog",size:2}, {value:"bird",size:1}]).tag("pet")} in the ${ishml.Template.pick(ishml.Template([{value:"hat",size:2},{value:"box",size:2}, {value:"nest",size:1}]).concur((tags,place)=>tags.pet.size===place.size))}`
+
+Recursion
+
+var inside=box=>_`Inside the ${box} was a ${_.favor(_.pick("steel strongbox","wooden casket","silk bag","paper sack","old purse"),_.pick("ring","ancient coin", "ruby")).tag("contents")}. ${tags=>tags.contents.data.index===0?inside(tags.contents.text):""}${_`She put the ${tags=>tags.contents.text} back in the ${box}. `}`.restrict("contents")
+
+var example1=_`Cas looked under the bed and found a package wrapped with a red ribbon.  Carefully, she unwrapped the package. ${inside("package")}Cas rewrapped the package and put it back under the bed.  ${_.pick("No one would be the wiser. ", "Now she knew. ", "She was elated. ", "She was disappointed.")}`
+
+
