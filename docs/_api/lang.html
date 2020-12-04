@@ -1,0 +1,43 @@
+<div class="card mt-4" id="template">
+	<div class="card-header">
+		<h1 class="text-info">.Template</h1>
+	</div>
+	<div class="card-body">
+		<p class="card-text">ISHML's text generation API facilitates the creation of complex text generation objects using a templating system based on JavaScript's <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals">template literal</a> notation. Specifically, <code>ishml.Template</code> is a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#Tagged_templates">tag function</a> that may be called with either template literal notation or standard function call notation. Instead of directly returning text, however, ishml.Template returns an instance of ishml.Phrase. The template defines the phrase; the phrase generates the text.  See the <a href="{{ site.baseurl }}{% link _tutorials/phrases1.html %}">text generation tutorial</a> for detailed examples of templates in use.</p>
+		<p class="card-text">It is common practice to assign <code>ishml.Template</code> to the underscore variable to make the templates easier to read. The API documentation follows this convention.</p>
+		<p class="card-text">The built-in template prefixes require ishml.js. The English language prefixes require en-us.js.  </p>
+		<p class="card-text">Place the following scripts near the end of the HTML document, before the closing <code>&lt;/body&gt;</code> tag. Then add your own script below this script.</p>
+		<p class="card-text"><pre id="scripts" class="prettyprint bg-jumbotron shadow lang-js " title="Required Scripts">
+&lt;script src="{{ site.ishml }}"&gt;&lt;/script&gt;			
+&lt;script src="{{ site.en_us }}"&gt;&lt;/script&gt;
+&lt;script&gt;
+	var _ = ishml.Template 
+	//etc.
+&lt;/script&gt;</pre></p>
+
+		<h3 class="card-subtitle" id="template"><code><b>_`<i>template literal</i>` <br>
+			_(<i>value1[, ...[, valueN]]</i>)<br>
+			_([value1[, ...[, valueN]]])</b></code></h3>
+		<p class="card-text">Returns a new unmodified instance of <a href="#phrase"><code>ishml.Phrase</code></a>. When the <code>.say()</code> method is called, the elements of phrase's array are concatenated together. This is the default text generation provided by the baseline template.</p>
+		<h2 class="card-title">Prefixes</h2>
+		<p class="card-text">The baseline template also exposes a collection of additional templates through its properties. These templates are called prefixes and modify the default text generation behavior. Prefixes work a bit differently than standard functions. An unlimited number of prefixes may by chained together with dot notation to apply layer upon layer of modifications. However, only the last prefix in the chain takes arguments.  This last prefix generates a <a href="#phrase"><code>ishml.Phrase</code></a> and then that phrase is passed as the argument to the next to last prefix in the chain, which generates a new phrase.  The process continues all the way up to the front of the chain. Therefore, prefixes are applied from right to left starting with the prefix closest to the left parenthesis or backtick. Chaining permits the creation of complex phrases from an uncluttered single line of code.</p>
+		<p class="card-text">See the <a href="{{ site.baseurl }}{% link _tutorials/phrases1.html %}">text generation tutorial</a> for examples of prefix chaining.</p>
+		<h3 id="a" class="card-subtitle"><code><b>.a</b></code></h3>
+		<p class="card-text">Modifies a phrase to prepend an indefinite article, <q>a</q> or <q>a</q>, of each item in the phrase's array based on whether the item is pronouced with an initial vowel sound according to standard American English. The <code>.a</code> is identical to <code>.an</code>.</p>
+		<h3 id="aCap" class="card-subtitle"><code><b>.A</b></h3>
+		<p class="card-text">Modifies a phrase to prepend a capitalized indefinite article, <q>A</q> or <q>An</q>, of each item in the phrase's array based on whether the item is pronouced with an initial vowel sound according to standard American English. The <code>.A</code> is identical to <code>.An</code>.</p>
+		<h3 id="an" class="card-subtitle"><code><b>.an</b></h3>
+		<p class="card-text">Modifies a phrase to prepend an indefinite article, <q>a</q> or <q>an</q>, of each item in the phrase's array based on whether the item is pronouced with an initial vowel sound according to standard American English. The <code>.an</code> prefix is identical to <code>.a</code>.</p>
+		<h3 id="anCap" class="card-subtitle"><code><b>.An</b></h3>
+		<p class="card-text">Modifies a phrase to prepend a capitalized indefinite article, <q>A</q> or <q>An</q>, of each item in the phrase's array based on whether the item is pronouced with an initial vowel sound according to standard American English. The <code>.An</code> prefix is identical to <code>.A</code>.</p>
+		<h3 id="cap" class="card-subtitle"><code><b>.cap</b></h3>
+		<p class="card-text">Modifies a phrase to capitalizes the first letter of each item in the phrase's array.</p>
+		<h3 id="cycle" class="card-subtitle"><code><b>.cycle</b></h3>
+		<p class="card-text">Modifies a phrase to select each item of the phrase's array in order.</p>
+		<h3 id="ed" class="card-subtitle"><code><b>.ed</b></h3>
+		<p class="card-text">Modifies a phrase to convert each item in the phrase's array to past tense according to standard American English.</p>
+		<h3 id="en" class="card-subtitle"><code><b>.e</b></h3>
+		<p class="card-text">Modifies a phrase to convert each item (verb) in the phrase's array to a <a href=>past participle according to standard American English.</p>
+
+	</div>
+</div>

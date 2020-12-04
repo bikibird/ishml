@@ -7,7 +7,6 @@ ishml.Phrase =class Phrase
 		Object.defineProperty(this,"results",{value:[],writable:true})
 		Object.defineProperty(this,"_seed",{value:ishml.util.random().seed,writable:true})
 		Object.defineProperty(this,"tags",{value:{},writable:true})
-		Object.defineProperty(this,"tally",{value:0,writable:true})
 		Object.defineProperty(this,"text",{value:"",writable:true})
 		this._populate(...precursor)
 		this.catalog()
@@ -38,7 +37,6 @@ ishml.Phrase =class Phrase
 					this.results=results
 					this.text=""
 				}
-				this.tally++
 				return this.results
 			}
 		},ishml.Template.templateHandler)
@@ -166,7 +164,6 @@ ishml.Phrase =class Phrase
 			}
 		})
 		this.text=this.results.map(data=>data.value).join("")
-		this.tally++
 		return this.results
 	}
 	htmlTemplate()
@@ -252,7 +249,6 @@ ishml.Phrase =class Phrase
 				}while(!this.phrases[0].value.tags[tag].data.reset)
 				this.results=results
 				this.text=this.results.map(data=>data.value).join("")
-				this.tally=this.tally-2
 				return this.results	
 			}
 		}(this)
@@ -380,11 +376,6 @@ ishml.Phrase =class Phrase
 			{
 				if (this.tags.hasOwnProperty(key))
 				{
-					/*var target=this.tags[key]
-					while(target.phrases.length===1 && target.phrases[0].value instanceof ishml.Phrase)
-					{
-						target=target.phrases[0].value
-					}*/
 					this.tags[key].populate(data[key])
 				}
 			})
@@ -402,7 +393,6 @@ ishml.Phrase =class Phrase
 		{
 			if(phrase.value instanceof ishml.Phrase){phrase.value._reset()}	
 		})
-		this.tally=0
 		return this
 	}
 	replace(documentSelector="#story")
@@ -440,14 +430,8 @@ ishml.Phrase =class Phrase
 	}
 	tag(id)
 	{
-		//this[id]=this
 		this.id=id
-		//this.catalog()
 		return this
-	}
-	get tags()
-	{
-		return Object.assign(Object.assign({},this._tags),this._localTags)
 	}
 	get then()
 	{
@@ -474,7 +458,6 @@ ishml.Phrase =class Phrase
 					this.results=this.phrases[1].value.generate()
 					this.text=this.phrases[1].value.text
 				}
-				this.tally++
 				return this.results
 			}
 		},ishml.Template.templateHandler)
