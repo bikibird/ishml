@@ -7,9 +7,8 @@
 		<p>It is common practice to assign <code>ishml.Template</code> to the underscore variable to make the templates easier to read. The API documentation follows this convention.</p>
 		<p>The built-in template prefixes require ishml.js. The English language prefixes require en-us.js.  </p>
 		<p>Place the following scripts near the end of the HTML document, before the closing <code>&lt;/body&gt;</code> tag. Then add your own script below this script.</p>
-		<p><pre id="scripts" class="prettyprint bg-jumbotron shadow lang-js " title="Required Scripts"></pre><code>
-&lt;script src="{{ site.ishml }}"&gt;&lt;/script&gt;
-&lt;script src="{{ site.en_us }}"&gt;&lt;/script&gt;</code></p>
+		<p><pre id="scripts" class="prettyprint bg-jumbotron shadow lang-js " title="Required Scripts">
+&lt;script src="{{ site.en_us }}"&gt;&lt;/script&gt;
 &lt;script&gt;
 	var _ = ishml.Template 
 	//etc.
