@@ -1,11 +1,11 @@
 <div class="card mt-4" id="Phrase">
 	<div class="card-header">
-		<h1 class="text-info">.Phrase</h1>
+		<h1 class="text-info" id="phrase">.Phrase</h1>
 	</div>
 	<div class="card-body">
 		<p class="card-text">The <code>ishml.Phrase</code> object is a text generation object.  See the <a href="{{ site.baseurl }}{% link _tutorials/phrases1.html %}">text generation tutorial</a> for detailed examples of phrases in use.</p>
 		<h2 class=" card-title">Constructor</h2>
-		<p class="card-text"><code>Instance of ishml.Phrase are created by invoking a <a href="#template">template</a>. The template defines the phrase; the phrase generates the text.</p>
+		<p class="card-text">Instance of <code>ishml.Phrase</code> are created by invoking a <a href="#template">template</a>. The template defines the phrase; the phrase generates the text.</p>
 		<h2 class="card-title">Properties</h2>	
 		<h3 class="card-subtitle" id="phrase-data"><code><b>.data</b> <i class="text-info">Object</i></code></h3>
 		<p class="card-text">Returns the data and meta-data associated with the first result from the phrase's array after <a href="#phrase-say"></a><code>.say()</code></a> generates text.  The availability of meta-data is dependent on the template that created phase.  Different templates provide different meta-data.</p>
@@ -14,7 +14,7 @@
 		<h2 class="card-title">Methods</h2>	
 		<h3 class="card-subtitle" id="phrase-append"><code><b>.append(</b> <i class="text-info">CSS selector string</i>)</code></h3>
 		<p class="card-text">Append the contents of the <code>.text</code> property to the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML">innerHTML</a> of the document element specified in the CSS selector string. Returns the instance of <code>ishml.Phrase</code>.</p>
-		<h3 class="card-subtitle" id="phrase-htmlTemmplate"><code><b>.htmlTemplate()</code></h3>
+		<h3 class="card-subtitle" id="phrase-htmlTemmplate"><code><b>.htmlTemplate()</b></code></h3>
 		<p class="card-text">Creates an <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template">HTML Content Template element</a> from the contents of the <code>.text</code> property. Returns the instance of <code>ishml.Phrase</code>.</p>
 		<h3 class="card-subtitle" id="phrase-populate"><code><b>.populate(<i>object</i>) <br>
 			.populate(<i>value1[, ...[, valueN]]</i>)<br>
@@ -50,6 +50,6 @@
 		<h3 class="card-subtitle" id="phrase-last"><code><b>.last(</b> <i class="text-info">integer</i>)</code></h3>
 		<p class="card-text">Limits the phrase's array to the last item in the array. Optionally, an integer may be provided to limit the array to the last n number of items specified. </p>
 		<h3 id="phrase-then" class="card-subtitle"><code><b>.then</b></code></h3>
-		<p class="card-text">The .then suffix signals the start of another ishml.Phrase that will only be evaluated and appended if the preceding phrase returns no results. If the preceding phrase returns at least one result, the phrase associated with <code>.then</code> will be skipped. Although <code>.then</code> is technically a suffix in that it is a getter property for <code>ishml.Phrase</code>, it returns a template prefix instead of an <code>ishml.Phrase</code>.  Therefore, it is acceptable to chain prefixes after <code>.then/code>. It is intended to pair with with the <code>.series</code> prefix.  See the <a href="{{ site.baseurl }}{% link _tutorials/phrases4.html %}#listing2">text generation tutorial</a> for a detailed example. </p>
+		<p class="card-text">The .then suffix signals the start of another ishml.Phrase that will only be evaluated and appended if the preceding phrase returns no results. If the preceding phrase returns at least one result, the phrase associated with <code>.then</code> will be skipped. Although <code>.then</code> is technically a suffix in that it is a getter property for <code>ishml.Phrase</code>, it returns a template prefix instead of an <code>ishml.Phrase</code>.  Therefore, it is acceptable to chain prefixes after <code>.then</code>. It is intended to pair with with the <code>.series</code> prefix.  See the <a href="{{ site.baseurl }}{% link _tutorials/phrases4.html %}#listing2">text generation tutorial</a> for a detailed example. </p>
 	</div>
 </div>

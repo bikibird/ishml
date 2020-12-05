@@ -22,19 +22,19 @@
 		<p class="card-text">Returns an array of search results. Each search result is a plain JavaScript object with a <code>token</code> property containing the matching <a href="#token">token</a> and, a <code>remainder</code> property containing the remaining unmatched string of characters from the <i>lexeme</i> argument.</p>
 		<p class="card-text">The <i>lexeme</i> argument is a string of characters to be matched against the entries in the lexicon.</p>
 		<p class="card-text">The <i>options</i> argument is a plain javaScript object with properties listed below that override the default behavior of search.</p>
-		<h4 class="card-subtitle"><code>.caseSensitve <i class="text-info">Boolean</i></code></h4>
+		<h4 class="card-subtitle"><code><b>.caseSensitve <i class="text-info">Boolean</i></b></code></h4>
 		<p class="card-text">Defaults to <code>false</code>. Set to <code>true</code> for case sensitive searches.</p>
-		<h4 class="card-subtitle"><code>.full <i class="text-info">Boolean</i></code></h4>
+		<h4 class="card-subtitle"><code><b>.full <i class="text-info">Boolean</i></b></code></h4>
 		<p class="card-text">Defaults to <code>false</code> for partial matching. Set to <code>true</code> for full matching.</p>
 		<p class="card-text">A partial match is a match of the lexicon entry's full lexeme against the initial characters of the <i>lexeme</i> argument, but not the other way around.</p>
 		<p class="card-text">A full match matches all the characters in the <i>lexeme</i> argument against the lexicon entry with no characters leftover.</p>
-		<h4 class="card-subtitle"><code>.lax <i class="text-info">Boolean</i></code></h4>
+		<h4 class="card-subtitle"><code><b>.lax <i class="text-info">Boolean</i></b></code></h4>
 		<p class="card-text">Applies to partial matching. Defaults to <code>false</code>. Set to <code>true</code> to return partial matches even if the next character in the <i>lexeme</i> argument does not match the separator or end of string.</p>
-		<h4 class="card-subtitle"><code>.longest <i class="text-info">Boolean</i></code></h4>
+		<h4 class="card-subtitle"><code><b>.longest <i class="text-info">Boolean</i></b></code></h4>
 		<p class="card-text">Defaults to <code>false</code>. Set to <code>true</code> to return the longest match. Only applicable when <code>full</code> is set to <code>false</code> for partial matching.</p>
-		<h4 class="card-subtitle"><code>.regex <i class="text-info">RegExp</i></code></h4>
+		<h4 class="card-subtitle"><code><b>.regex <i class="text-info">RegExp</i></b></code></h4>
 		<p class="card-text">Defaults to <code>false</code>.  May be set to any regular expression. Causes the text supplied in the lexeme argument to be matched against the regular expression without searching the lexicon for definitions. Instead <code>{fuzzy:true} </code> is provided as the tokens definition. </p>
-		<h4 class="card-subtitle"><code>.separator <i class="text-info">RegExp</i></code></h4>
+		<h4 class="card-subtitle"><code><b>.separator <i class="text-info">RegExp</i></b></code></h4>
 		<p class="card-text">Applies to partial matching. Defaults to <code>/^\s+/</code>, whitespace. May be set to any regular expression. For no separator, set to empty string. When <code>lax</code> is set to <code>false</code>, a potential partial match will only be considered a match if the next character in the <i>lexeme</i> argument matches the separator or is the end of string.</p>
 
 		<h3 class="card-subtitle"><code id="lexicon-unregister"><b>.unregister(<i>lexeme</i>[,definition])</b></code></h3>
