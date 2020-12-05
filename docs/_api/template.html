@@ -1,9 +1,9 @@
 <div class="card mt-4" id="template">
 	<div class="card-header">
-		<h1 class="text-info">.Template</h1>
+		<h1 class="text-info">.Template() | .Template``</h1>
 	</div>
 	<div class="card-body">
-		<p class="card-text">ISHML's text generation API facilitates the creation of complex text generation objects using a templating system based on JavaScript's <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals">template literal</a> notation. Specifically, <code>ishml.Template</code> is a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#Tagged_templates">tag function</a> that may be called with either template literal notation or standard function call notation. Instead of directly returning text, however, ishml.Template returns an instance of ishml.Phrase. The template defines the phrase; the phrase generates the text.  See the <a href="{{ site.baseurl }}{% link _tutorials/phrases1.html %}">text generation tutorial</a> for detailed examples of templates in use.</p>
+		<p class="card-text">ISHML's text generation API facilitates the creation of complex text generation objects using a templating system based on JavaScript's <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals">template literal</a> notation. Specifically, <code>ishml.Template</code> is a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#Tagged_templates">tag function</a> that may be called with either template literal notation or standard function call notation. Instead of directly returning text, however, <code>ishml.Template</code> returns an instance of <code>ishml.Phrase</code>. The template defines the phrase; the phrase generates the text.  See the <a href="{{ site.baseurl }}{% link _tutorials/phrases1.html %}">text generation tutorial</a> for detailed examples of templates in use.</p>
 		<p class="card-text">It is common practice to assign <code>ishml.Template</code> to the underscore variable to make the templates easier to read. The API documentation follows this convention.</p>
 		<p class="card-text">The built-in template prefixes require ishml.js. The English language prefixes require en-us.js.  </p>
 		<p class="card-text">Place the following scripts near the end of the HTML document, before the closing <code>&lt;/body&gt;</code> tag. Then add your own script below this script.</p>
@@ -46,9 +46,9 @@
 		<p class="card-text">Modifies a phrase to select each item of the phrase's array completely at random like rolling dice.  Meta-data <code>.index</code> and <code>.total</code> are available through the phrase's <code>.data</code> collection.</p>
 		<h3 id="series" class="card-subtitle"><code><b>.series</b></code></h3>
 		<p class="card-text">Modifies a phrase to select each item of the phrase's array in order. After each item has been selected in turn, the phrase then generates the empty string. Meta-data <code>.index</code> and <code>.total</code> are available through the phrase's <code>.data</code> collection.</p>
-		<h3 id="series" class="card-subtitle"><code><b>.shuffles</b></code></h3>
+		<h3 id="shuffle" class="card-subtitle"><code><b>.shuffle</b></code></h3>
 		<p class="card-text">Shuffles the items of the phrase's array.</p>	
-		<h3 id="series" class="card-subtitle"><code><b>.tags.<i>phrase id</i></b></code></h3>
+		<h3 id="tags" class="card-subtitle"><code><b>.tags.<i>phrase id</i></b></code></h3>
 		<p class="card-text">Returns the tagged phrase associated with the phrase id. See also the <code>.tag()</code> phrase suffix.</p>	
 
 
