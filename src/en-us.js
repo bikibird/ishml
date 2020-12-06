@@ -370,7 +370,7 @@ ishml.Phrase.define("s").as (precursor =>
 {
 	return precursor.modify(item=>
 	{
-		if (item.number===ishml.enum.number.singular){return item}
+		if (item.number===ishml.enum.number.singular){return item.value}
 		return ishml.lang.s(item.value)
 	})
 })
