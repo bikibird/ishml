@@ -79,7 +79,7 @@ ishml.lang.es=function(word)
 		v=>v.slice(0,-2)+"en",
 		v=>v+"ses",
 	]
-	var _trie=ishml.lang.vs.trie
+	var _trie=ishml.lang.es.trie
 	var pattern=("$"+word).split("").reverse().join("")
 	for (let letter of pattern) 
 	{
@@ -111,8 +111,7 @@ ishml.lang.ed=function(word)
 	var key=word.toLowerCase()
 	if(ishml.lang.ed.verbs.hasOwnProperty(key)){return ishml.lang.preserveCase(ishml.lang.ed.verbs[key],word)}
 
-	const rules=[v=>v+"ed", v=>v+v.charAt(v.length-1)+"ed", v=>v+"d", v=>v.slice(0,-1)+"ied", v=>v.slice(0,-3)+"ed", v=>v.slice(0,-1)+"d", v=>v+"t",  
-v=>v.slice(0,-1)+"t", v=>v.slice(0,-2)+"t", v=>v.slice(0,-3)+"t", v=>v.slice(0,-2)+"ade", v=>v.slice(0,-3)+"ade", v=>v.slice(0,-2)+"am", v=>v.slice(0,-3)+"ame", v=>v.slice(0,-2)+"an", v=>v.slice(0,-3)+"ang", v=>v.slice(0,-3)+"ank", v=>v.slice(0,-2)+"at", v=>v.slice(0,-3)+"ate", v=>v.slice(0,-4)+"aught", v=>v.slice(0,-3)+"ave", v=>v.slice(0,-2)+"aw", v=>v.slice(0,-2)+"ay", v=>v.slice(0,-2)+"did", v=>v.slice(0,-3)+"eld", v=>v.slice(0,-3)+"ell", v=>v.slice(0,-3)+"od", v=>v.slice(0,-2)+"ew", v=>v.slice(0,-1)+"ew", v=>v.slice(0,-3)+"ft", v=>v.slice(0,-1)+"id", v=>v.slice(0,-3)+"it", v=>v.slice(0,-2)+"lt", v=>v.slice(0,-2)+"pt", v=>v+"ked", v=>v+"n", v=>v.slice(0,-3)+"ode", v=>v.slice(0,-3)+"oke", v=>v.slice(0,-3)+"old", v=>v.slice(0,-3)+"ole", v=>v.slice(0,-2)+"on", v=>v.slice(0,-3)+"one", v=>v.slice(0,-3)+"ood", v=>v.slice(0,-3)+"ook", v=>v.slice(0,-3)+"ore", v=>v.slice(0,-3)+"se", v=>v.slice(0,-2)+"ot", v=>v.slice(0,-3)+"ote", v=>v.slice(0,-2)+"ought", v=>v.slice(0,-3)+"ought", v=>v.slice(0,-4)+"ought", v=>v.slice(0,-3)+"ound", v=>v.slice(0,-3)+"ove", v=>v.slice(0,-4)+"ove", v=>v.slice(0,-3)+"ose", v=>v.slice(0,-4)+"oze", v=>v.slice(0,-2)+"ug", v=>v.slice(0,-3)+"ught", v=>v.slice(0,-2)+"un", v=>v.slice(0,-3)+"ung", v=>v.slice(0,-3)+"uck", v=>v.slice(0,-4)+"uck", v=>v.slice(0,-3)+"unk", v=>v.slice(0,-2)+"went", v=>v.slice(0,-1), v=>v, v=>v.slice(0,-2)+"ied"]
+	const rules=[v=>v+"ed", v=>v+v.charAt(v.length-1)+"ed", v=>v+"d", v=>v.slice(0,-1)+"ied", v=>v.slice(0,-3)+"ed", v=>v.slice(0,-1)+"d", v=>v+"t", v=>v.slice(0,-1)+"t", v=>v.slice(0,-2)+"t", v=>v.slice(0,-3)+"t", v=>v.slice(0,-2)+"ade", v=>v.slice(0,-3)+"ade", v=>v.slice(0,-2)+"am", v=>v.slice(0,-3)+"ame", v=>v.slice(0,-2)+"an", v=>v.slice(0,-3)+"ang", v=>v.slice(0,-3)+"ank", v=>v.slice(0,-2)+"at", v=>v.slice(0,-3)+"ate", v=>v.slice(0,-4)+"aught", v=>v.slice(0,-3)+"ave", v=>v.slice(0,-2)+"aw", v=>v.slice(0,-2)+"ay", v=>v.slice(0,-2)+"did", v=>v.slice(0,-3)+"eld", v=>v.slice(0,-3)+"ell", v=>v.slice(0,-3)+"od", v=>v.slice(0,-2)+"ew", v=>v.slice(0,-1)+"ew", v=>v.slice(0,-3)+"ft", v=>v.slice(0,-1)+"id", v=>v.slice(0,-3)+"it", v=>v.slice(0,-2)+"lt", v=>v.slice(0,-2)+"pt", v=>v+"ked", v=>v+"n", v=>v.slice(0,-3)+"ode", v=>v.slice(0,-3)+"oke", v=>v.slice(0,-3)+"old", v=>v.slice(0,-3)+"ole", v=>v.slice(0,-2)+"on", v=>v.slice(0,-3)+"one", v=>v.slice(0,-3)+"ood", v=>v.slice(0,-3)+"ook", v=>v.slice(0,-3)+"ore", v=>v.slice(0,-3)+"se", v=>v.slice(0,-2)+"ot", v=>v.slice(0,-3)+"ote", v=>v.slice(0,-2)+"ought", v=>v.slice(0,-3)+"ought", v=>v.slice(0,-4)+"ought", v=>v.slice(0,-3)+"ound", v=>v.slice(0,-3)+"ove", v=>v.slice(0,-4)+"ove", v=>v.slice(0,-3)+"ose", v=>v.slice(0,-4)+"oze", v=>v.slice(0,-2)+"ug", v=>v.slice(0,-3)+"ught", v=>v.slice(0,-2)+"un", v=>v.slice(0,-3)+"ung", v=>v.slice(0,-3)+"uck", v=>v.slice(0,-4)+"uck", v=>v.slice(0,-3)+"unk", v=>v.slice(0,-2)+"went", v=>v.slice(0,-1), v=>v, v=>v.slice(0,-2)+"ied"]
 
 	var _trie=ishml.lang.ed.trie
 	var pattern=("$"+word).split("").reverse().join("")
