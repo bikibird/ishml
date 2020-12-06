@@ -14,7 +14,7 @@
 		<h2 class="card-title">Methods</h2>	
 		<h3 class="card-subtitle" id="phrase-append"><code><b>.append(</b> <i class="text-info">CSS selector string</i>)</code></h3>
 		<p class="card-text">Append the contents of the <code>.text</code> property to the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML">innerHTML</a> of the document element specified in the CSS selector string. Returns the instance of <code>ishml.Phrase</code>.</p>
-		<h3 class="card-subtitle" id="phrase-htmlTemmplate"><code><b>.htmlTemplate()</b></code></h3>
+		<h3 class="card-subtitle" id="phrase-htmlTemplate"><code><b>.htmlTemplate()</b></code></h3>
 		<p class="card-text">Creates an <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template">HTML Content Template element</a> from the contents of the <code>.text</code> property. Returns the instance of <code>ishml.Phrase</code>.</p>
 		<h3 class="card-subtitle" id="phrase-populate"><code><b>.populate(<i>object</i>) <br>
 			.populate(<i>value1[, ...[, valueN]]</i>)<br>
@@ -28,7 +28,7 @@
 		<p class="card-text">Generates text. Optionally a seed number between zero (inclusive) and one (exclusive) may be provided to set the seed value for random text generations. Returns the instance of <code>ishml.Phrase</code>.  See the <a href="{{ site.baseurl }}{% link _tutorials/phrases1.html %}">text generation tutorial</a> for detailed examples. </p>
 		<h2>Static Methods</h2>
 		<h3 class="card-subtitle" id="phrase-define"><code><b>ishml.Phrase.define(</b> <i class="text-info">String</i>).as(Phrase Factory Function)</code></h3>
-		<p class="card-text">Defines a custom phrase suffix. See the <a href="{{ site.baseurl }}{% link _tutorials/phrases4.html %}">text generation tutorial</a> for a detailed example. </p>
+		<p class="card-text">Defines a custom phrase suffix. See the <a href="{{ site.baseurl }}{% link _tutorials/phrases4.html %}#suffix">text generation tutorial</a> for a detailed example. </p>
 	
 		<h2 class="card-title">Suffixes</h2>
 		<h3 id="phrase-also" class="card-subtitle"><code><b>.also</b></code></h3>
@@ -55,7 +55,7 @@
 		<p class="card-text">Applies the provided callback function to the items in the phrase's array to modify them. See the <a href="{{ site.baseurl }}{% link _tutorials/phrases4.html %}#modify">text generation tutorial</a> for a detailed example.</p>
 		<h3 class="card-subtitle" id="phrase-per"><code><b>.per(</b> <i class="text-info">String</i>)</code></h3>
 		<p class="card-text">Repeats a phrase for as many items as there are in the corresponding tagged phrase's array. See the <a href="{{ site.baseurl }}{% link _tutorials/phrases3.html %}#per">text generation tutorial</a> for a detailed example.</p>
-		<h3 id="es" class="card-subtitle"><code><b>.s</b></code></h3>
+		<h3 id="s" class="card-subtitle"><code><b>.s</b></code></h3>
 		<p class="card-text">Modifies a phrase to inflect each item (noun) in the phrase's array to plural form according to standard American English.</p>
 		<p>If using complex data and <code>.number</code> is set to <code>ishml.enum.number.singular</code>, the value is left uninflected.  If <code>.number</code> is set to <code>ishml.enum.number.plural</code> or omitted, the value is inflected to the plural form. See <a href="https://jsfiddle.net/bikibird/8p2yfwLg/46/" target="_blank">example</a>.</p>
 		<h3 class="card-subtitle" id="phrase-tag"><code><b>.tag(</b> <i class="text-info">String</i>)</code></h3>
