@@ -33,7 +33,7 @@ status: pending
 <h1>Saying Something</h1>
 <p>Now that we know a little about defining and populating phrases, let's generate some text.</p>
 <span class="badge badge-info">Listing 4</span>
-<iframe id="listing4" width="100%" height="320" src="//jsfiddle.net/bikibird/ohkpn7gu/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow"  title="Listing 4"></iframe>
+<iframe id="listing4" width="100%" height="330" src="//jsfiddle.net/bikibird/ohkpn7gu/embedded/html,js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow"  title="Listing 4"></iframe>
 
 <p>Examine the JavaScript in listing 4 above.  Phrases are evaluated by calling the phrase's <code>say()</code> method. This method updates the phrase's <code>text</code> property then returns the phrase. The first <code>console.log()</code> demonstrates accessing the generated text.  The second demonstrates generating and accessing the text in one statement.</p>
 <p>Phrases also provide methods for updating web pages. The <code>replace()</code> method takes a <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors">CSS selector string</a> as its argument. It replaces the contents of all elements in the HTML document that match the selector with the contents of the <code>.text</code> property. <code>append()</code> and <code>prepend()</code> work in a similar manner except that they append and prepend the selected elements' contents.  Click on the result tab above to see a live demonstration.</p>

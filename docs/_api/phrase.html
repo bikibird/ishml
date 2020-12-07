@@ -35,15 +35,15 @@
 		<p class="card-text">The .also suffix signals the start of another ishml.Phrase that will only be evaluated and appended if the preceding phrase returns at least one result. If the preceding phrase returns no results, the phrase associated with <code>.also</code> will be skipped. Although <code>.also</code> is technically a suffix in that it is a getter property for <code>ishml.Phrase</code> it returns a template prefix instead of an <code>ishml.Phrase</code>.  Therefore, it is acceptable to chain prefixes after .also. It is intended to pair with with the <code>.series</code> prefix.  See the <a href="{{ site.baseurl }}{% link _tutorials/phrases2.html %}#listing6">text generation tutorial</a> for a detailed example. </p>
 		<h3 class="card-subtitle" id="phrase-concur"><code><b>.concur(</b> <i class="text-info">callback function</i>)</code></h3>
 		<p class="card-text">Filters the phrase's array so that it conforms to the criteria of specified in the callback function. See the <a href="{{ site.baseurl }}{% link _tutorials/phrases3.html %}#concur">text generation tutorial</a> for a detailed example.</p>
-		<h3 id="ed" class="card-subtitle"><code><b>.ed</b></code></h3>
+		<h3 id="phrase-ed" class="card-subtitle"><code><b>.ed</b></code></h3>
 		<p class="card-text">Modifies a phrase to inflect each item (verb) in the phrase's array to past tense according to standard American English.</p>
-		<h3 id="en" class="card-subtitle"><code><b>.en</b></code></h3>
+		<h3 id="phrase-en" class="card-subtitle"><code><b>.en</b></code></h3>
 		<p class="card-text">Modifies a phrase to inflect each item (verb) in the phrase's array to <a href="https://www.dictionary.com/e/whats-a-participle/" target="_blank">past participle</a> according to standard American English.</p>
-		<h3 id="es" class="card-subtitle"><code><b>.es</b></code></h3>
+		<h3 id="phrase-es" class="card-subtitle"><code><b>.es</b></code></h3>
 		<p class="card-text">Modifies a phrase to inflect each item (verb) in the phrase's array to third person present tense according to standard American English. See <a href="https://jsfiddle.net/bikibird/8p2yfwLg/46/" target="_blank">example</a>.</p>
 		<h3 class="card-subtitle" id="phrase-first"><code><b>.first(</b> <i class="text-info">Integer</i>)</code></h3>
 		<p class="card-text">Limits the phrase's array to the first item in the array. Optionally, an integer may be provided to limit the array to the first n number of items specified. </p>
-		<h3 id="ing" class="card-subtitle"><code><b>.ing</b></code></h3>
+		<h3 id="phrase-ing" class="card-subtitle"><code><b>.ing</b></code></h3>
 		<p class="card-text">Modifies a phrase to inflect each item (verb) in the phrase's array to <a href="https://www.dictionary.com/e/whats-a-participle/" target="_blank">present participle</a> according to standard American English.</p>
 		<h3 class="card-subtitle" id="phrase-inner"><code><b>.inner</b> <i class="text-info">ishml.Phrase</i></code></h3>
 		<p class="card-text">The <code>.inner</code> For nested phrases composed by multiple prefixes and/or suffixes, returns the inner phrase as it existed prior to the application of outer phrase.  See the <a href="{{ site.baseurl }}{% link _tutorials/phrases1.html %}#inner">text generation tutorial</a> for an example of <code>.inner</code> in use.</p>
