@@ -22,33 +22,33 @@
 		<h2 class="card-title">Prefixes</h2>
 		<p class="card-text">The baseline template also exposes a collection of additional templates through its properties. These templates are called prefixes and modify the default text generation behavior. Prefixes work a bit differently than standard functions. An unlimited number of prefixes may by chained together with dot notation to apply layer upon layer of modifications. However, only the last prefix in the chain takes arguments.  This last prefix generates a <a href="#phrase"><code>ishml.Phrase</code></a> and then that phrase is passed as the argument to the next to last prefix in the chain, which generates a new phrase.  The process continues all the way up to the front of the chain. Therefore, prefixes are applied from right to left starting with the prefix closest to the left parenthesis or backtick. Chaining permits the creation of complex phrases from an uncluttered single line of code.</p>
 		<p class="card-text">See the <a href="{{ site.baseurl }}{% link _tutorials/phrases1.html %}">text generation tutorial</a> for examples of prefix chaining.</p>
-		<h3 id="a" class="card-subtitle"><code><b>.a</b></code></h3>
+		<h3 id="template-a" class="card-subtitle"><code><b>.a</b></code></h3>
 		<p class="card-text">Modifies a phrase to prepend an indefinite article, <q>a</q> or <q>a</q>, of each item in the phrase's array based on whether the item is pronouced with an initial vowel sound according to standard American English. The <code>.a</code> is identical to <code>.an</code>.</p>
-		<h3 id="aCap" class="card-subtitle"><code><b>.A</b></code></h3>
+		<h3 id="template-aCap" class="card-subtitle"><code><b>.A</b></code></h3>
 		<p class="card-text">Modifies a phrase to prepend a capitalized indefinite article, <q>A</q> or <q>An</q>, of each item in the phrase's array based on whether the item is pronouced with an initial vowel sound according to standard American English. The <code>.A</code> is identical to <code>.An</code>.</p>
-		<h3 id="an" class="card-subtitle"><code><b>.an</b></code></h3>
+		<h3 id="template-an" class="card-subtitle"><code><b>.an</b></code></h3>
 		<p class="card-text">Modifies a phrase to prepend an indefinite article, <q>a</q> or <q>an</q>, of each item in the phrase's array based on whether the item is pronouced with an initial vowel sound according to standard American English. The <code>.an</code> prefix is identical to <code>.a</code>.</p>
-		<h3 id="anCap" class="card-subtitle"><code><b>.An</b></code></h3>
+		<h3 id="template-anCap" class="card-subtitle"><code><b>.An</b></code></h3>
 		<p class="card-text">Modifies a phrase to prepend a capitalized indefinite article, <q>A</q> or <q>An</q>, of each item in the phrase's array based on whether the item is pronouced with an initial vowel sound according to standard American English. The <code>.An</code> prefix is identical to <code>.A</code>.</p>
-		<h3 id="cap" class="card-subtitle"><code><b>.cap</b></code></h3>
+		<h3 id="template-cap" class="card-subtitle"><code><b>.cap</b></code></h3>
 		<p class="card-text">Modifies a phrase to capitalizes the first letter of each item in the phrase's array.</p>
 		<h3 id="cycle" class="card-subtitle"><code><b>.cycle</b></code></h3>
 		<p class="card-text">Modifies a phrase to select each item of the phrase's array in order. After each item has been selected in turn, the phrase resets again with the first item. Meta-data <code>.index</code>, <code>.total</code>, and <code>.reset</code> are available through the phrase's <code>.data</code> collection.</p>
-		<h3 id="favor" class="card-subtitle"><code><b>.favor</b></code></h3>
+		<h3 id="template-favor" class="card-subtitle"><code><b>.favor</b></code></h3>
 		<p class="card-text">Modifies a phrase to select each item of the phrase's array in decreasing likelihood. For example, in an array with 5 elements, the first element is 5 times more likely to be selected than the last element, the second element is 4 times more likely than the last, and so on. Mathmatically, the odds of selecting the element at index i of an array of length n is ( n - i ) out of n * ( n + 1 ) / 2. In an array with 5 elements, this translates to odds of 5:15, 4:15, 3:15, 2:15, and 1:15 for each element respectively.  Meta-data <code>.index</code> and <code>.total</code> are available through the phrase's <code>.data</code> collection.</p>	
-		<h3 id="list" class="card-subtitle"><code><b>.list</b></code></h3>
+		<h3 id="template-list" class="card-subtitle"><code><b>.list</b></code></h3>
 		<p class="card-text">Modifies a phrase to join the contents of the phrase's array into an Oxford comma list of items.</p>
-		<h3 id="pick" class="card-subtitle"><code><b>.pick</b></code></h3>
+		<h3 id="template-pick" class="card-subtitle"><code><b>.pick</b></code></h3>
 		<p class="card-text">Modifies a phrase to select each item of the phrase's array at random. If the element selected is the same as the previously selected element, the next element in the array is chosen. This prevents the same element from being selected twiced in a row.  Meta-data <code>.index</code> and <code>.total</code> are available through the phrase's <code>.data</code> collection.</p>	
-		<h3 id="pin" class="card-subtitle"><code><b>.pin</b></code></h3>
+		<h3 id="template-pin" class="card-subtitle"><code><b>.pin</b></code></h3>
 		<p class="card-text">Prevent the reset signal from <code>.cycle</code> from propagating down the the prefix chain. Often paired with <code>.shuffle</code> and <code>.cycle</code>to prevent a phrase from reshuffling everytime <code>.cycle</code> resets. May also be used to pin the random prefixes, <code>favor</code>, <code>pick</code>, and <code>roll</code> to their first selection</p>	
-		<h3 id="roll" class="card-subtitle"><code><b>.roll</b></code></h3>
+		<h3 id="template-roll" class="card-subtitle"><code><b>.roll</b></code></h3>
 		<p class="card-text">Modifies a phrase to select each item of the phrase's array completely at random like rolling dice.  Meta-data <code>.index</code> and <code>.total</code> are available through the phrase's <code>.data</code> collection.</p>
-		<h3 id="series" class="card-subtitle"><code><b>.series</b></code></h3>
+		<h3 id="template-series" class="card-subtitle"><code><b>.series</b></code></h3>
 		<p class="card-text">Modifies a phrase to select each item of the phrase's array in order. After each item has been selected in turn, the phrase then generates the empty string. Meta-data <code>.index</code> and <code>.total</code> are available through the phrase's <code>.data</code> collection.</p>
-		<h3 id="shuffle" class="card-subtitle"><code><b>.shuffle</b></code></h3>
+		<h3 id="template-shuffle" class="card-subtitle"><code><b>.shuffle</b></code></h3>
 		<p class="card-text">Shuffles the items of the phrase's array.</p>	
-		<h3 id="tags" class="card-subtitle"><code><b>.tags.<i>String</i></b></code></h3>
+		<h3 id="template-tags" class="card-subtitle"><code><b>.tags.<i>String</i></b></code></h3>
 		<p class="card-text">Returns the tagged phrase associated with the phrase id provide. See also the <a href="#phrase-tag"><code>.tag()</code></a> phrase suffix.</p>	
 		<h2>Static Methods</h2>
 		<h3 class="card-subtitle" id="template-define"><code><b>ishml.Template.define(</b> <i class="text-info">String</i>).as(Phrase Factory Function)</code></h3>
