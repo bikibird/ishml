@@ -4,16 +4,18 @@
     <div class="container">
       <h1 class="text-center display-4">ISHML for Interactive Fiction</h1>
       <p class="lead">ISHML stands for Interactive Story grapH Management Library, but call it "Ishmael." It's a JavaScript library that facilitates writing <a href="https://iftechfoundation.org/frequently-asked-questions/">interactive fiction</a> (text adventure) applications for modern web browsers. The ISHML library has straightforwardly named properties and methods, many of which are chainable. Code written with ISHML is highly readable and intuitive.</p>
-      <p>Eventually, ISHML will address all aspects of creating interactive fiction. For now, though, ISHML is just a really flexible and powerful parser that integrates easily into your projects.</p>
+      <p>Eventually, ISHML will address all aspects of creating interactive fiction. For now, though, ISHML is just a really flexible and powerful parser and text generation system that integrates easily into your projects.</p>
       <p>It's <a href="https://github.com/bikibird/ishml">open source</a> and licensed under the <a href="https://raw.githubusercontent.com/bikibird/ishml/master/LICENSE">ISC license.</a></p>
     </div>
  </section>
  <section class="m4" id="quickstart">
   <div class="container">
    <h1>Getting Started</h1>
-    <p>Place the following script near the end of the HTML document, before the closing <code>&lt;/body&gt;</code> tag. Then add your own script below this script.</p>
+    <p>Place the following scripts near the end of the HTML document, before the closing <code>&lt;/body&gt;</code> tag. Then add your own script below this script.</p>
     <p><code>&lt;script src="{{ site.ishml }}"&gt;&lt;/script&gt;</code></p>
-    <p>The <a href="{{ site.baseurl }}{% link _tutorials/parsing1.html %}">parsing tutorial</a> explains how to use the library. </p>
+    <p><code>&lt;script src="{{ site.en_us }}"&gt;&lt;/script&gt;</code></p>
+    <p>The <a href="{{ site.baseurl }}{% link _tutorials/phrases1.html %}">text generation tutorial</a> explains how to generate text. </p>
+    <p>The <a href="{{ site.baseurl }}{% link _tutorials/parsing1.html %}">parsing tutorial</a> explains how to use create a parser. </p>
     <p>The <a href="{{ site.baseurl }}{% link api.html %}">API reference</a> documents all features.</p>
     <p>Contact: I am @bikibird on <a href="https://intfiction.org">https://intfiction.org</a>. I'd love to hear about anything you build with ISHML.</p>
    </div>
