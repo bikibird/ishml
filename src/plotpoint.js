@@ -12,7 +12,7 @@ ishml.Plotpoint = function Plotpoint(yarn, id,summary)
 		
 		this.points[this.uid]=this
 
-		return this
+		return new Proxy(this,ishml.Plotpoint.handler)
 	}
 	else 
 	{
@@ -20,7 +20,6 @@ ishml.Plotpoint = function Plotpoint(yarn, id,summary)
 	}
 }
 Object.defineProperty(ishml.Plotpoint.prototype, "points", {value:{},writable: true})
-//Object.defineProperty(ishml.Plotpoint.prototype, "subplot", { get: function() { return Object.values(this)}})
 ishml.Plotpoint.prototype[Symbol.iterator]=function(){return Object.values(this)[Symbol.iterator]()}
 ishml.Plotpoint.prototype.add = function (id,summary)
 {
@@ -35,20 +34,6 @@ ishml.Plotpoint.prototype.add = function (id,summary)
 	this[id] = plotpoint
 	return this
 }
-
-/*ishml.Plotpoint.prototype.addAction = function (id,summary)
-{
-	this.add(id,summary)
-	var action=this[id]
-	
-	action.add("frame").add("do").add("report")
-	action.frame.add("before").add("stock").add("after")
-	action.do.add("before").add("stock").add("after")
-	action.report.add("before").add("stock").add("after")
-
-	return this
-}*/	
-
 
 ishml.Plotpoint.prototype.heed = function (aDocumentSelector)
 {
@@ -104,30 +89,16 @@ ishml.Plotpoint.prototype.narrateSubplot = function (twist)
 	}
 	return null
 }
-/*ishml.Plotpoint.prototype.perform = function (twist) 
+ishml.Plotpoint.handler=
 {
-	this.subplot.perform(twist)
-	return this
-	
+	get: function(target, property,receiver) 
+	{
+		if (Reflect.has(target,property)){return Reflect.get(target,property,receiver)}
+		else 
+		{
+			//magic plotpoint
+			target[property]=new ishml.Plotpoint(target.yarn,property,property)
+			return target[property]
+		}
+	}
 }
-ishml.Plotpoint.prototype.ponder = function (twist) 
-{
-	this.subplot.ponder(twist)
-	return this
-	
-}
-ishml.Plotpoint.prototype.resolve = function (twist) 
-{
-	this.subplot.resolve(twist)
-	return this
-	
-}*/
-
-
-
-ishml.Plotpoint.prototype.episode = function (...args) 
-{
-	//Arguments must be serializable or cannot save episode (for repeating episodes) as part of game state.
-	var episode={plotpoint:this,arguments:args} 
-	return episode
-}	
