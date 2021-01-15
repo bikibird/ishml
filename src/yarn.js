@@ -2,16 +2,18 @@ ishml.Yarn=function Yarn(seed)
 {
 	if (this instanceof Yarn)
 	{
-		this.storyline =[]  //Event queue
-		this.ticks = 0
+		this.storyline ={}  //Episode queue
+		this.history=[]
+		this.clock = new Date()
+		this.interval = 1000
 		this.turn =1
 		this.plot= new ishml.Plotpoint(this)
 		this.lexicon=null
 		this.grammar =null
 		this.parser=null
 		this.translator= null
-		this.viewpoint="2nd person singular"
-		this.setting="present"
+		this.viewpoint=ishml.enum.viewpoint.second.singular
+		this.tense=ishml.enum.tense.present
 
 		//ishml.util.reseed(seed)  --DEFECT
 		this.net=new ishml.Knot("$")
@@ -45,20 +47,21 @@ ishml.Yarn.prototype.click=function(e)
 {
 	if (e.target.matches('.ishml-choice'))
 	{
-		var plotpoint=this.plot.points[e.target.dataset.plot]||this.plot[e.target.dataset.plot]||this.plot
-		this.introduce(plotpoint.episode(e.target.dataset))
-		this.tell()
+		var episode =ishml.Episode(e.target.dataset,this)()
+		episode.input=e.target.value
+		episode.narrate()
 	}
 }
 ishml.Yarn.prototype.keyup=function(e)
 {
+
 	if (e.target.matches('.ishml-input'))
 	{
 		if (e.keyCode===13)
 		{
-			var plotpoint=this.plot.points[e.target.dataset.plot]||this.plot[e.target.dataset.plot]||this.plot
-			this.introduce(plotpoint.episode(Object.assign({input:e.target.value}, e.target.dataset)))
-			this.tell()
+			var episode =ishml.Episode(e.target.dataset,this)
+			episode.input=e.target.value
+			episode.narrate()
 		}
 	}
 }
@@ -345,22 +348,31 @@ ishml.Yarn.prototype.save=function(key)
 		}	 
 	})	
 }
-ishml.Yarn.prototype.tell=function() 
+ishml.Yarn.prototype.tell=function(viewpoint="player") 
 {
-
-	while (this.storyline.length>0)
+	while(this.storyline[viewpoint].some(episode=>!episode.concluded ))
 	{
-		var {episode,options}=this.storyline.shift()
-	//	var untimely=[]
-		episode.plotpoint.narrate(...episode.arguments)
+		Object.keys(this.storyline).forEach(actor=>
+		{
+			this.storyline[actor].filter(episode=>!episode.concluded && episode.moment <= this.clock ).forEach(episode=>
+			{
+				episode.resolution(episode)
+			})
+		})
+		this.tick()
 	}	
 	this.turn++
 	return this
 }
 
-ishml.Yarn.prototype.introduce=function(episode,options) 
+ishml.Yarn.prototype.introduce=function(episode) 
 {
-	this.storyline.push({episode:episode, options:options})
+	if (!this.storyline.hasOwnProperty(episode.actor))
+	{
+		this.storyline[episode.actor]=[]
+	}
+
+	this.storyline[episode.actor].push(episode)
 	return this
 }	
 
@@ -446,6 +458,10 @@ ishml.Yarn.prototype.stringify=function()
 		knotArray.push(safeKnot)
 	})
 	return JSON.stringify({knots:knotArray,plies:plyArray,seed:ishml.util._seed})
+}
+ishml.Yarn.prototype.tick=function(interval)
+{
+	this.clock=this.clock + (interval ?? this.interval)
 }
 ishml.Yarn.prototype.yarnify=function(savedGame)
 {
