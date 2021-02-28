@@ -49,28 +49,35 @@ ishml.Template.define("cycle").as((...data)=>
 		}
 		generate()
 		{
-			if (this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
+			if (this.phrases.length===0)
 			{
-				var results=super.generate()
-				var total=this.results.length
-				results=results.slice(counter,counter+1)
+				this.results=[]
+				this.results[0]={value:"",index:0, total:0, reset:true}
+				this.text=""
+				var total=0
 			}
 			else
-			{
-				var results=super.generate(this.phrases.slice(counter,counter+1))
-				var total=this.phrases.length
-			}
-			if(results.length===1)
-			{
+			{	
+				if (this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
+				{
+					var results=super.generate()
+					var total=this.results.length
+					results=results.slice(counter,counter+1)
+				}
+				else
+				{
+					var results=super.generate(this.phrases.slice(counter,counter+1))
+					var total=this.phrases.length
+				}
 				Object.assign(results[0],{index:counter, total:total, reset:counter===total-1})
 				this.results=results
 				this.text=results[0].value
-			}
+			}	
 			counter++
-			if (counter===total)
+			if (counter===total || total===0)
 			{
 				counter=0
-				this._reset()
+				this.reset()
 			}
 			return this.results
 		}
@@ -172,7 +179,7 @@ ishml.Template.define("refresh").as((...precursor)=>
 	{
 		generate()
 		{
-			this._reset()
+			this.reset()
 			super.generate()
 			return this.results
 		}
@@ -267,9 +274,9 @@ ishml.Template.define("series").as((...data)=>
 			}
 			return this.results
 		}
-		_reset()
+		reset()
 		{
-			super._reset()
+			super.reset()
 			ended=false
 			counter=0
 			return this
@@ -300,9 +307,9 @@ ishml.Template.define("shuffle").as((...data)=>
 			super.populate(literals, ...expressions)
 			reshuffle=true
 		}
-		_reset()
+		reset()
 		{
-			super._reset()
+			super.reset()
 			reshuffle=true
 			return this
 		}
@@ -330,11 +337,11 @@ ishml.Template.define("pin").as((...data)=>
 			
 			return this.results
 		}
-		_reset()
+		reset()
 		{
 			if(pin)
 			{
-				super._reset()
+				super.reset()
 			}
 		}
 	}(...data)

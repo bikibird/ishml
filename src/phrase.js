@@ -47,6 +47,34 @@ ishml.Phrase =class Phrase
 		targetNodes.forEach(node=>node.append(this.htmlTemplate().content))
 		return this
 	}
+	cache(id)
+	{
+		var cache= new class cachePhrase extends ishml.Phrase
+		{
+			generate()
+			{
+				super.generate()
+				this.text=this.inner.text
+				this.results=this.inner.results
+				return this.results
+			}
+			constructor(...precursor)
+			{
+				super(...precursor)
+				this.id=id
+				this.catalog()
+				Object.defineProperty(this,"data",{value:null,writable:true})
+				return this
+			}
+			populate(data)
+			{
+				this.data=data
+				return this
+			}
+		}(this)
+		//cache.id=id
+		return cache
+	}
 	concur(condition)
 	{
 		if (typeof condition ==="function"){var rule=condition}
@@ -387,11 +415,11 @@ ishml.Phrase =class Phrase
 		var targetNodes = document.querySelectorAll(documentSelector)
 		targetNodes.forEach(node=>node.prepend(this.htmlTemplate().content))
 	}
-	_reset()
+	reset()
 	{ 
 		this.phrases.forEach(phrase=>
 		{
-			if(phrase.value instanceof ishml.Phrase){phrase.value._reset()}	
+			if(phrase.value instanceof ishml.Phrase){phrase.value.reset()}	
 		})
 		return this
 	}

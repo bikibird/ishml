@@ -355,13 +355,47 @@ ishml.Template.define("list").as((...data)=>
 	{
 		constructor(...data)
 		{
-			super(ishml.Template`${ishml.Template.cycle().tag("item")}${tags=>tags.item.data.index < tags.item.data.total-1 && tags.item.data.total>2?", ":""}${tags=>tags.item.data.index===0 && tags.item.data.total===2?" and ":""}${tags=>tags.item.data.index===tags.item.data.total-2 && tags.item.data.total>2?"and ":""}`.per("item").join())
+			super(ishml.Template`${ishml.Template.cycle().tag("items")}${tags=>tags.items.data.index < tags.items.data.total-1 && tags.items.data.total>2?", ":""}${tags=>tags.items.data.index===0 && tags.items.data.total===2?" and ":""}${tags=>tags.items.data.index===tags.items.data.total-2 && tags.items.data.total>2?"and ":""}`.per("items").join())
 			this.populate(...data)
 			return this
 		}
 		populate(...data)
 		{
-			this.tags.item.populate(...data)
+			this.tags.items.populate(...data)
+			return this
+		}
+	}(...data)
+})
+ishml.Template.define("orList").as((...data)=>
+{
+	return new class listPhrase extends ishml.Phrase
+	{
+		constructor(...data)
+		{
+			super(ishml.Template`${ishml.Template.cycle().tag("items")}${tags=>tags.items.data.index < tags.items.data.total-1 && tags.items.data.total>2?", ":""}${tags=>tags.items.data.index===0 && tags.items.data.total===2?" or ":""}${tags=>tags.items.data.index===tags.items.data.total-2 && tags.items.data.total>2?"or ":""}`.per("items").join())
+			this.populate(...data)
+			return this
+		}
+		populate(...data)
+		{
+			this.tags.items.populate(...data)
+			return this
+		}
+	}(...data)
+})
+ishml.Template.define("norList").as((...data)=>
+{
+	return new class listPhrase extends ishml.Phrase
+	{
+		constructor(...data)
+		{
+			super(ishml.Template`${ishml.Template.cycle().tag("items")}${tags=>tags.items.data.index < tags.items.data.total-1 && tags.items.data.total>2?", ":""}${tags=>tags.items.data.index===0 && tags.items.data.total===2?" nor ":""}${tags=>tags.items.data.index===tags.items.data.total-2 && tags.items.data.total>2?"nor ":""}`.per("items").join())
+			this.populate(...data)
+			return this
+		}
+		populate(...data)
+		{
+			this.tags.items.populate(...data)
 			return this
 		}
 	}(...data)
@@ -374,6 +408,7 @@ ishml.Phrase.define("s").as (precursor =>
 		return ishml.lang.s(item.value)
 	})
 })
+ishml.Template.define("a").as((...data)=> ishml.Template(...data).modify(item=>`${ishml.lang.a(item.value)} ${item.value}`))
 ishml.Phrase.define("z").as(precursor =>precursor.modify(item=>ishml.lang.z(item.value)))
 
 var _=ishml.Template

@@ -2,7 +2,7 @@
 /*
 ISC License
 
-Copyright 2019-2020, Jennifer L Schmidt
+Copyright 2019-2021, Jennifer L Schmidt
 
 Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
 
@@ -27,4 +27,18 @@ ishml.enum.pos=
 	preposition:Symbol("preposition"),
 	suffix:Symbol("suffix"),
 	verb:Symbol("verb")
+}
+ishml.enum.tense=
+{
+	past:Symbol("past"),
+	present:Symbol("present"),
+	future:Symbol("future"),
+	perfect:Symbol("perfect"),
+	pluraperfect:Symbol("pluperfect")
+}
+ishml.enum.viewpoint=
+{
+	first:{singular:Symbol("first person singular"),plural:Symbol("first person plural")},
+	second:{singular:Symbol("second person singular"),plural:Symbol("second person plural")},		
+	third:{singular:Symbol("third person singular"),plural:Symbol("third person plural")}
 }
