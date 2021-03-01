@@ -10,7 +10,7 @@ title: Text Generation Part 3
 <p id="tag">The <code>.tag()</code> suffix allows us to attach a name to a phrase.  We first encountered tags in <a href="{{ site.baseurl }}{% link _tutorials/phrases1.html %}">part one</a>, where they were used to tag phrases for data population.  However, there are other uses for tagged phrases as well. Sub-phrases that are tagged with a name can be reused in a containing phrase and also provides access to additional properties for the sub-phrase. Examine the JavaScript in listing 1 below.</p>
 
 <span class="badge badge-info">Listing 1</span>
-<iframe id="listing1" width="100%" height="500" scrolling="no" src="//jsfiddle.net/bikibird/xa5wnmgh/embedded/js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow wrap" title="Listing 1"></iframe>
+<iframe id="listing1" width="100%" height="600" scrolling="no" src="//jsfiddle.net/bikibird/xa5wnmgh/embedded/js,result/?fontColor=ffffff&menuColor=17a2b8" frameborder="0" class="rounded shadow wrap" title="Listing 1"></iframe>
 
 <p>Tagged phrases are available for reuse via the <code>.tags</code> prefix.</p>
 
@@ -24,7 +24,7 @@ title: Text Generation Part 3
 <p>Alternatively, we can use parentheses to nest phrases and create tags at different levels of nesting. This is shown in <code>example3</code></p>
 <h2 id="cache">Cacheing data</h2>
 <p>Data population for standard tagged phrases expects the nesting of the sub-phrases to align with the structure of the incoming data. Recall that when <code>.populate</code> is called with an Object as an argument, the property keys of the Object are matched against the ID tags of the sub-phrases and the data contained in each matching property of the Object is sent to populate the corresponding sub-phrase. If the sub-phrase has its own tagged sub-phrases, the data object is further destructured and the corresponding sub-properties are applied to the sub-sub-phrases. This process of destructuring and applying continues to the innermost depths of the phrase.</p>
-<p>With standatd tags, if the data you are working with has a structure that doesn't align very well the phrase's structure, the data will not be matched properly.  Of course, you can remap the data to match the phrase, but sometimes it's easier to give the phrase the responsibility of parceling out the data to the sub-phrases.  This is done by creating a cache tag for the phrase. Like standard tags, cache tags provide a means of referring to data associated with the phrase, but unlike standard tags, the data is not automatically propogated.  Instead, arrow functions are used in the phrase's expressions to extract the phrase's data. </p>
+<p>With standard tags, if the data you are working with has a structure that doesn't align very well the phrase's structure, the data will not be matched properly.  Of course, you can remap the data to match the phrase, but sometimes it's easier to give the phrase the responsibility of parceling out the data to the sub-phrases.  This is done by creating a cache tag for the phrase. Like standard tags, cache tags provide a means of referring to data associated with the phrase, but unlike standard tags, the data is not automatically propagated.  Instead, arrow functions are used in the phrase's expressions to extract the phrase's data. </p>
 <p>Refer to <code>example4</code> above. The data, <code>{available:{animal:"cat"}}</code>, assigned to the phrase via <code>.populate</code>, is accessed through the <q>pet</q> tag using arrow functions.</p>
 
 <h2>Metadata</h2>
