@@ -309,11 +309,12 @@ $.room.kitchen.exit.north removes the exit north tie to foyer and returns north.
 
 $.room.kitchen.exit.north.untie()
 */
+		this.from[this.cordId].plies.delete(this)
 		delete this.from[this.cordId][this.id]
-		//delete cord[this.id]
 		var converse=this.converse
 		if (converse)
 		{
+			converse.from[converse.cordId].plies.delete(converse)
 			delete converse.from[converse.cordId][converse.id]
 		}
 		return this

@@ -28,6 +28,7 @@ ishml.Rule=function Rule()
 }
 ishml.Rule.prototype.clone =function()
 {
+	//DEFECTIVE
 	var circularReferences=new Set()
 
 	function _clone(rule)

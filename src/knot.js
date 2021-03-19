@@ -15,8 +15,9 @@ ishml.Knot= class Knot
 	constructor(id) //,uid)
 	{
 		Object.defineProperty(this, "id", {value:id,writable: true}) //local name
-		
-		return new Proxy(this,ishml.Knot.handler)
+		Object.defineProperty(this, "name", {value:id.replace("_"," "),writable: true}) //local name
+		Object.defineProperty(this, "description", {value:this.name,writable: true}) //local name
+		return this 
 	}
 	get cord()
 	{
@@ -29,18 +30,7 @@ ishml.Knot= class Knot
 		return new ishml.Ply(this.id,this)
 		
 	}
-/*	get tangle()
-	{
-		return new ishml.Tangle(this.ply)
-	}
-	get knots()
-	{
-		return new ishml.Tangle(this)
-	}
-	get plies()
-	{
-		return new ishml.Tangle(this.ply)
-	}*/
+
 	get cords()
 	{
 		
@@ -56,7 +46,7 @@ ishml.Knot= class Knot
 $.thing.cup.tie("cord:ply=otherCord:otherPly").to(otherKnot/otherPly) --converse relation converse === another ply
 $.thing.cup.tie("cord:ply-otherCord:otherPly").to(otherKnot/otherPly) --mutual relation converse === another ply, but when ply properties updated, other ply is updated automatically because both share the same properties object.
 $.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexive relation converse=== this ply.*/
-
+		var cordages=someCordage.flat(Infinity).map(cordage=>ishml.Cord.cordage[ishml.util.formatId(cordage)]??cordage).flat(Infinity)
 		var thisKnot=this
 		var tie=(from,to)=>
 		{
@@ -90,7 +80,7 @@ $.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexiv
 					var toKnot=new ishml.Knot(to)
 				}	
 			}
-			someCordage.forEach((cordage)=>
+			cordages.forEach((cordage)=>
 			{
 				//parse the cordage
 				var [fore,aft]=cordage.split(/[-=@]/)
@@ -175,14 +165,14 @@ $.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexiv
 	}
 
 }
-ishml.Knot.handler=
+/*ishml.Knot.handler=
 {
 	get: function(target, property,receiver) 
 	{
 		if (Reflect.has(target,property)){return Reflect.get(target,property,receiver)}
 		else {return new ishml.Cord()}
 	}
-}
+}*/
 
 
 

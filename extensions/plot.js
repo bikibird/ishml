@@ -1,240 +1,167 @@
-var plot = story.plot
 
-/*plot outline*/
-plot
-    .add("action","actions")
-    .add("scenes","scenes")
-	.add("main","input processing")
-	.add("scope","check whether subjects and objects are in scope.")
 
-plot.main
-    .add("prolog","before turn actions")
-    .add("dialog","input processing and response")
-    .add("epilog","after turn actions")
+/*input*/   
+plot.main.dialog.input.narration=_`<p>${_.favor(
+    _`You thoughts are fuzzy.  How does <q>${cache=>cache.remainder.data}</q> apply here?`,
+    _`Confusedly, you think <q>${cache=>cache.remainder.data}</q> to yourself.`,
+    _`You realize <q>${cache=>cache.remainder.data}</q> doesn't make any sense here once you say it out loud.`
+)}</p>`.cache("remainder")
 
-plot.main.dialog
-    .add("input", "process input")
-
-plot.scope
-    .add("subjectInRoom")
-    .add("directObjectInRoom")
-    .add("indirectObjectInRoom")
-    .add("subjectCarriesDirectObject")
-    .add("subjectCarriesDirectObjectImplied")
-    .add("subjectWearsDirectObject")
-    .add("subjectWearsDirectObjectImplied")
-    .add("subjectHasDirectObject")
-
-plot.scope.subjectHasDirectObject
-    .add(plot.scope.subjectCarriesDirectObject)
-    .add(plot.scope.subjectWearsDirectObject)
-
-    
-plot.action
-    .add("dropping","dropping action")
-    .add("equivocating","multiple interpretations of input")
-    .add("going","going action")
-    .add("gibbering","unsuccessful parse action")
-    .add("taking","taking  action")
-    .add("taking_from","taking  action")
-    .add("taking_to","taking  action")
-
-plot.action.dropping
-    .add(plot.scope.subjectHasDirectObject)
-    .add("perform")
-   
-/*narration*/   
-
-plot.main.dialog.input.narrate=function(twist)
+plot.main.dialog.input.unfold=function(twist)
 {
-    var results=this.yarn.parser.analyze(twist.input)
+    var episodes=[]
+    var results=story.parser.analyze(twist.input)
     if(results.success)
     {
         var interpretations=results.interpretations
-        twist.interpretations=interpretations.forEach(interpretation=>
+        interpretations.forEach(interpretation=>
         {
-            interpretation.gist.forEach(command=>
-            {
-                command.verb.slice(0).forEach(plotpoint=>
-                    {
-                       plotpoint.narrate(command)
-                       if (command.success)
-                       {
-                           interpretation.valid=true
-                       }
-                       else {interpretation.valid=false}
-    
-                    })
-
-            })
+            //console.log(interpretation)
+            interpretation.gist.actor=$.actor[twist.viewpoint].cord
+            interpretation.gist.viewpoint=twist.viewpoint
+            episodes=episodes.concat(interpretation.gist.verb.plot.unfold(interpretation.gist))
         })
-        if (interpretations.length===1)
+        if (episodes.length>0)
         {
-            var commands=interpretations[0].gist
-            commands.forEach(command=>
-            {
-                command.perform()
-            })
+
+            story.introduce(episodes[0])
+            story.tell(twist.viewpoint)
+        }    
+    }
+    else
+    {
+        if (results.interpretations?.[0].remainder.length>0)
+        {
+            plot.main.dialog.input.narration.populate(results.interpretations[0].remainder).say().append("#story")
+        }    
+        else
+        {
+            plot.main.dialog.input.narration.populate(twist.input).say().append("#story")
         }
     }    
     return {continue:true}
    
 }
-/*scopes*/
-plot.scope.subjectHasDirectObject.narrate=function(command)
-{
-    if (command.directObject)
-    {
-        if (command.directObject.isEmpty)
-        { 
-            command.salience=2
-            command.perform=()=>
-            {
-                this.yarn.say(`<p>You think about dropping something, but what?</p>`).last("#story")
-                
-            }
-            return this
-        }
 
-       var  droppable=command.directObject
-            .worn_by(command.subject)
-            .add(command.directObject.carried_by(command.subject))
-
-        if(droppable.isEmpty)
-        {
-            command.salience=2
-            command.perform=()=>
-            {
-                
-                this.yarn.say(`<p>You want to drop it, but you don't even have it.</p>`).last("#story")
-                
-            }
-            return this
-        }
-        
-        command.directObject=droppable
-        command.indirectObject=command.subject.map(subject=>subject.in)
-        command.salience=5
-       
-      
-    }
-    else 
-    {
-        command.salience=2
-            command.perform=()=>
-            {
-                this.yarn.say(`<p>You think about dropping something, but what?</p>`).last("#story")
-                
-            }
-        return this
-    } 
-}
 /*actions*/
-plot.action.dropping.narrate=function(command)
+plot.action.asking_to.narration.refuse=_`requet refused`
+plot.action.dropping.unfold=function(command)
 {
-    //is object being carried or worn by subject?
-
-   this.narrateSubplot(command)
-   
-   if (command.salience>=5)
-   {
-       console.log(command)
-        command.perform=()=>
-        {
-            console.log(command)
-            command.directObject=command.directObject
-                .cross(command.indirectObject).per((thing,place)=>thing.untie().tie(...cords.in).to(place).in(place))
-          /* this.yarn.say(`<p>You drop ${command.directObject.first(1).name}.</p>`).last("#story")
-
-            this.yarn
-                .say`blah blah ${command.directObject.ul(thing=>thing.a(thing.name).addClass("ishml-choice").data()).addClass("ishml=comman-list")}`
-                .last("#story")*/
-
-            this.yarn
-            .say(`You drop the 
-                <ol class="ishml-comma-list">
-                    ${command.directObject.recite(thing=>`<li><a class="ishml-choice">${thing.name}</a></li>
-                </ol>`)}`)
-            .last("#story")
-
-            yarn.say `You drop the <ol class="ishml-comma-list">`
-
-                command.directObject.say(thing=>`<li><a class="ishml-choice">${thing.name}</a></li>
-                </ol>`)
-            .last("#story")
-
-            `You drop the <ol class="ishml-comma-list">[<li><a class="ishml-choice">{name}</a></li>]</ol>`
-
-
-        }
-
-
-
-
-            
-
-
-            
-
-            
-        }
-   }    
-   return this 
-    
-
-    //is subject willing or the player?
-
-    
-}
-
-
-
-
-/*plot.action.taking.ponder=function(command)
-{
-    var subplot=this.subplot.ponder(command)
-    if (subplot.salience>0)
-    {
-        command.verb=subplot.plotpoints
-    }
-
+    //if object has skill represented by indirectObject.verb
 }    
-plot.action.taking.stock.ponder=function(command)
+
+plot.action.dropping.narration=_`<p>You dropped the ${cache=>_.list(cache.droppable.data.map(thing=>thing.knot.name))}.</p>`.cache("droppable")
+plot.action.dropping.unfold=function(command)
 {
-    console.log("pondering taking")
-    if (command.directObject)
-    {
-        if (command.directObject.isEmpty){ return {salience:1}}
 
-        var location=command.subject.map(subject=>subject.in)
-        var takeable=command.directObject
-            .where(thing=>thing.is.portable)
-            .cross(location) 
-            .per((thing,place)=>thing.in(place))
-            
-
-        if(takeable.isEmpty){return {salience:1}}
-
-        command.directObject=takeable
-        command.indirectObject=location
-
-        return {salience:5,plotpoints:[this]}
-    }
-    else {return {salience:0}} 
-
-}
-plot.action.taking.stock.perform=function(command)
-{
-    command.directObject=command.directObject
-    .cross(command.subject)
-    .per((thing,actor)=>thing.untie().tie(...cords.carries).from(actor).carried_by(actor))
+        command.droppable=command.directObject?.select().worn_by(command.subject.select())
+            .add(command.directObject?.select().carried_by(command.subject.select()))
+        command.notDroppable=command.directObject?.select().subtract(command.droppable)
+        command.actionable=command.subject.select().has_skill($.action.dropping)
+        command.notActionable=command.subject.select().subtract(command.actionable)
     
-        
+    var episodes=this.unfoldSubplot(command)
+    if (episodes.length===0 )
+    {
+        var episode=ishml.Episode()
+            .resolution(()=>
+            {
+                if (!command.silently) this.narration.populate(command.droppable).say().append("#story")
+                command.droppable.retie(cords.in).to(command.subject.select().in)
+            })
+            .salience(5)
+            .viewpoint(command.viewpoint)  
+    }
+    else
+    {
+        var stockEpisode=ishml.Episode()
+            .narration(()=>
+            {
+                if (!command.silently) this.narration.populate(command.droppable).say().append("#story")
+            })
+            .resolution(()=>command.droppable.retie(cords.in).to(command.subject.select().in))
+            .salience(5)
+            .viewpoint(command.viewpoint) 
+        var episode=episodes[0].stock({episode:stockEpisode,plot:plot.action.dropping})
+    }
+    return episode 
+   
 }
-
-plot.action.taking.stock.narrate=function(command)
+plot.action.dropping.revisions.unfold=function(command)
 {
-
-    this.yarn.say(`<p>You took it.</p>`).last("#story")
+    return this.unfoldSubplot(command)
 }
-*/
+plot.action.dropping.revisions.nothing.narration=_`<p>You think about dropping something, but what?</p>`
+plot.action.dropping.revisions.nothing.unfold=function(command)
+{
+    if(!command.directObject ||(command.droppable.isEmpty && command.notDroppable.isEmpty))
+    {
+        var episode=ishml.Episode()
+            .resolution(()=> this.narration.say().append("#story"))
+            .salience(3)   
+            .viewpoint(command.viewpoint)
+        return [episode]
+    }
+    return []     
+}  
+
+plot.action.dropping.revise.notDroppable.narration= _`<p>You ${_.pick("think about dropping","want to drop", "would drop")} the ${cache=>_.list(cache.notDroppable.data.map(thing=>thing.knot.name))}, but ${_.pick(_`you don't even have ${cache=>cache.notDroppable.data.them}`,_`${cache=>cache.notDroppable.data.they} ${cache=>cache.notDroppable.data.are}n't in your possession`)}.</p>`.cache("notDroppable")
+plot.action.dropping.revise.notDroppable.unfold=function(command)
+{
+    if (command.droppable.isEmpty && !command.notDroppable.isEmpty)
+    {
+        var episode=ishml.Episode()
+        .resolution(()=>this.narration.populate(command.notDroppable).say().append("#story"))
+        .salience(3)   
+        .viewpoint(command.viewpoint)
+       return [episode]
+    }
+    return []
+}
+
+plot.action.dropping.revise.notActionable.narration= _`Not actionable`.cache("notActionable")
+plot.action.dropping.revise.notActionable.unfold=function(command)
+{
+    if (command.actionable.isEmpty && !command.notActionable.isEmpty)
+    {
+        var episode=ishml.Episode()
+        .resolution(()=>this.narration.populate(command.notActionable).say().append("#story"))
+        .salience(3)   
+        .viewpoint(command.viewpoint)
+       return [episode]
+    }
+    return []
+}
+
+/*
+plot.action.dropping.revisions.persuasion.jane.narration.accept=_`Jane gave a sour look, but aquiesced.`
+plot.action.dropping.revisions.persuasion.jane.narration.reject=_`"How can you ask me to do such a stupid thing," replied Jane.`
+plot.action.dropping.revisions.persuasion.jane.unfold=function(command)
+{
+    if (command.subject?.select().equivalentKnots($.actor.jane))
+    {
+        if (!command.droppable.isEmpty)
+        {
+            var episode=()=>
+            {
+                this.narration.accept.say().append("#story")
+                command.silently=true
+                plot.action.dropping.unfold(command)
+            }  
+            episode.salience=5   
+            episode.viewpoint=command.viewpoint
+            return [episode]
+        }
+        else
+        {
+            var episodes=()=>
+            {
+                this.narration.reject.say().append("#story")
+            }  
+            episode.salience=5   
+            episode.viewpoint=command.viewpoint 
+        }    
+        return [episode]
+    }
+    return []
+}*/

@@ -1,14 +1,17 @@
-var story = story || new ishml.Yarn()  
+var story =ishml.Yarn
 var $ = story.net
 
-var cords={}
+var cords=ishml.Cord.cordage
 /*cords*/
+cords.action=["action@"]
 cords.actor=["actor@"]
 cords.carries=["carries-carried_by"]
 cords.closed=["openable@is:openable","closed@is:closed"]
-
+cords.commandable=["commandable@is:commandable"]
 cords.container=["container@is:container"]
+cords.contains=["contains=in"]
 cords.in=["in=contains"]
+
 
 cords.door=["door@is:door"]
 cords.down=["exit:down=exit:up"]
@@ -24,6 +27,8 @@ cords.northwest=["exit:northwest=exit:southeast"]
 cords.open=["openable@is:openable","open@is:open"]
 cords.place=["place@is"]
 cords.portable=["portable@is:portable"]
+cords.has_skill=["has_skill-skill_of"]
+
 cords.south=["exit:south=exit:north"]
 cords.southeast=["exit:southeast=exit:northwest"]
 cords.southwest=["exit:southwest=exit:northeast"]
@@ -121,7 +126,12 @@ There seems to be some sort of message scrawled in the sawdust on the floor." */
 //$thing.cup.tie("cord:alias=otherCord:otherAlias").to(otherKnot) --converse relation
 //$thing.cup.tie("cord:alias-otherCord:otherAlias").to(otherKnot) --mutual relation
 //$thing.cup.tie("cord:alias@otherCord:otherAlias").to(otherKnot) --reflexive relation
-    
+
+
+//jane.may.run 
+//running allowed jane
+//jane.has_skill.running
+//running.skill_of.jane
     
 /*$.thing.cup.tie("on<under").to($.thing.plate)   
 console.log($.green.describes)

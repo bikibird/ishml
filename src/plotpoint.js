@@ -1,22 +1,20 @@
-ishml.Plotpoint = function Plotpoint(yarn, id,summary)
+
+ishml.Plotpoint = function Plotpoint(id,summary)
 {
 	if (this instanceof ishml.Plotpoint)
 	{
 		Object.defineProperty(this, "id", {value:ishml.util.formatId(id),writable: true})
-		Object.defineProperty(this, "yarn", {value:yarn,writable: true})
-
-		Object.defineProperty(this, "narrate", {value:ishml.Plotpoint.prototype.narrateSubplot ,writable: true})
+		Object.defineProperty(this, "unfold", {value:ishml.Plotpoint.prototype.unfoldSubplot ,writable: true})
 
 		Object.defineProperty(this, "uid", {value:ishml.util.formatId(),writable: true})
-		Object.defineProperty(this, "_", {value:{},writable: true})
-		
+		Object.defineProperty(this, "narration", {value:_`${this.id}`,writable: true})
 		this.points[this.uid]=this
 
 		return new Proxy(this,ishml.Plotpoint.handler)
 	}
 	else 
 	{
-		return new Plotpoint(yarn, id,summary)
+		return new Plotpoint(id,summary)
 	}
 }
 Object.defineProperty(ishml.Plotpoint.prototype, "points", {value:{},writable: true})
@@ -29,7 +27,7 @@ ishml.Plotpoint.prototype.add = function (id,summary)
 	}
 	else 
 	{
-		var plotpoint = new ishml.Plotpoint(this.yarn, id,summary)
+		var plotpoint = new ishml.Plotpoint(id,summary)
 	}
 	this[id] = plotpoint
 	return this
@@ -37,7 +35,6 @@ ishml.Plotpoint.prototype.add = function (id,summary)
 
 ishml.Plotpoint.prototype.heed = function (aDocumentSelector)
 {
-	var yarn = this.yarn
 	var element = document.querySelector(aDocumentSelector)
 	var eventString = "click"
 	if (element)
@@ -65,7 +62,7 @@ ishml.Plotpoint.prototype.heed = function (aDocumentSelector)
 						text: e.target.value,
 						agent: (e.target.dataset.agent || "player"),
 						target: e.target,
-						grammar: yarn.grammar[e.target.dataset.grammar] || yarn.grammar.input
+						grammar: ishml.Yarn.grammar[e.target.dataset.grammar] || ishml.Yarn.grammar.input
 					}
 					e.target.value = ""
 					e.target.removeEventListener(eventString, handler)
@@ -79,15 +76,18 @@ ishml.Plotpoint.prototype.heed = function (aDocumentSelector)
 		})
 	}
 }
-//DOCUMENTATION:  Narrate should return false if twist not handled to allow siblings to have a chance at resolving. Return truthy value if plotpoint resolves twist. Returne object may return information to parent plotpoint, which the parent can use to determine whether it is successful. Twist may be modified, which also conveys info back to the parent.
-//
-ishml.Plotpoint.prototype.narrateSubplot = function (twist) 
+//DOCUMENTATION:  unfold should return false if twist not handled to allow siblings to have a chance at resolving. Return truthy value if plotpoint resolves twist. Returned object may return information to parent plotpoint, which the parent can use to determine whether it is successful. Twist may be modified, which also conveys info back to the parent.
+//DEFECT:moved to episodes
+
+ishml.Plotpoint.prototype.unfoldSubplot = function (twist) 
 {
+	var episodes=[]
 	for (plotpoint of Object.values(this))
 	{
-		if(plotpoint.narrate(twist)){break}
+		episodes=episodes.concat(plotpoint.unfold(twist))
 	}
-	return null
+	episodes=episodes.sort((a,b)=>b.salience()-a.salience())
+	return episodes
 }
 ishml.Plotpoint.handler=
 {
@@ -97,7 +97,7 @@ ishml.Plotpoint.handler=
 		else 
 		{
 			//magic plotpoint
-			target[property]=new ishml.Plotpoint(target.yarn,property,property)
+			target[property]=new ishml.Plotpoint(property,property)
 			return target[property]
 		}
 	}

@@ -7,7 +7,6 @@ ishml.Cord =class Cord extends Function
 		Object.setPrototypeOf(Cord, ishml.Cord.prototype)
 		Object.defineProperty(Cord,"id",{writable:true})
 		Object.defineProperty(Cord,"plies",{value:new Set(),writable:true})
-
 		members.forEach(member=>
 		{
 			if (member instanceof Set ||member instanceof ishml.Cord ||member instanceof Array)
@@ -147,6 +146,20 @@ ishml.Cord =class Cord extends Function
 	{
 		return this.plies.size===0
 	}
+	equivalentKnots(...someCord)
+	{
+		var knots=this.knots
+		var otherKnots = (new ishml.Cord(...someCord)).knots
+		if (knots.size===otherKnots.size)
+		{
+			return [...knots].every(knot=>otherKnots.has(knot))
+		}
+		else {return false}
+	}
+	get subsetOf()
+	{}
+	get supersetOf()
+	{}
 	get converse()
 	{
 		var cord = new ishml.Cord()
@@ -163,7 +176,8 @@ ishml.Cord =class Cord extends Function
 	}
 	delete(...plies)
 	{
-		plies.forEach((ply)=>
+		var cord=new ishml.Cord(...plies)
+		cord.forEach((ply)=>
 		{
 			if(ply instanceof ishml.Ply)
 			{
@@ -195,20 +209,69 @@ ishml.Cord =class Cord extends Function
 	{
 		this.plies.forEach(f)
 	}
+//grammar
+	get are()
+	{
+		var number=this.size
+		if (number>1){return "are"}
+		else
+		{
+			if (number===1)
+			{
+				var ply=[...this.plies][0]
+				if (ply.ply.quantity>1|| ply.knot.plural || ply.knot.quantity>1){return "are"}
+				else {return "is"}
+			}	
+		}
+		return "is"
+	}
+	get them()
+	{
+		var number=this.size
+		if (number>1){return "them"}
+		else
+		{
+			if (number===1)
+			{
+				var ply=[...this.plies][0]
+				if (ply.ply.quantity>1|| ply.knot.plural || ply.knot.quantity>1){return "them"}
+				else {return ply.knot.objectivePronoun ?? "it"}
+			}	
+		}
+		return "it"
+	}
+	get they()
+	{
+		var number=this.size
+		if (number>1){return "they"}
+		else
+		{
+			if (number===1)
+			{
+				var ply=[...this.plies][0]
+				if (ply.ply.quantity>1|| ply.knot.plural || ply.knot.quantity>1){return "they"}
+				else {return ply.knot.objectivePronoun ?? "it"}
+			}	
+		}
+		return "it"
+	}
 	has(ply)
 	{
 		if (this.plies.has(ply)){return true}
 		return false
 	}
+	hasKnot(knot)
+	{
+		return [...this.plies].some(ply=>ply.knot===knot)
+	}
+	
+	get knots()
+	{
+		return new Set([...this.plies].map(ply=>ply.knot))
+	}
 	map(map)
 	{
 		return [...this.plies].map(map)
-		//var cord = new ishml.Cord()
-		//for ( const a of this.plies)
-		//{
-		//		cord.add(map(a))
-		//}
-		//return cord
 	}
 	first(count=1)
 	{
@@ -300,101 +363,79 @@ ishml.Cord =class Cord extends Function
 	}
 	retie(...someCordage)
 	{
-		var from =(...fromKnots)=>
+		var from =(...fromCords)=>
 		{
-			var fromCord=fromKnots.flat(Infinity)
+			var fromCord= new ishml.Cord(...fromCords)
 
-			knots.forEach(k=>
+			fromCord.forEach(ply=>
 			{
-				if (k instanceof ishml.Knot)
+				this.forEach((toPly)=>
 				{
-					var knot=k
-				}
-				else
-				{
-					if (k instanceof ishml.Ply)
-					{
-						var knot=k.knot
-					}
-					else
-					{
-						var knot=new ishml.Knot(k)
-					}	
-				}
-				this.forEach((toKnot)=>
-				{
-		
-					knot.tie(...someCordage).to(toKnot)
+					ply.untie()
+					ply.knot.tie(...someCordage).to(toPly.Knot)
 				})	
 			})
 			return this	
 		}
-
-		var to = (...toKnots)=>
+		var to = (...toCords)=>
 		{
-			this.forEach((knot)=>
+			var toCord=new ishml.Cord(...toCords)
+			this.forEach((ply)=>
 			{
-				toKnots.forEach(toKnot=>
+				toCord.forEach(toPly=>
 					{
-						knot.tie(...someCordage).to(toKnot)
+						ply.untie()
+						ply.knot.tie(...someCordage).to(toPly.knot)
 					})
 			})
-			
 			return this
 		}
 		return {to:to, from:from}
+	}
+	subtract(...someKnots)
+	{
+		var a=new ishml.Cord(this)
+		var b=new ishml.Cord(someKnots).knots
+		a.forEach(ply=>
+		{
+			if(b.has(ply.knot))
+			{
+				delete a[ply.id]
+				a.plies.delete(ply)
+			}
+		})
+		return a
 	}
 	tie(...someCordage)
 	{
-		var from =(...fromKnots)=>
+		var from =(...fromCords)=>
 		{
-			var knots=fromKnots.flat(Infinity)
+			var fromCord= new ishml.Cord(...fromCords)
 
-			knots.forEach(k=>
+			fromCord.forEach(ply=>
 			{
-				if (k instanceof ishml.Knot)
+				this.forEach((toPly)=>
 				{
-					var knot=k
-				}
-				else
-				{
-					if (k instanceof ishml.Ply)
-					{
-						var knot=k.knot
-					}
-					else
-					{
-						var knot=new ishml.Knot(k)
-					}	
-				}
-				this.forEach((toKnot)=>
-				{
-		
-					knot.tie(...someCordage).to(toKnot)
+					ply.knot.tie(...someCordage).to(toPly.Knot)
 				})	
 			})
 			return this	
 		}
 
-		var to = (...toKnots)=>
+		var to = (...toCords)=>
 		{
-			this.forEach((knot)=>
+			var toCord=new ishml.Cord(...toCords)
+			this.forEach((ply)=>
 			{
-				toKnots.forEach(toKnot=>
+				toCord.forEach(toPly=>
 					{
-						knot.tie(...someCordage).to(toKnot)
+						ply.knot.tie(...someCordage).to(toPly.knot)
 					})
 			})
 			
 			return this
 		}
 		return {to:to, from:from}
-	}
-	retie(cordage)
-	{
-		//$.place.kitchen.contains.knife.retie("in<contains").to($.place.foyer)
-		this.untie()
-		return this.knot.tie(cordage)
 	}
 	untie()
 	{
@@ -405,6 +446,7 @@ ishml.Cord =class Cord extends Function
 		return this
 	}
 }
+ishml.Cord.cordage={}
 ishml.Cord.handler=
 {	
 	apply: function(target, thisArg, cords)

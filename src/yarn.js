@@ -1,38 +1,27 @@
-ishml.Yarn=function Yarn(seed) 
+ishml.Yarn=
 {
-	if (this instanceof Yarn)
-	{
-		this.storyline ={}  //Episode queue
-		this.history=[]
-		this.clock = new Date()
-		this.interval = 1000
-		this.turn =1
-		this.plot= new ishml.Plotpoint(this)
-		this.lexicon=null
-		this.grammar =null
-		this.parser=null
-		this.translator= null
-		this.viewpoint=ishml.enum.viewpoint.second.singular
-		this.tense=ishml.enum.tense.present
-
-		//ishml.util.reseed(seed)  --DEFECT
-		this.net=new ishml.Knot("$")
-		this.harken()
-		this.undo={}
-		this.undoLength=10
-		
-	}
-	else
-	{
-		return new Yarn(seed)
-	}	
+	storyline:{},  //Episode queue
+	history:[],
+	clock:new Date(),
+	interval: 60000,
+	turn:1,
+	plot:new ishml.Plotpoint(),
+	lexicon:null,
+	grammar:null,
+	parser:null,
+	//translator= null not Needed?
+	viewpoint:ishml.enum.viewpoint.second.singular,
+	tense:ishml.enum.tense.present,
+	//ishml.util.reseed(seed)  --DEFECT
+	net:new ishml.Knot("$"),
+	undoLength:10
 }
 
-ishml.Yarn.prototype.configure=function(options)
+ishml.Yarn.configure=function(options)
 {
 	//DEFECT TO DO seed, name, author, etc.
 }
-ishml.Yarn.prototype.harken=function()
+ishml.Yarn.harken=function()
 {
 	var state={dragging:false}
 	document.addEventListener('click', (e)=>this.click(e))
@@ -43,29 +32,52 @@ ishml.Yarn.prototype.harken=function()
 	document.addEventListener('transitionend', (e)=> this.transitionend(e,state))
 
 }
-ishml.Yarn.prototype.click=function(e)
+ishml.Yarn.click=function(e)
 {
 	if (e.target.matches('.ishml-choice'))
 	{
-		var episode =ishml.Episode(e.target.dataset,this)()
-		episode.input=e.target.value
-		episode.narrate()
+		//var episode =ishml.Episode(e.target.dataset,this)()
+		//episode.input=e.target.value
+		//episode.narrate()
+		var twist=Object.assign(
+			{
+				input:e.target.value,
+				viewpoint:"player",
+				moment:ishml.Yarn.clock
+			},e.target.dataset)
+
+		this.history.push(twist)
+		
+		var plotpoint=twist.plotpiont??ishml.Yarn.plot.points[twist.plot]??ishml.Yarn.plot[twist.plot]	
+		plotpoint.unfold(twist)
 	}
 }
-ishml.Yarn.prototype.keyup=function(e)
+ishml.Yarn.keyup=function(e)
 {
 
 	if (e.target.matches('.ishml-input'))
 	{
 		if (e.keyCode===13)
 		{
-			var episode =ishml.Episode(e.target.dataset,this)
-			episode.input=e.target.value
-			episode.narrate()
+			//var episode =ishml.Episode(e.target.dataset,this)
+			//episode.input=e.target.value
+			//episode.narrate()
+			var twist=Object.assign(
+				{
+					input:e.target.value,
+					viewpoint:"player",
+					moment:ishml.Yarn.clock
+				},e.target.dataset)
+	
+			this.history.push(twist)
+			
+			var plotpoint=twist.plotpiont??ishml.Yarn.plot.points[twist.plot]??ishml.Yarn.plot[twist.plot]	
+			plotpoint.unfold(twist)
+
 		}
 	}
 }
-ishml.Yarn.prototype.mousedown=function(e,state)
+ishml.Yarn.mousedown=function(e,state)
 {
 	if (e.target.matches('.ishml-draggable'))
 	{
@@ -87,7 +99,7 @@ ishml.Yarn.prototype.mousedown=function(e,state)
 		}
 	}
 }
-ishml.Yarn.prototype.mouseup=function(e,state)
+ishml.Yarn.mouseup=function(e,state)
 {
 	
 	if (state.dragging && !state.dragging.transitioning)
@@ -106,7 +118,7 @@ ishml.Yarn.prototype.mouseup=function(e,state)
 		state.dragging.transitioning=true
 	}
 }
-ishml.Yarn.prototype.mousemove=function(e,state)
+ishml.Yarn.mousemove=function(e,state)
 {
 	if (state.dragging && !state.dragging.clone.matches(".ishml-draggable-rejected"))
 	{
@@ -133,7 +145,7 @@ ishml.Yarn.prototype.mousemove=function(e,state)
 		state.dragging.clone.style.top=right
 	}
 }
-ishml.Yarn.prototype.transitionend=function(e,state)
+ishml.Yarn.transitionend=function(e,state)
 {
 	if(e.target===state.dragging.clone && state.dragging.transitioning )
 	{
@@ -146,24 +158,24 @@ ishml.Yarn.prototype.transitionend=function(e,state)
 			document.body.removeChild(state.dragging.clone)
 			state.dragging=false
 		}
-		//DEFECT missing storyline.introduce...
+		//DEFECT missing plotpoint.unfold etc ...
 	}
 }
 
-ishml.Yarn.prototype.dropHoverStart=function({draggable,dropbox})
+ishml.Yarn.dropHoverStart=function({draggable,dropbox})
 {
 	draggable.dataset.originalText=draggable.innerText
 	draggable.innerText=draggable.innerText + " " +dropbox.innerText
 	draggable.classList.add("ishml-draggable-hover")
 	dropbox.classList.add("ishml-dropbox-hover")
 }
-ishml.Yarn.prototype.dropHoverStop=function({draggable,dropbox})
+ishml.Yarn.dropHoverStop=function({draggable,dropbox})
 {
 	draggable.classList.remove("ishml-draggable-hover")
 	draggable.innerText=draggable.dataset.originalText
 	dropbox.classList.remove("ishml-dropbox-hover")
 }
-ishml.Yarn.prototype.dropCheck=function({draggable,dropbox})
+ishml.Yarn.dropCheck=function({draggable,dropbox})
 {
 	var plot=this.plot.points[draggable.dataset.plot]
 	if (plot)
@@ -175,7 +187,7 @@ ishml.Yarn.prototype.dropCheck=function({draggable,dropbox})
 	return false
 }
 		
-ishml.Yarn.prototype.say=function(aText)
+ishml.Yarn.say=function(aText)
 {	
 	if (typeof aText === 'string' || aText instanceof String)
 	{
@@ -255,7 +267,7 @@ ishml.Yarn.prototype.say=function(aText)
 }
 
 
-ishml.Yarn.prototype.recite=function(literals, ...expressions)
+ishml.Yarn.recite=function(literals, ...expressions)
 {
 
 		
@@ -269,7 +281,7 @@ ishml.Yarn.prototype.recite=function(literals, ...expressions)
 
 }
 
-ishml.Yarn.prototype.restore=function(key)
+ishml.Yarn.restore=function(key)
 {
 	var yarn = this
 	return new Promise(function(resolve, reject)
@@ -313,7 +325,7 @@ ishml.Yarn.prototype.restore=function(key)
 	})
 }	
 
-ishml.Yarn.prototype.save=function(key)
+ishml.Yarn.save=function(key)
 {
 	var yarn =this
 	
@@ -348,16 +360,26 @@ ishml.Yarn.prototype.save=function(key)
 		}	 
 	})	
 }
-ishml.Yarn.prototype.tell=function(viewpoint="player") 
+ishml.Yarn.tell=function(viewpoint="player") 
 {
-	while(this.storyline[viewpoint].some(episode=>!episode.concluded ))
+	while(this.storyline[viewpoint].length>0)
 	{
-		Object.keys(this.storyline).forEach(actor=>
+		Object.keys(this.storyline).forEach(viewpoint=>
 		{
-			this.storyline[actor].filter(episode=>!episode.concluded && episode.moment <= this.clock ).forEach(episode=>
+			this.storyline[viewpoint].forEach((episode,index)=>
 			{
-				episode.resolution(episode)
+				if (!episode.start() || episode.start() <= this.clock)
+				{
+					episode.resolve()
+					/*
+					
+					if(!episode.resolve())
+					{
+						this.storyline[viewpoint][index].concluded=true
+					}*/
+				}
 			})
+			this.storyline[viewpoint]=this.storyline[viewpoint].filter(episode=>(episode.stop() || episode.stop() > this.clock))
 		})
 		this.tick()
 	}	
@@ -365,20 +387,20 @@ ishml.Yarn.prototype.tell=function(viewpoint="player")
 	return this
 }
 
-ishml.Yarn.prototype.introduce=function(episode) 
+ishml.Yarn.introduce=function(episode) 
 {
-	if (!this.storyline.hasOwnProperty(episode.actor))
+	if (!this.storyline.hasOwnProperty(episode.viewpoint()))
 	{
-		this.storyline[episode.actor]=[]
+		this.storyline[episode.viewpoint()]=[]
 	}
 
-	this.storyline[episode.actor].push(episode)
+	this.storyline[episode.viewpoint()].push(episode)
 	return this
 }	
 
 /* A turn is a processing of all the episodes on the the storyline.  An episode is a plotpoint.narrate with bound arguments.*/ 
 
-ishml.Yarn.prototype.stringify=function()
+ishml.Yarn.stringify=function()
 {
 	var plies=new Map()
 	var plyPlies=new Map()
@@ -459,11 +481,11 @@ ishml.Yarn.prototype.stringify=function()
 	})
 	return JSON.stringify({knots:knotArray,plies:plyArray,seed:ishml.util._seed})
 }
-ishml.Yarn.prototype.tick=function(interval)
+ishml.Yarn.tick=function(ticks=1)
 {
-	this.clock=this.clock + (interval ?? this.interval)
+	this.clock.setTime(this.clock.getTime() + (this.interval*ticks))
 }
-ishml.Yarn.prototype.yarnify=function(savedGame)
+ishml.Yarn.yarnify=function(savedGame)
 {
 	var plies={}
 	var plyPlies={}
@@ -524,7 +546,7 @@ ishml.Yarn.prototype.yarnify=function(savedGame)
 	
 	return true
 }
-ishml.Yarn.prototype.retraction=function({seed,undo=()=>true,episode})
+ishml.Yarn.retraction=function({seed,undo=()=>true,episode})
 {
 	var retraction={seed:seed||ishml.util._seed,undo:undo,redo:episode}
 	if (!this.undo[this.turn])
@@ -538,7 +560,7 @@ ishml.Yarn.prototype.retraction=function({seed,undo=()=>true,episode})
 	}
 
 }
-ishml.Yarn.prototype.recant=function()
+ishml.Yarn.recant=function()
 {
 	[...Object.values(this.undo).shift()].reverse.forEach(retraction=>
 	{
@@ -549,7 +571,7 @@ ishml.Yarn.prototype.recant=function()
 	
 		
 }
-ishml.Yarn.prototype.reintroduce=function()
+ishml.Yarn.reintroduce=function()
 {
 	//redo the undo
 	

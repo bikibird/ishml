@@ -1,7 +1,7 @@
 /*lexicon*/
 var grammar = story.grammar || new ishml.Rule()
 var lexicon = story.lexicon || new ishml.Lexicon()
-var pb =story.phrasebook || {}
+var _ =ishml.Template  || {}
 lexicon
 
     //adjectives
@@ -21,7 +21,8 @@ lexicon
     .register("things").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing})
     .register("cup").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.cup})   
     .register("saucer").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.saucer})
-    .register("table").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.table})     
+    .register("table").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.table})  
+    .register("player").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.actor.player,role:"player"})   
 
     //particles
     .register("up").as({ key: "up", part: "particle" })
@@ -37,6 +38,8 @@ lexicon
     .register("next to", "beside").as({cord: "beside", part:"relation"})
 
     //verbs
+    .register("ask")
+        .as({plot:plot.action.asking_to, part: "verb", preposition:"to"} ) 
     .register("take","grab","steal")
         .as({plot:plot.action.taking, part: "verb" })
     .register("take")
@@ -45,7 +48,7 @@ lexicon
         .as({plot:plot.action.taking_from , part: "verb", preposition:"from" })    
     .register("pick")
         .as({plot:plot.action.taking, part: "verb", particle:"up"})    
-    .register("drop", "leave").as({ plot: plot.action.dropping, part: "verb", prepositions: [] })
+    .register("drop", "leave").as({ plot: plot.action.dropping, part: "verb", valence:1 })
     
     
     .register("save").as({key:"save", part: "system"})
@@ -56,48 +59,15 @@ lexicon
     .register("transcript").as({key:"transcript", part: "system"})
 
 /*grammar*/
-grammar.verb=ishml.Rule().configure(
-{
-    minimum:1,
-    filter: (definition)=>definition.part==="verb" 
-})
+
+grammar.command=ishml.Rule().snip("subject").snip("verb").snip("object")
 
 grammar.nounPhrase=ishml.Rule()
     .snip("article").snip("adjectives").snip("noun").snip("adjunct").snip("conjunct")
 
-grammar.nounPhrase.semantics=(interpretation)=>
-{
-    var gist=interpretation.gist
-    var cord=gist.noun.definition.select().cord
-    //filter existing noun plies by adjectives
-    if (gist.adjectives)
-    {
-        gist.adjectives.forEach(adjective=>
-        {
-            cord=cord.cross(adjective.definition.select())
-            .per((noun,adjective)=>noun.knot===adjective.knot)
-        })
-    }
-    if(gist.adjunct)
-    {
-        cord=gist.adjunct.nounPhrase.cord.cross(cord)
-            .per((adjunct,noun)=>noun.entwine({ply:adjunct.ply,via:gist.adjunct.relation.definition.cord}).aft)
-    } 
-    if (gist.conjunct)
-    {
-        cord=cord.add(gist.conjunct.nounPhrase.noun.definition.select()).disjoint
-       
-    }  
-
-    gist.cord=cord
-
-   return interpretation
-}
-
-
 grammar.nounPhrase.article.configure({minimum:0, filter:(definition)=>definition.part==="article"})
 
-grammar.nounPhrase.adjectives.configure({minimum:0, maximum:Infinity, separator:/^\s*,?and\s+|\s*,\s*|\s+/, 
+grammar.nounPhrase.adjectives.configure({minimum:0, maximum:Infinity, separator:/^\s*,?and\s+|^\s*,\s*|^\s+/, 
     filter:(definition)=>definition.part==="adjective"})
 grammar.nounPhrase.noun.filter=(definition)=>definition.part==="noun"
 
@@ -110,143 +80,141 @@ grammar.nounPhrase.adjunct.relation.configure({filter:(definition)=>definition.p
 grammar.nounPhrase.conjunct
     .configure({minimum:0})    
     .snip("conjunction").snip("nounPhrase",grammar.nounPhrase)
- 
 grammar.nounPhrase.conjunct.conjunction.configure({filter:(definition)=>definition.part==="conjunction"})
 
-grammar.object=ishml.Rule()
-    .configure({mode:ishml.enum.mode.any})
+grammar.preposition=ishml.Rule().configure({filter:(definition)=>definition.part==="preposition"})
+
+grammar.ioPhrase=ishml.Rule().configure({mode:ishml.enum.mode.any})
     .snip(1)
     .snip(2)
+grammar.ioPhrase[1].snip("recipient",grammar.nounPhrase)    
+grammar.ioPhrase[2].snip("command",grammar.command)
 
-grammar.object[1]
-    .snip("directObject",grammar.nounPhrase.clone()).snip("indirectObject")
+grammar.indirectObject=ishml.Rule().configure({minimum:0})
+    .snip("preposition",grammar.preposition).snip("phrase",grammar.ioPhrase)
 
-grammar.object[1].indirectObject
-    .configure({minimum:0})
-    .snip("preposition").snip("nounPhrase",grammar.nounPhrase.clone())
+grammar.command.subject
+.configure({minimum:0 })
+.snip("nounPhrase", grammar.nounPhrase.clone())
 
-grammar.object[1].indirectObject.preposition
-    .configure({filter:(definition)=>definition.part==="preposition"})
+grammar.command.subject.nounPhrase.noun
+.configure({separator:/^\s*,\s*|^\s+/})
 
-grammar.object[2].snip("indirectObject",grammar.nounPhrase.clone()).snip("directObject",grammar.nounPhrase.clone())
+grammar.command.verb.configure({filter: (definition)=>definition.part==="verb"})
 
-grammar.sentences=ishml.Rule()
-    .configure({maximum:Infinity, mode:ishml.enum.mode.any})
-    .snip("command")
-   // .snip("question")
-   // .snip("remark")
+grammar.command.object=ishml.Rule()
+.configure({minimum:0, mode:ishml.enum.mode.any})
+.snip(1)  //verbalParticle(required)/directObject/indirectObject
+.snip(2)  //directObject/verbal particle(optional)/indirectObject
+.snip(3)  //indirectObject/directObject
 
-grammar.sentences.command
-    .snip("subject").snip("predicate")
+grammar.command.object[1].snip("verbalParticle").snip("directObject",grammar.nounPhrase).snip("indirectObject",grammar.indirectObject)
+grammar.command.object[2].snip("directObject",grammar.nounPhrase).snip("verbalParticle").snip("indirectObject",grammar.indirectObject)
+grammar.command.object[3].snip("indirectObject",grammar.nounPhrase).snip("directObject",grammar.nounPhrase)
 
+grammar.command.object[1].verbalParticle.configure({filter:(definition)=>definition.part==="particle"})
+grammar.command.object[2].verbalParticle.configure({minimum:0,filter:(definition)=>definition.part==="particle"})
 
-grammar.sentences.command.subject
-    .configure({minimum:0 })
-    .snip("nounPhrase", grammar.nounPhrase.clone())
-   
-grammar.sentences.command.subject.nounPhrase.noun
-.configure({separator:/^\s*,\s*|\s+/})
-
-    
-grammar.sentences.command.predicate
-    .configure({mode:ishml.enum.mode.any})
-    .snip(1)
-    .snip(2)
-
-grammar.sentences.command.predicate.semantics=(interpretation)=>
+grammar.nounPhrase.semantics=(interpretation)=>
 {
     var gist=interpretation.gist
-    var vPreposition=gist.verb.definition.preposition
-    var vParticle=gist.verb.definition.particle
-    if (gist.hasOwnProperty("object"))
+    gist.select=()=>
     {
-        if (gist.object.hasOwnProperty("indirectObject"))
+        var cord=gist.noun.definition.select().cord
+        if (gist.adjectives)
         {
-            var ioPreposition=gist.object.indirectObject.preposition
-            if (ioPreposition)
+            gist.adjectives.forEach(adjective=>
             {
-                if (vPreposition)
-                {
-                    if (!(ioPreposition.definition.key===vPreposition))
-                    {return false}
-                }
-                else {return false}
-            }
-            else //no indirect object preposition
-            {
-                if(vPreposition){return false}
-            }
+                cord=cord.cross(adjective.definition.select())
+                .per((noun,adjective)=>noun.knot===adjective.knot)
+            })
         }
-        else //no indirect object
+        if(gist.adjunct)
         {
-            if(vPreposition){return false}
-        }
-    }
-    else //no object.
-    {
-        if(vPreposition){return false}
-    }
-    if (gist.hasOwnProperty("particle"))
-    {
-        if (vParticle)
+            cord=gist.adjunct.nounPhrase.select().cross(cord)
+                .per((adjunct,noun)=>noun.entwine({ply:adjunct.ply,via:gist.adjunct.relation.definition.cord}).aft)
+        } 
+        if (gist.conjunct)
         {
-            if (!(vParticle===gist.particle.definition.key)){return false}
+            cord=cord.add(gist.conjunct.nounPhrase.select()).disjoint
         }
-        else {return false}
+        return cord  
+    }    
+    return interpretation
+}
+grammar.command.subject.nounPhrase.semantics=grammar.nounPhrase.semantics
+grammar.command.semantics=(interpretation)=>
+{
+    var valence=interpretation.gist.verb.definition.valence
+    if (valence ===0 && interpretation.gist.hasOwnProperty("object")){return false}
+    if (valence ===1 && (interpretation.gist.object?.hasOwnProperty("indirectObject") || !interpretation.gist.object?.hasOwnProperty("directObject"))){return false}
+    if (valence ===2 && (!interpretation.gist.object?.hasOwnProperty("indirectObject") || !interpretation.gist.object?.hasOwnProperty("directObject"))){return false}
+    interpretation.gist.verb.plot=interpretation.gist.verb.definition.plot
+    
+    Object.assign(interpretation.gist,interpretation.gist.object)
+    delete interpretation.gist.object
+
+    if (interpretation.gist.hasOwnProperty("indirectObject"))
+    {
+        interpretation.gist.preposition=interpretation.gist.indirectObject.preposition
+        delete interpretation.gist.indirectObject.preposition
+        Object.assign(interpretation.gist.indirectObject,interpretation.gist.indirectObject.phrase?.recipient)
+        Object.assign(interpretation.gist.indirectObject,interpretation.gist.indirectObject.phrase?.command)
+        delete interpretation.gist.indirectObject.phrase
+    }
+
+
+    if (interpretation.gist.hasOwnProperty("subject"))
+    {
+        interpretation.gist=
+        { 
+            subject:{noun:lexicon.search("player", {longest:true, full:true}).filter(snippet=>snippet.token.definition.role==="player")[0].token},
+            verb:lexicon.search("ask", {longest:true, full:true}).filter(snippet=>snippet.token.definition.part==="verb" && snippet.token.definition.preposition==="to")[0].token,
+            directObject:interpretation.gist.subject,
+            preposition:lexicon.search("to", {longest:true, full:true}).filter(snippet=>snippet.token.definition.part==="preposition")[0].token,
+            indirectObject:interpretation.gist
+        }
     }
     else
     {
-        if (vParticle){return false}
+        interpretation.gist.subject=
+        {
+            noun:lexicon.search("player", {longest:true, full:true}).filter(snippet=>snippet.token.definition.role==="player")[0].token
+        }
+    }
+    interpretation.gist.subject.select=()=>interpretation.gist.subject.noun.definition.select().cord
+
+    var vPreposition=interpretation.gist.verb.definition.preposition
+    var vParticle=interpretation.gist.verb.definition.particle
+    if(vPreposition)
+    {
+        if (!(interpretation.gist.preposition?.definition.key===vPreposition))
+        {
+            return false
+        }
+    }
+    else
+    {
+        if (interpretation.gist.hasOwnProperty("preposition"))
+        {
+            return false
+        }
+    }
+    if (vParticle)
+    {
+        if (!(interpretation.gist.verbalParticle?.definition.key===vParticle))
+        {
+            return false
+        }
+    }
+    else
+    {
+        if (interpretation.gist.hasOwnProperty("verbalParticle"))
+        {
+            return false
+        }
     }
     return true
 }
-grammar.sentences.command.predicate[1].snip("verb",grammar.verb.clone()).snip("verbalParticle").snip("object",grammar.object.clone())
 
-grammar.sentences.command.predicate[1].verb.filter=(definition)=>definition.part==="verb"
-grammar.sentences.command.predicate[1].verbalParticle
-    .configure({minimum:0,filter:(definition)=>definition.part==="particle"})
-
-grammar.sentences.command.predicate[1].object
-    .configure({minimum:0})
-
-grammar.sentences.command.predicate[2].snip("verb",grammar.verb.clone()).snip("object",grammar.object.clone()).snip("verbalParticle")
-
-grammar.sentences.command.semantics=(interpretation)=>
-{
-    var command={}
-    var gist=interpretation.gist
-    var predicate=gist.predicate
-
-    if (gist.hasOwnProperty("subject"))
-    {
-        command.subject=gist.subject.cord
-    }
-    else
-    {
-        command.subject=$.actor.player.cord
-    }
-    command.verb=[predicate.verb.definition.plot]
-    if (predicate.hasOwnProperty("object"))
-    {
-        var object=predicate.object
-        if (object.hasOwnProperty("directObject"))
-        {
-            command.directObject=object.directObject.cord
-        }
-        if (object.hasOwnProperty("indirectObject"))
-        {
-            command.directObject=object.indirectObject.cord
-        }
-    }
-
-   //result=predicate.verb.definition.plot.scope.narrate(command)
-   //interpretation.valid=result.valid
-  // interpretation.response=result.response
-   interpretation.gist=command
-   return true
-}
-
-story.parser=ishml.Parser({ lexicon: lexicon, grammar: grammar.sentences})
-story.translater= ishml.Parser({ lexicon: lexicon, grammar: grammar.phrasing})
-
-
+story.parser=ishml.Parser({ lexicon: lexicon, grammar: grammar.command})
