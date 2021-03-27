@@ -18,8 +18,8 @@ ishml.Episode=function Episode(configuration)
 }
 ishml.Episode.prototype.resolve=function resolve()
 {
-	this._resolution()
 	
+	this.told=this._resolution()??true
 }
 /*
 // add code here for narration that occurs before stock narration 
@@ -36,67 +36,62 @@ ishml.Episode.prototype.narrate=function narrate()
 	this._narration()
 	return this
 }
-ishml.Episode.prototype.narration=function(narration)
+ishml.Episode.prototype.narration=function(...narration)
 {
-	if (narration)
+	if(narration.length===0){return this._narration}
+	else 
 	{
-		this._narration=narration
+		this._narration=narration[0]
 		return this
 	}
-	else {return this._narration}
 
 }
-ishml.Episode.prototype.resolution=function(resolution)
+ishml.Episode.prototype.resolution=function(...resolution)
 {
-	if (resolution)
+	if(resolution.length===0){return this._resolution}
+	else
 	{
-		this._resolution=resolution
+		this._resolution=resolution[0]
 		return this
 	}
-	else {return this._resolution}
 }
-ishml.Episode.prototype.salience=function(salience)
+ishml.Episode.prototype.salience=function(...salience)
 {
-	if (salience)
+	if(salience.length===0){return this._salience}
 	{
-		this._salience=salience
+		this._salience=salience[0]
 		return this
 	}
-	else {return this._salience}
 }
-ishml.Episode.prototype.start=function(start)
+ishml.Episode.prototype.start=function(...start)
 {
-	if (start)
+	if(start.length===0){return this._start}
 	{
-		this._start=start
+		this._start=start[0]
 		return this
 	}
-	else {return this._start}
 }
-ishml.Episode.prototype.stock=function(stock)
+ishml.Episode.prototype.stock=function(...stock)
 {
-	if (stock)
+	if(stock.length===0){return this._stock}
 	{
-		this._stock=stock
+		this._stock=stock[0]
 		return this
 	}
-	else {return this._stock}
 }
-ishml.Episode.prototype.stop=function(stop)
+ishml.Episode.prototype.stop=function(...stop)
 {
-	if (stop)
+	if(stop.length===0){return this._stop}
 	{
-		this._stop=stop
+		this._stop=stop[0]
 		return this
 	}
-	else {return this._stop}
 }
-ishml.Episode.prototype.viewpoint=function(viewpoint)
+ishml.Episode.prototype.viewpoint=function(...viewpoint)
 {
-	if (viewpoint)
+	if(viewpoint.length===0){return this._viewpoint}
 	{
-		this._viewpoint=viewpoint
+		this._viewpoint=viewpoint[0]
 		return this
 	}
-	else {return this._viewpoint}
 }

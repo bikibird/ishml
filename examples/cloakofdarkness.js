@@ -56,13 +56,13 @@ plot.world.unfold =function()
 	
 	/*Actions*/
 	$
-		.tie("action").to("dropping")
+		.tie("action").to("dropping","taking")
 
 	/*staging*/
 
 	$.actor.player
 		.tie("in").to($.place.foyer)
-		.tie("has skill").to($.action.dropping)
+		.tie("has skill").to($.action.dropping,$.action.taking)
 		.tie("wears").to($.thing.cloak)
 		.tie("wears").to($.thing.left_shoe)
 		.tie("wears").to($.thing.right_shoe)

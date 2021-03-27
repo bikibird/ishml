@@ -44,10 +44,48 @@ plot.main.dialog.input.unfold=function(twist)
 }
 
 /*actions*/
-plot.action.asking_to.narration.refuse=_`requet refused`
-plot.action.dropping.unfold=function(command)
+plot.action.asking_to.narration=_`You ask them to do something.`
+plot.action.asking_to.unfold=function(command)
 {
-    //if object has skill represented by indirectObject.verb
+    command.indirectObject.viewpoint=command.viewpoint
+    var episodes=this.unfoldSubplot(command)
+    if (episodes.length===0 )
+    {
+        
+        var episode=ishml.Episode()
+            .resolution(()=>
+            {
+                if (!command.silently) this.narration.populate(command.indirectObject).say().append("#story")
+                var actionEpisode=command.indirectObject.verb.plot.unfold(command.indirectObject)
+                actionEpisode.viewpoint(command.viewpoint)
+                story.introduce(actionEpisode)
+                
+            })
+            .salience(5)
+            .viewpoint(command.viewpoint)  
+    }
+    else
+    {
+        var stockEpisode=ishml.Episode()
+
+            .narration(()=>
+            {
+                if (!command.silently) this.narration.populate(command.indirectObject).say().append("#story")
+            })
+            .resolution(()=>
+            {
+                if (!command.silently) this.narration.populate(command.indirectObject).say().append("#story")
+                var actionEpisode=command.indirectObject.verb.plot.unfold(command.indirectObject)
+                actionEpisode.viewpoint(command.viewpoint)
+                story.introduce(actionEpisode)
+                story.tell(command.viewpoint)
+            })
+            .salience(5)
+            .viewpoint(command.viewpoint) 
+        var episode=episodes[0].stock({episode:stockEpisode,plot:plot.action.asking_to})
+    }
+    return episode 
+
 }    
 
 plot.action.dropping.narration=_`<p>You dropped the ${cache=>_.list(cache.droppable.data.map(thing=>thing.knot.name))}.</p>`.cache("droppable")
@@ -87,12 +125,12 @@ plot.action.dropping.unfold=function(command)
     return episode 
    
 }
-plot.action.dropping.revisions.unfold=function(command)
+plot.action.dropping.revise.unfold=function(command)
 {
     return this.unfoldSubplot(command)
 }
-plot.action.dropping.revisions.nothing.narration=_`<p>You think about dropping something, but what?</p>`
-plot.action.dropping.revisions.nothing.unfold=function(command)
+plot.action.dropping.revise.nothing.narration=_`<p>You think about dropping something, but what?</p>`
+plot.action.dropping.revise.nothing.unfold=function(command)
 {
     if(!command.directObject ||(command.droppable.isEmpty && command.notDroppable.isEmpty))
     {

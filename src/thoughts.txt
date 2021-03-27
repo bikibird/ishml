@@ -102,7 +102,30 @@ var cup=$.thing.cup.on("saucer")
 
 $.green.where(green=>green.is.edible).tangle.add() //returns cord of edible green things.
 
+***************************************************
+//knot.cord.ply
+$.thing.cloak // returns cloak as ply done.
 
+//knot.cord.ply.cord
+$.thing.cloak.worn_by //returns cloak's worn_by cord  done.
+
+//knot.cord.cord.ply.cord.ply
+$.thing.is.wearable.is.touchable  //returns cord of all wearable, touchable thing plies.
+
+//knot.cord()
+
+$.thing.cloak.wornby($.actor.player) //returns cord of things warn by player.
+
+//knot.cord.cord()
+$.thing.worn_by($.actor) //returns cord of things worn by actors
+
+$.thing.cloak.worn_by($.actor.player).ply or .knot //returns returns first ply or knot of cord
+
+$.thing.is.wearable.is.touchable
+
+$.thing.is("wearable", "touchable")
+
+$.thing.wornby($.actor.in($.room.foyer)).untie().tie(...cords.in).to($.room.foyer)
 
 
 

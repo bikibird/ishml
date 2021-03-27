@@ -39,7 +39,7 @@ lexicon
 
     //verbs
     .register("ask")
-        .as({plot:plot.action.asking_to, part: "verb", preposition:"to"} ) 
+        .as({plot:plot.action.asking_to, part: "verb", preposition:"to",valence:2} ) 
     .register("take","grab","steal")
         .as({plot:plot.action.taking, part: "verb" })
     .register("take")
@@ -60,7 +60,7 @@ lexicon
 
 /*grammar*/
 
-grammar.command=ishml.Rule().snip("subject").snip("verb").snip("object")
+grammar.command=ishml.Rule()
 
 grammar.nounPhrase=ishml.Rule()
     .snip("article").snip("adjectives").snip("noun").snip("adjunct").snip("conjunct")
@@ -83,7 +83,7 @@ grammar.nounPhrase.conjunct
 grammar.nounPhrase.conjunct.conjunction.configure({filter:(definition)=>definition.part==="conjunction"})
 
 grammar.preposition=ishml.Rule().configure({filter:(definition)=>definition.part==="preposition"})
-
+grammar.command.snip("subject",grammar.nounPhrase.clone()).snip("verb").snip("object")
 grammar.ioPhrase=ishml.Rule().configure({mode:ishml.enum.mode.any})
     .snip(1)
     .snip(2)
@@ -93,12 +93,10 @@ grammar.ioPhrase[2].snip("command",grammar.command)
 grammar.indirectObject=ishml.Rule().configure({minimum:0})
     .snip("preposition",grammar.preposition).snip("phrase",grammar.ioPhrase)
 
-grammar.command.subject
-.configure({minimum:0 })
-.snip("nounPhrase", grammar.nounPhrase.clone())
+grammar.command.subject.configure({minimum:0 })
 
-grammar.command.subject.nounPhrase.noun
-.configure({separator:/^\s*,\s*|^\s+/})
+
+grammar.command.subject.noun.configure({separator:/^\s*,\s*|^\s+/})
 
 grammar.command.verb.configure({filter: (definition)=>definition.part==="verb"})
 
@@ -142,7 +140,7 @@ grammar.nounPhrase.semantics=(interpretation)=>
     }    
     return interpretation
 }
-grammar.command.subject.nounPhrase.semantics=grammar.nounPhrase.semantics
+grammar.command.subject.semantics=grammar.nounPhrase.semantics
 grammar.command.semantics=(interpretation)=>
 {
     var valence=interpretation.gist.verb.definition.valence
@@ -174,6 +172,7 @@ grammar.command.semantics=(interpretation)=>
             preposition:lexicon.search("to", {longest:true, full:true}).filter(snippet=>snippet.token.definition.part==="preposition")[0].token,
             indirectObject:interpretation.gist
         }
+        interpretation.gist.verb.plot=interpretation.gist.verb.definition.plot
     }
     else
     {

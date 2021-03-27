@@ -370,7 +370,7 @@ ishml.Yarn.tell=function(viewpoint="player")
 			{
 				if (!episode.start() || episode.start() <= this.clock)
 				{
-					episode.resolve()
+					episode.resolve(this.clock)
 					/*
 					
 					if(!episode.resolve())
@@ -379,7 +379,7 @@ ishml.Yarn.tell=function(viewpoint="player")
 					}*/
 				}
 			})
-			this.storyline[viewpoint]=this.storyline[viewpoint].filter(episode=>(episode.stop() || episode.stop() > this.clock))
+			this.storyline[viewpoint]=this.storyline[viewpoint].filter(episode=>!episode.told)
 		})
 		this.tick()
 	}	
@@ -389,12 +389,13 @@ ishml.Yarn.tell=function(viewpoint="player")
 
 ishml.Yarn.introduce=function(episode) 
 {
-	if (!this.storyline.hasOwnProperty(episode.viewpoint()))
+	var viewpoint=episode.viewpoint()
+	if (!this.storyline.hasOwnProperty(viewpoint))
 	{
-		this.storyline[episode.viewpoint()]=[]
+		this.storyline[viewpoint]=[]
 	}
 
-	this.storyline[episode.viewpoint()].push(episode)
+	this.storyline[viewpoint].push(episode)
 	return this
 }	
 
