@@ -1,8 +1,6 @@
 var plot = plot || story.plot
 /*plot outline*/
-plot.world
-plot.main.dialog.input
+plot.world  //Populate story.net with initial story world state
+plot.main.dialog.input //Processes player input into commands
 plot.action.dropping
-plot.action.dropping.revise
 plot.action.asking_to
-plot.action.asking_to.revise

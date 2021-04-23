@@ -18,18 +18,21 @@ ishml.Episode=function Episode(configuration)
 }
 ishml.Episode.prototype.resolve=function resolve()
 {
-	
 	this.told=this._resolution()??true
 }
 /*
 // add code here for narration that occurs before stock narration 
-	this.stock()?.episode.narrate()  // comment out for instead of stock narration
-	//add code here for behavior that occurs before or instead of stock episode.
-	this.stock()?.episode.resolve()  //comment out for instead of stock behavior
-	// add code here for behavior that occurs after stock behavior
 
-	// add code here for narration that occurs 
-	return this
+this.stock()?.episode.narrate()  // comment out for instead of stock narration
+
+//add code here for behavior that occurs before or instead of stock episode.
+
+this.stock()?.episode.resolve()  //comment out for instead of stock behavior
+
+// add code here for behavior that occurs after stock behavior
+
+// add code here for narration that occurs 
+return this
 */
 ishml.Episode.prototype.narrate=function narrate()
 {
@@ -71,11 +74,15 @@ ishml.Episode.prototype.start=function(...start)
 		return this
 	}
 }
-ishml.Episode.prototype.stock=function(...stock)
+ishml.Episode.prototype.stock=function(stock)
 {
-	if(stock.length===0){return this._stock}
+	if (!stock)
 	{
-		this._stock=stock[0]
+		return this._stock
+	}
+	else
+	{
+		this._stock=stock
 		return this
 	}
 }
