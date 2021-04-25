@@ -2,7 +2,7 @@
 /*
 ISC License
 
-Copyright 2019-2020, Jennifer L Schmidt
+Copyright 2019-2021, Jennifer L Schmidt
 
 Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
 
@@ -27,6 +27,20 @@ ishml.enum.pos=
 	preposition:Symbol("preposition"),
 	suffix:Symbol("suffix"),
 	verb:Symbol("verb")
+}
+ishml.enum.tense=
+{
+	past:Symbol("past"),
+	present:Symbol("present"),
+	future:Symbol("future"),
+	perfect:Symbol("perfect"),
+	pluraperfect:Symbol("pluperfect")
+}
+ishml.enum.viewpoint=
+{
+	first:{singular:Symbol("first person singular"),plural:Symbol("first person plural")},
+	second:{singular:Symbol("second person singular"),plural:Symbol("second person plural")},		
+	third:{singular:Symbol("third person singular"),plural:Symbol("third person plural")}
 }
 ishml.Interpretation=function Interpretation(gist={},remainder="",valid=true)
 {
@@ -296,7 +310,6 @@ ishml.Phrase =class Phrase
 		Object.defineProperty(this,"results",{value:[],writable:true})
 		Object.defineProperty(this,"_seed",{value:ishml.util.random().seed,writable:true})
 		Object.defineProperty(this,"tags",{value:{},writable:true})
-		Object.defineProperty(this,"tally",{value:0,writable:true})
 		Object.defineProperty(this,"text",{value:"",writable:true})
 		this._populate(...precursor)
 		this.catalog()
@@ -327,7 +340,6 @@ ishml.Phrase =class Phrase
 					this.results=results
 					this.text=""
 				}
-				this.tally++
 				return this.results
 			}
 		},ishml.Template.templateHandler)
@@ -337,6 +349,34 @@ ishml.Phrase =class Phrase
 		var targetNodes = document.querySelectorAll(documentSelector)
 		targetNodes.forEach(node=>node.append(this.htmlTemplate().content))
 		return this
+	}
+	cache(id)
+	{
+		var cache= new class cachePhrase extends ishml.Phrase
+		{
+			generate()
+			{
+				super.generate()
+				this.text=this.inner.text
+				this.results=this.inner.results
+				return this.results
+			}
+			constructor(...precursor)
+			{
+				super(...precursor)
+				this.id=id
+				this.catalog()
+				Object.defineProperty(this,"data",{value:null,writable:true})
+				return this
+			}
+			populate(data)
+			{
+				this.data=data
+				return this
+			}
+		}(this)
+		//cache.id=id
+		return cache
 	}
 	concur(condition)
 	{
@@ -455,7 +495,6 @@ ishml.Phrase =class Phrase
 			}
 		})
 		this.text=this.results.map(data=>data.value).join("")
-		this.tally++
 		return this.results
 	}
 	htmlTemplate()
@@ -541,7 +580,6 @@ ishml.Phrase =class Phrase
 				}while(!this.phrases[0].value.tags[tag].data.reset)
 				this.results=results
 				this.text=this.results.map(data=>data.value).join("")
-				this.tally=this.tally-2
 				return this.results	
 			}
 		}(this)
@@ -669,11 +707,6 @@ ishml.Phrase =class Phrase
 			{
 				if (this.tags.hasOwnProperty(key))
 				{
-					/*var target=this.tags[key]
-					while(target.phrases.length===1 && target.phrases[0].value instanceof ishml.Phrase)
-					{
-						target=target.phrases[0].value
-					}*/
 					this.tags[key].populate(data[key])
 				}
 			})
@@ -685,13 +718,12 @@ ishml.Phrase =class Phrase
 		var targetNodes = document.querySelectorAll(documentSelector)
 		targetNodes.forEach(node=>node.prepend(this.htmlTemplate().content))
 	}
-	_reset()
+	reset()
 	{ 
 		this.phrases.forEach(phrase=>
 		{
-			if(phrase.value instanceof ishml.Phrase){phrase.value._reset()}	
+			if(phrase.value instanceof ishml.Phrase){phrase.value.reset()}	
 		})
-		this.tally=0
 		return this
 	}
 	replace(documentSelector="#story")
@@ -729,14 +761,8 @@ ishml.Phrase =class Phrase
 	}
 	tag(id)
 	{
-		//this[id]=this
 		this.id=id
-		//this.catalog()
 		return this
-	}
-	get tags()
-	{
-		return Object.assign(Object.assign({},this._tags),this._localTags)
 	}
 	get then()
 	{
@@ -763,7 +789,6 @@ ishml.Phrase =class Phrase
 					this.results=this.phrases[1].value.generate()
 					this.text=this.phrases[1].value.text
 				}
-				this.tally++
 				return this.results
 			}
 		},ishml.Template.templateHandler)
@@ -1255,28 +1280,35 @@ ishml.Template.define("cycle").as((...data)=>
 		}
 		generate()
 		{
-			if (this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
+			if (this.phrases.length===0)
 			{
-				var results=super.generate()
-				var total=this.results.length
-				results=results.slice(counter,counter+1)
+				this.results=[]
+				this.results[0]={value:"",index:0, total:0, reset:true}
+				this.text=""
+				var total=0
 			}
 			else
-			{
-				var results=super.generate(this.phrases.slice(counter,counter+1))
-				var total=this.phrases.length
-			}
-			if(results.length===1)
-			{
+			{	
+				if (this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
+				{
+					var results=super.generate()
+					var total=this.results.length
+					results=results.slice(counter,counter+1)
+				}
+				else
+				{
+					var results=super.generate(this.phrases.slice(counter,counter+1))
+					var total=this.phrases.length
+				}
 				Object.assign(results[0],{index:counter, total:total, reset:counter===total-1})
 				this.results=results
 				this.text=results[0].value
-			}
+			}	
 			counter++
-			if (counter===total)
+			if (counter===total || total===0)
 			{
 				counter=0
-				this._reset()
+				this.reset()
 			}
 			return this.results
 		}
@@ -1378,7 +1410,7 @@ ishml.Template.define("refresh").as((...precursor)=>
 	{
 		generate()
 		{
-			this._reset()
+			this.reset()
 			super.generate()
 			return this.results
 		}
@@ -1473,9 +1505,9 @@ ishml.Template.define("series").as((...data)=>
 			}
 			return this.results
 		}
-		_reset()
+		reset()
 		{
-			super._reset()
+			super.reset()
 			ended=false
 			counter=0
 			return this
@@ -1506,9 +1538,9 @@ ishml.Template.define("shuffle").as((...data)=>
 			super.populate(literals, ...expressions)
 			reshuffle=true
 		}
-		_reset()
+		reset()
 		{
-			super._reset()
+			super.reset()
 			reshuffle=true
 			return this
 		}
@@ -1536,11 +1568,11 @@ ishml.Template.define("pin").as((...data)=>
 			
 			return this.results
 		}
-		_reset()
+		reset()
 		{
 			if(pin)
 			{
-				super._reset()
+				super.reset()
 			}
 		}
 	}(...data)

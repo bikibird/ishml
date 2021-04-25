@@ -77,27 +77,18 @@ ishml.Plotpoint.prototype.heed = function (aDocumentSelector)
 		})
 	}
 }
-ishml.Plotpoint.prototype.revise = function (stockEpisode)
-{
-	var episodes=this.unfoldSubplot(this.twist)
-    if (episodes.length===0 )
-    {
-        return  stockEpisode
-    }
-    else
-    {
-       return episodes[0].stock({episode:stockEpisode,plot:this})
-    }
-}	
+	
 //DOCUMENTATION:  unfold should return false if twist not handled to allow siblings to have a chance at resolving. Return truthy value if plotpoint resolves twist. Returned object may return information to parent plotpoint, which the parent can use to determine whether it is successful. Twist may be modified, which also conveys info back to the parent.
 
 
 ishml.Plotpoint.prototype.unfoldSubplot = function (twist) 
 {
 	var episodes=[]
+	var episode
 	for (plotpoint of Object.values(this))
 	{
-		episodes=episodes.concat(plotpoint.unfold(twist))
+		episode=plotpoint.unfold(twist)
+		if (episode){episodes=episodes.concat(episode)}
 	}
 	episodes=episodes.sort((a,b)=>b.salience()-a.salience())
 	return episodes
@@ -106,11 +97,11 @@ ishml.Plotpoint.handler=
 {
 	get: function(target, property,receiver) 
 	{ 
-		if (property=="unfold")
+		if (property=="unfold" || property=="unfoldSubplot")
 		{
 			return function(twist)
 			{
-				target.twist=twist ?? {}
+				target.twist=twist 
 				return Reflect.get(target,property,receiver).bind(target)(target.twist)
 			}
 		}

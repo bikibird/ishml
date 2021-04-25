@@ -3,23 +3,49 @@
 /*
 	configuration={salience,start,stop,etc}
 */
-ishml.Episode=function Episode(configuration) 
+ishml.Episode=function Episode(plot) 
 {
 	
 	if (this instanceof Episode)
 	{
-		Object.assign(this,configuration)
+		Object.defineProperty(this, "_abridged", {value:false,writable: true})
+		Object.defineProperty(this, "_narration", {value:()=>_``.say().append("#story"),writable: true})
+		Object.defineProperty(this, "_resolution", {value:()=>true,writable: true})
+		Object.defineProperty(this, "told", {value:false,writable: true})
+		Object.defineProperty(this, "twist", {value:plot.twist,writable: true})
 		return this
 	}
 	else
 	{
-		return new Episode(configuration)
+		return new Episode(plot)
 	}	
+}
+
+ishml.Episode.prototype.abridge = function (plotpoint)
+{
+	if (this.abridged()){return this}
+	
+	var episodes=plotpoint.unfoldSubplot(this.twist)
+
+ 	if (episodes.length===0 )
+	{
+		this.abridged(false)
+		return this
+	}
+    else {return episode=episodes[0].stock(this).abridged(true)}
+}
+ishml.Episode.prototype.abridged = function (abridgment)
+{
+	if (abridgment==undefined){return this._abridged}
+	this._abridged=abridgment
+	return this
+
 }
 ishml.Episode.prototype.resolve=function resolve()
 {
 	this.told=this._resolution()??true
 }
+
 /*
 // add code here for narration that occurs before stock narration 
 
@@ -57,6 +83,16 @@ ishml.Episode.prototype.resolution=function(...resolution)
 		this._resolution=resolution[0]
 		return this
 	}
+}
+
+ishml.Episode.prototype.revise = function (plotpoint)
+{
+	if (this.abridged){return this}
+	
+	var episodes=plotpoint.unfoldSubplot(this.twist)
+
+ 	if (episodes.length===0 ){return  this}
+    else {return episodes[0].stock(this)}
 }
 ishml.Episode.prototype.salience=function(...salience)
 {
