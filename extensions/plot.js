@@ -66,22 +66,32 @@ plot.action.dropping.unfold=function(command)
     command.notDroppable=command.directObject?.select().subtract(command.droppable)
     command.actionable=command.subject.select().has_skill($.action.dropping)
     command.notActionable=command.subject.select().subtract(command.actionable)
-
-    return ishml.Episode(this)
+    var episode=ishml.Episode(this)
         .narration(()=>{if (!command.silently) this.narration.populate(command.droppable).say().append("#story")})
         .resolution(()=>{command.droppable.retie(cords.in).to(command.subject.select().in)})
         .salience(5)
         .viewpoint(command.viewpoint)
+        .before()
         .abridge(this.check)
         .revise(this.instead)
+        .append()
+        .narration((episode)=>
+        {
+            episode.stock.narrate()
+            _`<p>appended</p>`.say().append("#story")
+        })
+        .resolution((episode)=>console.log("appended"))
+     console.log(episode)       
+     return episode                
+
 }
-plot.action.dropping.instead.klutz.narration=_`</p>Klutz<p>`
+/*plot.action.dropping.instead.klutz.narration=_`</p>Klutz<p>`
 plot.action.driopping.instead.klutz.unfold=function(command)
 {
     this.stock.resolution()
     this.narration.say().append("#story")
     this.stock.narration.say().append("#story")
-}
+}*/
 
 plot.action.dropping.check.nothing.narration=_`<p>You think about dropping something, but what?</p>`
 plot.action.dropping.check.nothing.unfold=function(command)
