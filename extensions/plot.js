@@ -71,14 +71,17 @@ plot.action.dropping.unfold=function(command)
         .resolution(()=>{command.droppable.retie(cords.in).to(command.subject.select().in)})
         .salience(5)
         .viewpoint(command.viewpoint)
-        .before()
-        .abridge(this.check)
-        .revise(this.instead)
         .append()
         .narration((episode)=>
         {
-            episode.stock.narrate()
-            _`<p>appended</p>`.say().append("#story")
+            _`<p>appended 1</p>`.say().append("#story")
+        })
+       .abridge(this.check)
+      .revise(this.instead)
+       .append()
+        .narration((episode)=>
+        {
+            _`<p>appended 2</p>`.say().append("#story")
         })
         .resolution((episode)=>console.log("appended"))
      console.log(episode)       

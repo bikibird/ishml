@@ -8,7 +8,7 @@ ishml.Episode=function Episode(plot)
 	
 	if (this instanceof Episode)
 	{
-		Object.defineProperty(this, "_abridged", {value:false,writable: true})
+		Object.defineProperty(this, "abridged", {value:false,writable: true})
 		Object.defineProperty(this, "epilog", {value:false, writable: true})
 		Object.defineProperty(this, "prolog", {value:false, writable: true})
 		Object.defineProperty(this, "_narration", {value:()=>_``.say().append("#story"),writable: true})
@@ -28,28 +28,23 @@ ishml.Episode=function Episode(plot)
 
 ishml.Episode.prototype.abridge = function (plotpoint)
 {
-	if (this.abridged()){return this}
+	if (this.abridged){return this}
 	
 	var episodes=plotpoint.unfoldSubplot(this.twist)
 
  	if (episodes.length===0 )
 	{
-		this.abridged(false)
+		this.abridged=false
 		return this
 	}
     else 
 	{
 		episodes[0].stock=this
-		return episodes[0].abridged(true).viewpoint(this._viewpoint).salience(this._salience)
+		episodes[0].abridged=true
+		return episodes[0].viewpoint(this._viewpoint).salience(this._salience)
 	}
 }
-ishml.Episode.prototype.abridged = function (abridgment)
-{
-	if (abridgment==undefined){return this._abridged}
-	this._abridged=abridgment
-	return this
 
-}
 ishml.Episode.prototype.after = function (hint=true)
 {
 	this.epilog=hint
@@ -64,6 +59,7 @@ ishml.Episode.prototype.append = function (plotpoint)
 		else 
 		{	
 			episodes[0].stock=this
+			episodes[0].stock.prolog=true
 			return episodes[0].viewpoint(this._viewpoint).salience(this._salience)
 		}
 	}
@@ -72,6 +68,7 @@ ishml.Episode.prototype.append = function (plotpoint)
 		var episode=new ishml.Episode()
 		episode.twist=this.twist
 		episode.stock=this	
+		episode.stock.prolog=true
 		return episode.viewpoint(this._viewpoint).salience(this._salience)
 	}
 }
@@ -116,10 +113,9 @@ ishml.Episode.prototype.resolution=function(resolution)
 }
 ishml.Episode.prototype.resolve=function resolve(time)
 {
-	if (this.stock?.prolog){this.stock.resolve()}
-	this._resolution(this)
-	if (this.stock?.epilog){this.stock.resolve()}
+	if (this.stock?.prolog){this.stock.resolve(time)}
 	this.told=this._resolution(this,time)??true
+	if (this.stock?.epilog){this.stock.resolve(time)}
 	return this
 }
 

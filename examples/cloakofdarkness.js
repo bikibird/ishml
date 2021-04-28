@@ -73,6 +73,8 @@ plot.world.unfold =function()
 	$.fixture.hook.tie("in").to($.place.cloakroom)
 	$.thing.saucer.tie("on").to($.thing.table)
 	$.thing.cup.tie("on").to($.thing.saucer)
+	/*scenes-- like inform 7*/
+	//tbd
 }
 /*language*/
 lexicon

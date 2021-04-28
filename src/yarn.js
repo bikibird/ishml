@@ -370,15 +370,7 @@ ishml.Yarn.tell=function(viewpoint="player")
 			{
 				if (!episode.start() || episode.start() <= this.clock)
 				{
-
 					if (episode.resolve(this.clock).told){episode.narrate()}
-					
-					/*
-					
-					if(!episode.resolve())
-					{
-						this.storyline[viewpoint][index].concluded=true
-					}*/
 				}
 			})
 			this.storyline[viewpoint]=this.storyline[viewpoint].filter(episode=>!episode.told)
