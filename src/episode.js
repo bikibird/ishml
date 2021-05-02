@@ -11,6 +11,7 @@ ishml.Episode=function Episode(plot)
 		Object.defineProperty(this, "abridged", {value:false,writable: true})
 		Object.defineProperty(this, "epilog", {value:false, writable: true})
 		Object.defineProperty(this, "prolog", {value:false, writable: true})
+		Object.defineProperty(this, "retracted", {value:false, writable: true})
 		Object.defineProperty(this, "_narration", {value:()=>_``.say().append("#story"),writable: true})
 		Object.defineProperty(this, "_resolution", {value:()=>true,writable: true})
 		Object.defineProperty(this, "_viewpoint", {value:null,writable: true})
@@ -25,37 +26,34 @@ ishml.Episode=function Episode(plot)
 		return new Episode(plot)
 	}	
 }
-
-ishml.Episode.prototype.abridge = function (plotpoint)
+/* The abridge method returns the most salient episode generated from the subplot of the plotpoint.  The abridged property is set to true, which causes all future revise method calls on the evaluation chain to be ignored.  append method calls are NOT ignored.*/
+ishml.Episode.prototype.abridge = function (createEpisode)
 {
 	if (this.abridged){return this}
 	
-	var episodes=plotpoint.unfoldSubplot(this.twist)
+	var episode=createEpisode()
 
- 	if (episodes.length===0 )
+ 	if (!episode || episode.retracted)
 	{
 		this.abridged=false
 		return this
 	}
     else 
 	{
-		episodes[0].stock=this
-		episodes[0].abridged=true
-		return episodes[0].viewpoint(this._viewpoint).salience(this._salience)
+		var rootEpisode=episode
+		while (rootEpisode.stock){rootEpisode=rootEpisode.stock}
+		rootEpisode.stock=this
+		episode.abridged=true
+		return episode.viewpoint(this._viewpoint).salience(this._salience)
 	}
 }
-
-ishml.Episode.prototype.after = function (hint=true)
+/* The append method returns generates the most salient episode generated from the subplot of the plotpoint or a new,empty, episode if no plotpoint.  The stock.prolog property is set to true, which causes narrate method to execute on the stock episode prior to executing the narration on the appended episode.  The stock.prolog property is set to true, which causes resolve method to execute on the stock episode prior to executing the resolution on the appended episode. */
+ishml.Episode.prototype.append = function (createEpisode)
 {
-	this.epilog=hint
-	return this
-}
-ishml.Episode.prototype.append = function (plotpoint)
-{
-	if (plotpoint)
+	if (createEpisode)
 	{
-		var episodes=plotpoint.unfoldSubplot(this.twist)
-		if (episodes.length===0 ){return  this}
+		var episode=createEpisode()
+		if (!episode || episode.retracted){return  this}
 		else 
 		{	
 			episodes[0].stock=this
@@ -67,14 +65,58 @@ ishml.Episode.prototype.append = function (plotpoint)
 	{
 		var episode=new ishml.Episode()
 		episode.twist=this.twist
-		episode.stock=this	
-		episode.stock.prolog=true
+		var rootEpisode=episode
+		while (rootEpisode.stock){rootEpisode=rootEpisode.stock}
+		rootEpisode.stock=this
+		rootEpisode.stock.prolog=true
 		return episode.viewpoint(this._viewpoint).salience(this._salience)
 	}
 }
-ishml.Episode.prototype.before = function (hint=true)
+
+ishml.Episode.prototype.before = function (createEpisode)
 {
-	this.prolog=hint
+	if (createEpisode)
+	{
+		var episode=createEpisode()
+		if (!episode || episode.retracted)
+		{
+			this.retracted=true
+			this.abridged=false
+			return this
+		}
+		else 
+		{	
+			var rootEpisode=episode
+			while (rootEpisode.stock){rootEpisode=rootEpisode.stock}
+			rootEpisode.stock=this
+			rootEpisode.stock.prolog=true
+			return episode.viewpoint(this._viewpoint).salience(this._salience)
+		}
+	}
+	this.retracted=true
+	return this
+}
+ishml.Episode.prototype.after = function (createEpisode)
+{
+	if (createEpisode)
+	{
+		var episode=createEpisode()
+		if (!episode || episode.retracted)
+		{
+			this.retracted=true
+			this.abridged=false
+			return
+		}
+		else 
+		{	
+			var rootEpisode=episode
+			while (rootEpisode.stock){rootEpisode=rootEpisode.stock}
+			rootEpisode.stock=this
+			rootEpisode.stock.epilog=true
+			return episode.viewpoint(this._viewpoint).salience(this._salience)
+		}
+	}
+	this.retracted=true
 	return this
 }
 
@@ -96,9 +138,12 @@ return this
 */
 ishml.Episode.prototype.narrate=function narrate()
 {
-	if (this.stock?.prolog){this.stock.narrate()}
-	this._narration(this)
-	if (this.stock?.epilog){this.stock.narrate()}
+	if (!this.retracted)
+	{
+		if (this.stock?.prolog){this.stock.narrate()}
+		this._narration(this)
+		if (this.stock?.epilog){this.stock.narrate()}
+	}	
 	return this
 }
 ishml.Episode.prototype.narration=function(narration)
@@ -113,38 +158,39 @@ ishml.Episode.prototype.resolution=function(resolution)
 }
 ishml.Episode.prototype.resolve=function resolve(time)
 {
-	if (this.stock?.prolog){this.stock.resolve(time)}
-	this.told=this._resolution(this,time)??true
-	if (this.stock?.epilog){this.stock.resolve(time)}
+	if (!this.retracted)
+	{
+		if (this.stock?.prolog){this.stock.resolve(time)}
+		this.told=this._resolution(this,time)??true
+		if (this.stock?.epilog){this.stock.resolve(time)}
+		return this
+	}
 	return this
 }
-
-ishml.Episode.prototype.revise = function (plotpoint)
+/* The revise method returns the most salient episode generated from the subplot of the plotpoint or returns this if the current episode in the evaluation chain is an abridged episode or no episode is generated from the subplot.*/
+ishml.Episode.prototype.revise = function (createEpisode)
 {
 	if (this.abridged){return this}
-	if (plotpoint)
+	if (createEpisode)
 	{
-		var episodes=plotpoint.unfoldSubplot(this.twist)
-		if (episodes.length===0){return this}
+		var episode=createEpisode()
+		if (!episode || episode.retracted)
+		{
+			return this
+		}
 		else 
-		{	episodes[0].stock=this
-			return episodes[0].viewpoint(this._viewpoint).salience(this._salience)
+		{	episode.stock=this
+			return episode.viewpoint(this._viewpoint).salience(this._salience)
 		}
 	}
-	else
-	{
-		var episode=new ishml.Episode()
-		episode.twist=this.twist
-		episode.stock=this
-		return episode.viewpoint(this._viewpoint).salience(this._salience)
-	}	
+	else { return this}
 }
 
-ishml.Episode.prototype.salience=function(...salience)
+ishml.Episode.prototype.salience=function(salience)
 {
-	if(salience.length===0){return this._salience}
+	if(salience===undefined){return this._salience}
 	{
-		this._salience=salience[0]
+		this._salience=salience
 		return this
 	}
 }
@@ -165,11 +211,11 @@ ishml.Episode.prototype.stop=function(...stop)
 		return this
 	}
 }
-ishml.Episode.prototype.viewpoint=function(...viewpoint)
+ishml.Episode.prototype.viewpoint=function(viewpoint)
 {
-	if(viewpoint.length===0){return this._viewpoint}
+	if(viewpoint===undefined){return this._viewpoint}
 	{
-		this._viewpoint=viewpoint[0]
+		this._viewpoint=viewpoint
 		return this
 	}
 }

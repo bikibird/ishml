@@ -1,9 +1,9 @@
 /*input*/   
-plot.main.dialog.input.narration=_`<p>${_.favor(
-    _`You thoughts are fuzzy.  How does <q>${cache=>cache.remainder.data}</q> apply here?`,
-    _`Confusedly, you think <q>${cache=>cache.remainder.data}</q> to yourself.`,
-    _`You realize <q>${cache=>cache.remainder.data}</q> doesn't make any sense here once you say it out loud.`)}</p>`
-        .cache("remainder")
+//plot.main.dialog.input.narration=_`<p>${_.favor(
+ //   _`You thoughts are fuzzy.  How does <q>${cache=>cache.remainder.data}</q> apply here?`,
+ //   _`Confusedly, you think <q>${cache=>cache.remainder.data}</q> to yourself.`,
+//    _`You realize <q>${cache=>cache.remainder.data}</q> doesn't make any sense here once you say it out loud.`)}</p>`
+ //       .cache("remainder")
 
 plot.main.dialog.input.unfold=function(twist)
 {
@@ -29,11 +29,19 @@ plot.main.dialog.input.unfold=function(twist)
     {
         if (results.interpretations?.[0].remainder.length>0)
         {
-            plot.main.dialog.input.narration.populate(results.interpretations[0].remainder).say().append("#story")
+            _`<p>${_.favor(
+                _`You thoughts are fuzzy.  How does <q>${cache=>cache.remainder.data}</q> apply here?`,
+                _`Confusedly, you think <q>${cache=>cache.remainder.data}</q> to yourself.`,
+                _`You realize <q>${cache=>cache.remainder.data}</q> doesn't make any sense here once you say it out loud.`)}</p>`
+                    .cache("remainder").populate(results.interpretations[0].remainder).say().append("#story")
         }    
         else
         {
-            plot.main.dialog.input.narration.populate(twist.input).say().append("#story")
+            _`<p>${_.favor(
+                _`You thoughts are fuzzy.  How does <q>${cache=>cache.remainder.data}</q> apply here?`,
+                _`Confusedly, you think <q>${cache=>cache.remainder.data}</q> to yourself.`,
+                _`You realize <q>${cache=>cache.remainder.data}</q> doesn't make any sense here once you say it out loud.`)}</p>`
+                    .cache("remainder").populate(twist.input).say().append("#story")
         }
     }    
     return {continue:true}
@@ -41,12 +49,12 @@ plot.main.dialog.input.unfold=function(twist)
 }
 
 /*actions*/
-plot.action.asking_to.narration=_`You ask them to do something.`
+//plot.action.asking_to.narration=_`You ask them to do something.`
 plot.action.asking_to.unfold=function(command)
 {
     command.indirectObject.viewpoint=command.viewpoint
     return ishml.Episode(this)
-        .narration(()=>{if (!command.silently) this.narration.populate(command.indirectObject).say().append("#story")})
+        .narration(()=>{if (!command.silently) _`You ask them to do something.`.populate(command.indirectObject).say().append("#story")})
         .resolution(()=>
         {
             var actionEpisode=command.indirectObject.verb.plot.unfold(command.indirectObject)
@@ -55,10 +63,11 @@ plot.action.asking_to.unfold=function(command)
         })
         .salience(5)
         .viewpoint(command.viewpoint)  
-        .revise(this)
+        .abridge(()=>this.check.unfold(command))
+        .revise(()=>this.instead.unfold(command))
 }
 
-plot.action.dropping.narration=_`<p>You dropped the ${cache=>_.list(cache.droppable.data.map(thing=>thing.knot.name))}.</p>`.cache("droppable")
+//plot.action.dropping.narration=_`<p>You dropped the ${cache=>_.list(cache.droppable.data.map(thing=>thing.knot.name))}.</p>`.cache("droppable")
 plot.action.dropping.unfold=function(command)
 {
     command.droppable=command.directObject?.select().worn_by(command.subject.select())
@@ -67,42 +76,21 @@ plot.action.dropping.unfold=function(command)
     command.actionable=command.subject.select().has_skill($.action.dropping)
     command.notActionable=command.subject.select().subtract(command.actionable)
     var episode=ishml.Episode(this)
-        .narration(()=>{if (!command.silently) this.narration.populate(command.droppable).say().append("#story")})
+        .narration(()=>{if (!command.silently) _`<p>You dropped the ${cache=>_.list(cache.droppable.data.map(thing=>thing.knot.name))}.</p>`.cache("droppable").populate(command.droppable).say().append("#story")})
         .resolution(()=>{command.droppable.retie(cords.in).to(command.subject.select().in)})
         .salience(5)
         .viewpoint(command.viewpoint)
-        .append()
-        .narration((episode)=>
-        {
-            _`<p>appended 1</p>`.say().append("#story")
-        })
-       .abridge(this.check)
-      .revise(this.instead)
-       .append()
-        .narration((episode)=>
-        {
-            _`<p>appended 2</p>`.say().append("#story")
-        })
-        .resolution((episode)=>console.log("appended"))
-     console.log(episode)       
-     return episode                
+        .abridge(()=>this.check.unfold(command))
+        .revise(()=>this.instead.unfold(command))
+    return episode                
 
 }
-/*plot.action.dropping.instead.klutz.narration=_`</p>Klutz<p>`
-plot.action.driopping.instead.klutz.unfold=function(command)
-{
-    this.stock.resolution()
-    this.narration.say().append("#story")
-    this.stock.narration.say().append("#story")
-}*/
-
-plot.action.dropping.check.nothing.narration=_`<p>You think about dropping something, but what?</p>`
 plot.action.dropping.check.nothing.unfold=function(command)
 {
     if(!command.directObject ||(command.droppable.isEmpty && command.notDroppable.isEmpty))
     {
         var episode=ishml.Episode(this)
-            .narration(()=>{if (!command.silently) this.narration.say().append("#story")})
+            .narration(()=>{if (!command.silently) _`<p>You think about dropping something, but what?</p>`.say().append("#story")})
             .salience(3)   
             .viewpoint(command.viewpoint)
         return episode

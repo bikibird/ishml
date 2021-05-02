@@ -7,7 +7,7 @@ ishml.Plotpoint = function Plotpoint(id,summary)
 		Object.defineProperty(this, "unfold", {value:ishml.Plotpoint.prototype.unfoldSubplot ,writable: true})
 
 		Object.defineProperty(this, "uid", {value:ishml.util.formatId(),writable: true})
-		Object.defineProperty(this, "narration", {value:_`${this.id}`,writable: true})
+		//Object.defineProperty(this, "narration", {value:_`${this.id}`,writable: true})
 		Object.defineProperty(this, "twist", {value:{},writable: true})
 		this.points[this.uid]=this
 
@@ -91,7 +91,8 @@ ishml.Plotpoint.prototype.unfoldSubplot = function (twist)
 		if (episode){episodes=episodes.concat(episode)}
 	}
 	episodes=episodes.sort((a,b)=>b.salience()-a.salience())
-	return episodes
+	if (episodes.length>0){return episodes[0]}
+	else {return undefined}
 }
 ishml.Plotpoint.handler=
 {
