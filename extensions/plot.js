@@ -66,6 +66,8 @@ plot.action.asking_to.unfold=function(command)
         .abridge(()=>this.check.unfold(command))
         .revise(()=>this.instead.unfold(command))
 }
+plot.action.asking_to.check
+plot.action.asking_to.instead
 
 //plot.action.dropping.narration=_`<p>You dropped the ${cache=>_.list(cache.droppable.data.map(thing=>thing.knot.name))}.</p>`.cache("droppable")
 plot.action.dropping.unfold=function(command)
@@ -74,6 +76,61 @@ plot.action.dropping.unfold=function(command)
         .add(command.directObject?.select().carried_by(command.subject.select()))
     command.notDroppable=command.directObject?.select().subtract(command.droppable)
     command.actionable=command.subject.select().has_skill($.action.dropping)
+    command.notActionable=command.subject.select().subtract(command.actionable)
+    var episode=ishml.Episode(this)
+        .narration(()=>{if (!command.silently) _`<p>You dropped the ${cache=>_.list(cache.droppable.data.map(thing=>thing.knot.name))}.</p>`.cache("droppable").populate(command.droppable).say().append("#story")})
+        .resolution(()=>{command.droppable.retie(cords.in).to(command.subject.select().in)})
+        .salience(5)
+        .viewpoint(command.viewpoint)
+        .abridge(()=>this.check.unfold(command))
+        .revise(()=>this.instead.unfold(command))
+    return episode                
+
+}
+plot.action.dropping.check.nothing.unfold=function(command)
+{
+    if(!command.directObject ||(command.droppable.isEmpty && command.notDroppable.isEmpty))
+    {
+        var episode=ishml.Episode(this)
+            .narration(()=>{if (!command.silently) _`<p>You think about dropping something, but what?</p>`.say().append("#story")})
+            .salience(3)   
+            .viewpoint(command.viewpoint)
+        return episode
+    }
+    return      
+}
+
+plot.action.dropping.check.notDroppable.narration=_`<p>You ${_.pick("think about dropping","want to drop", "would drop")} the ${cache=>_.list(cache.notDroppable.data.map(thing=>thing.knot.name))}, but ${_.pick(_`you don't even have ${cache=>cache.notDroppable.data.them}`,_`${cache=>cache.notDroppable.data.they} ${cache=>cache.notDroppable.data.are}n't in your possession`)}.</p>`.cache("notDroppable")
+plot.action.dropping.check.notDroppable.unfold=function(command)
+{
+    if (command.droppable.isEmpty && !command.notDroppable.isEmpty)
+    {
+        var episode=ishml.Episode(this)
+        .narration(()=>{if (!command.silently) this.narration.populate(command.notDroppable).say().append("#story")})
+        .salience(3)   
+        .viewpoint(command.viewpoint)
+        return episode
+    }
+    return 
+}
+plot.action.dropping.check.notActionable.narration=_`Not actionable`.cache("notActionable")	
+plot.action.dropping.check.notActionable.unfold=function(command)
+{
+    if (command.actionable.isEmpty && !command.notActionable.isEmpty)
+    {
+        var episode=ishml.Episode(this)
+        .narration(()=>{if (!command.sildently)this.narration.populate(command.notActionable).say().append("#story")})
+        .salience(3)   
+        .viewpoint(command.viewpoint)
+       return episode
+    }
+    return 
+}
+plot.action.inventorying.unfold=function(command)
+{
+    command.inventory=command.directObject?.select().worn_by(command.subject.select())
+        .add(command.directObject?.select().carried_by(command.subject.select()))
+    command.actionable=command.subject.select().has_skill($.action.inventorying)
     command.notActionable=command.subject.select().subtract(command.actionable)
     var episode=ishml.Episode(this)
         .narration(()=>{if (!command.silently) _`<p>You dropped the ${cache=>_.list(cache.droppable.data.map(thing=>thing.knot.name))}.</p>`.cache("droppable").populate(command.droppable).say().append("#story")})

@@ -49,7 +49,7 @@ lexicon
     .register("pick")
         .as({plot:plot.action.taking, part: "verb", particle:"up"})    
     .register("drop", "leave").as({ plot: plot.action.dropping, part: "verb", valence:1 })
-    
+    .register("inventory", "inv","take inventory").as({ plot: plot.action.inventorying, part: "verb", valence:0 })
     
     .register("save").as({key:"save", part: "system"})
     .register("restore").as({key:"restore", part: "system"})
