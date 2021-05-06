@@ -288,19 +288,17 @@ ishml.Ply= class Ply
 		}
 		return {aft:null,fore:null}  //not found
 	}
-	//get plies(){return new ishml.Tangle(this)}
-	retie(cordage)
+	retie(...cordage)
 	{
 		//$.place.kitchen.contains.knife.retie("in<contains").to($.place.foyer)
 		this.untie()
-		return this.knot.tie(cordage)
+		return this.knot.tie(...cordage)
 	}
-/*	get tangle()
-	{
-		return new ishml.Tangle(this)
-	}
-*/	
 
+	subtract(...cordage)
+	{
+		return this.cord.subtract(...cordage)
+	}
 	untie()
 	{
 /*Knot must have been reached by traveling along a tie.

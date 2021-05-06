@@ -29,6 +29,7 @@ lexicon
 
     //prepositions
     .register("from").as({ key: "from", part: "preposition" })
+    .register("in").as({ key: "in", part: "preposition" })
     .register("to").as({ key: "to", part: "preposition" })
 
     //relations
@@ -48,7 +49,8 @@ lexicon
         .as({plot:plot.action.taking_from , part: "verb", preposition:"from" })    
     .register("pick")
         .as({plot:plot.action.taking, part: "verb", particle:"up"})    
-    .register("drop", "leave").as({ plot: plot.action.dropping, part: "verb", valence:1 })
+    .register("drop","leave").as({plot:plot.action.dropping , part: "verb", preposition:"in", valence:2 })    
+    //.register("drop", "leave").as({ plot: plot.action.dropping, part: "verb", valence:1 })
     .register("inventory", "inv","take inventory").as({ plot: plot.action.inventorying, part: "verb", valence:0 })
     
     .register("save").as({key:"save", part: "system"})

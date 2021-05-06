@@ -56,13 +56,14 @@ plot.world.unfold =function()
 	
 	/*Actions*/
 	$
-		.tie("action").to("dropping","taking")
+		.tie("action").to("dropping","taking","inventorying")
+		
 
 	/*staging*/
 
 	$.actor.player
 		.tie("in").to($.place.foyer)
-		.tie("has skill").to($.action.dropping)
+		.tie("has skill").to($.action.dropping,$.action.inventorying)
 		.tie("wears").to($.thing.cloak)
 		.tie("wears").to($.thing.left_shoe)
 		.tie("wears").to($.thing.right_shoe)
@@ -84,7 +85,7 @@ lexicon
 	.register("shoe").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.left_shoe.cord.add($.thing.right_shoe)})
 	.register("shoes").as({part:"noun", number:ishml.enum.number.plural, select:()=>$.thing.left_shoe.cord.add($.thing.right_shoe)})
 	.register("jane").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.actor.jane})
-	
+	.register("foyer").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.place.foyer})
 
 	/*adjectives*/
 	.register("small").as({part:"adjective",select:()=>$.small})

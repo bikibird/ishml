@@ -7,6 +7,7 @@ ishml.Cord =class Cord extends Function
 		Object.setPrototypeOf(Cord, ishml.Cord.prototype)
 		Object.defineProperty(Cord,"id",{writable:true})
 		Object.defineProperty(Cord,"plies",{value:new Set(),writable:true})
+
 		members.forEach(member=>
 		{
 			if (member instanceof Set ||member instanceof ishml.Cord ||member instanceof Array)
@@ -335,10 +336,7 @@ ishml.Cord =class Cord extends Function
 					{
 						if (targetPly.knot===otherPly.knot)
 						{
-							if (targetPly.converse)
-							{
-								cord.add(targetPly.converse) //$.thing.ring.worn_by.converse aka ring
-							}
+							cord.add(targetPly.converse) //$.thing.ring.worn_by.converse aka ring
 							break
 						}
 					}
@@ -352,10 +350,7 @@ ishml.Cord =class Cord extends Function
 				var targetCord=thisPly.knot[property]//$.thing.ring.worn_by
 				for (const targetPly of targetCord) //$.thing.ring.worn_by  aka player
 				{
-					if (targetPly.converse)
-					{
-						cord.add(targetPly.converse) //$.thing.ring.worn_by.converse aka ring
-					}
+					cord.add(targetPly.converse) //$.thing.ring.worn_by.converse aka ring
 				}	
 			}
 		}
@@ -395,7 +390,7 @@ ishml.Cord =class Cord extends Function
 	subtract(...someKnots)
 	{
 		var a=new ishml.Cord(this)
-		var b=new ishml.Cord(someKnots).knots
+		var b=new ishml.Cord(...someKnots).knots
 		a.forEach(ply=>
 		{
 			if(b.has(ply.knot))
@@ -464,21 +459,32 @@ ishml.Cord.handler=
 
 		if (cords.length>0)
 		{
-			var otherCord=new ishml.Cord(...cords)
-			for (const targetPly of target ) //$.thing.ring
+			cords.forEach((c)=>
 			{
-				for (const otherPly of otherCord) //$.actor.player
+				if (typeof c === "string")
 				{
-					if (targetPly.knot===otherPly.knot)
+					cord.add(target[c]?.converse)
+				}
+				else
+				{
+					var otherCord=new ishml.Cord(c)
+					for (const targetPly of target ) //$.thing.ring
 					{
-						if (targetPly.converse)
+						for (const otherPly of otherCord) //$.actor.player
 						{
-							
-							cord.add(targetPly.converse) //$.thing.ring.worn_by.converse aka ring
+							if (targetPly.knot===otherPly.knot)
+							{
+								if (targetPly.converse)
+								{
+									
+									cord.add(targetPly?.converse) //$.thing.ring.worn_by.converse aka ring
+								}
+							}
 						}
 					}
-				}
-			}
+				}	
+			})
+			
 		}
 		else
 		{

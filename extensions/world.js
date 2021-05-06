@@ -25,7 +25,7 @@ cords.north=["exit:north=exit:south"]
 cords.northeast=["exit:northeast=exit:southwest"]
 cords.northwest=["exit:northwest=exit:southeast"]
 cords.open=["openable@is:openable","open@is:open"]
-cords.place=["place@is"]
+cords.place=["place@is:place","container@is:container"]
 cords.portable=["portable@is:portable"]
 cords.has_skill=["has_skill-skill_of"]
 

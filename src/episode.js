@@ -140,9 +140,12 @@ ishml.Episode.prototype.narrate=function narrate()
 {
 	if (!this.retracted)
 	{
-		if (this.stock?.prolog){this.stock.narrate()}
-		this._narration(this)
-		if (this.stock?.epilog){this.stock.narrate()}
+		if (!this.twist?.silently)
+		{
+			if (this.stock?.prolog){this.stock.narrate()}
+			this._narration(this)
+			if (this.stock?.epilog){this.stock.narrate()}
+		}	
 	}	
 	return this
 }
