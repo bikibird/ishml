@@ -1,4 +1,297 @@
-ishml.lang=ishml.lang || {}
+
+//var grammar = ishml.yarn.grammar || new ishml.Rule()
+//var lexicon = ishml.yarn.lexicon || new ishml.Lexicon()
+//var _ =ishml.Template 
+/*ishml.yarn.lexicon*/
+ishml.yarn.lexicon
+    //adjectives
+    .register("all").as({part:"adjective",select:()=>$.thing})
+
+    //articles
+    .register("the", "a", "an").as({ part: "article" })
+
+    //conjunctions
+    .register("and",",").as({ part: "conjunction" })
+
+    //particles
+    .register("up").as({ key: "up", part: "particle" })
+
+    //prepositions
+    .register("from").as({ key: "from", part: "preposition" })
+    .register("in").as({ key: "in", part: "preposition" })
+    .register("to").as({ key: "to", part: "preposition" })
+    
+    //relations
+    .register("in", "inside","inside of").as({cord: "in", part:"relation"})
+    .register("under", "underneath","below").as({cord: "under", part:"relation"})
+    .register("on", "on top of").as({cord: "on", part:"relation"})
+    .register("next to", "beside").as({cord: "beside", part:"relation"})
+
+
+/*grammar*/
+
+ishml.yarn.grammar.command=ishml.Rule()
+
+ishml.yarn.grammar.nounPhrase=ishml.Rule()
+    .snip("article").snip("adjectives").snip("noun").snip("adjunct").snip("conjunct")
+
+ishml.yarn.grammar.nounPhrase.article.configure({minimum:0, filter:(definition)=>definition.part==="article"})
+
+ishml.yarn.grammar.nounPhrase.adjectives.configure({minimum:0, maximum:Infinity, separator:/^\s*,?and\s+|^\s*,\s*|^\s+/, 
+    filter:(definition)=>definition.part==="adjective"})
+ishml.yarn.grammar.nounPhrase.noun.filter=(definition)=>definition.part==="noun"
+
+ishml.yarn.grammar.nounPhrase.adjunct
+    .configure({minimum:0})
+    .snip("relation").snip("nounPhrase",ishml.yarn.grammar.nounPhrase)
+    
+ishml.yarn.grammar.nounPhrase.adjunct.relation.configure({filter:(definition)=>definition.part==="relation"})
+
+ishml.yarn.grammar.nounPhrase.conjunct
+    .configure({minimum:0})    
+    .snip("conjunction").snip("nounPhrase",ishml.yarn.grammar.nounPhrase)
+ishml.yarn.grammar.nounPhrase.conjunct.conjunction.configure({filter:(definition)=>definition.part==="conjunction"})
+
+ishml.yarn.grammar.preposition=ishml.Rule().configure({filter:(definition)=>definition.part==="preposition"})
+ishml.yarn.grammar.command.snip("subject",ishml.yarn.grammar.nounPhrase.clone()).snip("verb").snip("object")
+ishml.yarn.grammar.ioPhrase=ishml.Rule().configure({mode:ishml.enum.mode.any})
+    .snip(1)
+    .snip(2)
+ishml.yarn.grammar.ioPhrase[1].snip("recipient",ishml.yarn.grammar.nounPhrase)    
+ishml.yarn.grammar.ioPhrase[2].snip("command",ishml.yarn.grammar.command)
+
+ishml.yarn.grammar.indirectObject=ishml.Rule().configure({minimum:0})
+    .snip("preposition",ishml.yarn.grammar.preposition).snip("phrase",ishml.yarn.grammar.ioPhrase)
+
+ishml.yarn.grammar.command.subject.configure({minimum:0 })
+
+
+ishml.yarn.grammar.command.subject.noun.configure({separator:/^\s*,\s*|^\s+/})
+
+ishml.yarn.grammar.command.verb.configure({filter: (definition)=>definition.part==="verb"})
+
+ishml.yarn.grammar.command.object=ishml.Rule()
+.configure({minimum:0, mode:ishml.enum.mode.any})
+.snip(1)  //verbalParticle(required)/directObject/indirectObject
+.snip(2)  //directObject/verbal particle(optional)/indirectObject
+.snip(3)  //indirectObject/directObject
+
+ishml.yarn.grammar.command.object[1].snip("verbalParticle").snip("directObject",ishml.yarn.grammar.nounPhrase).snip("indirectObject",ishml.yarn.grammar.indirectObject)
+ishml.yarn.grammar.command.object[2].snip("directObject",ishml.yarn.grammar.nounPhrase).snip("verbalParticle").snip("indirectObject",ishml.yarn.grammar.indirectObject)
+ishml.yarn.grammar.command.object[3].snip("indirectObject",ishml.yarn.grammar.nounPhrase).snip("directObject",ishml.yarn.grammar.nounPhrase)
+
+ishml.yarn.grammar.command.object[1].verbalParticle.configure({filter:(definition)=>definition.part==="particle"})
+ishml.yarn.grammar.command.object[2].verbalParticle.configure({minimum:0,filter:(definition)=>definition.part==="particle"})
+
+ishml.yarn.grammar.nounPhrase.semantics=(interpretation)=>
+{
+    var gist=interpretation.gist
+    gist.select=()=>
+    {
+        var cord=gist.noun.definition.select().cord
+        if (gist.adjectives)
+        {
+            gist.adjectives.forEach(adjective=>
+            {
+                cord=cord.cross(adjective.definition.select())
+                .per((noun,adjective)=>noun.knot===adjective.knot)
+            })
+        }
+        if(gist.adjunct)
+        {
+            cord=gist.adjunct.nounPhrase.select().cross(cord)
+                .per((adjunct,noun)=>noun.entwine({ply:adjunct.ply,via:gist.adjunct.relation.definition.cord}).aft)
+        } 
+        if (gist.conjunct)
+        {
+            cord=cord.add(gist.conjunct.nounPhrase.select()).disjoint
+        }
+        return cord  
+    }    
+    return interpretation
+}
+ishml.yarn.grammar.command.subject.semantics=ishml.yarn.grammar.nounPhrase.semantics
+ishml.yarn.grammar.command.semantics=(interpretation)=>
+{
+    var valence=interpretation.gist.verb.definition.valence
+    if (valence ===0 && interpretation.gist.hasOwnProperty("object")){return false}
+    if (valence ===1 && (interpretation.gist.object?.hasOwnProperty("indirectObject") || !interpretation.gist.object?.hasOwnProperty("directObject"))){return false}
+    if (valence ===2 && (!interpretation.gist.object?.hasOwnProperty("indirectObject") || !interpretation.gist.object?.hasOwnProperty("directObject"))){return false}
+    interpretation.gist.verb.plot=interpretation.gist.verb.definition.plot
+    
+    Object.assign(interpretation.gist,interpretation.gist.object)
+    delete interpretation.gist.object
+
+    if (interpretation.gist.hasOwnProperty("indirectObject"))
+    {
+        interpretation.gist.preposition=interpretation.gist.indirectObject.preposition
+        delete interpretation.gist.indirectObject.preposition
+        Object.assign(interpretation.gist.indirectObject,interpretation.gist.indirectObject.phrase?.recipient)
+        Object.assign(interpretation.gist.indirectObject,interpretation.gist.indirectObject.phrase?.command)
+        delete interpretation.gist.indirectObject.phrase
+    }
+
+
+    if (interpretation.gist.hasOwnProperty("subject"))
+    {
+        interpretation.gist=
+        { 
+            subject:{noun:ishml.yarn.lexicon.search("player", {longest:true, full:true}).filter(snippet=>snippet.token.definition.role==="player")[0].token},
+            verb:ishml.yarn.lexicon.search("ask", {longest:true, full:true}).filter(snippet=>snippet.token.definition.part==="verb" && snippet.token.definition.preposition==="to")[0].token,
+            directObject:interpretation.gist.subject,
+            preposition:ishml.yarn.lexicon.search("to", {longest:true, full:true}).filter(snippet=>snippet.token.definition.part==="preposition")[0].token,
+            indirectObject:interpretation.gist
+        }
+        interpretation.gist.verb.plot=interpretation.gist.verb.definition.plot
+    }
+    else
+    {
+        interpretation.gist.subject=
+        {
+            noun:ishml.yarn.lexicon.search("player", {longest:true, full:true}).filter(snippet=>snippet.token.definition.role==="player")[0].token
+        }
+    }
+    interpretation.gist.subject.select=()=>interpretation.gist.subject.noun.definition.select().cord
+
+    var vPreposition=interpretation.gist.verb.definition.preposition
+    var vParticle=interpretation.gist.verb.definition.particle
+    if(vPreposition)
+    {
+        if (!(interpretation.gist.preposition?.definition.key===vPreposition))
+        {
+            return false
+        }
+    }
+    else
+    {
+        if (interpretation.gist.hasOwnProperty("preposition"))
+        {
+            return false
+        }
+    }
+    if (vParticle)
+    {
+        if (!(interpretation.gist.verbalParticle?.definition.key===vParticle))
+        {
+            return false
+        }
+    }
+    else
+    {
+        if (interpretation.gist.hasOwnProperty("verbalParticle"))
+        {
+            return false
+        }
+    }
+    return true
+}
+
+ishml.yarn.parser=ishml.Parser({ lexicon: ishml.yarn.lexicon, grammar: ishml.yarn.grammar.command})
+
+/* adaptive text-- cords*/
+Object.defineProperty(ishml.Cord, "are", { get: function()
+{
+	var number=this.size
+	if (number>1){return "are"}
+	else
+	{
+		if (number===1)
+		{
+			var ply=[...this.plies][0]
+			if (ply.ply.quantity>1|| ply.knot.plural || ply.knot.quantity>1){return "are"}
+			else {return "is"}
+		}	
+	}
+	return "is"
+}})
+
+Object.defineProperty(ishml.Cord, "them", { get: function()
+{
+	var number=this.size
+	if (number>1){return "them"}
+	else
+	{
+		if (number===1)
+		{
+			var ply=[...this.plies][0]
+			if (ply.ply.quantity>1|| ply.knot.plural || ply.knot.quantity>1){return "them"}
+			else {return ply.knot.objectivePronoun ?? "it"}
+		}	
+	}
+	return "it"
+}})
+
+Object.defineProperty(ishml.Cord, "they", { get: function()
+{
+	var number=this.size
+	if (number>1){return "they"}
+	else
+	{
+		if (number===1)
+		{
+			var ply=[...this.plies][0]
+			if (ply.ply.quantity>1|| ply.knot.plural || ply.knot.quantity>1){return "they"}
+			else {return ply.knot.objectivePronoun ?? "it"}
+		}	
+	}
+	return "it"
+}})
+
+/* Cordage */
+var cords=ishml.Cord.cordage
+cords.action=["action@"]
+cords.actor=["actor@"]
+cords.carries=["carries-carried_by"]
+cords.closed=["openable@is:openable","closed@is:closed"]
+cords.commandable=["commandable@is:commandable"]
+cords.container=["container@is:container"]
+cords.contains=["contains=in"]
+cords.in=["in=contains"]
+
+
+cords.door=["door@is:door"]
+cords.down=["exit:down=exit:up"]
+cords.east=["exit:east=exit:west"]
+cords.edible=["edible@is:edible"]
+cords.fixture=["fixture@is:fixture"]
+
+cords.locked=["lockable@is:lockable","locked@is:locked"]
+
+cords.north=["exit:north=exit:south"]
+cords.northeast=["exit:northeast=exit:southwest"]
+cords.northwest=["exit:northwest=exit:southeast"]
+cords.open=["openable@is:openable","open@is:open"]
+cords.place=["place@is:place","container@is:container"]
+cords.portable=["portable@is:portable"]
+cords.has_skill=["has_skill-skill_of"]
+
+cords.south=["exit:south=exit:north"]
+cords.southeast=["exit:southeast=exit:northwest"]
+cords.southwest=["exit:southwest=exit:northeast"]
+cords.supporter=["supporter@is:supporter"]
+cords.on=["on=supports"]
+
+cords.touchable=["touchable@is:touchable"]
+cords.unlocked=["lockable@is:lockable","unlocked@is:unlocked"]
+cords.up=["exit:up=exit:down"]
+cords.wearable=["wearable@is:wearable"]
+cords.wears=["wears-worn_by"]
+cords.west=["exit:west=exit:east"]
+
+cords.closedDoor=[...cords.door, ...cords.closed]
+cords.openDoor=[...cords.door, ...cords.open]
+cords.lockedDoor=[...cords.closedDoor, ...cords.locked]
+cords.thing=["thing@is:thing",...cords.portable,...cords.touchable]
+
+/* pronouns */
+
+ishml.lang.pronouns=
+{
+  epicene:{subjective:"they",objective:"them",reflexive:"themself",possessive:"theirs"},
+  female:{subjective:"she",objective:"her",reflexive:"herself",possessive:"hers"},
+  male:{subjective:"he",objective:"him",reflexive:"himself",possessive:"his"},
+  neuter:{subjective:"it",objective:"it",reflexive:"itself",possessive:"its"}
+}
 ishml.lang.preserveCase=function (text, pattern,initialism=true)
 {
 	var result = ""
@@ -411,4 +704,3 @@ ishml.Phrase.define("s").as (precursor =>
 ishml.Template.define("a").as((...data)=> ishml.Template(...data).modify(item=>`${ishml.lang.a(item.value)} ${item.value}`))
 ishml.Phrase.define("z").as(precursor =>precursor.modify(item=>ishml.lang.z(item.value)))
 
-var _=ishml.Template

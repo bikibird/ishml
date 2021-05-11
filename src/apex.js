@@ -43,3 +43,4 @@ ishml.enum.viewpoint=
 	second:{singular:Symbol("second person singular"),plural:Symbol("second person plural")},		
 	third:{singular:Symbol("third person singular"),plural:Symbol("third person plural")}
 }
+ishml.lang={}

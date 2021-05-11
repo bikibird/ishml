@@ -35,6 +35,47 @@ ishml.Lexicon.prototype.register = function (...someLexemes)
 	}	
 	return {as:_as.bind(this)}	
 }
+ishml.Lexicon.prototype.register = function (...someLexemes) 
+{
+	var lexemes=someLexemes
+	var _as =function(definition)
+	{
+		lexemes.forEach((lexeme)=>
+		{
+			var _trie = this.trie
+			for (let i = 0, length =lexeme.length; i < length; i++)
+			{
+				var character = lexeme.charAt(i)
+				_trie = (_trie[character] =_trie[character] || {})
+			}
+			if (!_trie.definitions)
+			{
+				_trie.definitions= []
+			}
+			_trie.definitions.push(definition)
+		})	
+		return this
+	}	
+	return {as:_as.bind(this)}	
+}
+ishml.Lexicon.prototype.define = function (definition,...someLexemes) 
+{
+	someLexemes.forEach((lexeme)=>
+	{
+		var _trie = this.trie
+		for (let i = 0, length =lexeme.length; i < length; i++)
+		{
+			var character = lexeme.charAt(i)
+			_trie = (_trie[character] =_trie[character] || {})
+		}
+		if (!_trie.definitions)
+		{
+			_trie.definitions= []
+		}
+		_trie.definitions.push(definition)
+	})	
+	return this
+}
 ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^\s+/, caseSensitive=false, longest=false, full=false}={}) 
 {
 	var _trie = this.trie

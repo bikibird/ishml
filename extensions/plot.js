@@ -4,7 +4,11 @@
  //   _`Confusedly, you think <q>${cache=>cache.remainder.data}</q> to yourself.`,
 //    _`You realize <q>${cache=>cache.remainder.data}</q> doesn't make any sense here once you say it out loud.`)}</p>`
  //       .cache("remainder")
-
+ var story=ishml.yarn
+ var plot=story.plot
+ var lexicon=story.lexicon
+ var $ = story.net
+ var _ =ishml.Template 
 plot.main.dialog.input.unfold=function(twist)
 {
     var episodes=[]
@@ -67,6 +71,8 @@ plot.action.asking_to.unfold=function(command)
         .abridge(()=>this.check.unfold(command))
         .revise(()=>this.instead.unfold(command))
 }
+lexicon
+    .register("ask").as({plot:plot.action.asking_to, part: "verb", preposition:"to",valence:2} ) 
 plot.action.asking_to.check
 plot.action.asking_to.instead
 
@@ -95,7 +101,12 @@ plot.action.dropping.unfold=function(command)
         .revise(()=>this.instead.unfold(command))
     return episode                
 
+
 }
+lexicon
+	.register("drop","leave").as({plot:plot.action.dropping , part: "verb", preposition:"in", valence:2 })    
+    .register("drop", "leave").as({ plot: plot.action.dropping, part: "verb", valence:1 })
+
 
 plot.action.dropping.check.nothing.unfold=function(command)
 {
@@ -181,21 +192,23 @@ plot.action.taking.unfold=function(command)
     }
     
     command.portable=command.directObject?.select().is("portable")
-    command.notPortable=command.directObject?.select().subtract(command.droppable)
+    command.notPortable=command.directObject?.select().subtract(command.portable)
     command.capable=command.subject.select().has_skill($.action.taking)
     command.notCapable=command.subject.select().subtract(command.capable)
-    command.taker=command.su.select().is("container")
-    cmmand.notContainer=command.indirectObject.select().subtract(command.container)
-
+    
     var episode=ishml.Episode(this)
         .narration(()=>{if (!command.silently) _`Taken. `.say().append("#story")})
-        .resolution(()=>{command.capable.retie(cords.carries).to(command.portable)})
+        .resolution(()=>{command.portable.in().untie().tie(cords.carries).from(command.capable)})
         .salience(5)
         .viewpoint(command.viewpoint)
         .abridge(()=>this.check.unfold(command))
         .revise(()=>this.instead.unfold(command))
     return episode                
 }
+lexicon
+	.register("take","grab","steal").as({plot:plot.action.taking, part: "verb" })
+	.register("pick").as({plot:plot.action.taking, part: "verb", particle:"up"})   
+
 plot.action.taking.check.notCapable.unfold=function(command)
 {
     if (!command.notCapable.isEmpty)
@@ -238,7 +251,7 @@ plot.action.taking.check.notPortable.unfold=function(command)
     if (!command.notPortable.isEmpty)
     {
         var episode=ishml.Episode(this)
-        .narration(()=> _`<p>You ${_.pick("think about taking","want to take", "would take")} the ${cache=>_.list(cache.notPortable.data.map(thing=>thing.knot.name))}, but ${_.pick(_`you don't even have ${cache=>cache.notPortable.data.them}`,_`${cache=>cache.notPortable.data.they} ${cache=>cache.notPortable.data.are}n't in your possession`)}.</p>`.cache("notPortable").populate(command.notPortable).say().append("#story"))
+        .narration(()=> _`<p>You ${_.pick("think about taking","want to take", "would take")} the ${cache=>_.list(cache.notPortable.data.map(thing=>thing.knot.name))}, but ${_.pick(_` ${cache=>cache.notPortable.data.them} isn't portable`,_`${cache=>cache.notPortable.data.they} ${cache=>cache.notPortable.data.are} too unwieldy`)}.</p>`.cache("notPortable").populate(command.notPortable).say().append("#story"))
         .salience(3)   
         .viewpoint(command.viewpoint)
         return episode
@@ -251,9 +264,6 @@ plot.action.taking.instead
 
 /*
 
-Check an actor taking (this is the can’t take other people rule):
-if the noun is a person, stop the action with library message taking
-action number 3 for the noun.
 Check an actor taking (this is the can’t take component parts rule):
 if the noun is part of something (called the whole), stop the action
 with library message taking action number 7 for the whole.

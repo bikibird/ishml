@@ -1,4 +1,4 @@
-ishml.Yarn=
+ishml.yarn=
 {
 	storyline:{},  //Episode queue
 	history:[],
@@ -6,10 +6,9 @@ ishml.Yarn=
 	interval: 60000,
 	turn:1,
 	plot:new ishml.Plotpoint(),
-	lexicon:null,
-	grammar:null,
+	lexicon:new ishml.Lexicon(),
+	grammar:new ishml.Rule(),
 	parser:null,
-	//translator= null not Needed?
 	viewpoint:ishml.enum.viewpoint.second.singular,
 	tense:ishml.enum.tense.present,
 	//ishml.util.reseed(seed)  --DEFECT
@@ -17,11 +16,11 @@ ishml.Yarn=
 	undoLength:10
 }
 
-ishml.Yarn.configure=function(options)
+ishml.yarn.configure=function(options)
 {
 	//DEFECT TO DO seed, name, author, etc.
 }
-ishml.Yarn.harken=function()
+ishml.yarn.harken=function()
 {
 	var state={dragging:false}
 	document.addEventListener('click', (e)=>this.click(e))
@@ -32,7 +31,7 @@ ishml.Yarn.harken=function()
 	document.addEventListener('transitionend', (e)=> this.transitionend(e,state))
 
 }
-ishml.Yarn.click=function(e)
+ishml.yarn.click=function(e)
 {
 	if (e.target.matches('.ishml-choice'))
 	{
@@ -43,16 +42,16 @@ ishml.Yarn.click=function(e)
 			{
 				input:e.target.value,
 				viewpoint:"player",
-				moment:ishml.Yarn.clock
+				moment:ishml.yarn.clock
 			},e.target.dataset)
 
 		this.history.push(twist)
 		
-		var plotpoint=twist.plotpiont??ishml.Yarn.plot.points[twist.plot]??ishml.Yarn.plot[twist.plot]	
+		var plotpoint=twist.plotpiont??ishml.yarn.plot.points[twist.plot]??ishml.yarn.plot[twist.plot]	
 		plotpoint.unfold(twist)
 	}
 }
-ishml.Yarn.keyup=function(e)
+ishml.yarn.keyup=function(e)
 {
 
 	if (e.target.matches('.ishml-input'))
@@ -66,18 +65,18 @@ ishml.Yarn.keyup=function(e)
 				{
 					input:e.target.value,
 					viewpoint:"player",
-					moment:ishml.Yarn.clock
+					moment:ishml.yarn.clock
 				},e.target.dataset)
 	
 			this.history.push(twist)
 			
-			var plotpoint=twist.plotpiont??ishml.Yarn.plot.points[twist.plot]??ishml.Yarn.plot[twist.plot]	
+			var plotpoint=twist.plotpiont??ishml.yarn.plot.points[twist.plot]??ishml.yarn.plot[twist.plot]	
 			plotpoint.unfold(twist)
 
 		}
 	}
 }
-ishml.Yarn.mousedown=function(e,state)
+ishml.yarn.mousedown=function(e,state)
 {
 	if (e.target.matches('.ishml-draggable'))
 	{
@@ -99,7 +98,7 @@ ishml.Yarn.mousedown=function(e,state)
 		}
 	}
 }
-ishml.Yarn.mouseup=function(e,state)
+ishml.yarn.mouseup=function(e,state)
 {
 	
 	if (state.dragging && !state.dragging.transitioning)
@@ -118,7 +117,7 @@ ishml.Yarn.mouseup=function(e,state)
 		state.dragging.transitioning=true
 	}
 }
-ishml.Yarn.mousemove=function(e,state)
+ishml.yarn.mousemove=function(e,state)
 {
 	if (state.dragging && !state.dragging.clone.matches(".ishml-draggable-rejected"))
 	{
@@ -145,7 +144,7 @@ ishml.Yarn.mousemove=function(e,state)
 		state.dragging.clone.style.top=right
 	}
 }
-ishml.Yarn.transitionend=function(e,state)
+ishml.yarn.transitionend=function(e,state)
 {
 	if(e.target===state.dragging.clone && state.dragging.transitioning )
 	{
@@ -162,20 +161,20 @@ ishml.Yarn.transitionend=function(e,state)
 	}
 }
 
-ishml.Yarn.dropHoverStart=function({draggable,dropbox})
+ishml.yarn.dropHoverStart=function({draggable,dropbox})
 {
 	draggable.dataset.originalText=draggable.innerText
 	draggable.innerText=draggable.innerText + " " +dropbox.innerText
 	draggable.classList.add("ishml-draggable-hover")
 	dropbox.classList.add("ishml-dropbox-hover")
 }
-ishml.Yarn.dropHoverStop=function({draggable,dropbox})
+ishml.yarn.dropHoverStop=function({draggable,dropbox})
 {
 	draggable.classList.remove("ishml-draggable-hover")
 	draggable.innerText=draggable.dataset.originalText
 	dropbox.classList.remove("ishml-dropbox-hover")
 }
-ishml.Yarn.dropCheck=function({draggable,dropbox})
+ishml.yarn.dropCheck=function({draggable,dropbox})
 {
 	var plot=this.plot.points[draggable.dataset.plot]
 	if (plot)
@@ -187,7 +186,7 @@ ishml.Yarn.dropCheck=function({draggable,dropbox})
 	return false
 }
 		
-ishml.Yarn.say=function(aText)
+ishml.yarn.say=function(aText)
 {	
 	if (typeof aText === 'string' || aText instanceof String)
 	{
@@ -267,7 +266,7 @@ ishml.Yarn.say=function(aText)
 }
 
 
-ishml.Yarn.recite=function(literals, ...expressions)
+ishml.yarn.recite=function(literals, ...expressions)
 {
 
 		
@@ -281,7 +280,7 @@ ishml.Yarn.recite=function(literals, ...expressions)
 
 }
 
-ishml.Yarn.restore=function(key)
+ishml.yarn.restore=function(key)
 {
 	var yarn = this
 	return new Promise(function(resolve, reject)
@@ -325,7 +324,7 @@ ishml.Yarn.restore=function(key)
 	})
 }	
 
-ishml.Yarn.save=function(key)
+ishml.yarn.save=function(key)
 {
 	var yarn =this
 	
@@ -360,7 +359,7 @@ ishml.Yarn.save=function(key)
 		}	 
 	})	
 }
-ishml.Yarn.tell=function(viewpoint="player") 
+ishml.yarn.tell=function(viewpoint="player") 
 {
 	while(this.storyline[viewpoint].length>0)
 	{
@@ -381,7 +380,7 @@ ishml.Yarn.tell=function(viewpoint="player")
 	return this
 }
 
-ishml.Yarn.introduce=function(episode) 
+ishml.yarn.introduce=function(episode) 
 {
 	var viewpoint=episode.viewpoint()
 	if (!this.storyline.hasOwnProperty(viewpoint))
@@ -395,7 +394,7 @@ ishml.Yarn.introduce=function(episode)
 
 /* A turn is a processing of all the episodes on the the storyline.  An episode is a plotpoint.narrate with bound arguments.*/ 
 
-ishml.Yarn.stringify=function()
+ishml.yarn.stringify=function()
 {
 	var plies=new Map()
 	var plyPlies=new Map()
@@ -476,11 +475,11 @@ ishml.Yarn.stringify=function()
 	})
 	return JSON.stringify({knots:knotArray,plies:plyArray,seed:ishml.util._seed})
 }
-ishml.Yarn.tick=function(ticks=1)
+ishml.yarn.tick=function(ticks=1)
 {
 	this.clock.setTime(this.clock.getTime() + (this.interval*ticks))
 }
-ishml.Yarn.yarnify=function(savedGame)
+ishml.yarn.yarnify=function(savedGame)
 {
 	var plies={}
 	var plyPlies={}
@@ -541,7 +540,7 @@ ishml.Yarn.yarnify=function(savedGame)
 	
 	return true
 }
-ishml.Yarn.retraction=function({seed,undo=()=>true,episode})
+ishml.yarn.retraction=function({seed,undo=()=>true,episode})
 {
 	var retraction={seed:seed||ishml.util._seed,undo:undo,redo:episode}
 	if (!this.undo[this.turn])
@@ -555,7 +554,7 @@ ishml.Yarn.retraction=function({seed,undo=()=>true,episode})
 	}
 
 }
-ishml.Yarn.recant=function()
+ishml.yarn.recant=function()
 {
 	[...Object.values(this.undo).shift()].reverse.forEach(retraction=>
 	{
@@ -566,7 +565,7 @@ ishml.Yarn.recant=function()
 	
 		
 }
-ishml.Yarn.reintroduce=function()
+ishml.yarn.reintroduce=function()
 {
 	//redo the undo
 	

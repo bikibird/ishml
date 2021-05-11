@@ -43,7 +43,7 @@ The action's revise method is called with the episode as the argument.  Revise u
 
 ### Adding actions
 
-Add action to plot. See plot.js
+Add action to plot. See  outline.js, plot.js
 * plot.action.gerund.unfold=function(command){return episode}
 * plot.action.gerund.check
 * plot.action.gerund.instead
@@ -52,9 +52,9 @@ Add skill to actors that can perform the action in the world plotpoint (see cloa
 * $.action.tie("action").to("gerund")
 * $.actor.player.tie("has skill").to($.action.gerund)
 
-Add verb to lexicon. See world.js
+Add verb to lexicon. See outline.js
 
-.register("1st person singular verb form", "alias","another alias", "etc").as({ plot: plot.action.gerund, part: "verb", valence:1 })
+lexicon.register("1st person singular verb form", "alias","another alias", "etc").as({ plot: plot.action.gerund, part: "verb", valence:1 })
 
 The player is permitted to drop.
 

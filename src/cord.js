@@ -210,52 +210,6 @@ ishml.Cord =class Cord extends Function
 	{
 		this.plies.forEach(f)
 	}
-//grammar
-	get are()
-	{
-		var number=this.size
-		if (number>1){return "are"}
-		else
-		{
-			if (number===1)
-			{
-				var ply=[...this.plies][0]
-				if (ply.ply.quantity>1|| ply.knot.plural || ply.knot.quantity>1){return "are"}
-				else {return "is"}
-			}	
-		}
-		return "is"
-	}
-	get them()
-	{
-		var number=this.size
-		if (number>1){return "them"}
-		else
-		{
-			if (number===1)
-			{
-				var ply=[...this.plies][0]
-				if (ply.ply.quantity>1|| ply.knot.plural || ply.knot.quantity>1){return "them"}
-				else {return ply.knot.objectivePronoun ?? "it"}
-			}	
-		}
-		return "it"
-	}
-	get they()
-	{
-		var number=this.size
-		if (number>1){return "they"}
-		else
-		{
-			if (number===1)
-			{
-				var ply=[...this.plies][0]
-				if (ply.ply.quantity>1|| ply.knot.plural || ply.knot.quantity>1){return "they"}
-				else {return ply.knot.objectivePronoun ?? "it"}
-			}	
-		}
-		return "it"
-	}
 	has(ply)
 	{
 		if (this.plies.has(ply)){return true}
@@ -411,7 +365,7 @@ ishml.Cord =class Cord extends Function
 			{
 				this.forEach((toPly)=>
 				{
-					ply.knot.tie(...someCordage).to(toPly.Knot)
+					ply.knot.tie(...someCordage).to(toPly.knot)
 				})	
 			})
 			return this	

@@ -14,9 +14,9 @@ ishml.Knot= class Knot
 {
 	constructor(id) //,uid)
 	{
-		Object.defineProperty(this, "id", {value:id,writable: true}) //local name
+		Object.defineProperty(this, "id", {value:id,writable: true}) //
 		Object.defineProperty(this, "name", {value:id.replace("_"," "),writable: true}) //local name
-		Object.defineProperty(this, "description", {value:this.name,writable: true}) //local name
+		Object.defineProperty(this, "description", {value:this.name,writable: true}) 
 		return this 
 	}
 	get cord()
@@ -39,7 +39,9 @@ ishml.Knot= class Knot
 	configure(value)
 	{
 		Object.assign(this,value)
+		return this
 	}
+
 	tie(...someCordage)
 	{
 /*$.thing.cup.tie("cord:ply").to(otherKnot/otherPly) --one-way relation converse===null

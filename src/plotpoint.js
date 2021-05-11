@@ -7,7 +7,6 @@ ishml.Plotpoint = function Plotpoint(id,summary)
 		Object.defineProperty(this, "unfold", {value:ishml.Plotpoint.prototype.unfoldSubplot ,writable: true})
 
 		Object.defineProperty(this, "uid", {value:ishml.util.formatId(),writable: true})
-		//Object.defineProperty(this, "narration", {value:_`${this.id}`,writable: true})
 		Object.defineProperty(this, "twist", {value:{},writable: true})
 		this.points[this.uid]=this
 
@@ -63,7 +62,7 @@ ishml.Plotpoint.prototype.heed = function (aDocumentSelector)
 						text: e.target.value,
 						agent: (e.target.dataset.agent || "player"),
 						target: e.target,
-						grammar: ishml.Yarn.grammar[e.target.dataset.grammar] || ishml.Yarn.grammar.input
+						grammar: ishml.yarn.grammar[e.target.dataset.grammar] || ishml.yarn.grammar.input
 					}
 					e.target.value = ""
 					e.target.removeEventListener(eventString, handler)
@@ -77,6 +76,8 @@ ishml.Plotpoint.prototype.heed = function (aDocumentSelector)
 		})
 	}
 }
+
+
 	
 //DOCUMENTATION:  unfold should return false if twist not handled to allow siblings to have a chance at resolving. Return truthy value if plotpoint resolves twist. Returned object may return information to parent plotpoint, which the parent can use to determine whether it is successful. Twist may be modified, which also conveys info back to the parent.
 
@@ -94,6 +95,8 @@ ishml.Plotpoint.prototype.unfoldSubplot = function (twist)
 	if (episodes.length>0){return episodes[0]}
 	else {return undefined}
 }
+
+
 ishml.Plotpoint.handler=
 {
 	get: function(target, property,receiver) 
