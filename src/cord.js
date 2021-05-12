@@ -44,6 +44,14 @@ ishml.Cord =class Cord extends Function
 						Cord.plies.add(member.ply)
 						Cord[member.id]=member.ply
 					}
+					else
+					{
+						if (typeof member === "function")
+						{
+							//DEFECT not done
+							// define infer as a getter property set to the pass function.
+						}
+					}
 				}
 				
 			}
@@ -227,6 +235,16 @@ ishml.Cord =class Cord extends Function
 	map(map)
 	{
 		return [...this.plies].map(map)
+	}
+	path(destination,{filter=(knot)=>true,minimum=1,maximum=Infinity,via,cost=(ply,leg)=>ply.cost+leg.ply.weight}={})
+	{
+		return this.cross(destination).per(
+		(a,b)=>
+		{
+			var {aft}=a.path(b,{filter:filter,minimum:minimum,maximum:maximum,via:via,cost:cost})
+			if (aft) {return true}
+			else {return false}
+		})
 	}
 	first(count=1)
 	{

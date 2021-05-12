@@ -175,7 +175,7 @@ ishml.Ply= class Ply
 
 				if (heap.length === 3)
 				{
-					if (heap[1] > heap[2])
+					if (heap[1].cost > heap[2].cost)
 					{
 						[heap[1], heap[2]] = [heap[2], heap[1]]
 					}

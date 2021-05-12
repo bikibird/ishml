@@ -79,19 +79,8 @@ plot.action.asking_to.instead
 //plot.action.dropping.narration=_`<p>You dropped the ${cache=>_.list(cache.droppable.data.map(thing=>thing.knot.name))}.</p>`.cache("droppable")
 plot.action.dropping.unfold=function(command)
 {
-    if (!command.indirectObject)
-    {
-        command.indirectObject={select:()=>command.subject.select().in}
-    }
+    if (!command.indirectObject){command.indirectObject={select:()=>command.subject.select().in}}
     
-    command.droppable=command.directObject?.select().worn_by(command.subject.select())
-        .add(command.directObject?.select().carried_by(command.subject.select()))
-    command.notDroppable=command.directObject?.select().subtract(command.droppable)
-    command.capable=command.subject.select().has_skill($.action.dropping)
-    command.notCapable=command.subject.select().subtract(command.capable)
-    command.container=command.indirectObject.select().is("container")
-    command.notContainer=command.indirectObject.select().subtract(command.container)
-    console.log(command)
     var episode=ishml.Episode(this)
         .narration(()=>{if (!command.silently) _`<p>You dropped the ${cache=>_.list(cache.droppable.data.map(thing=>thing.knot.name))}.</p>`.cache("droppable").populate(command.droppable).say().append("#story")})
         .resolution(()=>{command.droppable.retie(cords.in).to(command.container)})
@@ -100,8 +89,6 @@ plot.action.dropping.unfold=function(command)
         .abridge(()=>this.check.unfold(command))
         .revise(()=>this.instead.unfold(command))
     return episode                
-
-
 }
 lexicon
 	.register("drop","leave").as({plot:plot.action.dropping , part: "verb", preposition:"in", valence:2 })    
@@ -110,6 +97,9 @@ lexicon
 
 plot.action.dropping.check.nothing.unfold=function(command)
 {
+    command.droppable=command.directObject?.select().worn_by(command.subject.select())
+    .add(command.directObject?.select().carried_by(command.subject.select()))
+    command.notDroppable=command.directObject?.select().subtract(command.droppable)
     if(!command.directObject ||(command.droppable.isEmpty && command.notDroppable.isEmpty))
     {
         var episode=ishml.Episode(this)
@@ -122,6 +112,8 @@ plot.action.dropping.check.nothing.unfold=function(command)
 }
 plot.action.dropping.check.notCapable.unfold=function(command)
 {
+    command.capable=command.subject.select().has_skill($.action.dropping)
+    command.notCapable=command.subject.select().subtract(command.capable)
     if (!command.notCapable.isEmpty)
     {
         var episode=ishml.Episode(this)
@@ -148,6 +140,8 @@ plot.action.dropping.check.notDroppable.unfold=function(command)
 }
 plot.action.dropping.check.notContainer.unfold=function(command)
 {
+    command.container=command.indirectObject.select().is("container")
+    command.notContainer=command.indirectObject.select().subtract(command.container)
     if (command.container.isEmpty )
     {
         var episode=ishml.Episode(this)

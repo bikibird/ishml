@@ -254,7 +254,7 @@ cords.down=["exit:down=exit:up"]
 cords.east=["exit:east=exit:west"]
 cords.edible=["edible@is:edible"]
 cords.fixture=["fixture@is:fixture"]
-
+cords.has_skill=["has_skill-skill_of"]
 cords.locked=["lockable@is:lockable","locked@is:locked"]
 
 cords.north=["exit:north=exit:south"]
@@ -263,7 +263,8 @@ cords.northwest=["exit:northwest=exit:southeast"]
 cords.open=["openable@is:openable","open@is:open"]
 cords.place=["place@is:place","container@is:container"]
 cords.portable=["portable@is:portable"]
-cords.has_skill=["has_skill-skill_of"]
+cords.reachable=["reachable@is:reachable"]
+
 
 cords.south=["exit:south=exit:north"]
 cords.southeast=["exit:southeast=exit:northwest"]
