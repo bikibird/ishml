@@ -136,7 +136,12 @@ ishml.Ply= class Ply
 
 		return plait
 	}
-	path(destination,{filter=(knot)=>true,minimum=1,maximum=Infinity,via,cost=(ply,leg)=>ply.cost+leg.ply.weight}={})
+	//$.thing.ring.nearby(1).via("in","over","under").contains(player,{via})
+	nearby(hops)
+	{
+		return new ishml.Cord(this).nearby(hops)
+	}
+	path(destination,{filter=(ply)=>true,minimum=1,maximum=Infinity,via,cost=(ply,leg)=>ply.cost+leg.ply.weight}={})
 	{
 		function insert (ply)
 		{
@@ -160,7 +165,10 @@ ishml.Ply= class Ply
 			}
 			
 		}
-    
+		realm(hops)
+		{
+			return new ishml.Cord(this).realm(hops)
+		}
 		function remove()
 		{
 			let smallest = heap[1]

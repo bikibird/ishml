@@ -155,7 +155,7 @@ ishml.Cord =class Cord extends Function
 	{
 		return this.plies.size===0
 	}
-	equivalentKnots(...someCord)
+	equivalent(...someCord)
 	{
 		var knots=this.knots
 		var otherKnots = (new ishml.Cord(...someCord)).knots
@@ -235,6 +235,90 @@ ishml.Cord =class Cord extends Function
 	map(map)
 	{
 		return [...this.plies].map(map)
+	}
+	//$.thing.ring.nearby(1).via("in","over","under").contains(player,{via})
+	nearby(hops)
+	{
+		var visited
+		var result
+		var neighbors 
+		var thisCord = this
+		var adjacencies=(cord,keys)=>
+		{
+			var adjacent=new ishml.Cord()
+			if (keys)
+			{
+				keys.forEach((key)=>
+				{	
+					cord.forEach(ply=>{adjacent.add(ply.knot[key])})
+				})
+			}
+			else
+			{
+				cord.forEach(ply=>{adjacent.add(ply.knot.cords)})
+			}
+			
+			return adjacent
+		}
+		return {
+			via:(...cordage)=>
+			{
+				var i=hops?hops-1:Infinity
+				result=adjacencies(this, cordage)
+				visited = new ishml.Cord(result)
+				while (i>0)
+				{
+					neighbors=adjacencies(result, cordage).subtract(visited)
+					if (neighbors.size===0){return new ishml.Cord()}
+					visited.add(neighbors)
+					result= new ishml.Cord(neighbors)
+					i--
+				}
+				return result
+			}
+		}	
+	}
+	realm(hops)
+	{
+		var visited
+		var result
+		var neighbors 
+		var size
+		var thisCord=this
+		var adjacencies=(cord,keys)=>
+		{
+			var adjacent=new ishml.Cord()
+			if (keys)
+			{
+				keys.forEach((key)=>
+				{	
+					cord.forEach(ply=>{adjacent.add(ply.knot[key])})
+				})
+			}
+			else
+			{
+				cord.forEach(ply=>{adjacent.add(ply.knot.cords)})
+			}
+			
+			return adjacent
+		}
+		return {
+			via:(...cordage)=>
+			{
+				var i=hops?hops-1:Infinity
+				result=adjacencies(thisCord, cordage)
+				visited=new ishml.Cord(thisCord).add(result)
+				while (i>0)
+				{
+					neighbors=adjacencies(result, cordage).subtract(visited)
+					if (neighbors.size===0){break}
+					visited.add(neighbors)
+					result.add(neighbors)
+					i--
+				}
+				return result
+			}
+		}	
 	}
 	path(destination,{filter=(knot)=>true,minimum=1,maximum=Infinity,via,cost=(ply,leg)=>ply.cost+leg.ply.weight}={})
 	{

@@ -80,7 +80,8 @@ plot.action.asking_to.instead
 plot.action.dropping.unfold=function(command)
 {
     if (!command.indirectObject){command.indirectObject={select:()=>command.subject.select().in}}
-    
+    command.droppable=command.directObject?.select().worn_by(command.subject.select())
+    .add(command.directObject?.select().carried_by(command.subject.select()))
     var episode=ishml.Episode(this)
         .narration(()=>{if (!command.silently) _`<p>You dropped the ${cache=>_.list(cache.droppable.data.map(thing=>thing.knot.name))}.</p>`.cache("droppable").populate(command.droppable).say().append("#story")})
         .resolution(()=>{command.droppable.retie(cords.in).to(command.container)})
@@ -97,8 +98,7 @@ lexicon
 
 plot.action.dropping.check.nothing.unfold=function(command)
 {
-    command.droppable=command.directObject?.select().worn_by(command.subject.select())
-    .add(command.directObject?.select().carried_by(command.subject.select()))
+    
     command.notDroppable=command.directObject?.select().subtract(command.droppable)
     if(!command.directObject ||(command.droppable.isEmpty && command.notDroppable.isEmpty))
     {
@@ -186,9 +186,8 @@ plot.action.taking.unfold=function(command)
     }
     
     command.portable=command.directObject?.select().is("portable")
-    command.notPortable=command.directObject?.select().subtract(command.portable)
-    command.capable=command.subject.select().has_skill($.action.taking)
-    command.notCapable=command.subject.select().subtract(command.capable)
+    
+   console.log(command.portable)
     
     var episode=ishml.Episode(this)
         .narration(()=>{if (!command.silently) _`Taken. `.say().append("#story")})
@@ -202,33 +201,59 @@ plot.action.taking.unfold=function(command)
 lexicon
 	.register("take","grab","steal").as({plot:plot.action.taking, part: "verb" })
 	.register("pick").as({plot:plot.action.taking, part: "verb", particle:"up"})   
-
+plot.action.taking.check.notPortable.unfold=function(command)
+{
+    command.notPortable=command.directObject?.select().subtract(command.portable)
+    if (!command.notPortable.isEmpty)
+    {
+        
+        return ishml.Episode(this)
+            .narration(()=> _`<p>You ${_.pick("think about taking","want to take", "would take")} the ${cache=>_.list(cache.notPortable.data.map(thing=>thing.knot.name))}, but ${_.pick(_` ${cache=>cache.notPortable.data.them} isn't portable`,_`${cache=>cache.notPortable.data.they} ${cache=>cache.notPortable.data.are} too unwieldy`)}.</p>`.cache("notPortable").populate(command.notPortable).say().append("#story"))
+            .salience(3)   
+            .viewpoint(command.viewpoint)
+        
+    }
+    
+}
 plot.action.taking.check.notCapable.unfold=function(command)
 {
+    command.capable=command.subject.select().has_skill($.action.taking)
+    command.notCapable=command.subject.select().subtract(command.capable)
+   
     if (!command.notCapable.isEmpty)
     {
-        var episode=ishml.Episode(this)
-        .narration(()=>_`You are not capable of taking.`.cache("notCapable").populate(command.notCapable).say().append("#story"))
-        .salience(3)   
-        .viewpoint(command.viewpoint)
-       return episode
+        return ishml.Episode(this)
+            .narration(()=>_`You are not capable of taking.`.cache("notCapable").populate(command.notCapable).say().append("#story"))
+            .salience(3)   
+            .viewpoint(command.viewpoint)
     }
-    return 
 }
 plot.action.taking.check.selfTaking.unfold=function(command)
 {
-    if (command.capable.subtract(command.portable).size!==command.capable.size)
+    if (command.portable.subtract(command.subject.select()).size!==command.portable.size)
     {
-        var episode=ishml.Episode(this)
-        .narration(()=>_`Cannot self-take.`.say().append("#story"))
-        .salience(3)   
-        .viewpoint(command.viewpoint)
-        return episode
-    }
-    return 
+        return ishml.Episode(this)
+            .narration(()=>_`Cannot self-take.`.say().append("#story"))
+            .salience(3)   
+            .viewpoint(command.viewpoint)
+     }
+  
+}
+plot.action.taking.check.reachable.unfold=function(command)
+{
+    command.reachable=command.portable.realm().via("in").contains(command.capable).size>0
+    if (!command.reachable)
+    {
+        return ishml.Episode(this)
+            .narration(()=>_`Not reachable.`.say().append("#story"))
+            .salience(3)   
+            .viewpoint(command.viewpoint)
+     }
+  
 }
 plot.action.taking.check.nothing.unfold=function(command)
 {
+    
     if(!command.directObject ||(command.portable.isEmpty && command.notPortable.isEmpty))
     {
         var episode=ishml.Episode(this)
@@ -239,21 +264,6 @@ plot.action.taking.check.nothing.unfold=function(command)
     }
     return      
 }
-plot.action.taking.check.notPortable.unfold=function(command)
-{
-
-    if (!command.notPortable.isEmpty)
-    {
-        var episode=ishml.Episode(this)
-        .narration(()=> _`<p>You ${_.pick("think about taking","want to take", "would take")} the ${cache=>_.list(cache.notPortable.data.map(thing=>thing.knot.name))}, but ${_.pick(_` ${cache=>cache.notPortable.data.them} isn't portable`,_`${cache=>cache.notPortable.data.they} ${cache=>cache.notPortable.data.are} too unwieldy`)}.</p>`.cache("notPortable").populate(command.notPortable).say().append("#story"))
-        .salience(3)   
-        .viewpoint(command.viewpoint)
-        return episode
-    }
-    return 
-}
-
-
 plot.action.taking.instead
 
 /*
@@ -268,12 +278,14 @@ while H is not nothing and H is not the local ceiling:
 if H is a person, stop the action with library message taking action
 number 6 for H;
 let H be the not-counting-parts holder of H;
+
 Check an actor taking (this is the can’t take items out of play rule):
 let H be the noun;
 while H is not nothing and H is not a room:
 let H be the not-counting-parts holder of H;
 if H is nothing, stop the action with library message taking action
 number 8 for the noun.
+
 Check an actor taking (this is the can’t take what you’re inside rule):
 let the local ceiling be the common ancestor of the actor with the noun;
 if the local ceiling is the noun, stop the action with library message

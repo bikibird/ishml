@@ -41,7 +41,14 @@ ishml.Knot= class Knot
 		Object.assign(this,value)
 		return this
 	}
-
+	nearby(hops)
+	{
+		return new ishml.Cord(this).nearby(hops)
+	}
+	realm(hops)
+	{
+		return new ishml.Cord(this).realm(hops)
+	}
 	tie(...someCordage)
 	{
 /*$.thing.cup.tie("cord:ply").to(otherKnot/otherPly) --one-way relation converse===null
