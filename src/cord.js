@@ -278,6 +278,20 @@ ishml.Cord =class Cord extends Function
 			}
 		}	
 	}
+	path(destination,{filter=(knot)=>true,minimum=1,maximum=Infinity,via,cost=(ply,leg)=>ply.cost+leg.ply.weight}={})
+	{
+		var fore=new ishml.Cord()
+		var aft=new ishml.Cord()
+		var path
+		this.cross(destination).per(
+		(a,b)=>
+		{
+			path=a.path(b,{filter:filter,minimum:minimum,maximum:maximum,via:via,cost:cost})
+			fore.add(path.fore)
+			aft.add(path.aft)
+		})
+		return {fore:fore,aft:aft}
+	}
 	realm(hops)
 	{
 		var visited
@@ -320,7 +334,9 @@ ishml.Cord =class Cord extends Function
 			}
 		}	
 	}
-	path(destination,{filter=(knot)=>true,minimum=1,maximum=Infinity,via,cost=(ply,leg)=>ply.cost+leg.ply.weight}={})
+
+	//portable.reachable($.actor.player.in, {via:"in"})
+	reachable(destination,{filter=(knot)=>true,minimum=1,maximum=Infinity,via,cost=(ply,leg)=>ply.cost+leg.ply.weight}={})
 	{
 		return this.cross(destination).per(
 		(a,b)=>
@@ -330,6 +346,8 @@ ishml.Cord =class Cord extends Function
 			else {return false}
 		})
 	}
+
+	
 	first(count=1)
 	{
 		return new ishml.Cord([...this.plies].slice(0,1))

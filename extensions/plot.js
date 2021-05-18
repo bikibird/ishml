@@ -186,9 +186,6 @@ plot.action.taking.unfold=function(command)
     }
     
     command.portable=command.directObject?.select().is("portable")
-    
-   console.log(command.portable)
-    
     var episode=ishml.Episode(this)
         .narration(()=>{if (!command.silently) _`Taken. `.say().append("#story")})
         .resolution(()=>{command.portable.in().untie().tie(cords.carries).from(command.capable)})
@@ -241,8 +238,9 @@ plot.action.taking.check.selfTaking.unfold=function(command)
 }
 plot.action.taking.check.reachable.unfold=function(command)
 {
-    command.reachable=command.portable.realm().via("in").contains(command.capable).size>0
-    if (!command.reachable)
+    command.reachable=command.portable.path(command.capable.in, {via:"in"}).aft
+    command.notReachable=command.portable.subtract(command.reachable)
+    if (command.notReachable.size>0)
     {
         return ishml.Episode(this)
             .narration(()=>_`Not reachable.`.say().append("#story"))
@@ -326,3 +324,29 @@ if the number of things carried by the actor is at least the
 carrying capacity of the actor, stop the action with library
 message taking action number 12 for the actor.
 */
+plot.action.going.unfold=function(command)
+{
+    if (!command.directObject){command.directObject={select:()=>command.verb.select()}}
+    command.destination=command.directObject.select(command.subject.select())
+    var episode=ishml.Episode(this)
+        .narration(()=>{if (!command.silently) _`You go. `.say().append("#story")})
+        .resolution(()=>{command.subject.select().in().retie(cords.in).to(command.destination)})
+        .salience(5)
+        .viewpoint(command.viewpoint)
+        .abridge(()=>this.check.unfold(command))
+        .revise(()=>this.instead.unfold(command))
+    return episode                
+}
+lexicon
+	.register("go").as({plot:plot.action.going , part: "verb",  valence:1 })    
+    .register("north","n").as({plot:plot.action.going , part: "verb",  valence:0, select:(subject)=>subject.in.exit.north},{part: "noun",  select:(subject)=>subject.in.exit.north})
+    .register("south","s").as({plot:plot.action.going , part: "verb",  valence:0, select:(subject)=>subject.in.exit.south},{part: "noun",  select:(subject)=>subject.in.exit.south})
+    .register("east","e").as({plot:plot.action.going , part: "verb",  valence:0, select:(subject)=>subject.in.exit.east},{part: "noun",  select:(subject)=>subject.in.exit.east})
+    .register("west","w").as({plot:plot.action.going , part: "verb",  valence:0, select:(subject)=>subject.in.exit.west},{part: "noun",  select:(subject)=>subject.in.exit.west})
+   /* .register("northeast","ne").as({plot:plot.action.going , part: "verb",  valence:0, select:(subject)=>subject.in.exit.northeast},{part: "noun",  select:(subject)=>subject.in.exit.northeast})
+    .register("northwest","nw").as({plot:plot.action.going , part: "verb",  valence:0, select:(subject)=>subject.in.exit.northwest},{part: "noun",  select:(subject)=>subject.in.exit.northwest})
+    .register("southeast","se").as({plot:plot.action.going , part: "verb",  valence:0, select:(subject)=>subject.in.exit.southeast},{part: "noun",  select:(subject)=>subject.in.exit.southeast})
+    .register("west","w").as({plot:plot.action.going , part: "verb",  valence:0, select:(subject)=>subject.in.exit.west},{part: "noun",  select:(subject)=>subject.in.exit.west})*/
+    
+    plot.action.going.check
+    plot.action.going.instead

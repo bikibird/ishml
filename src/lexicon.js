@@ -38,7 +38,7 @@ ishml.Lexicon.prototype.register = function (...someLexemes)
 ishml.Lexicon.prototype.register = function (...someLexemes) 
 {
 	var lexemes=someLexemes
-	var _as =function(definition)
+	var _as =function(...definitions)
 	{
 		lexemes.forEach((lexeme)=>
 		{
@@ -52,13 +52,13 @@ ishml.Lexicon.prototype.register = function (...someLexemes)
 			{
 				_trie.definitions= []
 			}
-			_trie.definitions.push(definition)
+			_trie.definitions=_trie.definitions.concat(definitions)
 		})	
 		return this
 	}	
 	return {as:_as.bind(this)}	
 }
-ishml.Lexicon.prototype.define = function (definition,...someLexemes) 
+/*ishml.Lexicon.prototype.define = function (definition,...someLexemes) 
 {
 	someLexemes.forEach((lexeme)=>
 	{
@@ -75,7 +75,7 @@ ishml.Lexicon.prototype.define = function (definition,...someLexemes)
 		_trie.definitions.push(definition)
 	})	
 	return this
-}
+}*/
 ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^\s+/, caseSensitive=false, longest=false, full=false}={}) 
 {
 	var _trie = this.trie

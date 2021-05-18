@@ -86,25 +86,25 @@ ishml.yarn.grammar.command.object[2].verbalParticle.configure({minimum:0,filter:
 ishml.yarn.grammar.nounPhrase.semantics=(interpretation)=>
 {
     var gist=interpretation.gist
-    gist.select=()=>
+    gist.select=(...args)=>
     {
-        var cord=gist.noun.definition.select().cord
+        var cord=gist.noun.definition.select(...args).cord
         if (gist.adjectives)
         {
             gist.adjectives.forEach(adjective=>
             {
-                cord=cord.cross(adjective.definition.select())
+                cord=cord.cross(adjective.definition.select(...args))
                 .per((noun,adjective)=>noun.knot===adjective.knot)
             })
         }
         if(gist.adjunct)
         {
-            cord=gist.adjunct.nounPhrase.select().cross(cord)
+            cord=gist.adjunct.nounPhrase.select(...args).cross(cord)
                 .per((adjunct,noun)=>noun.entwine({ply:adjunct.ply,via:gist.adjunct.relation.definition.cord}).aft)
         } 
         if (gist.conjunct)
         {
-            cord=cord.add(gist.conjunct.nounPhrase.select()).disjoint
+            cord=cord.add(gist.conjunct.nounPhrase.select(...args)).disjoint
         }
         return cord  
     }    
@@ -151,7 +151,7 @@ ishml.yarn.grammar.command.semantics=(interpretation)=>
             noun:ishml.yarn.lexicon.search("player", {longest:true, full:true}).filter(snippet=>snippet.token.definition.role==="player")[0].token
         }
     }
-    interpretation.gist.subject.select=()=>interpretation.gist.subject.noun.definition.select().cord
+    interpretation.gist.subject.select=(...args)=>interpretation.gist.subject.noun.definition.select(...args).cord
 
     var vPreposition=interpretation.gist.verb.definition.preposition
     var vParticle=interpretation.gist.verb.definition.particle

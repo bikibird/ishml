@@ -165,10 +165,7 @@ ishml.Ply= class Ply
 			}
 			
 		}
-		realm(hops)
-		{
-			return new ishml.Cord(this).realm(hops)
-		}
+		
 		function remove()
 		{
 			let smallest = heap[1]
@@ -230,7 +227,7 @@ ishml.Ply= class Ply
 		else {var target=destination}
 		if (via)
 		{
-			var way=new Set(Object.values(via))
+			var way=new Set([].concat(via))
 			var anyway=false
 		}
 		else
@@ -296,8 +293,14 @@ ishml.Ply= class Ply
 		}
 		return {aft:null,fore:null}  //not found
 	}
-	retie(...cordage)
+	realm(hops)
 	{
+		return new ishml.Cord(this).realm(hops)
+	}
+	retie(knot)
+	{
+		var cord =new ishml.Cord(knot)
+		forEach.
 		//$.place.kitchen.contains.knife.retie("in<contains").to($.place.foyer)
 		this.untie()
 		return this.knot.tie(...cordage)
