@@ -190,7 +190,7 @@ ishml.Cord =class Cord extends Function
 		{
 			if(ply instanceof ishml.Ply)
 			{
-				//DEFECT deleting hash key when there may be more than one ply with the same id
+				//DEFECT deleting key when there may be more than one ply with the same id
 				delete this[ply.id]
 				this.plies.delete(ply)
 			}
@@ -203,7 +203,7 @@ ishml.Cord =class Cord extends Function
 					{
 						if(ply instanceof ishml.Ply)
 						{
-							//DEFECT deleting hash key when there may be more than one ply with the same id
+							//DEFECT deleting key when there may be more than one ply with the same id
 							delete this[ply.id]
 							this.plies.delete(ply)
 						}

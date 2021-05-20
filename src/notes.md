@@ -63,7 +63,10 @@ The ball can be dropped.  Carried or wearing tie may be untied
 The room can receive a dropped ball.  containing may be tied
 
 # Cords
-
+/*$.thing.cup.tie("cord:ply").to(otherKnot/otherPly) --one-way relation converse===null
+$.thing.cup.tie("cord:ply=otherCord:otherPly").to(otherKnot/otherPly) --converse relation converse === another ply
+$.thing.cup.tie("cord:ply-otherCord:otherPly").to(otherKnot/otherPly) --mutual relation converse === another ply, but when ply properties updated, other ply is updated automatically because both share the same properties object.
+$.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexive relation converse=== this ply.*/
 ## Computed Cords
 
 To do: return handler as a property of the cord.
@@ -72,4 +75,5 @@ ishml.Knot.prototype.example=new ishml.Cord()  //cords are functions.
 ishml.Knot.prototype.example.handler.apply= function
 ishml.Knot.prototype.example.handler.set= function
 ishml.Knot.prototype.example.handler.get= function
+
 ``` 

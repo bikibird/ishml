@@ -52,7 +52,7 @@ ishml.Ply= class Ply
 		this.advance=null //a ply created during entwining
 		this.retreat=null //a ply created during entwining
 		this.converse=null // a ply created during tying for reflexive, mutual and converse
-		this.cordId="" // name of of from knot cord where this ply lives
+		this.cordId="" // name of thie from knot cord where this ply lives
 		this.from=null //the knot where this ply lives
 		//this.mutual=false -- not needed just share this.ply mutually
 		return new Proxy(this, ishml.Ply.handler)
@@ -299,11 +299,26 @@ ishml.Ply= class Ply
 	}
 	retie(knot)
 	{
-		var cord =new ishml.Cord(knot)
-		forEach.
-		//$.place.kitchen.contains.knife.retie("in<contains").to($.place.foyer)
-		this.untie()
-		return this.knot.tie(...cordage)
+		
+		//this.untie()
+		//this.converse.untie()
+
+		
+		this.from[this.cordId].delete(this)
+		this.knot=knot
+		this.id=knot.id
+		this.from[this.cordId][this.id]=this
+		this.from[this.cordId].plies.add(this)
+		if(this.converse)
+		{
+			this.converse.from[this.converse.cordId].delete(this.converse)
+			knot[this.converse.cordId][this.converse.id]=this.converse
+			knot[this.converse.cordId].plies.add(this.converse)
+			this.converse.from=knot
+		}
+		return this
+
+		//return this.knot.tie(...cordage)
 	}
 
 	subtract(...cordage)
