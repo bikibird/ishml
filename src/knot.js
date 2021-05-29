@@ -41,8 +41,7 @@ ishml.Knot= class Knot
 	{
 		Object.assign(this,value)
 		return this
-	}
-	
+	}	
 /*	defineCord(name)
 	{
 		return {as:(aFunction)=>
