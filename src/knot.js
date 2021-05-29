@@ -24,6 +24,7 @@ ishml.Knot= class Knot
 		//Returns cord with ply representing this knot.
 		return new ishml.Cord(this)
 	}
+	
 	get ply()
 	{
 		//Turns bare knot into a ply.
@@ -41,6 +42,20 @@ ishml.Knot= class Knot
 		Object.assign(this,value)
 		return this
 	}
+/*	defineCord(name)
+	{
+		return {as:(aFunction)=>
+		{
+			Object.defineProperty(this, "name", 
+			{
+				value:new Proxy(new ishml.Cord(),{get:aFunction}),
+				writable: true,
+				enumerable:true
+			})
+		}}
+		
+	}
+	*/
 	nearby(hops)
 	{
 		return new ishml.Cord(this).nearby(hops)
@@ -104,7 +119,6 @@ $.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexiv
 				forePly.cordId=foreCordId
 				if (fromKnot.hasOwnProperty(foreCordId))
 				{
-					//fromKnot[foreCordId][forePlyId]=forePly
 					fromKnot[foreCordId][forePlyId]=forePly
 				}	
 				else
@@ -174,14 +188,7 @@ $.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexiv
 	}
 
 }
-/*ishml.Knot.handler=
-{
-	get: function(target, property,receiver) 
-	{
-		if (Reflect.has(target,property)){return Reflect.get(target,property,receiver)}
-		else {return new ishml.Cord()}
-	}
-}*/
+
 
 
 

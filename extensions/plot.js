@@ -80,11 +80,11 @@ plot.action.asking_to.instead
 plot.action.dropping.unfold=function(command)
 {
     if (!command.indirectObject){command.indirectObject={select:()=>command.subject.select().in}}
-    command.droppable=command.directObject?.select().worn_by(command.subject.select())
-    .add(command.directObject?.select().carried_by(command.subject.select()))
+    command.droppable=command.directObject?.select().worn_by(command.subject.select()).converse
+    .add(command.directObject?.select().carried_by(command.subject.select()).converse)
     var episode=ishml.Episode(this)
         .narration(()=>{if (!command.silently) _`<p>You dropped the ${cache=>_.list(cache.droppable.data.map(thing=>thing.knot.name))}.</p>`.cache("droppable").populate(command.droppable).say().append("#story")})
-        .resolution(()=>{command.droppable.retie(cords.in).to(command.container)})
+        .resolution(()=>{command.droppable.untie().tie(cords.in).to(command.container)})
         .salience(5)
         .viewpoint(command.viewpoint)
         .abridge(()=>this.check.unfold(command))
@@ -112,7 +112,7 @@ plot.action.dropping.check.nothing.unfold=function(command)
 }
 plot.action.dropping.check.notCapable.unfold=function(command)
 {
-    command.capable=command.subject.select().has_skill($.action.dropping)
+    command.capable=command.subject.select().has_skill($.action.dropping).converse
     command.notCapable=command.subject.select().subtract(command.capable)
     if (!command.notCapable.isEmpty)
     {
@@ -188,7 +188,7 @@ plot.action.taking.unfold=function(command)
     command.portable=command.directObject?.select().is("portable")
     var episode=ishml.Episode(this)
         .narration(()=>{if (!command.silently) _`Taken. `.say().append("#story")})
-        .resolution(()=>{command.portable.in().untie().tie(cords.carries).from(command.capable)})
+        .resolution(()=>{command.portable.in.converse.untie().tie(cords.carries).from(command.capable)})
         .salience(5)
         .viewpoint(command.viewpoint)
         .abridge(()=>this.check.unfold(command))
@@ -214,7 +214,7 @@ plot.action.taking.check.notPortable.unfold=function(command)
 }
 plot.action.taking.check.notCapable.unfold=function(command)
 {
-    command.capable=command.subject.select().has_skill($.action.taking)
+    command.capable=command.subject.select().has_skill($.action.taking).converse //test .has_skill("taking")
     command.notCapable=command.subject.select().subtract(command.capable)
    
     if (!command.notCapable.isEmpty)
@@ -330,7 +330,7 @@ plot.action.going.unfold=function(command)
     command.destination=command.directObject.select(command.subject.select())
     var episode=ishml.Episode(this)
         .narration(()=>{if (!command.silently) _`You go. `.say().append("#story")})
-        .resolution(()=>{command.subject.select().in().untie().tie(cords.in).to(command.destination)})
+        .resolution(()=>{command.subject.select().in.retie(command.destination)})
         .salience(5)
         .viewpoint(command.viewpoint)
         .abridge(()=>this.check.unfold(command))

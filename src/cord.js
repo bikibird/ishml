@@ -227,7 +227,19 @@ ishml.Cord =class Cord extends Function
 	{
 		return [...this.plies].some(ply=>ply.knot===knot)
 	}
-	
+	intersect (cord)
+	{
+		var otherCord=new ishml.Cord(cord)
+		var cord=new ishml.Cord()
+		this.forEach(ply=>
+		{
+			if (otherCord.hasKnot(ply.knot))
+			{
+				cord.add(ply)
+			}
+		})
+		return cord
+	}
 	get knots()
 	{
 		return new Set([...this.plies].map(ply=>ply.knot))
@@ -430,36 +442,13 @@ ishml.Cord =class Cord extends Function
 		}
 		return cord
 	}
-	retie(...someCordage)
+	retie(...knots)
 	{
-		var from =(...fromCords)=>
+		this.forEach(ply=>
 		{
-			var fromCord= new ishml.Cord(...fromCords)
-
-			fromCord.forEach(ply=>
-			{
-				this.forEach((toPly)=>
-				{
-					ply.untie()
-					ply.knot.tie(...someCordage).to(toPly.Knot)
-				})	
-			})
-			return this	
-		}
-		var to = (...toCords)=>
-		{
-			var toCord=new ishml.Cord(...toCords)
-			this.forEach((ply)=>
-			{
-				toCord.forEach(toPly=>
-					{
-						ply.untie()
-						ply.knot.tie(...someCordage).to(toPly.knot)
-					})
-			})
-			return this
-		}
-		return {to:to, from:from}
+			ply.retie(...knots)
+		})
+		return this
 	}
 	subtract(...someKnots)
 	{
@@ -535,40 +524,29 @@ ishml.Cord.handler=
 		{
 			cords.forEach((c)=>
 			{
-				if (typeof c === "string")
+				if (typeof c === "string")  //$.actor.player.in("cloakroom") $.place.foyer.exit("cloakroom") $.place.foyer.exit("west")
 				{
-					cord.add(target[c]?.converse)
+					target.forEach(targetPly=>
+					{
+						if (targetPly.id===c ||targetPly.knot.id===c)cord.add(targetPly)
+					})	
 				}
 				else
 				{
 					var otherCord=new ishml.Cord(c)
-					for (const targetPly of target ) //$.thing.ring
+					target.forEach(targetPly=>
 					{
-						for (const otherPly of otherCord) //$.actor.player
+						otherCord.forEach(otherPly=>
 						{
-							if (targetPly.knot===otherPly.knot)
-							{
-								if (targetPly.converse)
-								{
-									
-									cord.add(targetPly?.converse) //$.thing.ring.worn_by.converse aka ring
-								}
-							}
-						}
-					}
+							if (targetPly.knot===otherPly.knot){cord.add(targetPly)}
+						})
+					})
 				}	
 			})
-			
 		}
 		else
 		{
-			for (const targetPly of target ) //$.thing.ring
-			{
-				if (targetPly.converse)
-				{
-					cord.add(targetPly.converse) //$.thing.ring.worn_by.converse aka ring
-				}
-			}
+			return target  //called cord without parameters
 		}
 		return cord
 
@@ -594,7 +572,6 @@ ishml.Cord.handler=
 		else 
 		{
 			// Return  the ply where the knot id matches the property name.
-			//if some plies in the cord point to knots matching the property, return a cord of those plies.
 			//$.kitchen.exit.foyer 
 			target.plies.forEach(ply=>
 			{
@@ -605,12 +582,10 @@ ishml.Cord.handler=
 			var cord=new ishml.Cord()
 			target.plies.forEach(ply=>
 			{
-				cord.add(ply.knot[property])
+					cord.add(ply.knot[property])	
 			})
 			return cord
-			//if (cord.size>0){return cord}
-			//else {return null}
-			//	return Reflect.get(target,"orient",receiver).bind(target,property)()
+
 		}
 	}
 }

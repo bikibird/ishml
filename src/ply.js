@@ -48,7 +48,7 @@ ishml.Ply= class Ply
 		}	
 		this.hop=0
 		this.cost=0
-		/*this.adjunct=null //for adjunctive cording  What????*/
+		/*this.adjunct=null //for adjunctive cording  What???? probably meant cord hopping*/
 		this.advance=null //a ply created during entwining
 		this.retreat=null //a ply created during entwining
 		this.converse=null // a ply created during tying for reflexive, mutual and converse
@@ -297,25 +297,37 @@ ishml.Ply= class Ply
 	{
 		return new ishml.Cord(this).realm(hops)
 	}
-	retie(knot)
+	retie(...knots)
 	{
+		//forePly.converse=aftPly
+		//			aftPly.converse=forePly
+		var id
+		var forePly=this  //player.in.foyer  //player.in.foyer.from === player knot
+		var aftPly=this?.converse ?? null  //foyer.contains.player
+		forePly.from[forePly.cordId].delete(forePly)  //remove foyer ply from player
+		aftPly?.from[aftPly.cordId].delete(aftPly)  //remove player from foyer
 		
-		//this.untie()
-		//this.converse.untie()
-
-		
-		this.from[this.cordId].delete(this)
-		this.knot=knot
-		this.id=knot.id
-		this.from[this.cordId][this.id]=this
-		this.from[this.cordId].plies.add(this)
-		if(this.converse)
+		var cord=new ishml.Cord(...knots)
+		cord.forEach(ply=>  //$.place.cloakroom
 		{
-			this.converse.from[this.converse.cordId].delete(this.converse)
-			knot[this.converse.cordId][this.converse.id]=this.converse
-			knot[this.converse.cordId].plies.add(this.converse)
-			this.converse.from=knot
-		}
+			id=forePly.id===forePly.knot.id?ply.knot.id:forePly.id
+			forePly.from[forePly.cordId]=forePly.from[forePly.cordId] ?? new ishml.Cord()
+			forePly.id=id
+			forePly.from[forePly.cordId].add(forePly)
+			forePly.knot=ply.knot
+			
+			if (aftPly)
+			{
+				id=aftPly.id===aftPly.knot.id?this.from.id:aftPly.id
+				ply.knot[aftPly.cordId]=ply.knot[aftPly.cordId] ?? new ishml.Cord()
+				aftPly.id=id
+				ply.knot[aftPly.cordId].add(aftPly)
+				aftPly.from=ply.knot
+				forePly.converse=aftPly
+				aftPly.converse=forePly
+			}	
+		})
+	
 		return this
 
 		//return this.knot.tie(...cordage)
