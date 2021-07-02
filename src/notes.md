@@ -2,13 +2,6 @@
 
 The plot plotpoint is a container for all the subplots making up the story
 
-plot
-
-## World
-
-plot.world
-
-The world plotpoint populates story.net with initial story world state
 
 ## Actions
 
@@ -61,6 +54,14 @@ The player is permitted to drop.
 The ball can be dropped.  Carried or wearing tie may be untied
 
 The room can receive a dropped ball.  containing may be tied
+# net
+ishml.yarn.net
+
+Directed weighted graph.  A.K.A network.  
+
+The net stores the story world and is a directed weighted graph also know as a network.  The nodes (vertices) are called knots and the lines connecting them are called plies.
+
+
 
 # Cords
 /*$.thing.cup.tie("cord:ply").to(otherKnot/otherPly) --one-way relation converse===null
@@ -86,4 +87,4 @@ ishml.Knot.prototype.defineCord("example").as(function)
 defines new method on Knot example=new Ishml.Cord().  sets custom getter in handler 
 
 
-``` 
+

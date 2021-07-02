@@ -6,7 +6,20 @@ ishml.Cord =class Cord extends Function
 		function Cord(){}
 		Object.setPrototypeOf(Cord, ishml.Cord.prototype)
 		Object.defineProperty(Cord,"id",{writable:true})
-		Object.defineProperty(Cord,"plies",{value:new Set(),writable:true})
+		Object.defineProperty(Cord,"_plies",{value:new Set(),writable:true})
+		/*Object.defineProperty(Cord,"plies",{value:new Proxy(new Set(),
+			{
+				/*get: function(target, property, receiver) 
+				{
+					if (Reflect.has(target,property)){return target[property]}
+					var result=[]
+					target.forEach(ply=>
+					{
+						result.push(ply[property])
+						return result
+					})	
+				}
+			}),writable:true})*/
 
 		members.forEach(member=>
 		{
@@ -16,14 +29,14 @@ ishml.Cord =class Cord extends Function
 				{
 					if (item instanceof ishml.Ply)
 					{
-						Cord.plies.add(item)
+						Cord._plies.add(item)
 						Cord[item.id]=item
 					}
 					else
 					{
 						if (item instanceof ishml.Knot)
 						{
-							Cord.plies.add(item.ply)
+							Cord._plies.add(item.ply)
 							Cord[item.id]=item.ply
 						}
 					}
@@ -34,14 +47,14 @@ ishml.Cord =class Cord extends Function
 			{
 				if (member instanceof ishml.Ply)
 				{
-					Cord.plies.add(member)
+					Cord._plies.add(member)
 					Cord[member.id]=member
 				}
 				else
 				{
 					if (member instanceof ishml.Knot)
 					{
-						Cord.plies.add(member.ply)
+						Cord._plies.add(member.ply)
 						Cord[member.id]=member.ply
 					}
 					else
@@ -58,7 +71,59 @@ ishml.Cord =class Cord extends Function
 		})	
 		return new Proxy(Cord,ishml.Cord.handler)
 	}
-	[Symbol.iterator](){return this.plies.values()[Symbol.iterator]()}
+	[Symbol.iterator](){return this._plies.values()[Symbol.iterator]()}
+	add(...members)
+	{
+		members.forEach(member=>
+		{
+			if (member instanceof Cord || member instanceof Set || member instanceof Array)
+			{
+				member.forEach((item)=>
+				{
+					if (item instanceof ishml.Ply)
+					{
+						this._plies.add(item)
+						this[item.id]=item
+					}
+					else
+					{
+						if (item instanceof ishml.Knot)
+						{
+							this._plies.add(item.ply)
+							this[item.id]=item.ply
+						}
+					}
+				})
+			}
+			else
+			{
+				if (member instanceof ishml.Ply)
+				{
+					this._plies.add(member)
+					this[member.id]=member
+				}
+				else
+				{
+					if (member instanceof ishml.Knot)
+					{
+						this._plies.add(member.ply)
+						this[member.id]=member.ply
+					}
+				}
+			}
+		})	
+		return this	
+	}
+	get converse()
+	{
+		var cord = new ishml.Cord()
+		for ( const thisPly of this._plies)
+		{
+			if (thisPly.converse){cord.add(thisPly.converse)}
+		}
+		return cord
+	}
+	get cord(){return this}
 	cross(other)
 	{
 		
@@ -95,94 +160,6 @@ ishml.Cord =class Cord extends Function
 		}
 		return {per:per}
 	}
-	add(...members)
-	{
-		members.forEach(member=>
-		{
-			if (member instanceof Cord || member instanceof Set || member instanceof Array)
-			{
-				member.forEach((item)=>
-				{
-					if (item instanceof ishml.Ply)
-					{
-						this.plies.add(item)
-						this[item.id]=item
-					}
-					else
-					{
-						if (item instanceof ishml.Knot)
-						{
-							this.plies.add(item.ply)
-							this[item.id]=item.ply
-						}
-					}
-				})
-			}
-			else
-			{
-				if (member instanceof ishml.Ply)
-				{
-					this.plies.add(member)
-					this[member.id]=member
-				}
-				else
-				{
-					if (member instanceof ishml.Knot)
-					{
-						this.plies.add(member.ply)
-						this[member.id]=member.ply
-					}
-				}
-			}
-		})	
-		return this	
-	}
-	get disjoint()
-	{
-		var knots=new Set()
-		var cord=new ishml.Cord()
-		this.plies.forEach(ply=>
-		{
-			if (!knots.has(ply.knot))
-			{
-				knots.add(ply.knot)
-				cord.add(ply)
-			}
-		})
-		return cord
-	}
-	get isEmpty()
-	{
-		return this.plies.size===0
-	}
-	equivalent(...someCord)
-	{
-		var knots=this.knots
-		var otherKnots = (new ishml.Cord(...someCord)).knots
-		if (knots.size===otherKnots.size)
-		{
-			return [...knots].every(knot=>otherKnots.has(knot))
-		}
-		else {return false}
-	}
-	get subsetOf()
-	{}
-	get supersetOf()
-	{}
-	get converse()
-	{
-		var cord = new ishml.Cord()
-		for ( const thisPly of this.plies)
-		{
-			if (thisPly.converse){cord.add(thisPly.converse)}
-		}
-		return cord
-	}
-	get cord(){return this}
-	filter(condition)
-	{
-		return new ishml.Cord([...this.plies].filter(condition))
-	}
 	delete(...plies)
 	{
 		var cord=new ishml.Cord(...plies)
@@ -192,7 +169,7 @@ ishml.Cord =class Cord extends Function
 			{
 				//DEFECT deleting key when there may be more than one ply with the same id
 				delete this[ply.id]
-				this.plies.delete(ply)
+				this._plies.delete(ply)
 			}
 			else
 			{
@@ -205,7 +182,7 @@ ishml.Cord =class Cord extends Function
 						{
 							//DEFECT deleting key when there may be more than one ply with the same id
 							delete this[ply.id]
-							this.plies.delete(ply)
+							this._plies.delete(ply)
 						}
 					})
 				}	
@@ -214,18 +191,61 @@ ishml.Cord =class Cord extends Function
 		})
 		return this
 	}
+	get disjoint()
+	{
+		var knots=new Set()
+		var cord=new ishml.Cord()
+		this._plies.forEach(ply=>
+		{
+			if (!knots.has(ply.knot))
+			{
+				knots.add(ply.knot)
+				cord.add(ply)
+			}
+		})
+		return cord
+	}
+	equivalent(...someCord)
+	{
+		var knots=this.knots.toSet
+		var otherKnots = (new ishml.Cord(...someCord)).knots.toSet
+		if (knots.size===otherKnots.size)
+		{
+			return [...knots].every(knot=>otherKnots.has(knot))
+		}
+		else {return false}
+	}
+	filter(condition)
+	{
+		return new ishml.Cord([...this._plies].filter(condition))
+	}
+	get isEmpty()
+	{
+		return this._plies.size===0
+	}
+	
+/*	get subsetOf()
+	{}
+	get supersetOf()
+	{}
+*/	
+	
+	first(count=1)
+	{
+		return new ishml.Cord([...this._plies].slice(0,1))
+	}
 	forEach(f)
 	{
-		this.plies.forEach(f)
+		this._plies.forEach(f)
 	}
 	has(ply)
 	{
-		if (this.plies.has(ply)){return true}
+		if (this._plies.has(ply)){return true}
 		return false
 	}
 	hasKnot(knot)
 	{
-		return [...this.plies].some(ply=>ply.knot===knot)
+		return [...this._plies].some(ply=>ply.knot===knot)
 	}
 	intersect (cord)
 	{
@@ -240,13 +260,36 @@ ishml.Cord =class Cord extends Function
 		})
 		return cord
 	}
+	get knot(){return[...this._plies][0].knot}
 	get knots()
 	{
-		return new Set([...this.plies].map(ply=>ply.knot))
+		var thisCord=this
+		return new Proxy({},
+		{
+			get: function(target, property, receiver) 
+			{
+				console.log("property")
+				if (property==="toArray"){return 	[...thisCord._plies].map(ply=>ply.knot)}
+				if (property==="toSet"){return new Set([...thisCord._plies].map(ply=>ply.knot))}
+				return [...thisCord._plies].map(ply=>ply.knot[property])
+			}			
+		})	
+	}
+	last(count=1)
+	{
+		return new ishml.Cord([...this._plies].slice(-1,-count))
 	}
 	map(map)
 	{
-		return [...this.plies].map(map)
+		return [...this._plies].map(map)
+	}
+	middle(count=1)
+	{
+		return new ishml.Cord([...this._plies].slice(count,-count))
+	}
+	most(count=1)
+	{
+		return new ishml.Cord([...this._plies].slice(count-1,-1))
 	}
 	//$.thing.ring.nearby(1).via("in","over","under").contains(player,{via})
 	nearby(hops)
@@ -304,97 +347,7 @@ ishml.Cord =class Cord extends Function
 		})
 		return {fore:fore,aft:aft}
 	}
-	realm(hops)
-	{
-		var visited
-		var result
-		var neighbors 
-		var size
-		var thisCord=this
-		var adjacencies=(cord,keys)=>
-		{
-			var adjacent=new ishml.Cord()
-			if (keys)
-			{
-				keys.forEach((key)=>
-				{	
-					cord.forEach(ply=>{adjacent.add(ply.knot[key])})
-				})
-			}
-			else
-			{
-				cord.forEach(ply=>{adjacent.add(ply.knot.cords)})
-			}
-			
-			return adjacent
-		}
-		return {
-			via:(...cordage)=>
-			{
-				var i=hops?hops-1:Infinity
-				result=adjacencies(thisCord, cordage)
-				visited=new ishml.Cord(thisCord).add(result)
-				while (i>0)
-				{
-					neighbors=adjacencies(result, cordage).subtract(visited)
-					if (neighbors.size===0){break}
-					visited.add(neighbors)
-					result.add(neighbors)
-					i--
-				}
-				return result
-			}
-		}	
-	}
-
-	//portable.reachable($.actor.player.in, {via:"in"})
-	reachable(destination,{filter=(knot)=>true,minimum=1,maximum=Infinity,via,cost=(ply,leg)=>ply.cost+leg.ply.weight}={})
-	{
-		return this.cross(destination).per(
-		(a,b)=>
-		{
-			var {aft}=a.path(b,{filter:filter,minimum:minimum,maximum:maximum,via:via,cost:cost})
-			if (aft) {return true}
-			else {return false}
-		})
-	}
-
-	
-	first(count=1)
-	{
-		return new ishml.Cord([...this.plies].slice(0,1))
-	}
-	last(count=1)
-	{
-		return new ishml.Cord([...this.plies].slice(-1,-count))
-	}
-	recite(recitation=(ply)=>ply.knot.id)
-	{
-		var result=[]
-		this.plies.forEach((ply)=>
-		{
-			result.push(recitation(ply))
-		})
-		return result
-	}
-	middle(count=1)
-	{
-		return new ishml.Cord([...this.plies].slice(count,-count))
-	}
-	most(count=1)
-	{
-		return new ishml.Cord([...this.plies].slice(count-1,-1))
-	}
-	shuffle(quantity)
-	{
-		var count=quantity||this.size
-		return new ishml.Cord(ishml.util.shuffle([...this.plies],count))
-	}
-	get size(){return this.plies.size}
-	sort(sorting)
-	{
-		return new Cord([...this.plies].sort(sorting))
-	}
+	get ply(){return[...this._plies][0]}
 	orient(property,plies)
 	{
 		/*
@@ -442,6 +395,81 @@ ishml.Cord =class Cord extends Function
 		}
 		return cord
 	}
+	get plies()
+	{
+		var thisCord=this
+		return new Proxy({},
+		{
+			get: function(target, property) 
+			{
+				if (property==="toArray"){return 	[...thisCord._plies]}
+				if (property==="toSet"){return thisCord._plies}
+				return [...thisCord._plies].map(ply=>ply[property])
+			}			
+		})	
+	}
+	//portable.reachable($.actor.player.in, {via:"in"})
+	reachable(destination,{filter=(knot)=>true,minimum=1,maximum=Infinity,via,cost=(ply,leg)=>ply.cost+leg.ply.weight}={})
+	{
+		return this.cross(destination).per(
+		(a,b)=>
+		{
+			var {aft}=a.path(b,{filter:filter,minimum:minimum,maximum:maximum,via:via,cost:cost})
+			if (aft) {return true}
+			else {return false}
+		})
+	}
+	realm(hops)
+	{
+		var visited
+		var result
+		var neighbors 
+		var size
+		var thisCord=this
+		var adjacencies=(cord,keys)=>
+		{
+			var adjacent=new ishml.Cord()
+			if (keys)
+			{
+				keys.forEach((key)=>
+				{	
+					cord.forEach(ply=>{adjacent.add(ply.knot[key])})
+				})
+			}
+			else
+			{
+				cord.forEach(ply=>{adjacent.add(ply.knot.cords)})
+			}
+			
+			return adjacent
+		}
+		return {
+			via:(...cordage)=>
+			{
+				var i=hops?hops-1:Infinity
+				result=adjacencies(thisCord, cordage)
+				visited=new ishml.Cord(thisCord).add(result)
+				while (i>0)
+				{
+					neighbors=adjacencies(result, cordage).subtract(visited)
+					if (neighbors.size===0){break}
+					visited.add(neighbors)
+					result.add(neighbors)
+					i--
+				}
+				return result
+			}
+		}	
+	}
+	recite(recitation=(ply)=>ply.knot.id)
+	{
+		var result=[]
+		this._plies.forEach((ply)=>
+		{
+			result.push(recitation(ply))
+		})
+		return result
+	}
 	retie(...knots)
 	{
 		this.forEach(ply=>
@@ -450,16 +478,26 @@ ishml.Cord =class Cord extends Function
 		})
 		return this
 	}
+	shuffle(quantity)
+	{
+		var count=quantity||this.size
+		return new ishml.Cord(ishml.util.shuffle([...this._plies],count))
+	}
+	get size(){return this._plies.size}
+	sort(sorting)
+	{
+		return new Cord([...this._plies].sort(sorting))
+	}
 	subtract(...someKnots)
 	{
 		var a=new ishml.Cord(this)
-		var b=new ishml.Cord(...someKnots).knots
+		var b=new ishml.Cord(...someKnots).knots.toSet
 		a.forEach(ply=>
 		{
 			if(b.has(ply.knot))
 			{
 				delete a[ply.id]
-				a.plies.delete(ply)
+				a._plies.delete(ply)
 			}
 		})
 		return a
@@ -497,7 +535,7 @@ ishml.Cord =class Cord extends Function
 	}
 	untie()
 	{
-		this.plies.forEach(ply=>
+		this._plies.forEach(ply=>
 		{
 			ply.untie()
 		})
@@ -556,7 +594,7 @@ ishml.Cord.handler=
 		if (value instanceof ishml.Ply)
 		{
 			target[property]=value
-			target.plies.add(value)
+			target._plies.add(value)
 			return true
 		}
 		else{return Reflect.set(target,property,value,receiver)}
@@ -573,14 +611,14 @@ ishml.Cord.handler=
 		{
 			// Return  the ply where the knot id matches the property name.
 			//$.kitchen.exit.foyer 
-			target.plies.forEach(ply=>
+			target._plies.forEach(ply=>
 			{
 				if (ply.knot?.id===property){return ply}
 			})
 			//if some plies in the cord point to knots which point cords matching the property, return a cord of the plies of matching cords.  Fast travel along cords
 			//$.actor.lizzy.friend.friend
 			var cord=new ishml.Cord()
-			target.plies.forEach(ply=>
+			target._plies.forEach(ply=>
 			{
 					cord.add(ply.knot[property])	
 			})

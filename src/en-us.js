@@ -27,7 +27,17 @@ ishml.yarn.lexicon
     .register("on", "on top of").as({cord: "on", part:"relation"})
     .register("next to", "beside").as({cord: "beside", part:"relation"})
 
-
+	//directions
+	.register("north","n").as({part: "noun",  select:(subject)=>subject.in.exit.north})
+    .register("south","s").as({part: "noun",  select:(subject)=>subject.in.exit.south})
+    .register("east","e").as({part: "noun",  select:(subject)=>subject.in.exit.east})
+    .register("west","w").as({part: "noun",  select:(subject)=>subject.in.exit.west})
+    .register("northeast","ne").as({part: "noun",  select:(subject)=>subject.in.exit.northeast})
+    .register("northwest","nw").as({part: "noun",  select:(subject)=>subject.in.exit.northwest})
+    .register("southeast","se").as({part: "noun",  select:(subject)=>subject.in.exit.southeast})
+    .register("west","w").as({part: "noun",  select:(subject)=>subject.in.exit.southwest})
+	.register("up","u").as({part: "noun",  select:(subject)=>subject.in.exit.up})
+	.register("down","d").as({part: "noun",  select:(subject)=>subject.in.exit.down})
 /*grammar*/
 
 ishml.yarn.grammar.command=ishml.Rule()
@@ -35,24 +45,24 @@ ishml.yarn.grammar.command=ishml.Rule()
 ishml.yarn.grammar.nounPhrase=ishml.Rule()
     .snip("article").snip("adjectives").snip("noun").snip("adjunct").snip("conjunct")
 
-ishml.yarn.grammar.nounPhrase.article.configure({minimum:0, filter:(definition)=>definition.part==="article"})
+ishml.yarn.grammar.nounPhrase.article.configure({minimum:0, filter:(definition)=>definition?.part==="article"})
 
 ishml.yarn.grammar.nounPhrase.adjectives.configure({minimum:0, maximum:Infinity, separator:/^\s*,?and\s+|^\s*,\s*|^\s+/, 
-    filter:(definition)=>definition.part==="adjective"})
-ishml.yarn.grammar.nounPhrase.noun.filter=(definition)=>definition.part==="noun"
+    filter:(definition)=>definition?.part==="adjective"})
+ishml.yarn.grammar.nounPhrase.noun.filter=(definition)=>definition?.part==="noun"
 
 ishml.yarn.grammar.nounPhrase.adjunct
     .configure({minimum:0})
     .snip("relation").snip("nounPhrase",ishml.yarn.grammar.nounPhrase)
     
-ishml.yarn.grammar.nounPhrase.adjunct.relation.configure({filter:(definition)=>definition.part==="relation"})
+ishml.yarn.grammar.nounPhrase.adjunct.relation.configure({filter:(definition)=>definition?.part==="relation"})
 
 ishml.yarn.grammar.nounPhrase.conjunct
     .configure({minimum:0})    
     .snip("conjunction").snip("nounPhrase",ishml.yarn.grammar.nounPhrase)
-ishml.yarn.grammar.nounPhrase.conjunct.conjunction.configure({filter:(definition)=>definition.part==="conjunction"})
+ishml.yarn.grammar.nounPhrase.conjunct.conjunction.configure({filter:(definition)=>definition?.part==="conjunction"})
 
-ishml.yarn.grammar.preposition=ishml.Rule().configure({filter:(definition)=>definition.part==="preposition"})
+ishml.yarn.grammar.preposition=ishml.Rule().configure({filter:(definition)=>definition?.part==="preposition"})
 ishml.yarn.grammar.command.snip("subject",ishml.yarn.grammar.nounPhrase.clone()).snip("verb").snip("object")
 ishml.yarn.grammar.ioPhrase=ishml.Rule().configure({mode:ishml.enum.mode.any})
     .snip(1)
@@ -118,6 +128,7 @@ ishml.yarn.grammar.command.semantics=(interpretation)=>
     if (valence ===1 && (interpretation.gist.object?.hasOwnProperty("indirectObject") || !interpretation.gist.object?.hasOwnProperty("directObject"))){return false}
     if (valence ===2 && (!interpretation.gist.object?.hasOwnProperty("indirectObject") || !interpretation.gist.object?.hasOwnProperty("directObject"))){return false}
     interpretation.gist.verb.plot=interpretation.gist.verb.definition.plot
+	if (interpretation.gist.verb.definition.select){interpretation.gist.verb.select=interpretation.gist.verb.definition.select}
     
     Object.assign(interpretation.gist,interpretation.gist.object)
     delete interpretation.gist.object
@@ -284,6 +295,18 @@ cords.openDoor=[...cords.door, ...cords.open]
 cords.lockedDoor=[...cords.closedDoor, ...cords.locked]
 cords.thing=["thing@is:thing",...cords.portable,...cords.touchable]
 
+/*knots*/
+ishml.Knot.prototype.plural=function(...nouns)
+{
+	ishml.yarn.lexicon.register(...nouns).as({part:"noun", number:ishml.enum.number.plural, select:()=>this})
+	return this
+
+}
+ishml.Knot.prototype.singular=function(...nouns)
+{
+	ishml.yarn.lexicon.register(...nouns).as({part:"noun", number:ishml.enum.number.singular, select:()=>this})
+	return this
+}
 /* pronouns */
 
 ishml.lang.pronouns=
@@ -603,6 +626,48 @@ ishml.lang.est=function(word)
 	return ishml.lang.preserveCase("most "+key,word)
 }
 ishml.lang.est.superlatives={bad:"worst",far:"farthest",good:"best"}
+
+/* Plotpoints */
+ishml.Plotpoint.prototype.verbs=function(...verbs)
+{
+	var particle, preposition
+	var thisPlotpoint=this
+	result={
+		particle:p=>
+		{
+			particle=p
+			return result
+		},
+		preposition:p=>
+		{
+			preposition=p
+			return result
+		},
+		register:(options)=>
+		{
+			if (options)
+			{
+				if (typeof options==="number")
+				{
+					var entry={plot:thisPlotpoint,part:"verb"}
+				}
+				else 
+				{
+					var entry = Object.assign({plot:thisPlotpoint,part:"verb"},options)
+				}
+			}
+			else
+			{
+				var entry={plot:thisPlotpoint,part:"verb", valence:1}
+			}
+			if (particle){entry.particle=particle}
+			if (preposition){entry.preposition=preposition}
+			ishml.yarn.lexicon.register(...verbs).as(entry)
+			return thisPlotpoint
+		}
+	}
+	return result
+}
 
 /*** Templates ***/
 

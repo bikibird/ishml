@@ -9,22 +9,26 @@ $.place.foyer
 	.tie("south").to($.place.bar)
 	.knot.configure({
 		name:"Foyer of the Opera House",
-		description:`You are standing in a spacious hall, splendidly decorated in red and gold, with glittering chandeliers overhead. The entrance from the street is to the north, and there are doorways south and west.`
+		description:`You are standing in a spacious hall, splendidly decorated in red and gold, with glittering chandeliers overhead. The entrance from the street is to the north, and there are doorways south and west.`,
+		
 	})
-lexicon.register("foyer").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.place.foyer})
+	.singular("foyer", "foyer of the Opera House")
+//lexicon.register("foyer").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.place.foyer})
 
 $.place.cloakroom.knot.configure({
 	name:"Cloakroom",
 	description:`The walls of this small room were clearly once lined with hooks, though now only one remains.
 		The exit is a door to the east.`
 })
-lexicon.register("cloakroom").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.place.cloakroom})
+.singular("cloakroom")
+//lexicon.register("cloakroom").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.place.cloakroom})
 
 $.place.bar.knot.configure({
 	name:"Bar",
 	description:`The bar, much rougher than you'd have guessed after the opulence of the foyer to the north, is completely empty. There seems to be some sort of message scrawled in the sawdust on the floor.`
 }) 
-lexicon.register("bar").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.place.bar})
+//lexicon.register("bar").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.place.bar})
+.singular("bar")
 
 /*things*/
 
@@ -39,9 +43,15 @@ $
 
 $.thing.cloak.configure({
 	name:"cloak",
-	description:"the blackest black velvet."
+	description:"the blackest black velvet.",
 })
-lexicon.register("cloak").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.cloak})
+.singular("cloak")
+
+
+//.adjectives("black","velvet")
+
+//DEFECT: adjectives are really the tie is.
+//lexicon.register("cloak").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.cloak})
 
 
 
@@ -51,7 +61,10 @@ $
 	.tie("actor").to("player","jane")
 
 $.actor.player
-	.configure(ishml.lang.pronouns.epicene)
+	.configure({
+		name:"player",
+		role:"player"
+	})
 lexicon.register("player").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.actor.player, role:"player"})
 
 $.actor.player
@@ -81,6 +94,16 @@ $.actor.jane
 $.fixture.hook.tie("in").to($.place.cloakroom)
 $.thing.saucer.tie("on").to($.thing.table)
 $.thing.cup.tie("on").to($.thing.saucer)
+
+/* Adjectives */
+lexicon
+	.register("small").as({part:"adjective",select:subject=>subject.is.small})
+	.register("brass").as({part:"adjective",select:subject=>subject.is.brass})
+	.register("dark").as({part:"adjective",select:subject=>subject.is.dark})
+	.register("velvet").as({part:"adjective",select:subject=>subject.is.velvet})
+	.register("black").as({part:"adjective",select:subject=>subject.is.black})
+	.register("left").as({part:"adjective",select:subject=>subject.is.left})
+	.register("right").as({part:"adjective",select:subject=>subject.is.right})
 
 	/*scenes-- like inform 7*/
 	//tbd

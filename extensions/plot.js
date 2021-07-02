@@ -33,19 +33,28 @@ plot.main.dialog.input.unfold=function(twist)
     {
         if (results.interpretations?.[0].remainder.length>0)
         {
-            _`<p>${_.favor(
+            /*_`<p>${_.favor(
                 _`You thoughts are fuzzy.  How does <q>${cache=>cache.remainder.data}</q> apply here?`,
                 _`Confusedly, you think <q>${cache=>cache.remainder.data}</q> to yourself.`,
                 _`You realize <q>${cache=>cache.remainder.data}</q> doesn't make any sense here once you say it out loud.`)}</p>`
-                    .cache("remainder").populate(results.interpretations[0].remainder).say().append("#story")
+                    .cache("remainder").populate(results.interpretations[0].remainder).say().append("#story")*/
+            _`<p>${_.favor(
+                _`You thoughts are fuzzy.  How does <q>${results.interpretations[0].remainder}</q> apply here?`,
+                _`Confusedly, you think <q>${results.interpretations[0].remainder}</q> to yourself.`,
+                _`You realize <q>${results.interpretations[0].remainder}</q> doesn't make any sense here once you say it out loud.`)}</p>`.say().append("#story")
         }    
         else
         {
-            _`<p>${_.favor(
+            /*_`<p>${_.favor(
                 _`You thoughts are fuzzy.  How does <q>${cache=>cache.remainder.data}</q> apply here?`,
                 _`Confusedly, you think <q>${cache=>cache.remainder.data}</q> to yourself.`,
                 _`You realize <q>${cache=>cache.remainder.data}</q> doesn't make any sense here once you say it out loud.`)}</p>`
-                    .cache("remainder").populate(twist.input).say().append("#story")
+                    .cache("remainder").populate(twist.input).say().append("#story")*/
+            _`<p>${_.favor(
+                _`You thoughts are fuzzy.  How does <q>${twist.input}</q> apply here?`,
+                _`Confusedly, you think <q>${twist.input}</q> to yourself.`,
+                _`You realize <q>${twist.input}</q> doesn't make any sense here once you say it out loud.`)}</p>`
+                .say().append("#story")        
         }
     }    
     return {continue:true}
@@ -71,19 +80,19 @@ plot.action.asking_to.unfold=function(command)
         .abridge(()=>this.check.unfold(command))
         .revise(()=>this.instead.unfold(command))
 }
-lexicon
-    .register("ask").as({plot:plot.action.asking_to, part: "verb", preposition:"to",valence:2} ) 
+plot.action.asking_to.verbs("ask").preposition("to").register(2)
 plot.action.asking_to.check
 plot.action.asking_to.instead
 
-//plot.action.dropping.narration=_`<p>You dropped the ${cache=>_.list(cache.droppable.data.map(thing=>thing.knot.name))}.</p>`.cache("droppable")
+
 plot.action.dropping.unfold=function(command)
 {
     if (!command.indirectObject){command.indirectObject={select:()=>command.subject.select().in}}
     command.droppable=command.directObject?.select().worn_by(command.subject.select()).converse
     .add(command.directObject?.select().carried_by(command.subject.select()).converse)
     var episode=ishml.Episode(this)
-        .narration(()=>{if (!command.silently) _`<p>You dropped the ${cache=>_.list(cache.droppable.data.map(thing=>thing.knot.name))}.</p>`.cache("droppable").populate(command.droppable).say().append("#story")})
+        .narration(()=>{if (!command.silently) _`<p>You dropped the ${_.list(command.droppable.knots.name)}.</p>`
+            .say().append("#story")})
         .resolution(()=>{command.droppable.untie().tie(cords.in).to(command.container)})
         .salience(5)
         .viewpoint(command.viewpoint)
@@ -91,10 +100,8 @@ plot.action.dropping.unfold=function(command)
         .revise(()=>this.instead.unfold(command))
     return episode                
 }
-lexicon
-	.register("drop","leave").as({plot:plot.action.dropping , part: "verb", preposition:"in", valence:2 })    
-    .register("drop", "leave").as({ plot: plot.action.dropping, part: "verb", valence:1 })
-
+plot.action.dropping.verbs("drop","leave").preposition("in").register(2)
+plot.action.dropping.verbs("drop","leave").register()
 
 plot.action.dropping.check.nothing.unfold=function(command)
 {
@@ -131,7 +138,8 @@ plot.action.dropping.check.notDroppable.unfold=function(command)
     if (!command.notDroppable.isEmpty)
     {
         var episode=ishml.Episode(this)
-        .narration(()=> _`<p>You ${_.pick("think about dropping","want to drop", "would drop")} the ${cache=>_.list(cache.notDroppable.data.map(thing=>thing.knot.name))}, but ${_.pick(_`you don't even have ${cache=>cache.notDroppable.data.them}`,_`${cache=>cache.notDroppable.data.they} ${cache=>cache.notDroppable.data.are}n't in your possession`)}.</p>`.cache("notDroppable").populate(command.notDroppable).say().append("#story"))
+        .narration(()=> _`<p>You ${_.pick("think about dropping","want to drop", "would drop")} the ${_list(command.notDroppable.knots.name)}, but ${_.pick(_`you don't even have ${command.notDroppable.them}`,_`${command.notDroppable.they} ${command.notDroppable.are}n't in your possession`)}.</p>`.say().append("#story"))
+       /* .narration(()=> _`<p>You ${_.pick("think about dropping","want to drop", "would drop")} the ${cache=>_.list(cache.notDroppable.data.map(thing=>thing.knot.name))}, but ${_.pick(_`you don't even have ${cache=>cache.notDroppable.data.them}`,_`${cache=>cache.notDroppable.data.they} ${cache=>cache.notDroppable.data.are}n't in your possession`)}.</p>`.cache("notDroppable").populate(command.notDroppable).say().append("#story"))*/
         .salience(3)   
         .viewpoint(command.viewpoint)
         return episode
@@ -177,6 +185,7 @@ plot.action.dropping.check.selfContainer.unfold=function(command)
     return 
 }
 plot.action.dropping.instead
+
 /*Taking*/
 plot.action.taking.unfold=function(command)
 {
@@ -195,9 +204,60 @@ plot.action.taking.unfold=function(command)
         .revise(()=>this.instead.unfold(command))
     return episode                
 }
+plot.action.taking.verbs("take","grab","steal").register()
+plot.action.taking.verbs("pick").particle("up").register()
+
+plot.action.going.unfold=function(command)
+{
+    if (!command.directObject){command.directObject={select:command.verb.select}}
+    command.destination=command.directObject.select(command.subject.select())
+    var episode=ishml.Episode(this)
+        .narration(()=>{if (!command.silently) _`You go. `.say().append("#story")})
+        .resolution(()=>{command.subject.select().in.retie(command.destination)})
+        .salience(5)
+        .viewpoint(command.viewpoint)
+        .abridge(()=>this.check.unfold(command))
+        .revise(()=>this.instead.unfold(command))
+    return episode                
+}
+plot.action.going.verbs("go").register()
+plot.action.going.verbs("north","n").register({valence:0,select:(subject)=>subject.in.exit.north})
+plot.action.going.verbs("south","s").register({valence:0,select:(subject)=>subject.in.exit.south})
+plot.action.going.verbs("east","e").register({valence:0,select:(subject)=>subject.in.exit.east})
+plot.action.going.verbs("west","w").register({valence:0,select:(subject)=>subject.in.exit.west})
+plot.action.going.verbs("northeast","ne").register({valence:0,select:(subject)=>subject.in.exit.northeast})
+plot.action.going.verbs("northwest","nw").register({valence:0,select:(subject)=>subject.in.exit.northwest})
+plot.action.going.verbs("southeast","se").register({valence:0,select:(subject)=>subject.in.exit.southeast})
+plot.action.going.verbs("southwest","sw").register({valence:0,select:(subject)=>subject.in.exit.southwest})
+plot.action.going.verbs("up","u").register({valence:0,select:(subject)=>subject.in.exit.up})
+plot.action.going.verbs("down","d").register({valence:0,select:(subject)=>subject.in.exit.down})
+
+plot.action.going.check
+plot.action.going.instead
+
+plot.action.looking.unfold=function(command)
+{
+    command.places=command.subject.select().in
+    command.things=command.places.contains.is.thing //.add(command.places.contains.is.thing.supports) 
+    command.people=command.places.contains.is.actor.subtract(command.subject.select())
+    var episode=ishml.Episode(this)
+        .narration(()=>{if (!command.silently) 
+            _`<p>You look around. ${command.places.knot.description}</p>
+            <p></p>`
+            .say().append("#story")})
+        .salience(5)
+        .viewpoint(command.viewpoint)
+        .abridge(()=>this.check.unfold(command))
+        .revise(()=>this.instead.unfold(command))
+    return episode    
+               
+}
 lexicon
-	.register("take","grab","steal").as({plot:plot.action.taking, part: "verb" })
-	.register("pick").as({plot:plot.action.taking, part: "verb", particle:"up"})   
+    .register("look").as({plot:plot.action.looking , part: "verb",  valence:0 })    
+
+plot.action.looking.check
+plot.action.looking.instead
+        
 plot.action.taking.check.notPortable.unfold=function(command)
 {
     command.notPortable=command.directObject?.select().subtract(command.portable)
@@ -205,7 +265,8 @@ plot.action.taking.check.notPortable.unfold=function(command)
     {
         
         return ishml.Episode(this)
-            .narration(()=> _`<p>You ${_.pick("think about taking","want to take", "would take")} the ${cache=>_.list(cache.notPortable.data.map(thing=>thing.knot.name))}, but ${_.pick(_` ${cache=>cache.notPortable.data.them} isn't portable`,_`${cache=>cache.notPortable.data.they} ${cache=>cache.notPortable.data.are} too unwieldy`)}.</p>`.cache("notPortable").populate(command.notPortable).say().append("#story"))
+        .narration(()=> _`<p>You ${_.pick("think about taking","want to take", "would take")} the ${_.list(command.notPortable.knots.name)}, but ${_.pick(_` ${command.notPortable.them} isn't portable`,_`${command.notPortable.they} ${command.notPortable.are} too unwieldy`)}.</p>`.say().append("#story"))
+           /* .narration(()=> _`<p>You ${_.pick("think about taking","want to take", "would take")} the ${cache=>_.list(cache.notPortable.data.map(thing=>thing.knot.name))}, but ${_.pick(_` ${cache=>cache.notPortable.data.them} isn't portable`,_`${cache=>cache.notPortable.data.they} ${cache=>cache.notPortable.data.are} too unwieldy`)}.</p>`.cache("notPortable").populate(command.notPortable).say().append("#story"))*/
             .salience(3)   
             .viewpoint(command.viewpoint)
         
@@ -324,29 +385,3 @@ if the number of things carried by the actor is at least the
 carrying capacity of the actor, stop the action with library
 message taking action number 12 for the actor.
 */
-plot.action.going.unfold=function(command)
-{
-    if (!command.directObject){command.directObject={select:()=>command.verb.select()}}
-    command.destination=command.directObject.select(command.subject.select())
-    var episode=ishml.Episode(this)
-        .narration(()=>{if (!command.silently) _`You go. `.say().append("#story")})
-        .resolution(()=>{command.subject.select().in.retie(command.destination)})
-        .salience(5)
-        .viewpoint(command.viewpoint)
-        .abridge(()=>this.check.unfold(command))
-        .revise(()=>this.instead.unfold(command))
-    return episode                
-}
-lexicon
-	.register("go").as({plot:plot.action.going , part: "verb",  valence:1 })    
-    .register("north","n").as({plot:plot.action.going , part: "verb",  valence:0, select:(subject)=>subject.in.exit.north},{part: "noun",  select:(subject)=>subject.in.exit.north})
-    .register("south","s").as({plot:plot.action.going , part: "verb",  valence:0, select:(subject)=>subject.in.exit.south},{part: "noun",  select:(subject)=>subject.in.exit.south})
-    .register("east","e").as({plot:plot.action.going , part: "verb",  valence:0, select:(subject)=>subject.in.exit.east},{part: "noun",  select:(subject)=>subject.in.exit.east})
-    .register("west","w").as({plot:plot.action.going , part: "verb",  valence:0, select:(subject)=>subject.in.exit.west},{part: "noun",  select:(subject)=>subject.in.exit.west})
-   /* .register("northeast","ne").as({plot:plot.action.going , part: "verb",  valence:0, select:(subject)=>subject.in.exit.northeast},{part: "noun",  select:(subject)=>subject.in.exit.northeast})
-    .register("northwest","nw").as({plot:plot.action.going , part: "verb",  valence:0, select:(subject)=>subject.in.exit.northwest},{part: "noun",  select:(subject)=>subject.in.exit.northwest})
-    .register("southeast","se").as({plot:plot.action.going , part: "verb",  valence:0, select:(subject)=>subject.in.exit.southeast},{part: "noun",  select:(subject)=>subject.in.exit.southeast})
-    .register("west","w").as({plot:plot.action.going , part: "verb",  valence:0, select:(subject)=>subject.in.exit.west},{part: "noun",  select:(subject)=>subject.in.exit.west})*/
-    
-    plot.action.going.check
-    plot.action.going.instead
