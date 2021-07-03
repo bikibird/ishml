@@ -72,7 +72,7 @@ $.thing.cup.tie("cord:ply-otherCord:otherPly").to(otherKnot/otherPly) --mutual r
 $.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexive relation converse=== this ply.*/
 		var cordages=someCordage.flat(Infinity).map(cordage=>ishml.Cord.cordage[ishml.util.formatId(cordage)]??cordage).flat(Infinity)
 		var thisKnot=this
-		var tie=(from,to)=>
+		var tie=(from,to,reflexive)=>
 		{
 			if (from instanceof ishml.Knot)
 			{
@@ -108,8 +108,10 @@ $.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexiv
 			{
 				//parse the cordage
 				var [fore,aft]=cordage.split(/[-=@]/)
+
 				var mutual=cordage.includes("-")
-				var reflexive=cordage.includes("@")
+				//var reflexive=cordage.includes("@")
+
 				var converse=cordage.includes("=")
 				var [foreCordId,forePlyId]=fore.split(":").map(id=>ishml.util.formatId(id.trim()))
 				if (!forePlyId){forePlyId=toKnot.id}
@@ -134,23 +136,15 @@ $.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexiv
 //foyer.exit.north.converse equivalent to foyer.exit.north.entrance.south which points back to foyer
 //kitchen.entrance.south points to foyer
 //kitchen.entrance.south.converse equivalent to  kitchen.entrance.south.exit.north which points back to foyer			
-				if (mutual || converse || reflexive)
+				if (mutual || converse )
 				{
 					//create the new aft ply
 					var [aftCordId,aftPlyId]=aft.split(":").map(id=>ishml.util.formatId(id.trim()))	
 					if (!aftCordId){aftCordId=foreCordId}
 					if (!aftPlyId){aftPlyId=fromKnot.id}
 
-					if (reflexive)
-					{
-						if (!aftPlyId){aftPlyId=foreCordId}
-						var aftPly=new ishml.Ply(aftPlyId,toKnot)
-					}
-					else 
-					{
-						if (!aftPlyId){aftPlyId=toKnot.id}
-						var aftPly=new ishml.Ply(aftPlyId,fromKnot)
-					}                                                                      
+					if (!aftPlyId){aftPlyId=toKnot.id}
+					var aftPly=new ishml.Ply(aftPlyId,fromKnot)                        
 
 					aftPly.from=toKnot
 					aftPly.cordId=aftCordId
@@ -170,21 +164,28 @@ $.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexiv
 					forePly.converse=aftPly
 					aftPly.converse=forePly
 				}
+				if (reflexive){forePly.converse=forePly}
 			})
 		}		
 		
 		var from =(...someKnots)=>
 		{
-			someKnots.forEach(knot=>tie(knot,thisKnot))	
+			someKnots.forEach(knot=>tie(knot,thisKnot,false))	
 			return thisKnot
 		}
 
 		var to = (...someKnots)=>
 		{
-			someKnots.forEach(knot=>tie(thisKnot,knot))
+			someKnots.forEach(knot=>tie(thisKnot,knot,false))
 			return thisKnot
 		}
-		return {to:to, from:from}
+		var back = (...someKnots)=>
+		{
+			tie(thisKnot,thisKnot,true)
+			return thisKnot
+		}
+		
+		return {to:to, from:from, back:back}
 	}
 
 }

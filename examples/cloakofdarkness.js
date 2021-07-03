@@ -32,14 +32,19 @@ $.place.bar.knot.configure({
 
 /*things*/
 
-$
+$.tie("thing").to("hook","cloak")
+
+$.thing.hook.tie("fixture", "is:brass").back()
+$.thing.cloak.tie("wearable","is:black","is:velvet").back()
+
+/*$
 	.tie("fixture","small@is","brass@is").to("hook")
 	.tie(cords.thing,"wearable","dark@is","black@is","velvet@is").to("cloak")
 	.tie("thing","wearable","black@is","left@is").to("left_shoe")
 	.tie("thing","wearable","black@is","right@is").to("right_shoe")
 	.tie("thing").to("cup")
 	.tie("thing").to("saucer")
-	.tie("thing").to("table")
+	.tie("thing").to("table")*/
 
 $.thing.cloak.configure({
 	name:"cloak",
@@ -84,17 +89,17 @@ $.actor.player
 	.tie("in").to($.place.foyer)
 	.tie("has skill").to($.action.dropping,$.action.inventorying,$.action.taking)
 	.tie("wears").to($.thing.cloak)
-	.tie("wears").to($.thing.left_shoe)
-	.tie("wears").to($.thing.right_shoe)
+//	.tie("wears").to($.thing.left_shoe)
+//	.tie("wears").to($.thing.right_shoe)
 
 
 $.actor.jane
 	.tie("has skill").to($.action.dropping)
 
-$.fixture.hook.tie("in").to($.place.cloakroom)
+/*$.fixture.hook.tie("in").to($.place.cloakroom)
 $.thing.saucer.tie("on").to($.thing.table)
 $.thing.cup.tie("on").to($.thing.saucer)
-
+*/
 /* Adjectives */
 lexicon
 	.register("small").as({part:"adjective",select:subject=>subject.is.small})

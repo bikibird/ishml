@@ -103,8 +103,9 @@ ishml.yarn.grammar.nounPhrase.semantics=(interpretation)=>
         {
             gist.adjectives.forEach(adjective=>
             {
-                cord=cord.cross(adjective.definition.select(...args))
-                .per((noun,adjective)=>noun.knot===adjective.knot)
+				cord=adjective.definition.select(cord).cord
+                /*cord=cord.cross(adjective.definition.select(...args))
+                .per((noun,adjective)=>noun.knot===adjective.knot)*/
             })
         }
         if(gist.adjunct)
@@ -250,50 +251,50 @@ Object.defineProperty(ishml.Cord, "they", { get: function()
 
 /* Cordage */
 var cords=ishml.Cord.cordage
-cords.action=["action@"]
-cords.actor=["actor@"]
+cords.action=["action-"]
+cords.actor=["actor-"]
 cords.carries=["carries-carried_by"]
-cords.closed=["openable@is:openable","closed@is:closed"]
-cords.commandable=["commandable@is:commandable"]
-cords.container=["container@is:container"]
+cords.closed=["is:openable","is:closed"]
+cords.commandable=["is:commandable"]
+cords.container=["is:container"]
 cords.contains=["contains=in"]
 cords.in=["in=contains"]
 
 
-cords.door=["door@is:door"]
+cords.door=["is:door"]
 cords.down=["exit:down=exit:up"]
 cords.east=["exit:east=exit:west"]
-cords.edible=["edible@is:edible"]
-cords.fixture=["fixture@is:fixture"]
+cords.edible=["edible-is:edible"]
+cords.fixture=["fixture-is:fixture"]
 cords.has_skill=["has_skill-skill_of"]
-cords.locked=["lockable@is:lockable","locked@is:locked"]
+cords.locked=["is:lockable","is:locked"]
 
 cords.north=["exit:north=exit:south"]
 cords.northeast=["exit:northeast=exit:southwest"]
 cords.northwest=["exit:northwest=exit:southeast"]
-cords.open=["openable@is:openable","open@is:open"]
-cords.place=["place@is:place","container@is:container"]
-cords.portable=["portable@is:portable"]
-cords.reachable=["reachable@is:reachable"]
+cords.open=["is:openable","is:open"]
+cords.place=["is:place","is:container"]
+cords.portable=["is:portable"]
+cords.reachable=["is:reachable"]
 
 
 cords.south=["exit:south=exit:north"]
 cords.southeast=["exit:southeast=exit:northwest"]
 cords.southwest=["exit:southwest=exit:northeast"]
-cords.supporter=["supporter@is:supporter"]
+cords.supporter=["is:supporter"]
 cords.on=["on=supports"]
 
-cords.touchable=["touchable@is:touchable"]
-cords.unlocked=["lockable@is:lockable","unlocked@is:unlocked"]
+cords.touchable=["is:touchable"]
+cords.unlocked=["is:lockable","is:unlocked"]
 cords.up=["exit:up=exit:down"]
-cords.wearable=["wearable@is:wearable"]
+cords.wearable=["is:wearable"]
 cords.wears=["wears-worn_by"]
 cords.west=["exit:west=exit:east"]
 
 cords.closedDoor=[...cords.door, ...cords.closed]
 cords.openDoor=[...cords.door, ...cords.open]
 cords.lockedDoor=[...cords.closedDoor, ...cords.locked]
-cords.thing=["thing@is:thing",...cords.portable,...cords.touchable]
+cords.thing=["is:thing",...cords.portable,...cords.touchable]
 
 /*knots*/
 ishml.Knot.prototype.plural=function(...nouns)
