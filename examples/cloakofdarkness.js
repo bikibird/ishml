@@ -32,10 +32,10 @@ $.place.bar.knot.configure({
 
 /*things*/
 
-$.tie("thing").to("hook","cloak")
-
-$.thing.hook.tie("fixture", "is:brass").back()
-$.thing.cloak.tie("wearable","is:black","is:velvet").back()
+$
+	.tie("thing").to("hook","cloak")
+	.tie("fixture", "@is:brass").to($.thing.hook)  //Not easily searchable by brass
+	.tie("wearable","black@is:black","velvet@is:velvet").to($.thing.cloak) //easily searchable by velvet: $.velvet
 
 /*$
 	.tie("fixture","small@is","brass@is").to("hook")

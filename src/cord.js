@@ -114,6 +114,11 @@ ishml.Cord =class Cord extends Function
 		})	
 		return this	
 	}
+	check(condition)
+	{
+		if (condition(this)){return this}
+		else return false
+	}
 	get converse()
 	{
 		var cord = new ishml.Cord()

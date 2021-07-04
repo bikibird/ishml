@@ -63,6 +63,11 @@ ishml.Ply= class Ply
 		while (ply.retreat){ply=ply.retreat}
 		return ply
 	}
+	check(condition)
+	{
+		if (condition(this)){return this}
+		else return false
+	}
 	get cord()
 	{
 		
