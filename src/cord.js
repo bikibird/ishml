@@ -3,24 +3,12 @@ ishml.Cord =class Cord extends Function
 	//a cord is a collection of unrelated plies
 	constructor(...members) 
 	{
-		function Cord(){}
+		function Cord(){}  //sets function's name
+		super()
 		Object.setPrototypeOf(Cord, ishml.Cord.prototype)
 		Object.defineProperty(Cord,"id",{writable:true})
 		Object.defineProperty(Cord,"_plies",{value:new Set(),writable:true})
-		/*Object.defineProperty(Cord,"plies",{value:new Proxy(new Set(),
-			{
-				/*get: function(target, property, receiver) 
-				{
-					if (Reflect.has(target,property)){return target[property]}
-					var result=[]
-					target.forEach(ply=>
-					{
-						result.push(ply[property])
-						return result
-					})	
-				}
-			}),writable:true})*/
-
+		Object.defineProperty(Cord,"_select",{value:null,writable:true})
 		members.forEach(member=>
 		{
 			if (member instanceof Set ||member instanceof ishml.Cord ||member instanceof Array)
@@ -61,8 +49,7 @@ ishml.Cord =class Cord extends Function
 					{
 						if (typeof member === "function")
 						{
-							//DEFECT not done
-							// define infer as a getter property set to the pass function.
+							this._select=member
 						}
 					}
 				}
@@ -114,18 +101,17 @@ ishml.Cord =class Cord extends Function
 		})	
 		return this	
 	}
-	check(condition)
-	{
-		if (condition(this)){return this}
-		else return false
-	}
-	get converse()
+	converse(cordId)
 	{
 		var cord = new ishml.Cord()
-		for ( const thisPly of this._plies)
+		if (cordId)
 		{
-			if (thisPly.converse){cord.add(thisPly.converse)}
+			for ( const ply of this[cordId]._plies){cord.add(ply.converse)}
 		}
+		else
+		{	
+			for ( const ply of this._plies){cord.add(ply.converse)}
+		}	
 		return cord
 	}
 	get cord(){return this}
@@ -546,6 +532,11 @@ ishml.Cord =class Cord extends Function
 		})
 		return this
 	}
+	where(condition)
+	{
+		if (condition(this)){return this}
+		else return new Cord()
+	}
 }
 ishml.Cord.cordage={}
 ishml.Cord.handler=
@@ -560,7 +551,7 @@ ishml.Cord.handler=
 		$.thing.ring.worn_by.player.converse
 
 		*/
-		
+		if (this._select){return this._select(cords)}
 		var cord=new ishml.Cord()
 
 		if (cords.length>0)
@@ -589,7 +580,7 @@ ishml.Cord.handler=
 		}
 		else
 		{
-			return target  //called cord without parameters
+			return new ishml.Cord(target) //Called cord without parameters.  Need to return the cord. Can't just return target, because not wrapped in proxy.  Create new cord to wrap target in proxy.
 		}
 		return cord
 
@@ -608,6 +599,7 @@ ishml.Cord.handler=
 	{
 		//if cord contains ply, return the ply
 		//$.room.kitchen.exit.north
+		if (this._select){return this._select()[property]}
 		if (Reflect.has(target,property,receiver))  //return the ply 
 		{
 			return Reflect.get(target,property,receiver)

@@ -28,16 +28,16 @@ ishml.yarn.lexicon
     .register("next to", "beside").as({cord: "beside", part:"relation"})
 
 	//directions
-	.register("north","n").as({part: "noun",  select:(subject)=>subject.in.exit.north})
-    .register("south","s").as({part: "noun",  select:(subject)=>subject.in.exit.south})
-    .register("east","e").as({part: "noun",  select:(subject)=>subject.in.exit.east})
-    .register("west","w").as({part: "noun",  select:(subject)=>subject.in.exit.west})
-    .register("northeast","ne").as({part: "noun",  select:(subject)=>subject.in.exit.northeast})
-    .register("northwest","nw").as({part: "noun",  select:(subject)=>subject.in.exit.northwest})
-    .register("southeast","se").as({part: "noun",  select:(subject)=>subject.in.exit.southeast})
-    .register("west","w").as({part: "noun",  select:(subject)=>subject.in.exit.southwest})
-	.register("up","u").as({part: "noun",  select:(subject)=>subject.in.exit.up})
-	.register("down","d").as({part: "noun",  select:(subject)=>subject.in.exit.down})
+	.register("north","n").as({part: "noun",  select:new ishml.Cord(subject=>subject.in.exit.north)})
+    .register("south","s").as({part: "noun",  select:new ishml.Cord(subject=>subject.in.exit.south)})
+    .register("east","e").as({part: "noun",  select:new ishml.Cord(subject=>subject.in.exit.east)})
+    .register("west","w").as({part: "noun",  select:new ishml.Cord(subject=>subject.in.exit.west)})
+    .register("northeast","ne").as({part: "noun",  select:new ishml.Cord(subject=>subject.in.exit.northeast)})
+    .register("northwest","nw").as({part: "noun",  select:new ishml.Cord(subject=>subject.in.exit.northwest)})
+    .register("southeast","se").as({part: "noun",  select:new ishml.Cord(subject=>subject.in.exit.southeast)})
+    .register("west","w").as({part: "noun",  select:new ishml.Cord(subject=>subject.in.exit.southwest)})
+	.register("up","u").as({part: "noun",  select:new ishml.Cord(subject=>subject.in.exit.up)})
+	.register("down","d").as({part: "noun",  select:new ishml.Cord(subject=>subject.in.exit.down)})
 /*grammar*/
 
 ishml.yarn.grammar.command=ishml.Rule()
@@ -254,6 +254,7 @@ var cords=ishml.Cord.cordage
 cords.action=["action@"]
 cords.actor=["actor@is:actor"]
 cords.carries=["carries-carried_by"]
+cords.carried_by=["carried_by-carries"]
 cords.closed=["openable@is:openable","closed@is:closed"]
 cords.commandable=["commandable@is:commandable"]
 cords.container=["container@is:container"]
@@ -297,17 +298,7 @@ cords.lockedDoor=[...cords.closedDoor, ...cords.locked]
 cords.thing=["thing@is:thing",...cords.portable,...cords.touchable]
 
 /*knots*/
-ishml.Knot.prototype.plural=function(...nouns)
-{
-	ishml.yarn.lexicon.register(...nouns).as({part:"noun", number:ishml.enum.number.plural, select:()=>this})
-	return this
 
-}
-ishml.Knot.prototype.singular=function(...nouns)
-{
-	ishml.yarn.lexicon.register(...nouns).as({part:"noun", number:ishml.enum.number.singular, select:()=>this})
-	return this
-}
 /* pronouns */
 
 ishml.lang.pronouns=

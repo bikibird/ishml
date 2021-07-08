@@ -19,11 +19,6 @@ ishml.Knot= class Knot
 		Object.defineProperty(this, "description", {value:this.name,writable: true}) 
 		return this 
 	}
-	check(condition)
-	{
-		if (condition(this)){return this}
-		else return false
-	}
 	get cord()
 	{
 		//Returns cord with ply representing this knot.
@@ -42,9 +37,13 @@ ishml.Knot= class Knot
 		
 		return Object.values(this).filter(cord=>cord instanceof ishml.Cord) 	
 	}
-	configure(value)
+	configure(configuration)
 	{
-		Object.assign(this,value)
+		Object.keys(configuration).forEach(key=>
+		{
+			if (this.hasOwnProperty(key)){this[key]=configuration[key]}
+			else{Object.defineProperty(this, key, {value:configuration[key],writable: true}) }
+		})
 		return this
 	}	
 /*	defineCord(name)
@@ -65,16 +64,28 @@ ishml.Knot= class Knot
 	{
 		return new ishml.Cord(this).nearby(hops)
 	}
+	plural(...nouns)
+	{
+		ishml.yarn.lexicon.register(...nouns).as({part:"noun", number:ishml.enum.number.plural, select:new ishml.Cord(this)})
+		return this
+	}
 	realm(hops)
 	{
 		return new ishml.Cord(this).realm(hops)
+	}
+	singular(...nouns)
+	{
+		ishml.yarn.lexicon.register(...nouns).as({part:"noun", number:ishml.enum.number.singular, select:new ishml.Cord(this)})
+		return this
 	}
 	tie(...someCordage)
 	{
 /*$.thing.cup.tie("cord:ply").to(otherKnot/otherPly) --one-way relation converse===null
 $.thing.cup.tie("cord:ply=otherCord:otherPly").to(otherKnot/otherPly) --converse relation converse === another ply
 $.thing.cup.tie("cord:ply-otherCord:otherPly").to(otherKnot/otherPly) --mutual relation converse === another ply, but when ply properties updated, other ply is updated automatically because both share the same properties object.
-$.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexive relation converse=== this ply.*/
+$.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexive relation converse=== this ply.
+DEFECT NOT Implemented: $.thing.cup.tie("cord:ply").back() --reflexive relation converse=== this ply.
+*/
 		var cordages=someCordage.flat(Infinity).map(cordage=>ishml.Cord.cordage[ishml.util.formatId(cordage)]??cordage).flat(Infinity)
 		var thisKnot=this
 		var tie=(from,to)=>
@@ -117,28 +128,30 @@ $.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexiv
 				var reflexive=cordage.includes("@")
 				var converse=cordage.includes("=")
 				var [foreCordId,forePlyId]=fore.split(":").map(id=>ishml.util.formatId(id.trim()))
-				if (!forePlyId){forePlyId=toKnot.id}
-				//create the new fore ply
-				var forePly=new ishml.Ply(forePlyId,toKnot)
-				forePly.from=fromKnot
-				forePly.cordId=foreCordId
-				if (fromKnot.hasOwnProperty(foreCordId))
+				if (foreCordId)
 				{
-					fromKnot[foreCordId][forePlyId]=forePly
+					if (!forePlyId){forePlyId=toKnot.id}
+					//create the new fore ply
+					var forePly=new ishml.Ply(forePlyId,toKnot)
+					forePly.from=fromKnot
+					forePly.cordId=foreCordId
+					if (fromKnot.hasOwnProperty(foreCordId))
+					{
+						fromKnot[foreCordId][forePlyId]=forePly
+					}	
+					else
+					{
+						var cord = new ishml.Cord()
+						cord.id=foreCordId
+						cord[forePlyId]=forePly
+						fromKnot[foreCordId]=cord
+					}
 				}	
-				else
-				{
-					var cord = new ishml.Cord()
-					cord.id=foreCordId
-					cord[forePlyId]=forePly
-					fromKnot[foreCordId]=cord
-				}
-
-//exit:north=entrance:south
-//foyer.exit.north points to kitchen
-//foyer.exit.north.converse equivalent to foyer.exit.north.entrance.south which points back to foyer
-//kitchen.entrance.south points to foyer
-//kitchen.entrance.south.converse equivalent to  kitchen.entrance.south.exit.north which points back to foyer			
+	//exit:north=entrance:south
+	//foyer.exit.north points to kitchen
+	//foyer.exit.north.converse equivalent to foyer.exit.north.entrance.south which points back to foyer
+	//kitchen.entrance.south points to foyer
+	//kitchen.entrance.south.converse equivalent to  kitchen.entrance.south.exit.north which points back to foyer				
 				if (mutual || converse || reflexive)
 				{
 					//create the new aft ply
@@ -171,8 +184,7 @@ $.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexiv
 						cord[aftPlyId]=aftPly
 						toKnot[aftCordId]=cord
 					}
-
-					forePly.converse=aftPly
+					if (foreCordId){forePly.converse=aftPly}
 					aftPly.converse=forePly
 				}
 			})
@@ -189,7 +201,18 @@ $.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexiv
 			someKnots.forEach(knot=>tie(thisKnot,knot))
 			return thisKnot
 		}
-		return {to:to, from:from}
+
+		var back = ()=>
+		{
+			tie(thisKnot,thisKnot)
+			return thisKnot
+		}
+		return {to:to, from:from, back:back}
+	}
+	where(condition)
+	{
+		if (condition(this)){return this}
+		else {return null}
 	}
 
 

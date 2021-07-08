@@ -66,7 +66,7 @@ ishml.Ply= class Ply
 	check(condition)
 	{
 		if (condition(this)){return this}
-		else return false
+		else return null
 	}
 	get cord()
 	{
@@ -362,18 +362,9 @@ $.room.kitchen.exit.north.untie()
 	}
 	where(condition)
 	{
-		try
-		{
-			if (condition(this)){return this}
-			else {return null}
-		}
-		catch
-		{
-			return null
-		}
+		if (condition(this)){return this}
+		else {return null}
 	}
-	get test(){return this}
-
 }
 
 

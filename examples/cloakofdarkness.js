@@ -33,18 +33,10 @@ $.place.bar.knot.configure({
 /*things*/
 
 $
-	.tie("thing").to("hook","cloak")
+	.tie("thing").to("hook","cloak","cup")
 	.tie("fixture", "@is:brass").to($.thing.hook)  //Not easily searchable by brass
 	.tie("wearable","black@is:black","velvet@is:velvet").to($.thing.cloak) //easily searchable by velvet: $.velvet
 
-/*$
-	.tie("fixture","small@is","brass@is").to("hook")
-	.tie(cords.thing,"wearable","dark@is","black@is","velvet@is").to("cloak")
-	.tie("thing","wearable","black@is","left@is").to("left_shoe")
-	.tie("thing","wearable","black@is","right@is").to("right_shoe")
-	.tie("thing").to("cup")
-	.tie("thing").to("saucer")
-	.tie("thing").to("table")*/
 
 $.thing.cloak.configure({
 	name:"cloak",
@@ -87,7 +79,7 @@ $
 
 $.actor.player
 	.tie("in").to($.place.foyer)
-	.tie("has skill").to($.action.dropping,$.action.inventorying,$.action.taking)
+	.tie("has_skill").to($.action.dropping,$.action.inventorying,$.action.taking)
 	.tie("wears").to($.thing.cloak)
 //	.tie("wears").to($.thing.left_shoe)
 //	.tie("wears").to($.thing.right_shoe)

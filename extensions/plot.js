@@ -4,11 +4,11 @@
  //   _`Confusedly, you think <q>${cache=>cache.remainder.data}</q> to yourself.`,
 //    _`You realize <q>${cache=>cache.remainder.data}</q> doesn't make any sense here once you say it out loud.`)}</p>`
  //       .cache("remainder")
- var story=ishml.yarn
- var plot=story.plot
- var lexicon=story.lexicon
- var $ = story.net
- var _ =ishml.Template 
+var story=ishml.yarn
+var plot=story.plot
+var lexicon=story.lexicon
+var $ = story.net
+var _ =ishml.Template 
 plot.main.dialog.input.unfold=function(twist)
 {
     var episodes=[]
@@ -88,12 +88,16 @@ plot.action.asking_to.instead
 plot.action.dropping.unfold=function(command)
 {
     if (!command.indirectObject){command.indirectObject={select:()=>command.subject.select().in}}
-    command.droppable=command.directObject?.select().worn_by(command.subject.select()).converse
-    .add(command.directObject?.select().carried_by(command.subject.select()).converse)
+    command.droppable=command.directObject?.select().where(c=>c.worn_by(command.subject.select()))
+    .add(command.directObject?.select().where(c=>c.carried_by(command.subject.select())))
     var episode=ishml.Episode(this)
         .narration(()=>{if (!command.silently) _`<p>You dropped the ${_.list(command.droppable.knots.name)}.</p>`
             .say().append("#story")})
-        .resolution(()=>{command.droppable.untie().tie(cords.in).to(command.container)})
+        .resolution(()=>
+        {
+            command.droppable.converse("carried_by").untie().tie("in").to(command.container)
+            command.droppable.converse("worn_by").untie().tie("in").to(command.container)
+        })
         .salience(5)
         .viewpoint(command.viewpoint)
         .abridge(()=>this.check.unfold(command))
@@ -119,7 +123,7 @@ plot.action.dropping.check.nothing.unfold=function(command)
 }
 plot.action.dropping.check.notCapable.unfold=function(command)
 {
-    command.capable=command.subject.select().has_skill($.action.dropping).converse
+    command.capable=command.subject.select().where(c=>c.has_skill($.action.dropping))
     command.notCapable=command.subject.select().subtract(command.capable)
     if (!command.notCapable.isEmpty)
     {
@@ -197,7 +201,8 @@ plot.action.taking.unfold=function(command)
     command.portable=command.directObject?.select().is("portable")
     var episode=ishml.Episode(this)
         .narration(()=>{if (!command.silently) _`Taken. `.say().append("#story")})
-        .resolution(()=>{command.portable.in.converse.untie().tie(cords.carries).from(command.capable)})
+        //.resolution(()=>{command.portable.in.converse.untie().tie(cords.carries).from(command.capable)})
+        .resolution(()=>{command.portable.in.untie().from.tie("carried_by").to(command.capable)})
         .salience(5)
         .viewpoint(command.viewpoint)
         .abridge(()=>this.check.unfold(command))
@@ -221,16 +226,16 @@ plot.action.going.unfold=function(command)
     return episode                
 }
 plot.action.going.verbs("go").register()
-plot.action.going.verbs("north","n").register({valence:0,select:(subject)=>subject.in.exit.north})
-plot.action.going.verbs("south","s").register({valence:0,select:(subject)=>subject.in.exit.south})
-plot.action.going.verbs("east","e").register({valence:0,select:(subject)=>subject.in.exit.east})
-plot.action.going.verbs("west","w").register({valence:0,select:(subject)=>subject.in.exit.west})
-plot.action.going.verbs("northeast","ne").register({valence:0,select:(subject)=>subject.in.exit.northeast})
-plot.action.going.verbs("northwest","nw").register({valence:0,select:(subject)=>subject.in.exit.northwest})
-plot.action.going.verbs("southeast","se").register({valence:0,select:(subject)=>subject.in.exit.southeast})
-plot.action.going.verbs("southwest","sw").register({valence:0,select:(subject)=>subject.in.exit.southwest})
-plot.action.going.verbs("up","u").register({valence:0,select:(subject)=>subject.in.exit.up})
-plot.action.going.verbs("down","d").register({valence:0,select:(subject)=>subject.in.exit.down})
+plot.action.going.verbs("north","n").register({valence:0,select:new ishml.Cord(subject=>subject.in.exit.north)})
+plot.action.going.verbs("south","s").register({valence:0,select:new ishml.Cord(subject=>subject.in.exit.south)})
+plot.action.going.verbs("east","e").register({valence:0,select:new ishml.Cord((subject)=>subject.in.exit.east)})
+plot.action.going.verbs("west","w").register({valence:0,select:new ishml.Cord((subject)=>subject.in.exit.west)})
+plot.action.going.verbs("northeast","ne").register({valence:0,select:new ishml.Cord(subject=>subject.in.exit.northeast)})
+plot.action.going.verbs("northwest","nw").register({valence:0,select:new ishml.Cord(subject=>subject.in.exit.northwest)})
+plot.action.going.verbs("southeast","se").register({valence:0,select:new ishml.Cord(subject=>subject.in.exit.southeast)})
+plot.action.going.verbs("southwest","sw").register({valence:0,select:new ishml.Cord(subject=>subject.in.exit.southwest)})
+plot.action.going.verbs("up","u").register({valence:0,select:new ishml.Cord(subject=>subject.in.exit.up)})
+plot.action.going.verbs("down","d").register({valence:0,select:new ishml.Cord(subject=>subject.in.exit.down)})
 
 plot.action.going.check
 plot.action.going.instead
@@ -275,7 +280,7 @@ plot.action.taking.check.notPortable.unfold=function(command)
 }
 plot.action.taking.check.notCapable.unfold=function(command)
 {
-    command.capable=command.subject.select().has_skill($.action.taking).converse //test .has_skill("taking")
+    command.capable=command.subject.select().where(c=>c.has_skill($.action.taking)) //test .has_skill("taking")
     command.notCapable=command.subject.select().subtract(command.capable)
    
     if (!command.notCapable.isEmpty)
