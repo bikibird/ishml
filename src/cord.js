@@ -259,7 +259,6 @@ ishml.Cord =class Cord extends Function
 		{
 			get: function(target, property, receiver) 
 			{
-				console.log("property")
 				if (property==="toArray"){return 	[...thisCord._plies].map(ply=>ply.knot)}
 				if (property==="toSet"){return new Set([...thisCord._plies].map(ply=>ply.knot))}
 				return [...thisCord._plies].map(ply=>ply.knot[property])
@@ -580,7 +579,7 @@ ishml.Cord.handler=
 		}
 		else
 		{
-			return new ishml.Cord(target) //Called cord without parameters.  Need to return the cord. Can't just return target, because not wrapped in proxy.  Create new cord to wrap target in proxy.
+			cord.add(target) //Called cord without parameters.  Need to return the orignal cord. Can't just return target, because not wrapped in proxy. 
 		}
 		return cord
 

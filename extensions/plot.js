@@ -18,9 +18,17 @@ plot.main.dialog.input.unfold=function(twist)
         var interpretations=results.interpretations
         interpretations.forEach(interpretation=>
         {
-            interpretation.gist.actor=$.actor[this.twist.viewpoint].cord
-            interpretation.gist.viewpoint=this.twist.viewpoint
-            episodes=episodes.concat(interpretation.gist.verb.plot.unfold(interpretation.gist))
+            var command=
+            {
+                actor:$.actor[this.twist.viewpoint].cord,
+                viewpoint:this.twist.viewpoint,
+                gist:interpretation.gist,
+            }
+            Object.keys(interpretation.gist).forEach(key=>
+            {
+                command[key]=interpretation.gist[key].select
+            })
+            episodes=episodes.concat(interpretation.gist.verb.plot.unfold(command))
         })
         if (episodes.length>0)
         {
