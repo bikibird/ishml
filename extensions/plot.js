@@ -95,9 +95,9 @@ plot.action.asking_to.instead
 
 plot.action.dropping.unfold=function(command)
 {
-    if (!command.indirectObject){command.indirectObject={select:()=>command.subject.select().in}}
-    command.droppable=command.directObject?.select().where(c=>c.worn_by(command.subject.select()))
-    .add(command.directObject?.select().where(c=>c.carried_by(command.subject.select())))
+    command.indirectObject=command.indirectObject ?? command.subject.in
+    command.droppable=command.directObject?.where(c=>c.worn_by(command.subject))
+    .add(command.directObject?.where(c=>c.carried_by(command.subject)))
     var episode=ishml.Episode(this)
         .narration(()=>{if (!command.silently) _`<p>You dropped the ${_.list(command.droppable.knots.name)}.</p>`
             .say().append("#story")})
@@ -118,7 +118,7 @@ plot.action.dropping.verbs("drop","leave").register()
 plot.action.dropping.check.nothing.unfold=function(command)
 {
     
-    command.notDroppable=command.directObject?.select().subtract(command.droppable)
+    command.notDroppable=command.directObject?.subtract(command.droppable)
     if(!command.directObject ||(command.droppable.isEmpty && command.notDroppable.isEmpty))
     {
         var episode=ishml.Episode(this)
@@ -131,8 +131,8 @@ plot.action.dropping.check.nothing.unfold=function(command)
 }
 plot.action.dropping.check.notCapable.unfold=function(command)
 {
-    command.capable=command.subject.select().where(c=>c.has_skill($.action.dropping))
-    command.notCapable=command.subject.select().subtract(command.capable)
+    command.capable=command.subject.where(c=>c.has_skill($.action.dropping))
+    command.notCapable=command.subject.subtract(command.capable)
     if (!command.notCapable.isEmpty)
     {
         var episode=ishml.Episode(this)
@@ -160,8 +160,8 @@ plot.action.dropping.check.notDroppable.unfold=function(command)
 }
 plot.action.dropping.check.notContainer.unfold=function(command)
 {
-    command.container=command.indirectObject.select().is("container")
-    command.notContainer=command.indirectObject.select().subtract(command.container)
+    command.container=command.indirectObject.is("container")
+    command.notContainer=command.indirectObject.subtract(command.container)
     if (command.container.isEmpty )
     {
         var episode=ishml.Episode(this)
@@ -198,27 +198,7 @@ plot.action.dropping.check.selfContainer.unfold=function(command)
 }
 plot.action.dropping.instead
 
-/*Taking*/
-plot.action.taking.unfold=function(command)
-{
-    if (!command.indirectObject)
-    {
-        command.indirectObject={select:()=>command.subject.select()}
-    }
-    
-    command.portable=command.directObject?.select().is("portable")
-    var episode=ishml.Episode(this)
-        .narration(()=>{if (!command.silently) _`Taken. `.say().append("#story")})
-        //.resolution(()=>{command.portable.in.converse.untie().tie(cords.carries).from(command.capable)})
-        .resolution(()=>{command.portable.in.untie().from.tie("carried_by").to(command.capable)})
-        .salience(5)
-        .viewpoint(command.viewpoint)
-        .abridge(()=>this.check.unfold(command))
-        .revise(()=>this.instead.unfold(command))
-    return episode                
-}
-plot.action.taking.verbs("take","grab","steal").register()
-plot.action.taking.verbs("pick").particle("up").register()
+
 
 plot.action.going.unfold=function(command)
 {
@@ -250,9 +230,9 @@ plot.action.going.instead
 
 plot.action.looking.unfold=function(command)
 {
-    command.places=command.subject.select().in
+    command.places=command.subject.in
     command.things=command.places.contains.is.thing //.add(command.places.contains.is.thing.supports) 
-    command.people=command.places.contains.is.actor.subtract(command.subject.select())
+    command.people=command.places.contains.is.actor.subtract(command.subject)
     var episode=ishml.Episode(this)
         .narration(()=>{if (!command.silently) 
             _`<p>You look around. ${command.places.knot.description}</p>
@@ -270,10 +250,31 @@ lexicon
 
 plot.action.looking.check
 plot.action.looking.instead
+/*Taking*/
+plot.action.taking.unfold=function(command)
+{
+    if (!command.indirectObject)
+    {
+        command.indirectObject=command.subject.in
+    }
+    
+    command.portable=command.directObject.is("portable")
+    var episode=ishml.Episode(this)
+        .narration(()=>{if (!command.silently) _`Taken. `.say().append("#story")})
+        //.resolution(()=>{command.portable.in.converse.untie().tie(cords.carries).from(command.capable)})
+        .resolution(()=>{command.portable.in.untie().from.tie("carried_by").to(command.capable)})
+        .salience(5)
+        .viewpoint(command.viewpoint)
+        .abridge(()=>this.check.unfold(command))
+        .revise(()=>this.instead.unfold(command))
+    return episode                
+}
+plot.action.taking.verbs("take","grab","steal").register()
+plot.action.taking.verbs("pick").particle("up").register()
         
 plot.action.taking.check.notPortable.unfold=function(command)
 {
-    command.notPortable=command.directObject?.select().subtract(command.portable)
+    command.notPortable=command.directObject.subtract(command.portable)
     if (!command.notPortable.isEmpty)
     {
         
@@ -288,8 +289,8 @@ plot.action.taking.check.notPortable.unfold=function(command)
 }
 plot.action.taking.check.notCapable.unfold=function(command)
 {
-    command.capable=command.subject.select().where(c=>c.has_skill($.action.taking)) //test .has_skill("taking")
-    command.notCapable=command.subject.select().subtract(command.capable)
+    command.capable=command.subject.where(c=>c.has_skill($.action.taking)) //test .has_skill("taking")
+    command.notCapable=command.subject.subtract(command.capable)
    
     if (!command.notCapable.isEmpty)
     {
@@ -301,7 +302,7 @@ plot.action.taking.check.notCapable.unfold=function(command)
 }
 plot.action.taking.check.selfTaking.unfold=function(command)
 {
-    if (command.portable.subtract(command.subject.select()).size!==command.portable.size)
+    if (command.portable.subtract(command.subject).size!==command.portable.size)
     {
         return ishml.Episode(this)
             .narration(()=>_`Cannot self-take.`.say().append("#story"))

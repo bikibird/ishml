@@ -62,11 +62,9 @@ $.actor.player
 		name:"player",
 		role:"player"
 	})
-lexicon.register("player").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.actor.player, role:"player"})
+	lexicon.register("player").as({part:"noun", number:ishml.enum.number.singular, select:$.actor.player.cord, role:"player"})
 
-$.actor.player
-	.configure(ishml.lang.pronouns.epicene)
-lexicon.register("player").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.actor.player, role:"player"})
+
 	
 
 

@@ -66,7 +66,7 @@ ishml.Knot= class Knot
 	}
 	plural(...nouns)
 	{
-		ishml.yarn.lexicon.register(...nouns).as({part:"noun", number:ishml.enum.number.plural, select:new ishml.Cord(this)})
+		ishml.yarn.lexicon.register(...nouns).as({part:"noun", number:ishml.enum.number.plural, select:this.cord})
 		return this
 	}
 	realm(hops)
@@ -75,7 +75,7 @@ ishml.Knot= class Knot
 	}
 	singular(...nouns)
 	{
-		ishml.yarn.lexicon.register(...nouns).as({part:"noun", number:ishml.enum.number.singular, select:new ishml.Cord(this)})
+		ishml.yarn.lexicon.register(...nouns).as({part:"noun", number:ishml.enum.number.singular, select:this.cord})
 		return this
 	}
 	tie(...someCordage)
@@ -85,8 +85,26 @@ $.thing.cup.tie("cord:ply=otherCord:otherPly").to(otherKnot/otherPly) --converse
 $.thing.cup.tie("cord:ply-otherCord:otherPly").to(otherKnot/otherPly) --mutual relation converse === another ply, but when ply properties updated, other ply is updated automatically because both share the same properties object.
 $.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexive relation converse=== this ply.
 DEFECT NOT Implemented: $.thing.cup.tie("cord:ply").back() --reflexive relation converse=== this ply.
+$.system.command.tie({cord:subject, id:"subject"})
 */
-		var cordages=someCordage.flat(Infinity).map(cordage=>ishml.Cord.cordage[ishml.util.formatId(cordage)]??cordage).flat(Infinity)
+		var cordages=someCordage.filter(cordage=>
+			{
+				if (cordage?.cord instanceof ishml.Cord)
+				{
+					if (cordage?.id){this[cordage.id]=cordage.cord}
+					else (this[cordage.cord.id]=cordage.cord)
+					return false
+				}
+				else
+				{
+					if (cordage instanceof ishml.Cord)
+					{
+						this[cord.id]=cord
+					}
+				}
+				return true
+			})
+		cordages=cordages.flat(Infinity).map(cordage=>ishml.Cord.cordage[ishml.util.formatId(cordage)]??cordage).flat(Infinity)
 		var thisKnot=this
 		var tie=(from,to)=>
 		{

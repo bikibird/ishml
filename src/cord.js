@@ -4,10 +4,9 @@ ishml.Cord =class Cord extends Function
 	constructor(...members) 
 	{
 		function Cord(){}  //sets function's name
-		super()
 		Object.setPrototypeOf(Cord, ishml.Cord.prototype)
 		Object.defineProperty(Cord,"id",{writable:true})
-		Object.defineProperty(Cord,"_plies",{value:new Set(),writable:true})
+		Object.defineProperty(Cord,"__plies",{value:new Set(),writable:true})
 		Object.defineProperty(Cord,"_select",{value:null,writable:true})
 		members.forEach(member=>
 		{
@@ -49,7 +48,7 @@ ishml.Cord =class Cord extends Function
 					{
 						if (typeof member === "function")
 						{
-							this._select=member
+							Cord._select=member
 						}
 					}
 				}
@@ -59,6 +58,11 @@ ishml.Cord =class Cord extends Function
 		return new Proxy(Cord,ishml.Cord.handler)
 	}
 	[Symbol.iterator](){return this._plies.values()[Symbol.iterator]()}
+	get _plies()
+	{
+		if(this._select){return this._select()._plies}
+		else{return this.__plies}
+	}
 	add(...members)
 	{
 		members.forEach(member=>
@@ -550,7 +554,7 @@ ishml.Cord.handler=
 		$.thing.ring.worn_by.player.converse
 
 		*/
-		if (this._select){return this._select(cords)}
+		if (target._select){return target._select(cords)}
 		var cord=new ishml.Cord()
 
 		if (cords.length>0)
@@ -598,7 +602,7 @@ ishml.Cord.handler=
 	{
 		//if cord contains ply, return the ply
 		//$.room.kitchen.exit.north
-		if (this._select){return this._select()[property]}
+		if (target._select){return target._select()[property]}
 		if (Reflect.has(target,property,receiver))  //return the ply 
 		{
 			return Reflect.get(target,property,receiver)

@@ -96,7 +96,7 @@ ishml.yarn.grammar.command.object[2].verbalParticle.configure({minimum:0,filter:
 ishml.yarn.grammar.nounPhrase.semantics=(interpretation)=>
 {
     var gist=interpretation.gist
-    gist.select=(...args)=>
+    gist.select=new ishml.Cord((...args)=>
     {
         var cord=gist.noun.definition.select(...args).cord
         if (gist.adjectives)
@@ -118,7 +118,7 @@ ishml.yarn.grammar.nounPhrase.semantics=(interpretation)=>
             cord=cord.add(gist.conjunct.nounPhrase.select(...args)).disjoint
         }
         return cord  
-    }    
+    })
     return interpretation
 }
 ishml.yarn.grammar.command.subject.semantics=ishml.yarn.grammar.nounPhrase.semantics
@@ -144,7 +144,7 @@ ishml.yarn.grammar.command.semantics=(interpretation)=>
     }
 
 
-    if (interpretation.gist.hasOwnProperty("subject"))
+    if (interpretation.gist.hasOwnProperty("subject"))  //Jane, drop ball => Ask Jane to drop ball
     {
         interpretation.gist=
         { 
@@ -163,8 +163,8 @@ ishml.yarn.grammar.command.semantics=(interpretation)=>
             noun:ishml.yarn.lexicon.search("player", {longest:true, full:true}).filter(snippet=>snippet.token.definition.role==="player")[0].token
         }
     }
-    interpretation.gist.subject.select=(...args)=>interpretation.gist.subject.noun.definition.select(...args).cord
-
+    //interpretation.gist.subject.select=(...args)=>interpretation.gist.subject.noun.definition.select(...args).cord
+	interpretation.gist.subject.select=interpretation.gist.subject.noun.definition.select
     var vPreposition=interpretation.gist.verb.definition.preposition
     var vParticle=interpretation.gist.verb.definition.particle
     if(vPreposition)
