@@ -3,13 +3,16 @@ ishml.Template.templateHandler=
 {
 	get:function(template, property) //a.b.c() becomes a(b(c()))
 	{
+		console.log(template)
+		console.log(property)
 		console.log(template.name)
 		if (property==="asFunction"){return template}  //bare property without proxy
 		
-		if (template.name==="tags")//_.tag
+		if (template.name==="tags")//_.tags
 		{
 			return template(property)
 		}
+		
 		var propertyAsFunction= ishml.Template[property].asFunction
 		if (property==="tags") 
 		{
@@ -358,5 +361,9 @@ ishml.Template.define("tags").as(function tags(tag)
 			this.tally=this.tags[tag].tally
 			return this.results
 		}
-	}	
+	}
+
 })
+
+
+

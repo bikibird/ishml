@@ -785,16 +785,16 @@ ishml.Phrase.define("z").as(precursor =>precursor.modify(item=>ishml.lang.z(item
 
 /* Inflected Text */
 
-ishml.Template.define("noun").as((noun)=>
+ishml.Template.define("cord").as(function createCordPhrase(cord,tag)
 {
 	//set command.noun and return list
-	return new class nounPhrase extends ishml.Phrase
+	return new Proxy (new class cordPhrase extends ishml.Phrase
 	{
 		constructor()
 		{
 			super(ishml.Template`${ishml.Template.cycle().tag("items")}${tags=>tags.items.data.index < tags.items.data.total-1 && tags.items.data.total>2?", ":""}${tags=>tags.items.data.index===0 && tags.items.data.total===2?" and ":""}${tags=>tags.items.data.index===tags.items.data.total-2 && tags.items.data.total>2?"and ":""}`.per("items").join())
-			//this.populate(noun.knots.name)
-			//this.noun=noun
+			this._knotProperty="name"
+			this.tag(tag)
 			return this
 		}
 		populate(...data)
@@ -804,19 +804,35 @@ ishml.Template.define("noun").as((noun)=>
 		}
 		generate()
 		{
-			this.tags.command.data.noun=noun ?? this.tags.command.data.directObject
-			this.populate(this.tags.command.data.noun.knots.name)
+			//this.tags.command.data.noun=noun ?? this.tags.command.data.directObject
+			this.populate(cord.knots[this._knotProperty])
 			super.generate()
 			this.results=this.results
 			this.text=this.results.map(phrase=>phrase.value).join("")
 			return this.results
 		}
-	}()
+	}(),
+	{
+		get: function(target, property, receiver) 
+		{
+			if (Reflect.has(target,property,receiver))  
+			{
+				return Reflect.get(target,property,receiver)
+			}
+			target._knotProperty=property
+			return receiver
+		}
+	})
 })
 
 
 
 /*
+
+_`${_.cap(_.cord(command.droppable,"noun").description)} is ${tags=>tags.noun.description}`.say().text
+
+_`${_.cap.cord(command.droppable,"noun").description} is ${tags=>tags.noun.description}`.say().text
+
 ishml.Template.`${_.She.noun()} ${_.`refuse`es} to ${_.verb()} ${_.the.noun2()}`.cache("command").populate(command)
 _.noun() returns current noun or command.directObject formatted as list.  noun2 works similarly but with command.indirectObject
 _.description.noun()
