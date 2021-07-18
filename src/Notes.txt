@@ -175,3 +175,10 @@ var inside=box=>_`Inside the ${box} was a ${_.favor(_.pick("steel strongbox","wo
 var example1=_`Cas looked under the bed and found a package wrapped with a red ribbon.  Carefully, she unwrapped the package. ${inside("package")}Cas rewrapped the package and put it back under the bed.  ${_.pick("No one would be the wiser. ", "Now she knew. ", "She was elated. ", "She was disappointed.")}`
 
 
+Inflected text
+
+ishml.Template.`${_.She.noun()} ${_.`refuse`es} to ${_.verb()} ${_.the.noun2()}`.cache("command").populate(command)
+_.noun() returns current noun or command.directObject formatted as list.  noun2 works similarly but with command.indirectObject
+_.description.noun()
+_.A.noun("droppable") //changes noun to command.droppable 
+_.re.noun(capable) //changes noun to the cord capable from the closure.

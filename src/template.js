@@ -3,6 +3,7 @@ ishml.Template.templateHandler=
 {
 	get:function(template, property) //a.b.c() becomes a(b(c()))
 	{
+		console.log(template.name)
 		if (property==="asFunction"){return template}  //bare property without proxy
 		
 		if (template.name==="tags")//_.tag

@@ -63,34 +63,18 @@ ishml.Phrase =class Phrase
 				super(...precursor)
 				this.id=id
 				this.catalog()
-				Object.defineProperty(this,"data",{value:null,writable:true})
+				Object.defineProperty(this,"data",{value:{},writable:true})
 				return this
 			}
 			populate(data)
 			{
 				this.data=data
+				this[id]=data
 				return this
 			}
 		}(this)
-		//cache.id=id
 		return cache
 	}
-	concur(condition)
-	{
-		if (typeof condition ==="function"){var rule=condition}
-		else {var rule = ()=>condition}
-		return new class concurPhrase extends ishml.Phrase
-		{
-			generate()
-			{
-				super.generate()
-				this.results=this.results.filter(phrase=>rule(this.tags,phrase))
-				this.text=this.results.map(phrase=>phrase.value).join("")
-				return this.results
-			}
-		}(this)
-	}
-	//_.cap.a.pick().tag("test")
 	catalog()
 	{
 		this._catalogUp()
@@ -135,6 +119,21 @@ ishml.Phrase =class Phrase
 				})
 			}	
 		})
+	}
+	concur(condition)
+	{
+		if (typeof condition ==="function"){var rule=condition}
+		else {var rule = ()=>condition}
+		return new class concurPhrase extends ishml.Phrase
+		{
+			generate()
+			{
+				super.generate()
+				this.results=this.results.filter(phrase=>rule(this.tags,phrase))
+				this.text=this.results.map(phrase=>phrase.value).join("")
+				return this.results
+			}
+		}(this)
 	}
 	get data()
 	{
@@ -262,6 +261,7 @@ ishml.Phrase =class Phrase
 			}
 		}(this)
 	}
+
 	per(id)
 	{
 		var tag=id
@@ -415,14 +415,7 @@ ishml.Phrase =class Phrase
 		var targetNodes = document.querySelectorAll(documentSelector)
 		targetNodes.forEach(node=>node.prepend(this.htmlTemplate().content))
 	}
-	reset()
-	{ 
-		this.phrases.forEach(phrase=>
-		{
-			if(phrase.value instanceof ishml.Phrase){phrase.value.reset()}	
-		})
-		return this
-	}
+	
 	replace(documentSelector="#story")
 	{
 		var targetNodes = document.querySelectorAll(documentSelector)
@@ -433,6 +426,15 @@ ishml.Phrase =class Phrase
 		})
 		return this
 	}	
+	reset()
+	{ 
+		this.phrases.forEach(phrase=>
+		{
+			if(phrase.value instanceof ishml.Phrase){phrase.value.reset()}	
+		})
+		return this
+	}
+
 	say(seed) 
 	{
 		if (seed>=0){this.seed(seed)}

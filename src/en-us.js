@@ -661,7 +661,7 @@ ishml.Plotpoint.prototype.verbs=function(...verbs)
 	return result
 }
 
-/*** Templates ***/
+/*** Templates Prefixes***/
 
 ishml.Template.define("a").as((...data)=> ishml.Template(...data).modify(item=>`${ishml.lang.a(item.value)} ${item.value}`))
 ishml.Template.define("A").as((...data)=> ishml.Template(...data).modify(item=>`${ishml.lang.capitalize(ishml.lang.a(item.value))} ${item.value}`))
@@ -669,6 +669,8 @@ ishml.Template.an=ishml.Template.a
 ishml.Template.An=ishml.Template.a
 
 ishml.Template.define("cap").as((...data)=> ishml.Template(...data).modify(item=>ishml.lang.capitalize(item.value)))
+
+/*** Phrases suffixes***/
 ishml.Phrase.define("ed").as( precursor => precursor.modify(item=>ishml.lang.ed(item.value)))
 ishml.Phrase.define("en").as( precursor => precursor.modify(item=>ishml.lang.en(item.value)))
 ishml.Phrase.define("er").as (precursor => 
@@ -684,7 +686,24 @@ ishml.Phrase.define("er").as (precursor =>
 		else {return ishml.lang.er(item.value)}
 	})
 })
-ishml.Phrase.define("es").as( precursor => precursor.modify(item=>ishml.lang.es(item.value)))
+ishml.Phrase.prototype.es= function(subject)
+{	
+	return this.modify(item=>
+	{
+		console.log(this)
+		
+		if (subject)
+		{
+			if(subject.length>1){return item.value}
+			if(subject.length===1)
+			{
+				var lowerCaseSubject=subject[0].value.toLowerCase()
+				if (lowerCaseSubject==="i" || lowerCaseSubject==="you" ||lowerCaseSubject==="we" ||lowerCaseSubject==="they" ){return item.value}
+			} 
+		}
+		return ishml.lang.es(item.value)
+	})
+}
 ishml.Phrase.define("est").as (precursor => 
 {
 	return precursor.modify(item=>
@@ -717,23 +736,6 @@ ishml.Template.define("list").as((...data)=>
 		}
 	}(...data)
 })
-ishml.Template.define("orList").as((...data)=>
-{
-	return new class listPhrase extends ishml.Phrase
-	{
-		constructor(...data)
-		{
-			super(ishml.Template`${ishml.Template.cycle().tag("items")}${tags=>tags.items.data.index < tags.items.data.total-1 && tags.items.data.total>2?", ":""}${tags=>tags.items.data.index===0 && tags.items.data.total===2?" or ":""}${tags=>tags.items.data.index===tags.items.data.total-2 && tags.items.data.total>2?"or ":""}`.per("items").join())
-			this.populate(...data)
-			return this
-		}
-		populate(...data)
-		{
-			this.tags.items.populate(...data)
-			return this
-		}
-	}(...data)
-})
 ishml.Template.define("norList").as((...data)=>
 {
 	return new class listPhrase extends ishml.Phrase
@@ -751,6 +753,25 @@ ishml.Template.define("norList").as((...data)=>
 		}
 	}(...data)
 })
+
+ishml.Template.define("orList").as((...data)=>
+{
+	return new class listPhrase extends ishml.Phrase
+	{
+		constructor(...data)
+		{
+			super(ishml.Template`${ishml.Template.cycle().tag("items")}${tags=>tags.items.data.index < tags.items.data.total-1 && tags.items.data.total>2?", ":""}${tags=>tags.items.data.index===0 && tags.items.data.total===2?" or ":""}${tags=>tags.items.data.index===tags.items.data.total-2 && tags.items.data.total>2?"or ":""}`.per("items").join())
+			this.populate(...data)
+			return this
+		}
+		populate(...data)
+		{
+			this.tags.items.populate(...data)
+			return this
+		}
+	}(...data)
+})
+
 ishml.Phrase.define("s").as (precursor => 
 {
 	return precursor.modify(item=>
@@ -762,3 +783,43 @@ ishml.Phrase.define("s").as (precursor =>
 ishml.Template.define("a").as((...data)=> ishml.Template(...data).modify(item=>`${ishml.lang.a(item.value)} ${item.value}`))
 ishml.Phrase.define("z").as(precursor =>precursor.modify(item=>ishml.lang.z(item.value)))
 
+/* Inflected Text */
+
+ishml.Template.define("noun").as((noun)=>
+{
+	//set command.noun and return list
+	return new class nounPhrase extends ishml.Phrase
+	{
+		constructor()
+		{
+			super(ishml.Template`${ishml.Template.cycle().tag("items")}${tags=>tags.items.data.index < tags.items.data.total-1 && tags.items.data.total>2?", ":""}${tags=>tags.items.data.index===0 && tags.items.data.total===2?" and ":""}${tags=>tags.items.data.index===tags.items.data.total-2 && tags.items.data.total>2?"and ":""}`.per("items").join())
+			//this.populate(noun.knots.name)
+			//this.noun=noun
+			return this
+		}
+		populate(...data)
+		{
+			this.tags.items.populate(...data)
+			return this
+		}
+		generate()
+		{
+			this.tags.command.data.noun=noun ?? this.tags.command.data.directObject
+			this.populate(this.tags.command.data.noun.knots.name)
+			super.generate()
+			this.results=this.results
+			this.text=this.results.map(phrase=>phrase.value).join("")
+			return this.results
+		}
+	}()
+})
+
+
+
+/*
+ishml.Template.`${_.She.noun()} ${_.`refuse`es} to ${_.verb()} ${_.the.noun2()}`.cache("command").populate(command)
+_.noun() returns current noun or command.directObject formatted as list.  noun2 works similarly but with command.indirectObject
+_.description.noun()
+_.A.noun("droppable") //changes noun to command.droppable 
+_.re.noun(capable) //changes noun to the cord capable
+*/

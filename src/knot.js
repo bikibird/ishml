@@ -14,9 +14,12 @@ ishml.Knot= class Knot
 {
 	constructor(id) //,uid)
 	{
-		Object.defineProperty(this, "id", {value:id,writable: true}) //
+		this.id=id
+		this.name=id.replace("_"," ")
+		this.description=this.name
+		/*Object.defineProperty(this, "id", {value:id,writable: true}) //
 		Object.defineProperty(this, "name", {value:id.replace("_"," "),writable: true}) //local name
-		Object.defineProperty(this, "description", {value:this.name,writable: true}) 
+		Object.defineProperty(this, "description", {value:this.name,writable: true}) */
 		return this 
 	}
 	get cord()
@@ -39,11 +42,12 @@ ishml.Knot= class Knot
 	}
 	configure(configuration)
 	{
-		Object.keys(configuration).forEach(key=>
+		Object.assign(this,configuration)
+		/*Object.keys(configuration).forEach(key=>
 		{
 			if (this.hasOwnProperty(key)){this[key]=configuration[key]}
 			else{Object.defineProperty(this, key, {value:configuration[key],writable: true}) }
-		})
+		})*/
 		return this
 	}	
 /*	defineCord(name)

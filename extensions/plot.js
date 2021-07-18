@@ -41,11 +41,7 @@ plot.main.dialog.input.unfold=function(twist)
     {
         if (results.interpretations?.[0].remainder.length>0)
         {
-            /*_`<p>${_.favor(
-                _`You thoughts are fuzzy.  How does <q>${cache=>cache.remainder.data}</q> apply here?`,
-                _`Confusedly, you think <q>${cache=>cache.remainder.data}</q> to yourself.`,
-                _`You realize <q>${cache=>cache.remainder.data}</q> doesn't make any sense here once you say it out loud.`)}</p>`
-                    .cache("remainder").populate(results.interpretations[0].remainder).say().append("#story")*/
+
             _`<p>${_.favor(
                 _`You thoughts are fuzzy.  How does <q>${results.interpretations[0].remainder}</q> apply here?`,
                 _`Confusedly, you think <q>${results.interpretations[0].remainder}</q> to yourself.`,
@@ -53,11 +49,6 @@ plot.main.dialog.input.unfold=function(twist)
         }    
         else
         {
-            /*_`<p>${_.favor(
-                _`You thoughts are fuzzy.  How does <q>${cache=>cache.remainder.data}</q> apply here?`,
-                _`Confusedly, you think <q>${cache=>cache.remainder.data}</q> to yourself.`,
-                _`You realize <q>${cache=>cache.remainder.data}</q> doesn't make any sense here once you say it out loud.`)}</p>`
-                    .cache("remainder").populate(twist.input).say().append("#story")*/
             _`<p>${_.favor(
                 _`You thoughts are fuzzy.  How does <q>${twist.input}</q> apply here?`,
                 _`Confusedly, you think <q>${twist.input}</q> to yourself.`,
@@ -70,13 +61,12 @@ plot.main.dialog.input.unfold=function(twist)
 }
 
 /*actions*/
-//plot.action.asking_to.narration=_`You ask them to do something.`
 
 plot.action.asking_to.unfold=function(command)
 {
     command.indirectObject.viewpoint=command.viewpoint
     return ishml.Episode(this)
-        .narration(()=>{if (!command.silently) _`You ask them to do something.`.populate(command.indirectObject).say().append("#story")})
+        .narration(()=>{if (!command.silently) _`You ask ${_list(command.indirectObject.knots.name)} to do something.`.say().append("#story")})
         .resolution(()=>
         {
             var actionEpisode=command.indirectObject.verb.plot.unfold(command.indirectObject)
@@ -89,8 +79,23 @@ plot.action.asking_to.unfold=function(command)
         .revise(()=>this.instead.unfold(command))
 }
 plot.action.asking_to.verbs("ask").preposition("to").register(2)
-plot.action.asking_to.check
+plot.action.asking_to.check.unfold=function(command)
+{
+
+    return ishml.Episode(this)
+        .narration(()=>{if (!command.silently) _`${_.cap.list(_(command.indirectObject.knots.name).tag("subject"))} ${_`refuse`.es}.`.populate(command).say().append("#story")})
+        .resolution(()=>
+        {
+            var actionEpisode=command.indirectObject.verb.plot.unfold(command.indirectObject)
+            actionEpisode.viewpoint(command.viewpoint)
+            story.introduce(actionEpisode)
+        })
+        .salience(5)
+        .viewpoint(command.viewpoint)  
+        .revise(()=>this.unfoldSubplot(command))
+}
 plot.action.asking_to.instead
+
 
 
 plot.action.dropping.unfold=function(command)
