@@ -3,6 +3,8 @@ ishml.Phrase =class Phrase
 	constructor(...precursor) 
 	{
 		Object.defineProperty(this,"id",{value:"",writable:true})
+		Object.defineProperty(this,"outset",{value:this,writable:true})
+		//Object.defineProperty(this,"re",{value:null,writable:true})
 		Object.defineProperty(this,"phrases",{value:[],writable:true})
 		Object.defineProperty(this,"results",{value:[],writable:true})
 		Object.defineProperty(this,"_seed",{value:ishml.util.random().seed,writable:true})
@@ -10,7 +12,7 @@ ishml.Phrase =class Phrase
 		Object.defineProperty(this,"text",{value:"",writable:true})
 		this._populate(...precursor)
 		this.catalog()
-		return this
+		return new Proxy (this,ishml.Phrase.handler)
 	}
 	get also()
 	{
@@ -47,7 +49,7 @@ ishml.Phrase =class Phrase
 		targetNodes.forEach(node=>node.append(this.htmlTemplate().content))
 		return this
 	}
-	cache(id)
+	/*cache(id)
 	{
 		var cache= new class cachePhrase extends ishml.Phrase
 		{
@@ -63,40 +65,41 @@ ishml.Phrase =class Phrase
 				super(...precursor)
 				this.id=id
 				this.catalog()
-				Object.defineProperty(this,"data",{value:{},writable:true})
+				//Object.defineProperty(this,"data",{value:{},writable:true})
 				return this
 			}
 			populate(data)
 			{
-				this.data=data
+				//this.data=data
 				this[id]=data
 				return this
 			}
 		}(this)
 		return cache
-	}
+	}*/
 	catalog()
 	{
 		this._catalogUp()
 		this._catalogDown()
 		return this
 	}
-	_catalogUp()
+	_catalogUp() //add child tags and this tag to this's tags 
 	{
 		if (this.id)
 		{
-			this.tags[this.id]=this
+			this.tags[this.id]=this  //Add this to its own tags
 		}
-		this.phrases.forEach(phrase=>
+		this.phrases.forEach(phrase=> 
 		{
 			if (phrase.value instanceof ishml.Phrase)
 			{
-				var tags= phrase.value._catalogUp()
+				phrase.value.outset=this.outset
+				var tags= phrase.value._catalogUp()  // recursive catalog for sub phrases
 				Object.keys(tags).forEach(key=>
 				{
 					if(!this.tags.hasOwnProperty(key))
 					{
-						this.tags[key]=tags[key]
+						this.tags[key]=tags[key] //add sub phrases to this's tags
 					} 
 				})
 			}
@@ -113,9 +116,9 @@ ishml.Phrase =class Phrase
 				{
 					if (!phrase.value.tags.hasOwnProperty(key))
 					{
-						phrase.value.tags[key]=this.tags[key]
+						phrase.value.tags[key]=this.tags[key]  //add selfs tags to sub phrses
 					}
-					phrase.value._catalogDown()
+					phrase.value._catalogDown()  //recursively
 				})
 			}	
 		})
@@ -140,6 +143,36 @@ ishml.Phrase =class Phrase
 		if (this.results.length>0){return this.results[0]}
 		else{return {}}
 	}
+	cache(data)
+	{
+		return new class cachePhrase extends ishml.Phrase
+		{
+			generate()
+			{
+				super.generate()
+				this.text=this.inner.text
+				this.results=this.inner.results
+				return this.results
+			}
+			constructor(...precursor)
+			{
+				super(...precursor)
+				//this.id="command"
+				this.catalog()
+				Object.defineProperty(this,"data",{value:{},writable:true})
+				this.populate(data)
+				return this
+			}
+			populate(data)
+			{
+				//this.data=data
+				//this[id]=data
+				Object.assign(this,data)
+				return this
+			}
+		}(this)
+	}
+
 	first(count=1)
 	{
 		return new class firstPhrase extends ishml.Phrase
@@ -181,12 +214,12 @@ ishml.Phrase =class Phrase
 					}
 					else
 					{
-						this.results=this.results.concat(Object.assign(Object.assign({},phrase),{value:deferredPhrase.toString()}))
+						this.results=this.results.concat(Object.assign(Object.assign({},phrase),{value:deferredPhrase?.toString()}))
 					}
 				}
 				else
 				{
-					this.results=this.results.concat(Object.assign(Object.assign({},phrase),{value:phrase.value.toString()}))
+					this.results=this.results.concat(Object.assign(Object.assign({},phrase),{value:phrase.value?.toString()}))
 				}
 			}
 		})
@@ -393,7 +426,7 @@ ishml.Phrase =class Phrase
 							return {value:phrase}
 						}
 						if (phraseType === "string"){return {value:phrase}}
-						else{return{value:phrase.toString()}}
+						else{return{value:phrase?.toString()}}
 					}
 				})
 			}	
@@ -518,4 +551,35 @@ ishml.Phrase.define=function(id)
 		})
 	}
 	return {as:as}	
+}
+ishml.Phrase.handler=
+{
+	get: function(target, property, receiver) 
+	{
+		if (Reflect.has(target,property,receiver))
+		{
+			return Reflect.get(target,property,receiver)
+		}
+		else //If property does not exist return a data phrase _.echo.animal.description
+		{
+			return new class dataPhrase extends ishml.Phrase
+			{
+				constructor()
+				{
+					super(target)
+					return this
+				}
+				generate()
+				{
+					this.results=target.generate()
+					if (this.results.length>0)
+					{
+						this.results[0].value=this.results[0][property]
+						this.text=this.results[0].value
+					}
+					return this.results
+				}
+			}		
+		}
+	}
 }

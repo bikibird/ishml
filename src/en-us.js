@@ -686,6 +686,8 @@ ishml.Phrase.define("er").as (precursor =>
 		else {return ishml.lang.er(item.value)}
 	})
 })
+
+//DEFECT change back to suffix style
 ishml.Phrase.prototype.es= function(subject)
 {	
 	return this.modify(item=>
@@ -754,6 +756,8 @@ ishml.Template.define("norList").as((...data)=>
 	}(...data)
 })
 
+
+
 ishml.Template.define("orList").as((...data)=>
 {
 	return new class listPhrase extends ishml.Phrase
@@ -785,33 +789,31 @@ ishml.Phrase.define("z").as(precursor =>precursor.modify(item=>ishml.lang.z(item
 
 /* Inflected Text */
 
-ishml.Template.define("cord").as(function createCordPhrase(cord,tag)
+/*ishml.Template.define("noun").as((cord)=>
 {
 	//set command.noun and return list
-	return new Proxy (new class cordPhrase extends ishml.Phrase
+	return new class cordPhrase extends ishml.Phrase
 	{
 		constructor()
 		{
-			super(ishml.Template`${ishml.Template.cycle().tag("items")}${tags=>tags.items.data.index < tags.items.data.total-1 && tags.items.data.total>2?", ":""}${tags=>tags.items.data.index===0 && tags.items.data.total===2?" and ":""}${tags=>tags.items.data.index===tags.items.data.total-2 && tags.items.data.total>2?"and ":""}`.per("items").join())
-			this._knotProperty="name"
-			this.tag(tag)
+			super(cord.data())
 			return this
 		}
-		populate(...data)
+		populate()
 		{
-			this.tags.items.populate(...data)
+			super.populate(cord.data())
 			return this
 		}
 		generate()
 		{
-			//this.tags.command.data.noun=noun ?? this.tags.command.data.directObject
-			this.populate(cord.knots[this._knotProperty])
+			
 			super.generate()
 			this.results=this.results
 			this.text=this.results.map(phrase=>phrase.value).join("")
 			return this.results
 		}
-	}(),
+	}()*/
+	/*,
 	{
 		get: function(target, property, receiver) 
 		{
@@ -823,19 +825,13 @@ ishml.Template.define("cord").as(function createCordPhrase(cord,tag)
 			return receiver
 		}
 	})
-})
+})*/
 
 
 
 /*
+_.inflect`[The] fragile [droppable] [have] broken.`.populate(command)
+_`${The(t=>t.command.data.droppable)} fragile ${t=>t.command.droppable.text()} ${_.have(t=>t.command.droppable)}`.tag("command").populate(command)
 
-_`${_.cap(_.cord(command.droppable,"noun").description)} is ${tags=>tags.noun.description}`.say().text
-
-_`${_.cap.cord(command.droppable,"noun").description} is ${tags=>tags.noun.description}`.say().text
-
-ishml.Template.`${_.She.noun()} ${_.`refuse`es} to ${_.verb()} ${_.the.noun2()}`.cache("command").populate(command)
-_.noun() returns current noun or command.directObject formatted as list.  noun2 works similarly but with command.indirectObject
-_.description.noun()
-_.A.noun("droppable") //changes noun to command.droppable 
-_.re.noun(capable) //changes noun to the cord capable
+_`${The(t=>t.command.data.droppable)} fragile ${_.prior.text()} ${_.have(t=>t.command.data.droppable)}`.tag("command").populate(command)
 */

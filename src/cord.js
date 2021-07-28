@@ -1,13 +1,14 @@
-ishml.Cord =class Cord extends Function
+ishml.Cord =class Cord extends Function //(function Cord(){})
 {
 	//a cord is a collection of unrelated plies
 	constructor(...members) 
 	{
-		function Cord(){}  //sets function's name
-		Object.setPrototypeOf(Cord, ishml.Cord.prototype)
-		Object.defineProperty(Cord,"id",{writable:true})
-		Object.defineProperty(Cord,"__plies",{value:new Set(),writable:true})
-		Object.defineProperty(Cord,"_select",{value:null,writable:true})
+		//function Cord(){}  //sets function's name
+		super()
+		Object.setPrototypeOf(this, ishml.Cord.prototype)
+		Object.defineProperty(this,"id",{writable:true})
+		Object.defineProperty(this,"__plies",{value:new Set(),writable:true})
+		Object.defineProperty(this,"_select",{value:null,writable:true})
 		members.forEach(member=>
 		{
 			if (member instanceof Set ||member instanceof ishml.Cord ||member instanceof Array)
@@ -16,15 +17,15 @@ ishml.Cord =class Cord extends Function
 				{
 					if (item instanceof ishml.Ply)
 					{
-						Cord._plies.add(item)
-						Cord[item.id]=item
+						this._plies.add(item)
+						this[item.id]=item
 					}
 					else
 					{
 						if (item instanceof ishml.Knot)
 						{
-							Cord._plies.add(item.ply)
-							Cord[item.id]=item.ply
+							this._plies.add(item.ply)
+							this[item.id]=item.ply
 						}
 					}
 					
@@ -34,28 +35,28 @@ ishml.Cord =class Cord extends Function
 			{
 				if (member instanceof ishml.Ply)
 				{
-					Cord._plies.add(member)
-					Cord[member.id]=member
+					this._plies.add(member)
+					this[member.id]=member
 				}
 				else
 				{
 					if (member instanceof ishml.Knot)
 					{
-						Cord._plies.add(member.ply)
-						Cord[member.id]=member.ply
+						this._plies.add(member.ply)
+						this[member.id]=member.ply
 					}
 					else
 					{
 						if (typeof member === "function")
 						{
-							Cord._select=member
+							this._select=member
 						}
 					}
 				}
 				
 			}
 		})	
-		return new Proxy(Cord,ishml.Cord.handler)
+		return new Proxy(this,ishml.Cord.handler)
 	}
 	[Symbol.iterator](){return this._plies.values()[Symbol.iterator]()}
 	get _plies()
@@ -154,6 +155,26 @@ ishml.Cord =class Cord extends Function
 			return cord
 		}
 		return {per:per}
+	}
+	data(property="name")
+	{
+		return this.map(ply=>
+		{
+			var knot=ply.knot
+			var data={}
+			Object.keys(knot).forEach(key=>
+			{
+				Object.assign(data,ply.knot)
+				if (property===undefined){data.value=knot.name}
+				else
+				{
+					if (property===""){data.value=""}
+					else{data.value=knot[property]}
+				}
+
+			})
+			return data
+		})
 	}
 	delete(...plies)
 	{
@@ -341,6 +362,27 @@ ishml.Cord =class Cord extends Function
 		})
 		return {fore:fore,aft:aft}
 	}
+	get text()
+	{
+		var cord=this
+		return new Proxy(()=>{},
+		{
+			apply:function(target,thisArg,args)
+			{
+				if(args.length===0)
+				{
+					return ishml.Template.list(cord.knots.name).say().text
+				}
+			},
+			get: function(target,property)
+			{
+
+				return ishml.Template.list(cord.knots[property]).say().text
+			}
+			
+		})
+
+	}
 	get ply(){return[...this._plies][0]}
 	orient(property,plies)
 	{
@@ -472,6 +514,7 @@ ishml.Cord =class Cord extends Function
 		})
 		return this
 	}
+	reduce(f){return [...this.__plies].reduce(f)}
 	shuffle(quantity)
 	{
 		var count=quantity||this.size

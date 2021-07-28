@@ -1,29 +1,35 @@
-ishml.Template=function(...precursor){return new ishml.Phrase(...precursor)}
+ishml.Template=function (...precursor){return new ishml.Phrase(...precursor)}
 ishml.Template.templateHandler=
 {
-	get:function(template, property) //a.b.c() becomes a(b(c()))
+	 //_.a.b.c() becomes _.a(b(c()))
+	 //_.a.tags.b becomes 
+	 //_.a.cap.pick("cat","dog","frog")
+	 //t=>_.a.cap(t.noun.description.z)
+
+	get:function(template, property,receiver)
 	{
-		console.log(template)
-		console.log(property)
-		console.log(template.name)
-		if (property==="asFunction"){return template}  //bare property without proxy
-		
-		if (template.name==="tags")//_.tags
+		//template is function that returns a prhase
+		if (property==="asFunction")
+		{
+			//property === "asFunction"
+			return template	 
+		}
+		if (template.name==="tags" ||template.name==="echo" )//_.tags or _.echo
 		{
 			return template(property)
 		}
-		
-		var propertyAsFunction= ishml.Template[property].asFunction
-		if (property==="tags") 
+		var propertyAsFunction= ishml.Template[property].asFunction // get template corresponding to property string
+		if (property==="tags" || property==="echo")  //_.blah.tags or //_.blah.echo
 		{
 			return new Proxy(propertyAsFunction,{get:function(target,property){return template(target(property))}})
 		}
-		else
-		{
-			return new Proxy((...precursor)=>template(propertyAsFunction(...precursor)),ishml.Template.templateHandler)
-		}
+		
+				//Nest property function inside template function.  Wrap in proxy so that next property can be read
+		return new Proxy((...precursor)=>template(propertyAsFunction(...precursor)),ishml.Template.templateHandler)
+			
 	}
 }
+
 ishml.Template.defineClass=function(id)
 {
 	var as= (phraseClass)=>
@@ -87,6 +93,20 @@ ishml.Template.define("cycle").as((...data)=>
 		}
 	}(...data)
 })
+ishml.Template.define("echo").as(function echo(tag)
+{
+	return new class echoPhrase extends ishml.Phrase
+	{
+		generate()
+		{
+			this.results=this.tags[tag].results
+			this.text=this.tags[tag].text
+			this.tally=this.tags[tag].tally
+			return this.results
+		}
+	}		
+})
+
 ishml.Template.defineClass("favor").as( class favorPhrase extends ishml.Phrase
 {
 	generate()
@@ -176,6 +196,22 @@ ishml.Template.define("pick").as((...data)=>
 			}
 		}
 	}(...data)
+})
+ishml.Template.define("re").as((...precursor)=>
+{
+	return new class rePhrase extends ishml.Phrase
+	{
+		generate()
+		{
+			super.generate()
+			this.results.forEach(result=>
+			{
+				result.re=true
+			})
+			this.text=""
+			return this.results
+		}
+	}(...precursor)
 })
 ishml.Template.define("refresh").as((...precursor)=>
 {
@@ -350,7 +386,8 @@ ishml.Template.define("pin").as((...data)=>
 		}
 	}(...data)
 })
-ishml.Template.define("tags").as(function tags(tag)
+
+ishml.Template.define("tags").as(function tags(tag,precursor)
 {
 	return new class tagsPhrase extends ishml.Phrase
 	{
@@ -361,9 +398,5 @@ ishml.Template.define("tags").as(function tags(tag)
 			this.tally=this.tags[tag].tally
 			return this.results
 		}
-	}
-
+	}	
 })
-
-
-
