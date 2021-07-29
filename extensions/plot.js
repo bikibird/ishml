@@ -8,7 +8,7 @@ var story=ishml.yarn
 var plot=story.plot
 var lexicon=story.lexicon
 var $ = story.net
-var _ =ishml.Template 
+var _ =ishml.template._ 
 plot.main.dialog.input.unfold=function(twist)
 {
     var episodes=[]

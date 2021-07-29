@@ -1,7 +1,7 @@
 
 //var grammar = ishml.yarn.grammar || new ishml.Rule()
 //var lexicon = ishml.yarn.lexicon || new ishml.Lexicon()
-//var _ =ishml.Template 
+//var _ =ishml.template 
 /*ishml.yarn.lexicon*/
 ishml.yarn.lexicon
     //adjectives
@@ -663,12 +663,12 @@ ishml.Plotpoint.prototype.verbs=function(...verbs)
 
 /*** Templates Prefixes***/
 
-ishml.Template.define("a").as((...data)=> ishml.Template(...data).modify(item=>`${ishml.lang.a(item.value)} ${item.value}`))
-ishml.Template.define("A").as((...data)=> ishml.Template(...data).modify(item=>`${ishml.lang.capitalize(ishml.lang.a(item.value))} ${item.value}`))
-ishml.Template.an=ishml.Template.a
-ishml.Template.An=ishml.Template.a
+ishml.template.define("a").as((...data)=> ishml.template._(...data).modify(item=>`${ishml.lang.a(item.value)} ${item.value}`))
+ishml.template.define("A").as((...data)=> ishml.template._(...data).modify(item=>`${ishml.lang.capitalize(ishml.lang.a(item.value))} ${item.value}`))
+ishml.template.an=ishml.template.a
+ishml.template.An=ishml.template.a
 
-ishml.Template.define("cap").as((...data)=> ishml.Template(...data).modify(item=>ishml.lang.capitalize(item.value)))
+ishml.template.define("cap").as((...data)=> ishml.template._(...data).modify(item=>ishml.lang.capitalize(item.value)))
 
 /*** Phrases suffixes***/
 ishml.Phrase.define("ed").as( precursor => precursor.modify(item=>ishml.lang.ed(item.value)))
@@ -721,13 +721,13 @@ ishml.Phrase.define("est").as (precursor =>
 })
 ishml.Phrase.define("ing").as( precursor => precursor.modify(item=>ishml.lang.ing(item.value)))
 
-ishml.Template.define("list").as((...data)=>
+ishml.template.define("list").as((...data)=>
 {
 	return new class listPhrase extends ishml.Phrase
 	{
 		constructor(...data)
 		{
-			super(ishml.Template`${ishml.Template.cycle().tag("items")}${tags=>tags.items.data.index < tags.items.data.total-1 && tags.items.data.total>2?", ":""}${tags=>tags.items.data.index===0 && tags.items.data.total===2?" and ":""}${tags=>tags.items.data.index===tags.items.data.total-2 && tags.items.data.total>2?"and ":""}`.per("items").join())
+			super(ishml.template._`${ishml.template.cycle().tag("items")}${tags=>tags.items.data.index < tags.items.data.total-1 && tags.items.data.total>2?", ":""}${tags=>tags.items.data.index===0 && tags.items.data.total===2?" and ":""}${tags=>tags.items.data.index===tags.items.data.total-2 && tags.items.data.total>2?"and ":""}`.per("items").join())
 			this.populate(...data)
 			return this
 		}
@@ -738,13 +738,13 @@ ishml.Template.define("list").as((...data)=>
 		}
 	}(...data)
 })
-ishml.Template.define("norList").as((...data)=>
+ishml.template.define("norList").as((...data)=>
 {
 	return new class listPhrase extends ishml.Phrase
 	{
 		constructor(...data)
 		{
-			super(ishml.Template`${ishml.Template.cycle().tag("items")}${tags=>tags.items.data.index < tags.items.data.total-1 && tags.items.data.total>2?", ":""}${tags=>tags.items.data.index===0 && tags.items.data.total===2?" nor ":""}${tags=>tags.items.data.index===tags.items.data.total-2 && tags.items.data.total>2?"nor ":""}`.per("items").join())
+			super(ishml.template._`${ishml.template.cycle().tag("items")}${tags=>tags.items.data.index < tags.items.data.total-1 && tags.items.data.total>2?", ":""}${tags=>tags.items.data.index===0 && tags.items.data.total===2?" nor ":""}${tags=>tags.items.data.index===tags.items.data.total-2 && tags.items.data.total>2?"nor ":""}`.per("items").join())
 			this.populate(...data)
 			return this
 		}
@@ -758,13 +758,13 @@ ishml.Template.define("norList").as((...data)=>
 
 
 
-ishml.Template.define("orList").as((...data)=>
+ishml.template.define("orList").as((...data)=>
 {
 	return new class listPhrase extends ishml.Phrase
 	{
 		constructor(...data)
 		{
-			super(ishml.Template`${ishml.Template.cycle().tag("items")}${tags=>tags.items.data.index < tags.items.data.total-1 && tags.items.data.total>2?", ":""}${tags=>tags.items.data.index===0 && tags.items.data.total===2?" or ":""}${tags=>tags.items.data.index===tags.items.data.total-2 && tags.items.data.total>2?"or ":""}`.per("items").join())
+			super(ishml.template._`${ishml.template.cycle().tag("items")}${tags=>tags.items.data.index < tags.items.data.total-1 && tags.items.data.total>2?", ":""}${tags=>tags.items.data.index===0 && tags.items.data.total===2?" or ":""}${tags=>tags.items.data.index===tags.items.data.total-2 && tags.items.data.total>2?"or ":""}`.per("items").join())
 			this.populate(...data)
 			return this
 		}
@@ -784,12 +784,12 @@ ishml.Phrase.define("s").as (precursor =>
 		return ishml.lang.s(item.value)
 	})
 })
-ishml.Template.define("a").as((...data)=> ishml.Template(...data).modify(item=>`${ishml.lang.a(item.value)} ${item.value}`))
+ishml.template.define("a").as((...data)=> ishml.template._(...data).modify(item=>`${ishml.lang.a(item.value)} ${item.value}`))
 ishml.Phrase.define("z").as(precursor =>precursor.modify(item=>ishml.lang.z(item.value)))
 
 /* Inflected Text */
 
-/*ishml.Template.define("noun").as((cord)=>
+/*ishml.template.define("noun").as((cord)=>
 {
 	//set command.noun and return list
 	return new class cordPhrase extends ishml.Phrase

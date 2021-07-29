@@ -1,10 +1,16 @@
-ishml.Template=function (...precursor){return new ishml.Phrase(...precursor)}
-ishml.Template.templateHandler=
+
+//ishml.template=(...precursor)=>new ishml.Phrase(...precursor)
+ishml.template={}
+//new Proxy((...precursor)=>new ishml.Phrase(...precursor),ishml.templateHandler)
+ishml.template.__handler=
 {
 	 //_.a.b.c() becomes _.a(b(c()))
 	 //_.a.tags.b becomes 
 	 //_.a.cap.pick("cat","dog","frog")
 	 //t=>_.a.cap(t.noun.description.z)
+
+	//if template[asfunction] is undefined, property is tag phrase.
+	
 
 	get:function(template, property,receiver)
 	{
@@ -14,39 +20,49 @@ ishml.Template.templateHandler=
 			//property === "asFunction"
 			return template	 
 		}
-		if (template.name==="tags" ||template.name==="echo" )//_.tags or _.echo
+		if (template.name==="next" ||template.name==="echo" )//_.tags or _.echo
 		{
 			return template(property)
 		}
-		var propertyAsFunction= ishml.Template[property].asFunction // get template corresponding to property string
-		if (property==="tags" || property==="echo")  //_.blah.tags or //_.blah.echo
+		
+		if (ishml.template[property]===undefined) //property names tagged phrase _.a.animal
+		{
+			var echoTemplate=ishml.template.echo.asFunction
+			return template(echoTemplate(property))
+		}
+		/*else
+		{*/
+			var propertyAsFunction= ishml.template[property].asFunction // get template corresponding to property string
+	//	}
+		
+		if (property==="next" || property==="echo")  //_.blah.tags or //_.blah.echo
 		{
 			return new Proxy(propertyAsFunction,{get:function(target,property){return template(target(property))}})
 		}
 		
 				//Nest property function inside template function.  Wrap in proxy so that next property can be read
-		return new Proxy((...precursor)=>template(propertyAsFunction(...precursor)),ishml.Template.templateHandler)
+		return new Proxy((...precursor)=>template(propertyAsFunction(...precursor)),ishml.template.__handler)
 			
 	}
 }
-
-ishml.Template.defineClass=function(id)
+ishml.template.defineClass=function(id)
 {
 	var as= (phraseClass)=>
 	{
-		ishml.Template[id]=new Proxy((...precursor)=>new phraseClass(...precursor),ishml.Template.templateHandler)
+		ishml.template[id]=new Proxy((...precursor)=>new phraseClass(...precursor),ishml.template.__handler)
 	}
 	return {as:as}	
 }
-ishml.Template.define=function(id)
+ishml.template.define=function(id)
 {
 	var as= (phraseFactory)=>
 	{
-		ishml.Template[id]=new Proxy(phraseFactory,ishml.Template.templateHandler)
+		ishml.template[id]=new Proxy(phraseFactory,ishml.template.__handler)
 	}
 	return {as:as}	
 }
-ishml.Template.define("cycle").as((...data)=>
+ishml.template.define("_").as((...data)=>new ishml.Phrase(...data))
+ishml.template.define("cycle").as((...data)=>
 {
 	var counter=0
 	return new class cyclePhrase extends ishml.Phrase
@@ -93,7 +109,7 @@ ishml.Template.define("cycle").as((...data)=>
 		}
 	}(...data)
 })
-ishml.Template.define("echo").as(function echo(tag)
+ishml.template.define("echo").as(function echo(tag)
 {
 	return new class echoPhrase extends ishml.Phrase
 	{
@@ -107,7 +123,7 @@ ishml.Template.define("echo").as(function echo(tag)
 	}		
 })
 
-ishml.Template.defineClass("favor").as( class favorPhrase extends ishml.Phrase
+ishml.template.defineClass("favor").as( class favorPhrase extends ishml.Phrase
 {
 	generate()
 	{
@@ -150,7 +166,7 @@ ishml.Template.defineClass("favor").as( class favorPhrase extends ishml.Phrase
 	}
 	
 })
-ishml.Template.define("pick").as((...data)=>
+ishml.template.define("pick").as((...data)=>
 {
 	var previous
 	return new class pickPhrase extends ishml.Phrase
@@ -197,7 +213,7 @@ ishml.Template.define("pick").as((...data)=>
 		}
 	}(...data)
 })
-ishml.Template.define("re").as((...precursor)=>
+ishml.template.define("re").as((...precursor)=>
 {
 	return new class rePhrase extends ishml.Phrase
 	{
@@ -213,7 +229,7 @@ ishml.Template.define("re").as((...precursor)=>
 		}
 	}(...precursor)
 })
-ishml.Template.define("refresh").as((...precursor)=>
+ishml.template.define("refresh").as((...precursor)=>
 {
 	return new class refreshPhrase extends ishml.Phrase
 	{
@@ -225,7 +241,7 @@ ishml.Template.define("refresh").as((...precursor)=>
 		}
 	}(...precursor)
 })
-ishml.Template.defineClass("roll").as( class rollPhrase extends ishml.Phrase
+ishml.template.defineClass("roll").as( class rollPhrase extends ishml.Phrase
 {
 	generate()
 	{
@@ -264,7 +280,7 @@ ishml.Template.defineClass("roll").as( class rollPhrase extends ishml.Phrase
 		}
 	}
 })
-ishml.Template.define("series").as((...data)=>
+ishml.template.define("series").as((...data)=>
 {
 	var counter=0
 	var ended =false
@@ -323,7 +339,7 @@ ishml.Template.define("series").as((...data)=>
 		}
 	}(...data)
 })
-ishml.Template.define("shuffle").as((...data)=>
+ishml.template.define("shuffle").as((...data)=>
 {
 	var reshuffle =true
 	return new class shufflePhrase extends ishml.Phrase
@@ -356,7 +372,7 @@ ishml.Template.define("shuffle").as((...data)=>
 		
 	}(...data)
 })
-ishml.Template.define("pin").as((...data)=>
+ishml.template.define("pin").as((...data)=>
 {
 	var pin =true
 	return new class pinPhrase extends ishml.Phrase
@@ -387,9 +403,9 @@ ishml.Template.define("pin").as((...data)=>
 	}(...data)
 })
 
-ishml.Template.define("tags").as(function tags(tag,precursor)
+ishml.template.define("next").as(function next(tag,precursor)
 {
-	return new class tagsPhrase extends ishml.Phrase
+	return new class nextPhrase extends ishml.Phrase
 	{
 		generate()
 		{
