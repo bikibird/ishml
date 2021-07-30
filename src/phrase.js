@@ -552,7 +552,8 @@ ishml.Phrase.define=function(id)
 	}
 	return {as:as}	
 }
-ishml.Phrase.handler=
+ishml.Phrase.handler={}
+/*ishml.Phrase.handler=
 {
 	get: function(target, property, receiver) 
 	{
@@ -582,51 +583,5 @@ ishml.Phrase.handler=
 			}
 		}		
 		
-	}
-}
-/*
-ishml.Phrase.handler=
-{
-	get: function(target, property, receiver) 
-	{
-		if (Reflect.has(target,property,receiver))
-		{
-			return Reflect.get(target,property,receiver)
-		}
-		else //If property does not exist return a data phrase _.echo.animal.description
-		{
-			if (property==="next")
-			{
-				return new class nextPhrase extends ishml.Phrase
-				{
-					constructor()
-					{
-						super(target)
-						return this
-					}
-				}	
-			}
-			else
-			{
-				return new class nowPhrase extends ishml.Phrase
-				{
-					constructor()
-					{
-						super(target)
-						return this
-					}
-					generate()
-					{
-						this.results=target.results
-						if (this.results.length>0)
-						{
-							this.results[0].value=this.results[0][property]
-							this.text=this.results[0].value
-						}
-						return this.results
-					}
-				}		
-			}
-		}
 	}
 }*/

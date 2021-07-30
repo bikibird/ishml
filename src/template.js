@@ -28,7 +28,38 @@ ishml.template.__handler=
 		if (ishml.template[property]===undefined) //property names tagged phrase _.a.animal
 		{
 			var echoTemplate=ishml.template.echo.asFunction
-			return template(echoTemplate(property))
+			return new Proxy(template(echoTemplate(property)), //property === tagged phrase e.g. animal
+			{
+				get:function(target,datum,receiver)  // datum === data.datum
+				{
+					if (Reflect.has(target,datum,receiver))
+					{
+						return Reflect.get(target,datum,receiver)
+					}
+					else
+					{
+						var echoPhrase=echoTemplate(property)
+						return template(new class dataPhrase extends ishml.Phrase
+						{
+							constructor()
+							{
+								super(echoPhrase)
+								return this
+							}
+							generate()
+							{
+								this.results=echoPhrase.generate()
+								if (this.results.length>0)
+								{
+									this.results[0].value=this.results[0][datum]
+									this.text=this.results[0].value
+								}
+								return this.results
+							}
+						})
+					}
+				}
+			})
 		}
 		/*else
 		{*/
