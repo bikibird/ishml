@@ -12,7 +12,7 @@ ishml.Phrase =class Phrase
 		Object.defineProperty(this,"text",{value:"",writable:true})
 		this._populate(...precursor)
 		this.catalog()
-		return new Proxy (this,ishml.Phrase.handler)
+		return  this //new Proxy (this,ishml.Phrase.handler)
 	}
 	get also()
 	{

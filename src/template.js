@@ -22,9 +22,38 @@ ishml.template.__handler=
 		}
 		if (template.name==="next" ||template.name==="echo" )//_.tags or _.echo
 		{
-			return template(property)
+			return new Proxy(template(property),
+			{
+				get:function(target,datum,receiver)
+				{
+					if (Reflect.has(target,datum,receiver))
+					{
+						return Reflect.get(target,datum,receiver)
+					}
+					else
+					{
+						return new class dataPhrase extends ishml.Phrase
+						{
+							constructor()
+							{
+								super(target)
+								return this
+							}
+							generate()
+							{
+								this.results=target.generate()
+								if (this.results.length>0)
+								{
+									this.results[0].value=this.results[0][datum]
+									this.text=this.results[0].value
+								}
+								return this.results
+							}
+						}
+					}
+				}
+			})
 		}
-		
 		if (ishml.template[property]===undefined) //property names tagged phrase _.a.animal
 		{
 			var echoTemplate=ishml.template.echo.asFunction
@@ -68,7 +97,45 @@ ishml.template.__handler=
 		
 		if (property==="next" || property==="echo")  //_.blah.tags or //_.blah.echo
 		{
-			return new Proxy(propertyAsFunction,{get:function(target,property){return template(target(property))}})
+			return new Proxy(propertyAsFunction,
+				{
+					get:function(tagged,property)
+					{
+						return  new Proxy(template(tagged(property)),
+						{
+							get:function(target,datum,receiver)
+							{
+								if (Reflect.has(target,datum,receiver))
+								{
+									return Reflect.get(target,datum,receiver)
+								}
+								else
+								{
+									var taggedPhrase=tagged(property)
+									return template(new class dataPhrase extends ishml.Phrase
+									{
+										constructor()
+										{
+											super(taggedPhrase)
+											return this
+										}
+										generate()
+										{
+											this.results=taggedPhrase.generate()
+											if (this.results.length>0)
+											{
+												this.results[0].value=this.results[0][datum]
+												this.text=this.results[0].value
+											}
+											return this.results
+										}
+									})
+								}
+							}
+
+						})
+					}
+				})
 		}
 		
 				//Nest property function inside template function.  Wrap in proxy so that next property can be read
