@@ -10,7 +10,7 @@
             ],
             "type": "shell",
             "command": [
-                "cat src\\apex.js, src\\interpretation.js, src\\lexicon.js, src\\parser.js, src\\phrase.js, src\\regex.js, src\\rule.js, src\\template.js, src\\token.js, src\\util.js, src\\yarn.js | sc src\\ishml.js"
+                "cat src\\apex.js, src\\util.js, src\\plotpoint.js, src\\episode.js, src\\knot.js, src\\ply.js, src\\cord.js, src\\interpretation.js, src\\lexicon.js, src\\parser.js, src\\phrase.js, src\\regex.js, src\\rule.js, src\\template.js, src\\token.js,  src\\yarn.js | sc src\\ishml.js"
             ],
             "group": {
                 "kind": "build",
