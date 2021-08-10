@@ -10,24 +10,13 @@
             ],
             "type": "shell",
             "command": [
-                "cat src\\apex.js, src\\interpretation.js, src\\lexicon.js, src\\parser.js, src\\phrase.js, src\\regex.js, src\\rule.js, src\\template.js, src\\token.js, src\\util.js | sc src\\ishml.js"
+                "cat src\\apex.js, src\\interpretation.js, src\\lexicon.js, src\\parser.js, src\\phrase.js, src\\regex.js, src\\rule.js, src\\template.js, src\\token.js, src\\util.js, src\\yarn.js | sc src\\ishml.js"
             ],
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
             "problemMatcher": []
-        },
-        {
-            "label": "make ishml-lp",
-            "type": "shell",
-            "command": [
-                "cat src\\apex.js, src\\interpretation.js, src\\lexicon.js, src\\parser.js, src\\phrase.js, src\\regex.js, src\\rule.js, src\\template.js, src\\token.js, src\\util.js | sc src\\ishml-lp.js"
-            ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
         }
     ]
 }
