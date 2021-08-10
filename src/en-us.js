@@ -1,4 +1,3 @@
-
 //var grammar = ishml.yarn.grammar || new ishml.Rule()
 //var lexicon = ishml.yarn.lexicon || new ishml.Lexicon()
 //var _ =ishml.template 
@@ -663,12 +662,13 @@ ishml.Plotpoint.prototype.verbs=function(...verbs)
 
 /*** Templates Prefixes***/
 
-ishml.template.define("a").as((...data)=> ishml.template._(...data).modify(item=>`${ishml.lang.a(item.value)} ${item.value}`))
-ishml.template.define("A").as((...data)=> ishml.template._(...data).modify(item=>`${ishml.lang.capitalize(ishml.lang.a(item.value))} ${item.value}`))
+//ishml.template.define("a").as((...data)=> ishml.template._(...data).modify(item=>`${ishml.lang.a(item.value)} ${item.value}`))
+ishml.template.define("a").as((...data)=> ishml.Phrase.prototype.modify(item=>`${ishml.lang.a(item.value)} ${item.value}`,...data))
+ishml.template.define("A").as((...data)=>ishml.Phrase.prototype.modify(item=>`${ishml.lang.capitalize(ishml.lang.a(item.value))} ${item.value}`,...data))
 ishml.template.an=ishml.template.a
 ishml.template.An=ishml.template.a
 
-ishml.template.define("cap").as((...data)=> ishml.template._(...data).modify(item=>ishml.lang.capitalize(item.value)))
+ishml.template.define("cap").as((...data)=> ishml.Phrase.prototype.modify(item=>ishml.lang.capitalize(item.value),...data))
 
 /*** Phrases suffixes***/
 ishml.Phrase.define("ed").as( precursor => precursor.modify(item=>ishml.lang.ed(item.value)))
@@ -784,7 +784,7 @@ ishml.Phrase.define("s").as (precursor =>
 		return ishml.lang.s(item.value)
 	})
 })
-ishml.template.define("a").as((...data)=> ishml.template._(...data).modify(item=>`${ishml.lang.a(item.value)} ${item.value}`))
+ishml.template.define("a").as((...data)=> ishml.Phrase.prototype.modify(item=>`${ishml.lang.a(item.value)} ${item.value}`,...data))
 ishml.Phrase.define("z").as(precursor =>precursor.modify(item=>ishml.lang.z(item.value)))
 
 /* Inflected Text */

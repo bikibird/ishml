@@ -3,8 +3,8 @@ ishml.Phrase =class Phrase
 	constructor(...precursor) 
 	{
 		Object.defineProperty(this,"id",{value:"",writable:true})
+		Object.defineProperty(this,"echo",{value:false,writable:true})
 		Object.defineProperty(this,"outset",{value:this,writable:true})
-		//Object.defineProperty(this,"re",{value:null,writable:true})
 		Object.defineProperty(this,"phrases",{value:[],writable:true})
 		Object.defineProperty(this,"results",{value:[],writable:true})
 		Object.defineProperty(this,"_seed",{value:ishml.util.random().seed,writable:true})
@@ -12,7 +12,6 @@ ishml.Phrase =class Phrase
 		Object.defineProperty(this,"text",{value:"",writable:true})
 		this._populate(...precursor)
 		this.catalog()
-		return  this //new Proxy (this,ishml.Phrase.handler)
 	}
 	get also()
 	{
@@ -41,7 +40,7 @@ ishml.Phrase =class Phrase
 				}
 				return this.results
 			}
-		},ishml.Template.templateHandler)
+		},ishml.template.__handler)
 	}
 	append(documentSelector="#story")
 	{
@@ -240,7 +239,7 @@ ishml.Phrase =class Phrase
 		}
 		else
 		{
-			return null
+			return this
 		}
 	}
 	join({separator="", trim=true}={})
@@ -277,10 +276,20 @@ ishml.Phrase =class Phrase
 			}
 		}(this)
 	}
-	modify(modifier)
+	modify(modifier,...data)
 	{
+		if(data.length>0)
+		{
+			if(data.length===1 && data[0] instanceof ishml.Phrase){var target=data[0]}
+		}
+		else {var target=this}
 		return new class modifyPhrase extends ishml.Phrase
 		{
+			constructor()
+			{
+				if (target){super(target)}
+				else{super(...data)}
+			}
 			generate()
 			{
 				super.generate()
@@ -292,15 +301,15 @@ ishml.Phrase =class Phrase
 				this.text=this.results.map(phrase=>phrase.value).join("")
 				return this.results
 			}
-		}(this)
+		}()
 	}
 
 	per(id)
 	{
 		var tag=id
-
 		return new class perPhrase extends ishml.Phrase
 		{
+
 			generate()
 			{
 				var results=[]
@@ -459,6 +468,7 @@ ishml.Phrase =class Phrase
 		})
 		return this
 	}	
+/*	get _reference(){return this}
 	reset()
 	{ 
 		this.phrases.forEach(phrase=>
@@ -467,7 +477,7 @@ ishml.Phrase =class Phrase
 		})
 		return this
 	}
-
+*/
 	say(seed) 
 	{
 		if (seed>=0){this.seed(seed)}
@@ -523,7 +533,7 @@ ishml.Phrase =class Phrase
 				}
 				return this.results
 			}
-		},ishml.Template.templateHandler)
+		},ishml.template.__handler)
 	}
 	transform(transformer)
 	{
@@ -552,36 +562,4 @@ ishml.Phrase.define=function(id)
 	}
 	return {as:as}	
 }
-ishml.Phrase.handler={}
-/*ishml.Phrase.handler=
-{
-	get: function(target, property, receiver) 
-	{
-		if (Reflect.has(target,property,receiver))
-		{
-			return Reflect.get(target,property,receiver)
-		}
 
-		//If property does not exist return a data phrase _.echo.animal.description
-	
-		return new class dataPhrase extends ishml.Phrase
-		{
-			constructor()
-			{
-				super(target)
-				return this
-			}
-			generate()
-			{
-				this.results=target.generate()
-				if (this.results.length>0)
-				{
-					this.results[0].value=this.results[0][property]
-					this.text=this.results[0].value
-				}
-				return this.results
-			}
-		}		
-		
-	}
-}*/
