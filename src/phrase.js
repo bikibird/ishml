@@ -468,7 +468,6 @@ ishml.Phrase =class Phrase
 		})
 		return this
 	}	
-/*	get _reference(){return this}
 	reset()
 	{ 
 		this.phrases.forEach(phrase=>
@@ -477,7 +476,6 @@ ishml.Phrase =class Phrase
 		})
 		return this
 	}
-*/
 	say(seed) 
 	{
 		if (seed>=0){this.seed(seed)}
