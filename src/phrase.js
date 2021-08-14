@@ -6,7 +6,7 @@ ishml.Phrase =class Phrase
 		Object.defineProperty(this,"echo",{value:false,writable:true})
 		Object.defineProperty(this,"outset",{value:this,writable:true})
 		Object.defineProperty(this,"phrases",{value:[],writable:true})
-		Object.defineProperty(this,"results",{value:[],writable:true})
+		Object.defineProperty(this,"_results",{value:[],writable:true})
 		Object.defineProperty(this,"_seed",{value:ishml.util.random().seed,writable:true})
 		Object.defineProperty(this,"tags",{value:{},writable:true})
 		Object.defineProperty(this,"text",{value:"",writable:true})
@@ -476,6 +476,8 @@ ishml.Phrase =class Phrase
 		})
 		return this
 	}
+	get results(){return this._results}
+	set results(value){this._results=value}
 	say(seed) 
 	{
 		if (seed>=0){this.seed(seed)}
