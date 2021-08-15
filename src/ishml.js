@@ -2094,7 +2094,7 @@ ishml.Phrase =class Phrase
 		Object.defineProperty(this,"echo",{value:false,writable:true})
 		Object.defineProperty(this,"outset",{value:this,writable:true})
 		Object.defineProperty(this,"phrases",{value:[],writable:true})
-		Object.defineProperty(this,"results",{value:[],writable:true})
+		Object.defineProperty(this,"_results",{value:[],writable:true})
 		Object.defineProperty(this,"_seed",{value:ishml.util.random().seed,writable:true})
 		Object.defineProperty(this,"tags",{value:{},writable:true})
 		Object.defineProperty(this,"text",{value:"",writable:true})
@@ -2564,6 +2564,8 @@ ishml.Phrase =class Phrase
 		})
 		return this
 	}
+	get results(){return this._results}
+	set results(value){this._results=value}
 	say(seed) 
 	{
 		if (seed>=0){this.seed(seed)}
@@ -3228,21 +3230,35 @@ ishml.template.define("echo").as(function echo(tag)
 	{
 		constructor()
 		{
-			super()
+			if (tag instanceof ishml.Phrase){super(tag)}
+			else {super()}
+			
 			this.echo=true
 		}
 		generate()
 		{
-			if (this.echo){this.results=this.tags[tag].results}
-			else{this.results=this.tags[tag].generate()}
-			this.text=this.tags[tag].text
-			this.tally=this.tags[tag].tally
+			if (this.phrases.length===0){this.phrases[0]={value:this.tags[tag]}}
+
+			if (this.echo){this.results=this.phrases[0].value.results}
+			else{this.results=this.phrases[0].value.generate()}
+
+			this.text=this.phrases[0].value.text
+			this.tally=this.phrases[0].value.tally
 			return this.results
 		}
 		get inner()
 		{
-			return this.tags[tag].inner
+			if (this.phrases.length===0){var innerPhrase= echo(this.tags[tag].inner)}
+			else {var innerPhrase= echo(this.phrases[0].value.inner)}
+			innerPhrase.echo=this.echo
+			return innerPhrase
 		}
+		get results()
+		{
+			if (this.phrases.length===0){this.tags[tag].results}
+			else {return super.results}
+		}
+		set results(value){this._results=value}
 	}()		
 })
 ishml.template.define("ante").as(function ante(outer)
@@ -3252,15 +3268,16 @@ ishml.template.define("ante").as(function ante(outer)
 		constructor()
 		{
 			super(outer)
-			if (outer.echo===true)
+		/*	if (outer.echo===true)
 			{
 				this.echo=true
 			}
+		*/	
 		}
 		generate()
 		{
-			var counter=0
-			var target=this
+			
+		/*	var target=this
 			while (target.constructor.name === "antePhrase")
 			{
 				counter++
@@ -3270,11 +3287,33 @@ ishml.template.define("ante").as(function ante(outer)
 			{
 				target=target.inner
 			}	
-						this.results=target.generate()
+		*/	
+			var target=this.inner
+			this.results=target.generate()
 			this.text=target.text
 			this.tally=target.tally
 			return this.results
 		}
+
+		//ante(ante(echo(a(cap(pick())))))
+		//
+		get inner()
+		{
+			var counter=0
+			var target=this
+			while (target.constructor.name === "antePhrase")
+			{
+				counter++
+				target=target.phrases[0].value
+			}
+			for (let i = 0; i <counter; i++)
+			{
+				target=target.inner
+			}	
+			return target
+		}
+
+
 	}()		
 })
 
@@ -3576,19 +3615,23 @@ ishml.template.data=function data(target,property)
 		}
 		generate()
 		{
-			if (this.echo) {this.results=target.results}
-			else {this.results=target.generate()}
-			if (this.results.length>0)
+			this.results=target.generate()
+		/*	if (this.echo) {this.results=target.results}
+			else {this.results=target.generate()}*/
+			this.results=this.results.map(o=>
 			{
-				this.results[0].value=this.results[0][property]
-				this.text=this.results[0].value
-			}
+				var item = Object.assign({},o)
+				item.value=o[property]
+				return item
+			})
+			this.text=this.results.join("")
 			return this.results
 		}
 		get inner()
 		{
 			var phrase=data(this.phrases[0].value.inner,property)
 			phrase.echo=this.echo
+			phrase.phrases[0].value.echo=this.echo
 			return phrase
 		}
 	}
