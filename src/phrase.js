@@ -94,16 +94,16 @@ ishml.Phrase =class Phrase
 			}	
 		})
 	}
-	concur(condition)
+	concur(tag,condition)
 	{
 		if (typeof condition ==="function"){var rule=condition}
-		else {var rule = ()=>condition}
+		else {var rule = (a,b)=>a.value===b.value}
 		return new class concurPhrase extends ishml.Phrase
 		{
 			generate()
 			{
 				super.generate()
-				this.results=this.results.filter(phrase=>rule(this.tags,phrase))
+				this.results=this.results.filter(item=>rule(item,this.tags[tag].data))
 				this.text=this.results.map(phrase=>phrase.value).join("")
 				return this.results
 			}
