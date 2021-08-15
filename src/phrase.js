@@ -48,34 +48,6 @@ ishml.Phrase =class Phrase
 		targetNodes.forEach(node=>node.append(this.htmlTemplate().content))
 		return this
 	}
-	/*cache(id)
-	{
-		var cache= new class cachePhrase extends ishml.Phrase
-		{
-			generate()
-			{
-				super.generate()
-				this.text=this.inner.text
-				this.results=this.inner.results
-				return this.results
-			}
-			constructor(...precursor)
-			{
-				super(...precursor)
-				this.id=id
-				this.catalog()
-				//Object.defineProperty(this,"data",{value:{},writable:true})
-				return this
-			}
-			populate(data)
-			{
-				//this.data=data
-				this[id]=data
-				return this
-			}
-		}(this)
-		return cache
-	}*/
 	catalog()
 	{
 		this._catalogUp()
@@ -156,7 +128,6 @@ ishml.Phrase =class Phrase
 			constructor(...precursor)
 			{
 				super(...precursor)
-				//this.id="command"
 				this.catalog()
 				Object.defineProperty(this,"data",{value:{},writable:true})
 				this.populate(data)
@@ -164,8 +135,6 @@ ishml.Phrase =class Phrase
 			}
 			populate(data)
 			{
-				//this.data=data
-				//this[id]=data
 				Object.assign(this,data)
 				return this
 			}

@@ -2136,34 +2136,6 @@ ishml.Phrase =class Phrase
 		targetNodes.forEach(node=>node.append(this.htmlTemplate().content))
 		return this
 	}
-	/*cache(id)
-	{
-		var cache= new class cachePhrase extends ishml.Phrase
-		{
-			generate()
-			{
-				super.generate()
-				this.text=this.inner.text
-				this.results=this.inner.results
-				return this.results
-			}
-			constructor(...precursor)
-			{
-				super(...precursor)
-				this.id=id
-				this.catalog()
-				//Object.defineProperty(this,"data",{value:{},writable:true})
-				return this
-			}
-			populate(data)
-			{
-				//this.data=data
-				this[id]=data
-				return this
-			}
-		}(this)
-		return cache
-	}*/
 	catalog()
 	{
 		this._catalogUp()
@@ -2244,7 +2216,6 @@ ishml.Phrase =class Phrase
 			constructor(...precursor)
 			{
 				super(...precursor)
-				//this.id="command"
 				this.catalog()
 				Object.defineProperty(this,"data",{value:{},writable:true})
 				this.populate(data)
@@ -2252,8 +2223,6 @@ ishml.Phrase =class Phrase
 			}
 			populate(data)
 			{
-				//this.data=data
-				//this[id]=data
 				Object.assign(this,data)
 				return this
 			}
@@ -3072,7 +3041,7 @@ ishml.template.__handler=
 	 //_.a.cap.pick("cat","dog","frog")
 	 //t=>_.a.cap(t.noun.description.z)
 
-	//if template[asfunction] is undefined, property is tag phrase.
+	//if template[asfunction] is undefined, property refers to a tagged phrase.
 	
 
 	get:function(template, property,receiver)
@@ -3083,24 +3052,6 @@ ishml.template.__handler=
 			//property === "asFunction"
 			return template	 
 		}
-/*		if (template.name==="echo" )//_.tags or _.echo
-		{
-			return new Proxy(template(property),
-			{
-				get:function(target,datum,receiver)
-				{
-					if (Reflect.has(target,datum,receiver))  //taggedPhrase.datum
-					{
-						return Reflect.get(target,datum,receiver)
-					}
-					else
-					{
-						return ishml.template.data(target,datum)
-					}
-				}
-			})
-		}
-*/		
 		if (ishml.template[property]===undefined) //property names tagged phrase _.animal _.a.animal
 		{
 			var echo=ishml.template.echo.asFunction(property)
@@ -3123,31 +3074,6 @@ ishml.template.__handler=
 			})
 		}
 		var propertyAsFunction= ishml.template[property].asFunction // get template corresponding to property string
-/*		if (property==="echo")  //_.blah.tags or //_.blah.echo
-		{
-			return new Proxy(propertyAsFunction,
-				{
-					get:function(tagged,property)
-					{
-						return  new Proxy(template(tagged(property)),
-						{
-							get:function(target,datum,receiver)
-							{
-								if (Reflect.has(target,datum,receiver))
-								{
-									return Reflect.get(target,datum,receiver)
-								}
-								else
-								{
-									var taggedPhrase=tagged(property)
-									return template(ishml.template.data(taggedPhrase,datum))
-								}
-							}
-
-						})
-					}
-				})
-		}*/
 		if (template.name==="_") //property is a function and so don't need initial outer phrase
 		{
 			return new Proxy((...precursor)=>propertyAsFunction(...precursor),ishml.template.__handler)
@@ -3268,26 +3194,9 @@ ishml.template.define("ante").as(function ante(outer)
 		constructor()
 		{
 			super(outer)
-		/*	if (outer.echo===true)
-			{
-				this.echo=true
-			}
-		*/	
 		}
 		generate()
 		{
-			
-		/*	var target=this
-			while (target.constructor.name === "antePhrase")
-			{
-				counter++
-				target=target.inner
-			}
-			for (let i = 0; i <counter; i++)
-			{
-				target=target.inner
-			}	
-		*/	
 			var target=this.inner
 			this.results=target.generate()
 			this.text=target.text
@@ -3295,8 +3204,6 @@ ishml.template.define("ante").as(function ante(outer)
 			return this.results
 		}
 
-		//ante(ante(echo(a(cap(pick())))))
-		//
 		get inner()
 		{
 			var counter=0
@@ -3312,11 +3219,8 @@ ishml.template.define("ante").as(function ante(outer)
 			}	
 			return target
 		}
-
-
 	}()		
 })
-
 
 ishml.template.defineClass("favor").as( class favorPhrase extends ishml.Phrase
 {
@@ -3616,8 +3520,6 @@ ishml.template.data=function data(target,property)
 		generate()
 		{
 			this.results=target.generate()
-		/*	if (this.echo) {this.results=target.results}
-			else {this.results=target.generate()}*/
 			this.results=this.results.map(o=>
 			{
 				var item = Object.assign({},o)
