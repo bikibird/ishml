@@ -2242,6 +2242,7 @@ ishml.Phrase =class Phrase
 				this.results.forEach((result,index)=>
 				{
 					result.index=index
+					result.rank=index+1
 					result.subtotal=subtotal
 					result.total=total
 				})
@@ -2326,6 +2327,7 @@ ishml.Phrase =class Phrase
 				this.results.forEach((result,index)=>
 				{
 					result.index=index
+					result.rank=index+1
 					result.subtotal=subtotal
 					result.total=total
 				})
@@ -3118,8 +3120,7 @@ ishml.template.define("cycle").as((...data)=>
 		{
 			if (this.phrases.length===0)
 			{
-				this.results=[]
-				this.results[0]={value:"",index:0, total:0, reset:true}
+				this.results=[{value:"",index:0, rank:0, total:0,  reset:true}]
 				this.text=""
 				var total=0
 			}
@@ -3136,7 +3137,7 @@ ishml.template.define("cycle").as((...data)=>
 					var results=super.generate(this.phrases.slice(counter,counter+1))
 					var total=this.phrases.length
 				}
-				Object.assign(results[0],{index:counter, total:total, reset:counter===total-1})
+				Object.assign(results[0],{index:counter, rank:counter+1,total:total, reset:counter===total-1})
 				this.results=results
 				this.text=results[0].value
 			}	
@@ -3257,6 +3258,7 @@ ishml.template.defineClass("favor").as( class favorPhrase extends ishml.Phrase
 			results.forEach(phrase=>
 			{
 				phrase.index=counter
+				phrase.rank=counter+1
 				phrase.total=total
 			})
 			this.results=results
@@ -3304,6 +3306,7 @@ ishml.template.define("pick").as((...data)=>
 				results.forEach(phrase=>
 				{
 					phrase.index=counter
+					phrase.rank=counter+1
 					phrase.total=total
 				})
 				this.results=results
@@ -3372,6 +3375,7 @@ ishml.template.defineClass("roll").as( class rollPhrase extends ishml.Phrase
 			results.forEach(phrase=>
 			{
 				phrase.index=counter
+				phrase.rank=counter+1
 				phrase.total=total
 			})
 			this.results=results
@@ -3416,7 +3420,7 @@ ishml.template.define("series").as((...data)=>
 				}
 				if(results.length===1)
 				{
-					Object.assign(results[0],{index:counter, total:total})
+					Object.assign(results[0],{index:counter, rank:counter+1,total:total})
 					this.results=results
 					this.text=results[0].value
 				}

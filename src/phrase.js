@@ -154,6 +154,7 @@ ishml.Phrase =class Phrase
 				this.results.forEach((result,index)=>
 				{
 					result.index=index
+					result.rank=index+1
 					result.subtotal=subtotal
 					result.total=total
 				})
@@ -238,6 +239,7 @@ ishml.Phrase =class Phrase
 				this.results.forEach((result,index)=>
 				{
 					result.index=index
+					result.rank=index+1
 					result.subtotal=subtotal
 					result.total=total
 				})
