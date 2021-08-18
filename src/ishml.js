@@ -2563,6 +2563,7 @@ ishml.Phrase =class Phrase
 	tag(id)
 	{
 		this.id=id
+		this.catalog()
 		return this
 	}
 	get then()
@@ -2594,14 +2595,22 @@ ishml.Phrase =class Phrase
 			}
 		},ishml.template.__handler)
 	}
-	transform(transformer)
+	rephrase(phraseFactory)
 	{
-		return new class transformPhrase extends ishml.Phrase
+		var thisPhrase=this
+		return new class rePhrasePhrase extends ishml.Phrase
 		{
 			generate()
 			{
-				this.results=transformer(super.generate().slice(0).map(phrase=>Object.assign({},phrase)))
-				this.text=phrases.map(phrase=>phrase.value).join("")
+				this.results=super.generate()
+				//this.results=this.results.map(result=>result[thisPhrase._property])
+				if (this.results.length>0 && this.results[0][thisPhrase._property])
+				{
+					this.results=phraseFactory(this.results[0][thisPhrase._property]).generate()
+					
+				}
+				else {this.results=[]}
+				this.text=this.results.map(result=>result.value).join("")
 				return this.results
 			}
 		}(this)
@@ -3519,6 +3528,7 @@ ishml.template.data=function data(target,property)
 		{
 			super(target)  //echo.phrase
 			this.echo=target.echo
+			Object.defineProperty(this,"_property",{value:property,writable:true})
 			return this
 		}
 		generate()
