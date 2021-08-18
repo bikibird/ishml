@@ -485,6 +485,7 @@ ishml.template.data=function data(target,property)
 		{
 			super(target)  //echo.phrase
 			this.echo=target.echo
+			Object.defineProperty(this,"_property",{value:property,writable:true})
 			return this
 		}
 		generate()
