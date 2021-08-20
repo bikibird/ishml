@@ -2182,16 +2182,22 @@ ishml.Phrase =class Phrase
 			}	
 		})
 	}
+
+//There are three different ways to specify a condition.
 	concur(tag,condition)
 	{
 		if (typeof condition ==="function"){var rule=condition}
-		else {var rule = (a,b)=>a.value===b.value}
+		else 
+		{
+			if (condition){var rule = (a,b)=>b.map(b[condition]).includes(a[condition])}
+			else {var rule = (a,b)=>b.map(item=>item.value).includes(a.value)}
+		}
 		return new class concurPhrase extends ishml.Phrase
 		{
 			generate()
 			{
 				super.generate()
-				this.results=this.results.filter(item=>rule(item,this.tags[tag].data))
+				this.results=this.results.filter(item=>rule(item,this.tags[tag].results))
 				this.text=this.results.map(phrase=>phrase.value).join("")
 				return this.results
 			}
@@ -2335,6 +2341,8 @@ ishml.Phrase =class Phrase
 			}
 		}(this)
 	}
+
+	//Unlike expand, modify takes a function to be applied to each of this phrases results.
 	modify(modifier,...data)
 	{
 		if(data.length>0)
@@ -2595,22 +2603,43 @@ ishml.Phrase =class Phrase
 			}
 		},ishml.template.__handler)
 	}
-	rephrase(phraseFactory)
+
+	//Unlike modify, expand takes a phrase factory and applies the results of this phrase to it.
+	expand(phraseFactory)
 	{
+		var property=this._property
 		var thisPhrase=this
-		return new class rePhrasePhrase extends ishml.Phrase
+		return new class transformPhrase extends ishml.Phrase
 		{
 			generate()
 			{
-				this.results=super.generate()
-				//this.results=this.results.map(result=>result[thisPhrase._property])
-				if (this.results.length>0 && this.results[0][thisPhrase._property])
-				{
-					this.results=phraseFactory(this.results[0][thisPhrase._property]).generate()
-					
-				}
-				else {this.results=[]}
+				this.results=thisPhrase.generate()
 				this.text=this.results.map(result=>result.value).join("")
+				if (property)
+				{
+					
+					if (this.text)
+					{
+						this.results=phraseFactory(this.results[0][property]).generate()
+						this.text=this.results.map(result=>result.value).join("")
+					}
+					else 
+					{
+						this.results=[]
+						this.text=""
+					}
+				}
+				else
+				{
+					if (this.results.length>0)
+					{
+						if (this.text)
+						{
+							this.results=phraseFactory(this.text).generate()
+							this.text=this.results.map(result=>result.value).join("")
+						}
+					}	
+				}	
 				return this.results
 			}
 		}(this)
@@ -2630,7 +2659,15 @@ ishml.Phrase.define=function(id)
 	}
 	return {as:as}	
 }
+/*var inside=box=>_`Inside the ${box} was a ${_.favor(_.pick("steel strongbox","wooden casket","silk bag","paper sack","old purse").tag("container"),
+_.pick("ring","ancient coin", "ruby")).tag("contents")}. 
+${_.contents.concur("container").transform(inside)}
+${_`She put the ${_.contents} back in the ${box}. `}`
 
+var example1=_`Cas looked under the bed and found a package wrapped with a red ribbon.  Carefully, she unwrapped the package. 
+${inside("package")}Cas rewrapped the package and put it back under the bed.  ${_.pick("No one would be the wiser. ", 
+"Now she knew. ", "She was elated. ", "She was disappointed.")}`
+*/
 ishml.regex=ishml.regex||{}
 ishml.regex.word=/(^\w*)(.*)/
 ishml.regex.floatingPointNumber=/^-?([0-9]*[.])?[0-9]+/
