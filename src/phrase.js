@@ -101,7 +101,7 @@ ishml.Phrase =class Phrase
 		if (typeof condition ==="function"){var rule=condition}
 		else 
 		{
-			if (condition){var rule = (a,b)=>b.map(b[condition]).includes(a[condition])}
+			if (condition){var rule = (a,b)=>b.map(item=>item[condition]).includes(a[condition])}
 			else {var rule = (a,b)=>b.map(item=>item.value).includes(a.value)}
 		}
 		return new class concurPhrase extends ishml.Phrase
