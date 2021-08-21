@@ -2184,6 +2184,7 @@ ishml.Phrase =class Phrase
 	}
 
 //There are three different ways to specify a condition.
+//Concur should work like then  _.hobby.concur.person.interest
 	concur(tag,condition)
 	{
 		if (typeof condition ==="function"){var rule=condition}
@@ -2341,7 +2342,30 @@ ishml.Phrase =class Phrase
 			}
 		}(this)
 	}
-
+	get match()
+	{
+		var thisPhrase=this
+		return new Proxy((precursor) => new class matchPhrase extends ishml.Phrase
+		{
+			constructor()
+			{
+				super()
+				this.phrases[0]={value:thisPhrase}  //hobbies
+				this.phrases[1]={value:precursor}  //person
+				this.catalog()
+			}
+			generate()
+			{
+			//_.pick(_().tag("hobby").match.person.interest)	
+				var a=this.phrases[0].value.generate()
+				var b= this.phrases[1].value.generate()
+				var property=this.phrases[1].value._property??"value"
+				this.results=a.filter(a=>b.map(item=>item.value).includes(a[property]))
+				this.text=this.results.map(phrase=>phrase.value).join("")
+				return this.results
+			}
+		},ishml.template.__handler)
+	}
 	//Unlike expand, modify takes a function to be applied to each of this phrases results.
 	modify(modifier,...data)
 	{
