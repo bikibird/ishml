@@ -510,6 +510,7 @@ ishml.Phrase =class Phrase
 		this.catalog()
 		return this
 	}
+	get target(){return this}// remove any leftover proxy
 	get then()
 	{
 		var primaryPhrase=this
@@ -543,7 +544,7 @@ ishml.Phrase =class Phrase
 	//Unlike modify, expand takes a phrase factory and applies the results of this phrase to it.
 	expand(phraseFactory)
 	{
-		var property=this._property
+		//var property=this._property
 		var thisPhrase=this
 		return new class transformPhrase extends ishml.Phrase
 		{
@@ -551,12 +552,22 @@ ishml.Phrase =class Phrase
 			{
 				this.results=thisPhrase.generate()
 				this.text=this.results.map(result=>result.value).join("")
-				if (property)
+				if (this.text)
+				{
+					this.results=phraseFactory(this.results).generate().map(item=>Object.assign({},item))
+					this.text=this.results.map(result=>result.value).join("")
+				}
+				else 
+				{
+					this.results=[]
+					this.text=""
+				}
+			/*	if (property)
 				{
 					
 					if (this.text)
 					{
-						this.results=phraseFactory(this.results[0][property]).generate()
+						this.results=phraseFactory(this.results[0][property]).generate().map(item=>Object.assign({},item))
 						this.text=this.results.map(result=>result.value).join("")
 					}
 					else 
@@ -571,11 +582,11 @@ ishml.Phrase =class Phrase
 					{
 						if (this.text)
 						{
-							this.results=phraseFactory(this.text).generate()
+							this.results=phraseFactory(this.text).generate().map(item=>Object.assign({},item))
 							this.text=this.results.map(result=>result.value).join("")
 						}
 					}	
-				}	
+				}*/	
 				return this.results
 			}
 		}(this)

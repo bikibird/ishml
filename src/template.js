@@ -22,17 +22,18 @@ ishml.template.__handler=
 		}
 		if (ishml.template[property]===undefined) //property names tagged phrase _.animal _.a.animal
 		{
-			var echo=ishml.template.echo.asFunction(property)
+			//maybe we want template(echo) maybe we want template(data(echo))
+			var echo=ishml.template.echo.asFunction(property)//echo instanceof ishml.Phrase
 			
-			return new Proxy(template(echo), //property === tagged phrase e.g. animal
+			return new Proxy(template(echo), // returns phrase which may be wrong. proxy is chance to correct it.
 			{
 				get:function(target,datum,receiver)  // datum === data.datum
 				{
-					if (Reflect.has(target,datum,receiver))
+					if (Reflect.has(target,datum,receiver))  //datum is property of phrase
 					{
-						return Reflect.get(target,datum,receiver) //taggedPhrase.datum
+						return target[datum] //removes proxy
 					}
-					else
+					else //datum is parameter of data phrase, so return the actual correct phrase
 					{
 						if (template.name==="_"){return ishml.template.data(echo,datum)}//strip off outer phrase 
 						if (template.name==="next"){return ishml.template.data(template(echo),datum)}
