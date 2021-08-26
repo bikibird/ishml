@@ -22,25 +22,33 @@ ishml.template.__handler=
 		}
 		if (ishml.template[property]===undefined) //property names tagged phrase _.animal _.a.animal
 		{
-			//maybe we want template(echo) maybe we want template(data(echo))
-			var echo=ishml.template.echo.asFunction(property)//echo instanceof ishml.Phrase
-			
-			return new Proxy(template(echo), // returns phrase which may be wrong. proxy is chance to correct it.
+			if (property.toUpperCase()===property)  //_.pick.ANIMAL("cat","dog","mouse") beccomes _.pick("cat","dog","mouse").tag("animal")
 			{
-				get:function(target,datum,receiver)  // datum === data.datum
+				return new Proxy((...precursor)=>template(...precursor).tag(property.toLowerCase())
+				,ishml.template.__handler)
+			}
+			else
+			{
+				//maybe we want template(echo) maybe we want template(data(echo))
+				var echo=ishml.template.echo.asFunction(property)//echo instanceof ishml.Phrase
+				
+				return new Proxy(template(echo), // returns phrase which may be wrong. proxy is chance to correct it.
 				{
-					if (Reflect.has(target,datum,receiver))  //datum is property of phrase
+					get:function(target,datum,receiver)  // datum === data.datum
 					{
-						return target[datum] //removes proxy
+						if (Reflect.has(target,datum,receiver))  //datum is property of phrase
+						{
+							return target[datum] //removes proxy
+						}
+						else //datum is parameter of data phrase, so return the actual correct phrase
+						{
+							if (template.name==="_"){return ishml.template.data(echo,datum)}//strip off outer phrase 
+							if (template.name==="next"){return ishml.template.data(template(echo),datum)}
+							else {return template(ishml.template.data(echo,datum))}
+						}
 					}
-					else //datum is parameter of data phrase, so return the actual correct phrase
-					{
-						if (template.name==="_"){return ishml.template.data(echo,datum)}//strip off outer phrase 
-						if (template.name==="next"){return ishml.template.data(template(echo),datum)}
-						else {return template(ishml.template.data(echo,datum))}
-					}
-				}
-			})
+				})
+			}	
 		}
 		var propertyAsFunction= ishml.template[property].asFunction // get template corresponding to property string
 		if (template.name==="_") //property is a function and so don't need initial outer phrase

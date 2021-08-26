@@ -104,7 +104,8 @@ plot.action.dropping.unfold=function(command)
     command.droppable=command.directObject?.where(c=>c.worn_by(command.subject))
     .add(command.directObject?.where(c=>c.carried_by(command.subject)))
     var episode=ishml.Episode(this)
-        .narration(()=>{if (!command.silently) _`<p>You dropped the ${_.list(command.droppable.knots.name)}.</p>`
+        .narration(()=>{if (!command.silently) _`<p>${_.cap.ACTOR()} dropped the ${_.list.DROPPABLE()}.</p>`
+            .populate(command)
             .say().append("#story")})
         .resolution(()=>
         {

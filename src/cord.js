@@ -162,17 +162,17 @@ ishml.Cord =class Cord extends Function //(function Cord(){})
 		{
 			var knot=ply.knot
 			var data={}
-			Object.keys(knot).forEach(key=>
+			Object.keys(ply).forEach(key=>
 			{
-				Object.assign(data,ply.knot)
-				if (property===undefined){data.value=knot.name}
-				else
-				{
-					if (property===""){data.value=""}
-					else{data.value=knot[property]}
-				}
-
+				data["ply_"+key]=ply[key]
 			})
+			Object.assign(data,ply.knot)
+			if (property===undefined){data.value=knot.name}
+			else
+			{
+				if (property===""){data.value=""}
+				else{data.value=knot[property]}
+			}
 			return data
 		})
 	}

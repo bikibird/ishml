@@ -208,6 +208,36 @@ ishml.Phrase =class Phrase
 		template.innerHTML = this.text
 		return template
 	}
+	get if()//DEFECT Not tested
+	{
+		var thisPhrase=this
+		return new Proxy((precursor) => new class ifPhrase extends ishml.Phrase
+		{
+			constructor()
+			{
+				super()
+				this.phrases[0]={value:thisPhrase}  
+				this.phrases[1]={value:precursor}  
+				this.catalog()
+			}
+			generate()
+			{
+				var a=this.phrases[0].value.generate()
+				this.phrases[1].value.generate()
+				if (this.phrases[1].value.text==="")
+				{
+					this.results=[]
+					this.text=""
+				}
+				else
+				{
+					this.results=this.phrases[0].value.generate()
+					this.text=this.phrases[0].value.text
+				}
+				return this.results
+			}
+		},ishml.template.__handler)
+	}
 	get inner()
 	{
 		if (this.phrases.length>0 && this.phrases[0].value instanceof ishml.Phrase)
@@ -397,9 +427,12 @@ ishml.Phrase =class Phrase
 					{
 						if(literals)
 						{	
-							
-							if (literals instanceof Object && !(literals instanceof ishml.Phrase) && !(literals instanceof Function) ){data = literals}
-							else {data=[literals]}
+							if (literals instanceof ishml.Cord){data=literals.data()}
+							else
+							{
+								if (literals instanceof Object && !(literals instanceof ishml.Phrase) && !(literals instanceof Function) ){data = literals}
+								else {data=[literals]}
+							}
 						}
 						else {data=[]}
 					}
@@ -443,8 +476,9 @@ ishml.Phrase =class Phrase
 				})
 			}	
 		}
-		else  // ishml phrase or simple data object
+		else  // ishml phrase or simple data object or cord
 		{
+			if (data instanceof ishml.Cord){data=data.data()}
 			Object.keys(data).forEach(key=>
 			{
 				if (this.tags.hasOwnProperty(key))
@@ -510,7 +544,7 @@ ishml.Phrase =class Phrase
 		this.catalog()
 		return this
 	}
-	get target(){return this}// remove any leftover proxy
+
 	get then()
 	{
 		var primaryPhrase=this

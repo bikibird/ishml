@@ -786,7 +786,7 @@ ishml.Phrase.define("s").as (precursor =>
 })
 ishml.template.define("a").as((...data)=> ishml.Phrase.prototype.modify(item=>`${ishml.lang.a(item.value)} ${item.value}`,...data))
 ishml.Phrase.define("z").as(precursor =>precursor.modify(item=>ishml.lang.z(item.value)))
-
+ishml.template.define("_actor").as((...data)=> new ishml.Phrase(...data).tag("actor"))
 /* Inflected Text */
 
 /*ishml.template.define("noun").as((cord)=>
