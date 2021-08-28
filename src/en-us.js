@@ -745,7 +745,7 @@ ishml.template.define("a").as((...data)=> ishml.Phrase.prototype.modify(item=>`$
 ishml.Phrase.define("z").as(precursor =>precursor.modify(item=>ishml.lang.z(item.value)))
 
 /* Inflected Text */
-
+/*
 ishml.template.define("are").as((...data)=>
 {
 	if (data.length>1 || data[0].number ===ishml.enum.number.plural || data.quantity>1 ||ply_quantity>1)
@@ -783,7 +783,7 @@ ishml.template.define("you").as((...data)=>
 	else {return new ishml.Phrase(ishml.lang.pronouns[data[0].gender][1])}
 
 },...data)
-
+*/
 /*ishml.template.define("noun").as((cord)=>
 {
 	//set command.noun and return list
