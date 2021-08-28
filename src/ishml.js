@@ -1278,17 +1278,17 @@ ishml.Cord =class Cord extends Function //(function Cord(){})
 		{
 			var knot=ply.knot
 			var data={}
-			Object.keys(knot).forEach(key=>
+			Object.keys(ply).forEach(key=>
 			{
-				Object.assign(data,ply.knot)
-				if (property===undefined){data.value=knot.name}
-				else
-				{
-					if (property===""){data.value=""}
-					else{data.value=knot[property]}
-				}
-
+				data["ply_"+key]=ply[key]
 			})
+			Object.assign(data,ply.knot)
+			if (property===undefined){data.value=knot.name}
+			else
+			{
+				if (property===""){data.value=""}
+				else{data.value=knot[property]}
+			}
 			return data
 		})
 	}
@@ -2100,6 +2100,7 @@ ishml.Phrase =class Phrase
 		Object.defineProperty(this,"text",{value:"",writable:true})
 		this._populate(...precursor)
 		this.catalog()
+		return new Proxy(this, ishml.Phrase.__handler)
 	}
 	get also()
 	{
@@ -2296,6 +2297,36 @@ ishml.Phrase =class Phrase
 		template.innerHTML = this.text
 		return template
 	}
+	get if()//DEFECT Not tested
+	{
+		var thisPhrase=this
+		return new Proxy((precursor) => new class ifPhrase extends ishml.Phrase
+		{
+			constructor()
+			{
+				super()
+				this.phrases[0]={value:thisPhrase}  
+				this.phrases[1]={value:precursor}  
+				this.catalog()
+			}
+			generate()
+			{
+				var a=this.phrases[0].value.generate()
+				this.phrases[1].value.generate()
+				if (this.phrases[1].value.text==="")
+				{
+					this.results=[]
+					this.text=""
+				}
+				else
+				{
+					this.results=this.phrases[0].value.generate()
+					this.text=this.phrases[0].value.text
+				}
+				return this.results
+			}
+		},ishml.template.__handler)
+	}
 	get inner()
 	{
 		if (this.phrases.length>0 && this.phrases[0].value instanceof ishml.Phrase)
@@ -2485,9 +2516,12 @@ ishml.Phrase =class Phrase
 					{
 						if(literals)
 						{	
-							
-							if (literals instanceof Object && !(literals instanceof ishml.Phrase) && !(literals instanceof Function) ){data = literals}
-							else {data=[literals]}
+							if (literals instanceof ishml.Cord){data=literals.data()}
+							else
+							{
+								if (literals instanceof Object && !(literals instanceof ishml.Phrase) && !(literals instanceof Function) ){data = literals}
+								else {data=[literals]}
+							}
 						}
 						else {data=[]}
 					}
@@ -2531,8 +2565,9 @@ ishml.Phrase =class Phrase
 				})
 			}	
 		}
-		else  // ishml phrase or simple data object
+		else  // ishml phrase or simple data object or cord
 		{
+			if (data instanceof ishml.Cord){data=data.data()}
 			Object.keys(data).forEach(key=>
 			{
 				if (this.tags.hasOwnProperty(key))
@@ -2598,7 +2633,7 @@ ishml.Phrase =class Phrase
 		this.catalog()
 		return this
 	}
-	get target(){return this}// remove any leftover proxy
+
 	get then()
 	{
 		var primaryPhrase=this
@@ -2693,6 +2728,23 @@ ishml.Phrase.define=function(id)
 		})
 	}
 	return {as:as}	
+}
+ishml.Phrase.__handler=
+{
+	get: function(target, property, receiver) 
+	{
+		if (Reflect.has(target,property,receiver)) 
+		{
+			return Reflect.get(target,property,receiver)
+		}
+		else 
+		{
+			if (property.toUpperCase()===property) 
+			{
+				return receiver.tag(property.toLowerCase())
+			}
+		}
+	}	
 }
 /*var inside=box=>_`Inside the ${box} was a ${_.favor(_.pick("steel strongbox","wooden casket","silk bag","paper sack","old purse").tag("container"),
 _.pick("ring","ancient coin", "ruby")).tag("contents")}. 
@@ -3137,25 +3189,33 @@ ishml.template.__handler=
 		}
 		if (ishml.template[property]===undefined) //property names tagged phrase _.animal _.a.animal
 		{
-			//maybe we want template(echo) maybe we want template(data(echo))
-			var echo=ishml.template.echo.asFunction(property)//echo instanceof ishml.Phrase
-			
-			return new Proxy(template(echo), // returns phrase which may be wrong. proxy is chance to correct it.
+			if (property.toUpperCase()===property)  //_.ANIMAL.pick.("cat","dog","mouse") beccomes _.pick("cat","dog","mouse").tag("animal")
 			{
-				get:function(target,datum,receiver)  // datum === data.datum
+				return new Proxy((precursor)=>template(precursor.tag(property.toLowerCase()))
+				,ishml.template.__handler)
+			}
+			else
+			{
+				//maybe we want template(echo) maybe we want template(data(echo))
+				var echo=ishml.template.echo.asFunction(property)//echo instanceof ishml.Phrase
+				
+				return new Proxy(template(echo), // returns phrase which may be wrong. proxy is chance to correct it.
 				{
-					if (Reflect.has(target,datum,receiver))  //datum is property of phrase
+					get:function(target,datum,receiver)  // datum === data.datum
 					{
-						return target[datum] //removes proxy
+						if (Reflect.has(target,datum,receiver))  //datum is property of phrase
+						{
+							return target[datum] //removes proxy
+						}
+						else //datum is parameter of data phrase, so return the actual correct phrase
+						{
+							if (template.name==="_"){return ishml.template.data(echo,datum)}//strip off outer phrase 
+							if (template.name==="next"){return ishml.template.data(template(echo),datum)}
+							else {return template(ishml.template.data(echo,datum))}
+						}
 					}
-					else //datum is parameter of data phrase, so return the actual correct phrase
-					{
-						if (template.name==="_"){return ishml.template.data(echo,datum)}//strip off outer phrase 
-						if (template.name==="next"){return ishml.template.data(template(echo),datum)}
-						else {return template(ishml.template.data(echo,datum))}
-					}
-				}
-			})
+				})
+			}	
 		}
 		var propertyAsFunction= ishml.template[property].asFunction // get template corresponding to property string
 		if (template.name==="_") //property is a function and so don't need initial outer phrase
