@@ -22,9 +22,9 @@ ishml.template.__handler=
 		}
 		if (ishml.template[property]===undefined) //property names tagged phrase _.animal _.a.animal
 		{
-			if (property.toUpperCase()===property)  //_.pick.ANIMAL("cat","dog","mouse") beccomes _.pick("cat","dog","mouse").tag("animal")
+			if (property.toUpperCase()===property)  //_.ANIMAL.pick.("cat","dog","mouse") beccomes _.pick("cat","dog","mouse").tag("animal")
 			{
-				return new Proxy((...precursor)=>template(...precursor).tag(property.toLowerCase())
+				return new Proxy((precursor)=>template(precursor.tag(property.toLowerCase()))
 				,ishml.template.__handler)
 			}
 			else

@@ -12,6 +12,7 @@ ishml.Phrase =class Phrase
 		Object.defineProperty(this,"text",{value:"",writable:true})
 		this._populate(...precursor)
 		this.catalog()
+		return new Proxy(this, ishml.Phrase.__handler)
 	}
 	get also()
 	{
@@ -639,6 +640,23 @@ ishml.Phrase.define=function(id)
 		})
 	}
 	return {as:as}	
+}
+ishml.Phrase.__handler=
+{
+	get: function(target, property, receiver) 
+	{
+		if (Reflect.has(target,property,receiver)) 
+		{
+			return Reflect.get(target,property,receiver)
+		}
+		else 
+		{
+			if (property.toUpperCase()===property) 
+			{
+				return receiver.tag(property.toLowerCase())
+			}
+		}
+	}	
 }
 /*var inside=box=>_`Inside the ${box} was a ${_.favor(_.pick("steel strongbox","wooden casket","silk bag","paper sack","old purse").tag("container"),
 _.pick("ring","ancient coin", "ruby")).tag("contents")}. 
