@@ -43,14 +43,14 @@ plot.main.dialog.input.unfold=function(twist)
         {
 
             _`<p>${_.favor(
-                _`You thoughts are fuzzy.  How does <q>${results.interpretations[0].remainder}</q> apply here?`,
+                _`Your thoughts are fuzzy.  How does <q>${results.interpretations[0].remainder}</q> apply here?`,
                 _`Confusedly, you think <q>${results.interpretations[0].remainder}</q> to yourself.`,
                 _`You realize <q>${results.interpretations[0].remainder}</q> doesn't make any sense here once you say it out loud.`)}</p>`.say().append("#story")
         }    
         else
         {
             _`<p>${_.favor(
-                _`You thoughts are fuzzy.  How does <q>${twist.input}</q> apply here?`,
+                _`Your thoughts are fuzzy.  How does <q>${twist.input}</q> apply here?`,
                 _`Confusedly, you think <q>${twist.input}</q> to yourself.`,
                 _`You realize <q>${twist.input}</q> doesn't make any sense here once you say it out loud.`)}</p>`
                 .say().append("#story")        
@@ -64,12 +64,14 @@ plot.main.dialog.input.unfold=function(twist)
 
 plot.action.asking_to.unfold=function(command)
 {
-    command.indirectObject.viewpoint=command.viewpoint
+    command.target.viewpoint=command.viewpoint
     return ishml.Episode(this)
-        .narration(()=>{if (!command.silently) _`You ask ${_list(command.indirectObject.knots.name)} to do something.`.say().append("#story")})
+        .narration(()=>{if (!command.silently) _`${_.ACTOR()} ask ${_list.TARGET()} to do something.`
+            .populate(command)
+            .say().append("#story")})
         .resolution(()=>
         {
-            var actionEpisode=command.indirectObject.verb.plot.unfold(command.indirectObject)
+            var actionEpisode=command.target.verb.plot.unfold(command.target)
             actionEpisode.viewpoint(command.viewpoint)
             story.introduce(actionEpisode)
         })
@@ -83,10 +85,12 @@ plot.action.asking_to.check.unfold=function(command)
 {
 
     return ishml.Episode(this)
-        .narration(()=>{if (!command.silently) _`${_.cap.list(_(command.indirectObject.knots.name).tag("subject"))} ${_`refuse`.es}.`.populate(command).say().append("#story")})
+        .narration(()=>{if (!command.silently) _`${_.cap.list.TARGET()} ${_`refuse`.es}.`
+            .populate(command)
+            .say().append("#story")})
         .resolution(()=>
         {
-            var actionEpisode=command.indirectObject.verb.plot.unfold(command.indirectObject)
+            var actionEpisode=command.target.verb.plot.unfold(command.target)
             actionEpisode.viewpoint(command.viewpoint)
             story.introduce(actionEpisode)
         })
@@ -100,9 +104,9 @@ plot.action.asking_to.instead
 
 plot.action.dropping.unfold=function(command)
 {
-    command.indirectObject=command.indirectObject ?? command.subject.in
-    command.droppable=command.directObject?.where(c=>c.worn_by(command.subject))
-    .add(command.directObject?.where(c=>c.carried_by(command.subject)))
+    command.target=command.target ?? command.subject.in
+    command.droppable=command.thing?.where(c=>c.worn_by(command.subject))
+    .add(command.thing?.where(c=>c.carried_by(command.subject)))
     var episode=ishml.Episode(this)
         .narration(()=>{if (!command.silently) _`<p>${_.cap.ACTOR()} dropped the ${_.list.DROPPABLE()}.</p>`
             .populate(command)
@@ -124,25 +128,29 @@ plot.action.dropping.verbs("drop","leave").register()
 plot.action.dropping.check.nothing.unfold=function(command)
 {
     
-    command.notDroppable=command.directObject?.subtract(command.droppable)
-    if(!command.directObject ||(command.droppable.isEmpty && command.notDroppable.isEmpty))
+    command.undroppable=command.thing?.subtract(command.droppable)
+    if(!command.thing ||(command.droppable.isEmpty && command.undroppable.isEmpty))
     {
         var episode=ishml.Episode(this)
-            .narration(()=>_`<p>You think about dropping something, but what?</p>`.say().append("#story"))
+            .narration(()=>_`<p>${_.ACTOR()} think about dropping something, but what?</p>`
+                .populate(command)
+                .say().append("#story"))
             .salience(3)   
             .viewpoint(command.viewpoint)
         return episode
     }
     return      
 }
-plot.action.dropping.check.notCapable.unfold=function(command)
+plot.action.dropping.check.incapable.unfold=function(command)
 {
     command.capable=command.subject.where(c=>c.has_skill($.action.dropping))
-    command.notCapable=command.subject.subtract(command.capable)
-    if (!command.notCapable.isEmpty)
+    command.incapable=command.subject.subtract(command.capable)
+    if (!command.incapable.isEmpty)
     {
         var episode=ishml.Episode(this)
-        .narration(()=>_`You are not capable of dropping.`.cache("notCapable").populate(command.notCapable).say().append("#story"))
+        .narration(()=>_`${_.cap.ACTOR()} are not capable of dropping ${_.INCAPABLE()}.`
+            .populate(command)
+            .say().append("#story"))
         .salience(3)   
         .viewpoint(command.viewpoint)
        return episode
@@ -150,14 +158,16 @@ plot.action.dropping.check.notCapable.unfold=function(command)
     return 
 }
 
-plot.action.dropping.check.notDroppable.unfold=function(command)
+plot.action.dropping.check.undroppable.unfold=function(command)
 {
 
-    if (!command.notDroppable.isEmpty)
+    if (!command.undroppable.isEmpty)
     {
         var episode=ishml.Episode(this)
-        .narration(()=> _`<p>You ${_.pick("think about dropping","want to drop", "would drop")} the ${_list(command.notDroppable.knots.name)}, but ${_.pick(_`you don't even have ${command.notDroppable.them}`,_`${command.notDroppable.they} ${command.notDroppable.are}n't in your possession`)}.</p>`.say().append("#story"))
-       /* .narration(()=> _`<p>You ${_.pick("think about dropping","want to drop", "would drop")} the ${cache=>_.list(cache.notDroppable.data.map(thing=>thing.knot.name))}, but ${_.pick(_`you don't even have ${cache=>cache.notDroppable.data.them}`,_`${cache=>cache.notDroppable.data.they} ${cache=>cache.notDroppable.data.are}n't in your possession`)}.</p>`.cache("notDroppable").populate(command.notDroppable).say().append("#story"))*/
+        .narration(()=> _`<p>${_.ACTOR()} ${_.pick("think about dropping","want to drop", "would drop")} the ${_.list.UNDROPPABLE()}, but ${_.pick(_`you don't even have ${_.them(_.UNDROPPABLE())}`,_`${_.they.undroppable} ${_.are.undroppable}n't in your possession`)}.</p>`
+            .populate(command)
+            .say().append("#story"))
+
         .salience(3)   
         .viewpoint(command.viewpoint)
         return episode
@@ -166,8 +176,8 @@ plot.action.dropping.check.notDroppable.unfold=function(command)
 }
 plot.action.dropping.check.notContainer.unfold=function(command)
 {
-    command.container=command.indirectObject.is("container")
-    command.notContainer=command.indirectObject.subtract(command.container)
+    command.container=command.target.is("container")
+    command.notContainer=command.target.subtract(command.container)
     if (command.container.isEmpty )
     {
         var episode=ishml.Episode(this)
@@ -208,8 +218,8 @@ plot.action.dropping.instead
 
 plot.action.going.unfold=function(command)
 {
-    if (!command.directObject){command.directObject={select:command.verb.select}}
-    command.destination=command.directObject.select(command.subject.select())
+    if (!command.thing){command.thing={select:command.verb.select}}
+    command.destination=command.thing.select(command.subject.select())
     var episode=ishml.Episode(this)
         .narration(()=>{if (!command.silently) _`You go. `.say().append("#story")})
         .resolution(()=>{command.subject.select().in.retie(command.destination)})
@@ -259,12 +269,12 @@ plot.action.looking.instead
 /*Taking*/
 plot.action.taking.unfold=function(command)
 {
-    if (!command.indirectObject)
+    if (!command.target)
     {
-        command.indirectObject=command.subject.in
+        command.target=command.subject.in
     }
     
-    command.portable=command.directObject.is("portable")
+    command.portable=command.thing.is("portable")
     var episode=ishml.Episode(this)
         .narration(()=>{if (!command.silently) _`Taken. `.say().append("#story")})
         //.resolution(()=>{command.portable.in.converse.untie().tie(cords.carries).from(command.capable)})
@@ -280,7 +290,7 @@ plot.action.taking.verbs("pick").particle("up").register()
         
 plot.action.taking.check.notPortable.unfold=function(command)
 {
-    command.notPortable=command.directObject.subtract(command.portable)
+    command.notPortable=command.thing.subtract(command.portable)
     if (!command.notPortable.isEmpty)
     {
         
@@ -333,7 +343,7 @@ plot.action.taking.check.reachable.unfold=function(command)
 plot.action.taking.check.nothing.unfold=function(command)
 {
     
-    if(!command.directObject ||(command.portable.isEmpty && command.notPortable.isEmpty))
+    if(!command.thing ||(command.portable.isEmpty && command.notPortable.isEmpty))
     {
         var episode=ishml.Episode(this)
             .narration(()=>_`<p>You think about taking something, but what?</p>`.say().append("#story"))

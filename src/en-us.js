@@ -69,7 +69,7 @@ ishml.yarn.grammar.ioPhrase=ishml.Rule().configure({mode:ishml.enum.mode.any})
 ishml.yarn.grammar.ioPhrase[1].snip("recipient",ishml.yarn.grammar.nounPhrase)    
 ishml.yarn.grammar.ioPhrase[2].snip("command",ishml.yarn.grammar.command)
 
-ishml.yarn.grammar.indirectObject=ishml.Rule().configure({minimum:0})
+ishml.yarn.grammar.target=ishml.Rule().configure({minimum:0})
     .snip("preposition",ishml.yarn.grammar.preposition).snip("phrase",ishml.yarn.grammar.ioPhrase)
 
 ishml.yarn.grammar.command.subject.configure({minimum:0 })
@@ -81,13 +81,13 @@ ishml.yarn.grammar.command.verb.configure({filter: (definition)=>definition.part
 
 ishml.yarn.grammar.command.object=ishml.Rule()
 .configure({minimum:0, mode:ishml.enum.mode.any})
-.snip(1)  //verbalParticle(required)/directObject/indirectObject
-.snip(2)  //directObject/verbal particle(optional)/indirectObject
-.snip(3)  //indirectObject/directObject
+.snip(1)  //verbalParticle(required)/thing/target
+.snip(2)  //thing/verbal particle(optional)/target
+.snip(3)  //target/thing
 
-ishml.yarn.grammar.command.object[1].snip("verbalParticle").snip("directObject",ishml.yarn.grammar.nounPhrase).snip("indirectObject",ishml.yarn.grammar.indirectObject)
-ishml.yarn.grammar.command.object[2].snip("directObject",ishml.yarn.grammar.nounPhrase).snip("verbalParticle").snip("indirectObject",ishml.yarn.grammar.indirectObject)
-ishml.yarn.grammar.command.object[3].snip("indirectObject",ishml.yarn.grammar.nounPhrase).snip("directObject",ishml.yarn.grammar.nounPhrase)
+ishml.yarn.grammar.command.object[1].snip("verbalParticle").snip("thing",ishml.yarn.grammar.nounPhrase).snip("target",ishml.yarn.grammar.target)
+ishml.yarn.grammar.command.object[2].snip("thing",ishml.yarn.grammar.nounPhrase).snip("verbalParticle").snip("target",ishml.yarn.grammar.target)
+ishml.yarn.grammar.command.object[3].snip("target",ishml.yarn.grammar.nounPhrase).snip("thing",ishml.yarn.grammar.nounPhrase)
 
 ishml.yarn.grammar.command.object[1].verbalParticle.configure({filter:(definition)=>definition.part==="particle"})
 ishml.yarn.grammar.command.object[2].verbalParticle.configure({minimum:0,filter:(definition)=>definition.part==="particle"})
@@ -125,21 +125,21 @@ ishml.yarn.grammar.command.semantics=(interpretation)=>
 {
     var valence=interpretation.gist.verb.definition.valence
     if (valence ===0 && interpretation.gist.hasOwnProperty("object")){return false}
-    if (valence ===1 && (interpretation.gist.object?.hasOwnProperty("indirectObject") || !interpretation.gist.object?.hasOwnProperty("directObject"))){return false}
-    if (valence ===2 && (!interpretation.gist.object?.hasOwnProperty("indirectObject") || !interpretation.gist.object?.hasOwnProperty("directObject"))){return false}
+    if (valence ===1 && (interpretation.gist.object?.hasOwnProperty("target") || !interpretation.gist.object?.hasOwnProperty("thing"))){return false}
+    if (valence ===2 && (!interpretation.gist.object?.hasOwnProperty("target") || !interpretation.gist.object?.hasOwnProperty("thing"))){return false}
     interpretation.gist.verb.plot=interpretation.gist.verb.definition.plot
 	if (interpretation.gist.verb.definition.select){interpretation.gist.verb.select=interpretation.gist.verb.definition.select}
     
     Object.assign(interpretation.gist,interpretation.gist.object)
     delete interpretation.gist.object
 
-    if (interpretation.gist.hasOwnProperty("indirectObject"))
+    if (interpretation.gist.hasOwnProperty("target"))
     {
-        interpretation.gist.preposition=interpretation.gist.indirectObject.preposition
-        delete interpretation.gist.indirectObject.preposition
-        Object.assign(interpretation.gist.indirectObject,interpretation.gist.indirectObject.phrase?.recipient)
-        Object.assign(interpretation.gist.indirectObject,interpretation.gist.indirectObject.phrase?.command)
-        delete interpretation.gist.indirectObject.phrase
+        interpretation.gist.preposition=interpretation.gist.target.preposition
+        delete interpretation.gist.target.preposition
+        Object.assign(interpretation.gist.target,interpretation.gist.target.phrase?.recipient)
+        Object.assign(interpretation.gist.target,interpretation.gist.target.phrase?.command)
+        delete interpretation.gist.target.phrase
     }
 
 
@@ -149,9 +149,9 @@ ishml.yarn.grammar.command.semantics=(interpretation)=>
         { 
             subject:{noun:ishml.yarn.lexicon.search("player", {longest:true, full:true}).filter(snippet=>snippet.token.definition.role==="player")[0].token},
             verb:ishml.yarn.lexicon.search("ask", {longest:true, full:true}).filter(snippet=>snippet.token.definition.part==="verb" && snippet.token.definition.preposition==="to")[0].token,
-            directObject:interpretation.gist.subject,
+            thing:interpretation.gist.subject,
             preposition:ishml.yarn.lexicon.search("to", {longest:true, full:true}).filter(snippet=>snippet.token.definition.part==="preposition")[0].token,
-            indirectObject:interpretation.gist
+            target:interpretation.gist
         }
         interpretation.gist.verb.plot=interpretation.gist.verb.definition.plot
     }
@@ -199,54 +199,9 @@ ishml.yarn.grammar.command.semantics=(interpretation)=>
 
 ishml.yarn.parser=ishml.Parser({ lexicon: ishml.yarn.lexicon, grammar: ishml.yarn.grammar.command})
 
-/* adaptive text-- cords*/
-Object.defineProperty(ishml.Cord, "are", { get: function()
-{
-	var number=this.size
-	if (number>1){return "are"}
-	else
-	{
-		if (number===1)
-		{
-			var ply=[...this.plies][0]
-			if (ply.ply.quantity>1|| ply.knot.plural || ply.knot.quantity>1){return "are"}
-			else {return "is"}
-		}	
-	}
-	return "is"
-}})
 
-Object.defineProperty(ishml.Cord, "them", { get: function()
-{
-	var number=this.size
-	if (number>1){return "them"}
-	else
-	{
-		if (number===1)
-		{
-			var ply=[...this.plies][0]
-			if (ply.ply.quantity>1|| ply.knot.plural || ply.knot.quantity>1){return "them"}
-			else {return ply.knot.objectivePronoun ?? "it"}
-		}	
-	}
-	return "it"
-}})
 
-Object.defineProperty(ishml.Cord, "they", { get: function()
-{
-	var number=this.size
-	if (number>1){return "they"}
-	else
-	{
-		if (number===1)
-		{
-			var ply=[...this.plies][0]
-			if (ply.ply.quantity>1|| ply.knot.plural || ply.knot.quantity>1){return "they"}
-			else {return ply.knot.objectivePronoun ?? "it"}
-		}	
-	}
-	return "it"
-}})
+
 
 /* Cordage */
 var cords=ishml.Cord.cordage
@@ -302,10 +257,12 @@ cords.thing=["thing@is:thing",...cords.portable,...cords.touchable]
 
 ishml.lang.pronouns=
 {
-  epicene:{subjective:"they",objective:"them",reflexive:"themself",possessive:"theirs"},
-  female:{subjective:"she",objective:"her",reflexive:"herself",possessive:"hers"},
-  male:{subjective:"he",objective:"him",reflexive:"himself",possessive:"his"},
-  neuter:{subjective:"it",objective:"it",reflexive:"itself",possessive:"its"}
+	
+  epicene:{subjective:["I","you","they"],objective:["me","you","them"],reflexive:["myself","yourself","themself"],possessive:["mine","yours","theirs"]},
+  female:{subjective:["I","you","she"],objective:["me","you","her"],reflexive:["myself","yourself","herself"],possessive:["mine","yours","hers"]},
+  male:{subjective:["I","you","he"],objective:["me","you","him"],reflexive:["myself","yourself","hisself"],possessive:["mine","yours","his"]},
+  neuter:{subjective:["I","you","it"],objective:["me","you","it"],reflexive:["myself","yourself","itself"],possessive:["mine","yours","its"]},
+  plural:{subjective:["we","you","they"],objective:["us","you","them"],reflexive:["ourself","yourself","themselves"],possessive:["ours","yours","theirs"]}
 }
 ishml.lang.preserveCase=function (text, pattern,initialism=true)
 {
@@ -786,8 +743,46 @@ ishml.Phrase.define("s").as (precursor =>
 })
 ishml.template.define("a").as((...data)=> ishml.Phrase.prototype.modify(item=>`${ishml.lang.a(item.value)} ${item.value}`,...data))
 ishml.Phrase.define("z").as(precursor =>precursor.modify(item=>ishml.lang.z(item.value)))
-ishml.template.define("_actor").as((...data)=> new ishml.Phrase(...data).tag("actor"))
+
 /* Inflected Text */
+
+ishml.template.define("are").as((...data)=>
+{
+	if (data.length>1 || data[0].number ===ishml.enum.number.plural || data.quantity>1 ||ply_quantity>1)
+	{
+		return new ishml.Phrase`are`
+	} 
+	else {return new ishml.Phrase`is`}
+
+})
+
+ishml.template.define("them").as((...data)=>
+{
+	if (data.length>1  || data[0].number ===ishml.enum.number.plural || data.quantity>1 ||ply_quantity>1)
+	{
+		return new ishml.Phrase(ishml.lang.pronouns.plural[2])
+	} 
+	else {return new ishml.Phrase(ishml.lang.pronouns[data[0].gender][2])}
+
+})
+ishml.template.define("they").as((...data)=>
+{
+	if (data.length>1  || data[0].number ===ishml.enum.number.plural || data.quantity>1 ||ply_quantity>1)
+	{
+		return new ishml.Phrase(ishml.lang.pronouns.plural[2])
+	} 
+	else {return new ishml.Phrase(ishml.lang.pronouns[data[0].gender][2])}
+
+})
+ishml.template.define("you").as((...data)=>
+{
+	if (data.length>1  || data[0].number ===ishml.enum.number.plural || data.quantity>1 ||ply_quantity>1)
+	{
+		return new ishml.Phrase(ishml.lang.pronouns.plural[1])
+	} 
+	else {return new ishml.Phrase(ishml.lang.pronouns[data[0].gender][1])}
+
+},...data)
 
 /*ishml.template.define("noun").as((cord)=>
 {

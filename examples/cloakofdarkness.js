@@ -41,6 +41,7 @@ $
 $.thing.cloak.configure({
 	name:"cloak",
 	description:"the blackest black velvet.",
+	gender:"neuter"
 })
 .singular("cloak")
 
@@ -60,7 +61,8 @@ $
 $.actor.player
 	.configure({
 		name:"player",
-		role:"player"
+		role:"player",
+		gender:"female"
 	})
 	lexicon.register("player").as({part:"noun", number:ishml.enum.number.singular, select:$.actor.player.cord, role:"player"})
 
