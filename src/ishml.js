@@ -2669,7 +2669,7 @@ ishml.Phrase =class Phrase
 	{
 		//var property=this._property
 		var thisPhrase=this
-		return new class transformPhrase extends ishml.Phrase
+		return new class expandPhrase extends ishml.Phrase
 		{
 			generate()
 			{
@@ -2677,7 +2677,14 @@ ishml.Phrase =class Phrase
 				this.text=this.results.map(result=>result.value).join("")
 				if (this.text)
 				{
-					this.results=phraseFactory(this.results).generate().map(item=>Object.assign({},item))
+					if(this.results.length===1 && this.results[0].value instanceof Array)
+					{
+						this.results=phraseFactory(this.results[0].value).generate().map(item=>Object.assign({},item))	
+					}
+					else
+					{
+						this.results=phraseFactory(this.results).generate().map(item=>Object.assign({},item))
+					}
 					this.text=this.results.map(result=>result.value).join("")
 				}
 				else 
