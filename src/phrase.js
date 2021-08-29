@@ -604,31 +604,6 @@ ishml.Phrase =class Phrase
 					this.results=[]
 					this.text=""
 				}
-			/*	if (property)
-				{
-					
-					if (this.text)
-					{
-						this.results=phraseFactory(this.results[0][property]).generate().map(item=>Object.assign({},item))
-						this.text=this.results.map(result=>result.value).join("")
-					}
-					else 
-					{
-						this.results=[]
-						this.text=""
-					}
-				}
-				else
-				{
-					if (this.results.length>0)
-					{
-						if (this.text)
-						{
-							this.results=phraseFactory(this.text).generate().map(item=>Object.assign({},item))
-							this.text=this.results.map(result=>result.value).join("")
-						}
-					}	
-				}*/	
 				return this.results
 			}
 		}(this)

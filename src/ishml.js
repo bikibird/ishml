@@ -2692,31 +2692,6 @@ ishml.Phrase =class Phrase
 					this.results=[]
 					this.text=""
 				}
-			/*	if (property)
-				{
-					
-					if (this.text)
-					{
-						this.results=phraseFactory(this.results[0][property]).generate().map(item=>Object.assign({},item))
-						this.text=this.results.map(result=>result.value).join("")
-					}
-					else 
-					{
-						this.results=[]
-						this.text=""
-					}
-				}
-				else
-				{
-					if (this.results.length>0)
-					{
-						if (this.text)
-						{
-							this.results=phraseFactory(this.text).generate().map(item=>Object.assign({},item))
-							this.text=this.results.map(result=>result.value).join("")
-						}
-					}	
-				}*/	
 				return this.results
 			}
 		}(this)
@@ -3197,9 +3172,16 @@ ishml.template.__handler=
 		if (ishml.template[property]===undefined) //property names tagged phrase _.animal _.a.animal
 		{
 			if (property.toUpperCase()===property)  //_.ANIMAL.pick.("cat","dog","mouse") beccomes _.pick("cat","dog","mouse").tag("animal")
+			//_.pick.ANIMAL("cat","dog","mouse") ==> _.pick(_.("cat","dog","mouse").tag())
 			{
-				return new Proxy((precursor)=>template(precursor.tag(property.toLowerCase()))
-				,ishml.template.__handler)
+				//return new Proxy((precursor)=>template(precursor.tag(property.toLowerCase()))
+				return new Proxy((...precursor)=>
+				{
+					if (precursor.length===1 && precursor[0] instanceof ishml.Phrase) {return template(precursor[0].tag(property.toLowerCase()))}
+
+					else {return template(new ishml.Phrase(...precursor).tag(property.toLowerCase()))}
+
+				}, ishml.template.__handler)
 			}
 			else
 			{

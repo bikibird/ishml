@@ -745,6 +745,23 @@ ishml.template.define("a").as((...data)=> ishml.Phrase.prototype.modify(item=>`$
 ishml.Phrase.define("z").as(precursor =>precursor.modify(item=>ishml.lang.z(item.value)))
 
 /* Inflected Text */
+ishml.template.define("them").as((...data)=>
+{
+	if (data.length>1  || data[0].number ===ishml.enum.number.plural || data.quantity>1 ||ply_quantity>1)
+	{
+		return new ishml.Phrase(ishml.lang.pronouns.plural[2])
+	} 
+	else {return new ishml.Phrase(ishml.lang.pronouns[data[0].gender][2])}
+})
+ishml.template.define("they").as((...data)=>
+{
+	if (data.length>1  || data[0].number ===ishml.enum.number.plural || data.quantity>1 ||ply_quantity>1)
+	{
+		return new ishml.Phrase(ishml.lang.pronouns.plural[2])
+	} 
+	else {return new ishml.Phrase(ishml.lang.pronouns[data[0].gender][2])}
+
+})
 /*
 ishml.template.define("are").as((...data)=>
 {
@@ -756,6 +773,7 @@ ishml.template.define("are").as((...data)=>
 
 })
 
+
 ishml.template.define("them").as((...data)=>
 {
 	if (data.length>1  || data[0].number ===ishml.enum.number.plural || data.quantity>1 ||ply_quantity>1)
@@ -763,17 +781,8 @@ ishml.template.define("them").as((...data)=>
 		return new ishml.Phrase(ishml.lang.pronouns.plural[2])
 	} 
 	else {return new ishml.Phrase(ishml.lang.pronouns[data[0].gender][2])}
-
 })
-ishml.template.define("they").as((...data)=>
-{
-	if (data.length>1  || data[0].number ===ishml.enum.number.plural || data.quantity>1 ||ply_quantity>1)
-	{
-		return new ishml.Phrase(ishml.lang.pronouns.plural[2])
-	} 
-	else {return new ishml.Phrase(ishml.lang.pronouns[data[0].gender][2])}
 
-})
 ishml.template.define("you").as((...data)=>
 {
 	if (data.length>1  || data[0].number ===ishml.enum.number.plural || data.quantity>1 ||ply_quantity>1)

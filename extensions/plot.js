@@ -66,7 +66,7 @@ plot.action.asking_to.unfold=function(command)
 {
     command.target.viewpoint=command.viewpoint
     return ishml.Episode(this)
-        .narration(()=>{if (!command.silently) _`${_.ACTOR()} ask ${_list.TARGET()} to do something.`
+        .narration(()=>{if (!command.silently) _`${_().ACTOR} ask ${_TARGET.list()} to do something.`
             .populate(command)
             .say().append("#story")})
         .resolution(()=>
@@ -108,7 +108,7 @@ plot.action.dropping.unfold=function(command)
     command.droppable=command.thing?.where(c=>c.worn_by(command.subject))
     .add(command.thing?.where(c=>c.carried_by(command.subject)))
     var episode=ishml.Episode(this)
-        .narration(()=>{if (!command.silently) _`<p>${_.cap.ACTOR()} dropped the ${_.list.DROPPABLE()}.</p>`
+        .narration(()=>{if (!command.silently) _`<p>${_.cap().ACTOR} dropped the ${_.list().DROPPABLE}.</p>`
             .populate(command)
             .say().append("#story")})
         .resolution(()=>
@@ -132,7 +132,7 @@ plot.action.dropping.check.nothing.unfold=function(command)
     if(!command.thing ||(command.droppable.isEmpty && command.undroppable.isEmpty))
     {
         var episode=ishml.Episode(this)
-            .narration(()=>_`<p>${_.ACTOR()} think about dropping something, but what?</p>`
+            .narration(()=>_`<p>${_().ACTOR} think about dropping something, but what?</p>`
                 .populate(command)
                 .say().append("#story"))
             .salience(3)   
@@ -148,7 +148,7 @@ plot.action.dropping.check.incapable.unfold=function(command)
     if (!command.incapable.isEmpty)
     {
         var episode=ishml.Episode(this)
-        .narration(()=>_`${_.cap.ACTOR()} are not capable of dropping ${_.INCAPABLE()}.`
+        .narration(()=>_`${_.cap().ACTOR} are not capable of dropping ${_.INCAPABLE()}.`
             .populate(command)
             .say().append("#story"))
         .salience(3)   
