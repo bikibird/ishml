@@ -374,8 +374,6 @@ ishml.Ply.handler=
 
 	get: function(target, property, receiver) 
 	{
-		//console.log("reciever",receiver)
-		
 		if (Reflect.has(target,property)){return Reflect.get(target,property, receiver)}
 		var ply=Reflect.get(target,"ply")
 		if(ply.hasOwnProperty(property))
@@ -388,8 +386,8 @@ ishml.Ply.handler=
 		{
 			if(Reflect.has(knot,property))
 			{
-				
-				return knot[property]
+				if (typeof knot[property]==="function") {return knot[property].bind(knot)}
+				else {knot[property]}
 			}
 			else {return new ishml.Cord()}
 		}

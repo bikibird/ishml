@@ -27,7 +27,7 @@ ishml.Knot= class Knot
 		//Returns cord with ply representing this knot.
 		return new ishml.Cord(this)
 	}
-	
+	get knot(){return this}
 	get ply()
 	{
 		//Turns bare knot into a ply.

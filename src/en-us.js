@@ -745,22 +745,53 @@ ishml.template.define("a").as((...data)=> ishml.Phrase.prototype.modify(item=>`$
 ishml.Phrase.define("z").as(precursor =>precursor.modify(item=>ishml.lang.z(item.value)))
 
 /* Inflected Text */
+
+ishml.template.define("are").as((...data)=>
+{
+	return ishml.Phrase.prototype.transform(results=>
+	{
+		if (results.length>1 || results[0].number ===ishml.enum.number.plural || results.quantity>1 ||results.ply_quantity>1)
+		{
+			return [{value:"are"}]
+		} 
+		else {return [{value:"is"}]}
+	},...data)	
+})
+ishml.template.define("Are").as((...data)=>
+{
+	return ishml.template.cap(ishml.template.are(...data))	
+})
 ishml.template.define("them").as((...data)=>
 {
-	if (data.length>1  || data[0].number ===ishml.enum.number.plural || data.quantity>1 ||ply_quantity>1)
+	return ishml.Phrase.prototype.transform(results=>
 	{
-		return new ishml.Phrase(ishml.lang.pronouns.plural[2])
-	} 
-	else {return new ishml.Phrase(ishml.lang.pronouns[data[0].gender][2])}
+		if (results.length>1  || results[0].number ===ishml.enum.number.plural || results.quantity>1 ||results.ply_quantity>1)
+		{
+			return [{value:ishml.lang.pronouns.plural.objective[2]}]
+		} 
+		else {return [{value:ishml.lang.pronouns[results[0].gender].objective[2]}]}
+		
+	},...data)
+})
+ishml.template.define("Them").as((...data)=>
+{
+	return ishml.template.cap(ishml.template.them(...data))	
 })
 ishml.template.define("they").as((...data)=>
 {
-	if (data.length>1  || data[0].number ===ishml.enum.number.plural || data.quantity>1 ||ply_quantity>1)
+	return ishml.Phrase.prototype.transform(results=>
 	{
-		return new ishml.Phrase(ishml.lang.pronouns.plural[2])
-	} 
-	else {return new ishml.Phrase(ishml.lang.pronouns[data[0].gender][2])}
+		if (results.length>1 || results[0].number ===ishml.enum.number.plural || results.quantity>1 ||results.ply_quantity>1)
+		{
+			return [{value:ishml.lang.pronouns.plural.subjective[2]}]
+		} 
+		else {return [{value:ishml.lang.pronouns[results[0].gender].subjective[2]}]}
+	},...data)	
 
+})
+ishml.template.define("They").as((...data)=>
+{
+	return ishml.template.cap(ishml.template.they(...data))	
 })
 /*
 ishml.template.define("are").as((...data)=>

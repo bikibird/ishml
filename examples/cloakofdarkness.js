@@ -7,7 +7,7 @@ $
 $.place.foyer
 	.tie("west").to($.place.cloakroom)
 	.tie("south").to($.place.bar)
-	.knot.configure({
+	.configure({
 		name:"Foyer of the Opera House",
 		description:`You are standing in a spacious hall, splendidly decorated in red and gold, with glittering chandeliers overhead. The entrance from the street is to the north, and there are doorways south and west.`,
 		
@@ -15,15 +15,15 @@ $.place.foyer
 	.singular("foyer", "foyer of the Opera House")
 //lexicon.register("foyer").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.place.foyer})
 
-$.place.cloakroom.knot.configure({
+$.place.cloakroom.configure({
 	name:"Cloakroom",
 	description:`The walls of this small room were clearly once lined with hooks, though now only one remains.
 		The exit is a door to the east.`
 })
-.singular("cloakroom")
+	.singular("cloakroom")
 //lexicon.register("cloakroom").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.place.cloakroom})
 
-$.place.bar.knot.configure({
+$.place.bar.configure({
 	name:"Bar",
 	description:`The bar, much rougher than you'd have guessed after the opulence of the foyer to the north, is completely empty. There seems to be some sort of message scrawled in the sawdust on the floor.`
 }) 

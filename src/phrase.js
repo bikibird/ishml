@@ -337,6 +337,28 @@ ishml.Phrase =class Phrase
 			}
 		}()
 	}
+	transform(transformer,...data)
+	{
+		if(data.length>0)
+		{
+			if(data.length===1 && data[0] instanceof ishml.Phrase){var target=data[0]}
+		}
+		else {var target=this}
+		return new class transformPhrase extends ishml.Phrase
+		{
+			constructor()
+			{
+				if (target){super(target)}
+				else{super(...data)}
+			}
+			generate()
+			{
+				this.results=transformer(super.generate().slice(0).map(phrase=>Object.assign({},phrase)))
+				this.text=this.results.map(phrase=>phrase.value).join("")
+				return this.results
+			}
+		}()
+	}
 
 	per(id)
 	{
@@ -608,7 +630,10 @@ ishml.Phrase =class Phrase
 			}
 		}(this)
 	}
+	
 }
+
+
 ishml.Phrase.define=function(id)
 {
 	var as= (phraseFactory)=>
@@ -640,12 +665,4 @@ ishml.Phrase.__handler=
 		}
 	}	
 }
-/*var inside=box=>_`Inside the ${box} was a ${_.favor(_.pick("steel strongbox","wooden casket","silk bag","paper sack","old purse").tag("container"),
-_.pick("ring","ancient coin", "ruby")).tag("contents")}. 
-${_.contents.concur("container").transform(inside)}
-${_`She put the ${_.contents} back in the ${box}. `}`
 
-var example1=_`Cas looked under the bed and found a package wrapped with a red ribbon.  Carefully, she unwrapped the package. 
-${inside("package")}Cas rewrapped the package and put it back under the bed.  ${_.pick("No one would be the wiser. ", 
-"Now she knew. ", "She was elated. ", "She was disappointed.")}`
-*/

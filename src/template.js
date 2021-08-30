@@ -17,15 +17,12 @@ ishml.template.__handler=
 		//template is function that returns a prhase
 		if (property==="asFunction")
 		{
-			//property === "asFunction"
 			return template	 
 		}
-		if (ishml.template[property]===undefined) //property names tagged phrase _.animal _.a.animal
+		if (ishml.template[property]===undefined) //property requests or reffers to tagged phrase
 		{
-			if (property.toUpperCase()===property)  //_.ANIMAL.pick.("cat","dog","mouse") beccomes _.pick("cat","dog","mouse").tag("animal")
-			//_.pick.ANIMAL("cat","dog","mouse") ==> _.pick(_.("cat","dog","mouse").tag())
+			if (property.toUpperCase()===property)  
 			{
-				//return new Proxy((precursor)=>template(precursor.tag(property.toLowerCase()))
 				return new Proxy((...precursor)=>
 				{
 					if (precursor.length===1 && precursor[0] instanceof ishml.Phrase) {return template(precursor[0].tag(property.toLowerCase()))}
