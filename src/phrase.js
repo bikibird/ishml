@@ -14,7 +14,37 @@ ishml.Phrase =class Phrase
 		this.catalog()
 		return new Proxy(this, ishml.Phrase.__handler)
 	}
-	get also()
+	get also()  //identical to _() below
+	{
+		var primaryPhrase=this
+		return new Proxy((...precursor) => new class thenPhrase extends ishml.Phrase
+		{
+			constructor()
+			{
+				super()
+				this.phrases[0]={value:primaryPhrase}
+				this.phrases[1]={value:new ishml.Phrase(...precursor)}
+				this.catalog()
+			}
+			generate()
+			{
+				var results=this.phrases[0].value.generate()
+				if (results.length>0)
+				{
+					this.results=results.concat(this.phrases[1].value.generate())
+					this.text=this.phrases[0].value.text+ this.phrases[1].value.text
+				}
+				else
+				{
+					this.results=results
+					this.text=""
+				}
+				return this.results
+			}
+		},ishml.template.__handler)
+	}
+
+	get _() //identical to also() above
 	{
 		var primaryPhrase=this
 		return new Proxy((...precursor) => new class thenPhrase extends ishml.Phrase
@@ -632,8 +662,6 @@ ishml.Phrase =class Phrase
 	}
 	
 }
-
-
 ishml.Phrase.define=function(id)
 {
 	var as= (phraseFactory)=>

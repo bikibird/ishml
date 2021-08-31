@@ -41,7 +41,6 @@ ishml.yarn.click=function(e)
 		var twist=Object.assign(
 			{
 				input:e.target.value,
-				viewpoint:"player",
 				moment:ishml.yarn.clock
 			},e.target.dataset)
 
@@ -64,7 +63,6 @@ ishml.yarn.keyup=function(e)
 			var twist=Object.assign(
 				{
 					input:e.target.value,
-					viewpoint:"player",
 					moment:ishml.yarn.clock
 				},e.target.dataset)
 	
@@ -359,20 +357,20 @@ ishml.yarn.save=function(key)
 		}	 
 	})	
 }
-ishml.yarn.tell=function(viewpoint="player") 
+ishml.yarn.tell=function(timeline="player") 
 {
-	while(this.storyline[viewpoint].length>0)
+	while(this.storyline[timeline].length>0)
 	{
-		Object.keys(this.storyline).forEach(viewpoint=>
+		Object.keys(this.storyline).forEach(timeline=>
 		{
-			this.storyline[viewpoint].forEach((episode,index)=>
+			this.storyline[timeline].forEach((episode,index)=>
 			{
 				if (!episode.start() || episode.start() <= this.clock)
 				{
 					if (episode.resolve(this.clock).told){episode.narrate()}
 				}
 			})
-			this.storyline[viewpoint]=this.storyline[viewpoint].filter(episode=>!episode.told)
+			this.storyline[timeline]=this.storyline[timeline].filter(episode=>!episode.told)
 		})
 		this.tick()
 	}	
@@ -382,13 +380,13 @@ ishml.yarn.tell=function(viewpoint="player")
 
 ishml.yarn.introduce=function(episode) 
 {
-	var viewpoint=episode.viewpoint()
-	if (!this.storyline.hasOwnProperty(viewpoint))
+	var timeline=episode.timeline()
+	if (!this.storyline.hasOwnProperty(timeline))
 	{
-		this.storyline[viewpoint]=[]
+		this.storyline[timeline]=[]
 	}
 
-	this.storyline[viewpoint].push(episode)
+	this.storyline[timeline].push(episode)
 	return this
 }	
 

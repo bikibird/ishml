@@ -4,15 +4,15 @@
  //   _`Confusedly, you think <q>${cache=>cache.remainder.data}</q> to yourself.`,
 //    _`You realize <q>${cache=>cache.remainder.data}</q> doesn't make any sense here once you say it out loud.`)}</p>`
  //       .cache("remainder")
-var story=ishml.yarn
-var plot=story.plot
-var lexicon=story.lexicon
-var $ = story.net
+var yarn=ishml.yarn
+var plot=yarn.plot
+var lexicon=yarn.lexicon
+var $ = yarn.net
 var _ =ishml.template._ 
 plot.main.dialog.input.unfold=function(twist)
 {
     var episodes=[]
-    var results=story.parser.analyze(this.twist.input)
+    var results=yarn.parser.analyze(this.twist.input)
     if(results.success)
     {
         var interpretations=results.interpretations
@@ -20,8 +20,8 @@ plot.main.dialog.input.unfold=function(twist)
         {
             var command=
             {
-                actor:$.actor[this.twist.viewpoint].cord,
-                viewpoint:this.twist.viewpoint,
+                actor:$.actor[this.twist.timeline].cord,
+                timeline:this.twist.timeline,
                 gist:interpretation.gist,
             }
             Object.keys(interpretation.gist).forEach(key=>
@@ -33,8 +33,8 @@ plot.main.dialog.input.unfold=function(twist)
         if (episodes.length>0)
         {
 
-            story.introduce(episodes[0])
-            story.tell(this.twist.viewpoint)
+            yarn.introduce(episodes[0])
+            yarn.tell(this.twist.timeline)
         }    
     }
     else
@@ -64,7 +64,7 @@ plot.main.dialog.input.unfold=function(twist)
 
 plot.action.asking_to.unfold=function(command)
 {
-    command.target.viewpoint=command.viewpoint
+    command.target.timeline=command.timeline
     return ishml.Episode(this)
         .narration(()=>{if (!command.silently) _`${_().ACTOR} ask ${_TARGET.list()} to do something.`
             .populate(command)
@@ -72,11 +72,11 @@ plot.action.asking_to.unfold=function(command)
         .resolution(()=>
         {
             var actionEpisode=command.target.verb.plot.unfold(command.target)
-            actionEpisode.viewpoint(command.viewpoint)
-            story.introduce(actionEpisode)
+            actionEpisode.timeline(command.timeline)
+            yarn.introduce(actionEpisode)
         })
         .salience(5)
-        .viewpoint(command.viewpoint)  
+        .timeline(command.timeline)  
         .abridge(()=>this.check.unfold(command))
         .revise(()=>this.instead.unfold(command))
 }
@@ -85,17 +85,17 @@ plot.action.asking_to.check.unfold=function(command)
 {
 
     return ishml.Episode(this)
-        .narration(()=>{if (!command.silently) _`${_.cap.list.TARGET()} ${_`refuse`.es}.`
+        .narration(()=>{if (!command.silently) _`${_.cap.list.TARGET()} refused.`
             .populate(command)
             .say().append("#story")})
         .resolution(()=>
         {
             var actionEpisode=command.target.verb.plot.unfold(command.target)
-            actionEpisode.viewpoint(command.viewpoint)
-            story.introduce(actionEpisode)
+            actionEpisode.timeline(command.timeline)
+            yarn.introduce(actionEpisode)
         })
         .salience(5)
-        .viewpoint(command.viewpoint)  
+        .timeline(command.timeline)  
         .revise(()=>this.unfoldSubplot(command))
 }
 plot.action.asking_to.instead
@@ -108,7 +108,7 @@ plot.action.dropping.unfold=function(command)
     command.droppable=command.thing?.where(c=>c.worn_by(command.subject))
     .add(command.thing?.where(c=>c.carried_by(command.subject)))
     var episode=ishml.Episode(this)
-        .narration(()=>{if (!command.silently) _`<p>${_.cap().ACTOR} dropped the ${_.list().DROPPABLE}.</p>`
+        .narration(()=>{if (!command.silently) _`<p>${_.they.ACTOR()} dropped the ${_.list().DROPPABLE}.</p>`
             .populate(command)
             .say().append("#story")})
         .resolution(()=>
@@ -117,7 +117,7 @@ plot.action.dropping.unfold=function(command)
             command.droppable.converse("worn_by").untie().tie("in").to(command.container)
         })
         .salience(5)
-        .viewpoint(command.viewpoint)
+        .timeline(command.timeline)
         .abridge(()=>this.check.unfold(command))
         .revise(()=>this.instead.unfold(command))
     return episode                
@@ -136,7 +136,7 @@ plot.action.dropping.check.nothing.unfold=function(command)
                 .populate(command)
                 .say().append("#story"))
             .salience(3)   
-            .viewpoint(command.viewpoint)
+            .timeline(command.timeline)
         return episode
     }
     return      
@@ -152,7 +152,7 @@ plot.action.dropping.check.incapable.unfold=function(command)
             .populate(command)
             .say().append("#story"))
         .salience(3)   
-        .viewpoint(command.viewpoint)
+        .timeline(command.timeline)
        return episode
     }
     return 
@@ -169,7 +169,7 @@ plot.action.dropping.check.undroppable.unfold=function(command)
             .say().append("#story"))
 
         .salience(3)   
-        .viewpoint(command.viewpoint)
+        .timeline(command.timeline)
         return episode
     }
     return 
@@ -183,7 +183,7 @@ plot.action.dropping.check.notContainer.unfold=function(command)
         var episode=ishml.Episode(this)
         .narration(()=>_`That's not a container.`.cache("selfContainer").populate(command.selfContainer).say().append("#story"))
         .salience(3)   
-        .viewpoint(command.viewpoint)
+        .timeline(command.timeline)
         return episode
     }
     return 
@@ -195,7 +195,7 @@ plot.action.dropping.check.whichContainer.unfold=function(command)
         var episode=ishml.Episode(this)
         .narration(()=>_`Which container?`.cache("selfContainer").populate(command.selfContainer).say().append("#story"))
         .salience(3)   
-        .viewpoint(command.viewpoint)
+        .timeline(command.timeline)
         return episode
     }
     return 
@@ -207,7 +207,7 @@ plot.action.dropping.check.selfContainer.unfold=function(command)
         var episode=ishml.Episode(this)
         .narration(()=>_`It cannot contain itself.`.cache("selfContainer").populate(command.selfContainer).say().append("#story"))
         .salience(3)   
-        .viewpoint(command.viewpoint)
+        .timeline(command.timeline)
         return episode
     }
     return 
@@ -224,7 +224,7 @@ plot.action.going.unfold=function(command)
         .narration(()=>{if (!command.silently) _`You go. `.say().append("#story")})
         .resolution(()=>{command.subject.select().in.retie(command.destination)})
         .salience(5)
-        .viewpoint(command.viewpoint)
+        .timeline(command.timeline)
         .abridge(()=>this.check.unfold(command))
         .revise(()=>this.instead.unfold(command))
     return episode                
@@ -255,7 +255,7 @@ plot.action.looking.unfold=function(command)
             <p></p>`
             .say().append("#story")})
         .salience(5)
-        .viewpoint(command.viewpoint)
+        .timeline(command.timeline)
         .abridge(()=>this.check.unfold(command))
         .revise(()=>this.instead.unfold(command))
     return episode    
@@ -280,7 +280,7 @@ plot.action.taking.unfold=function(command)
         //.resolution(()=>{command.portable.in.converse.untie().tie(cords.carries).from(command.capable)})
         .resolution(()=>{command.portable.in.untie().from.tie("carried_by").to(command.capable)})
         .salience(5)
-        .viewpoint(command.viewpoint)
+        .timeline(command.timeline)
         .abridge(()=>this.check.unfold(command))
         .revise(()=>this.instead.unfold(command))
     return episode                
@@ -296,9 +296,9 @@ plot.action.taking.check.notPortable.unfold=function(command)
         
         return ishml.Episode(this)
         .narration(()=> _`<p>You ${_.pick("think about taking","want to take", "would take")} the ${_.list(command.notPortable.knots.name)}, but ${_.pick(_` ${command.notPortable.them} isn't portable`,_`${command.notPortable.they} ${command.notPortable.are} too unwieldy`)}.</p>`.say().append("#story"))
-           /* .narration(()=> _`<p>You ${_.pick("think about taking","want to take", "would take")} the ${cache=>_.list(cache.notPortable.data.map(thing=>thing.knot.name))}, but ${_.pick(_` ${cache=>cache.notPortable.data.them} isn't portable`,_`${cache=>cache.notPortable.data.they} ${cache=>cache.notPortable.data.are} too unwieldy`)}.</p>`.cache("notPortable").populate(command.notPortable).say().append("#story"))*/
+           /* .narration(()=> _`<p>You ${_.pick("think about taking","want to take", "would take")} the ${cache=>_.list(cache.notPortable.data.map(thing=>thing.knot.name))}, but ${_.pick(_` ${cache=>cache.notPortable.data.them} isn't portable`,_`${cache=>cache.notPortable.data.they} ${cache=>cache.notPortable.data.are} too unwieldy`)}.</p>`.cache("notPortable").populate(command.notPortable).say().append("#yarn"))*/
             .salience(3)   
-            .viewpoint(command.viewpoint)
+            .timeline(command.timeline)
         
     }
     
@@ -313,7 +313,7 @@ plot.action.taking.check.notCapable.unfold=function(command)
         return ishml.Episode(this)
             .narration(()=>_`You are not capable of taking.`.cache("notCapable").populate(command.notCapable).say().append("#story"))
             .salience(3)   
-            .viewpoint(command.viewpoint)
+            .timeline(command.timeline)
     }
 }
 plot.action.taking.check.selfTaking.unfold=function(command)
@@ -323,7 +323,7 @@ plot.action.taking.check.selfTaking.unfold=function(command)
         return ishml.Episode(this)
             .narration(()=>_`Cannot self-take.`.say().append("#story"))
             .salience(3)   
-            .viewpoint(command.viewpoint)
+            .timeline(command.timeline)
      }
   
 }
@@ -336,7 +336,7 @@ plot.action.taking.check.reachable.unfold=function(command)
         return ishml.Episode(this)
             .narration(()=>_`Not reachable.`.say().append("#story"))
             .salience(3)   
-            .viewpoint(command.viewpoint)
+            .timeline(command.timeline)
      }
   
 }
@@ -348,7 +348,7 @@ plot.action.taking.check.nothing.unfold=function(command)
         var episode=ishml.Episode(this)
             .narration(()=>_`<p>You think about taking something, but what?</p>`.say().append("#story"))
             .salience(3)   
-            .viewpoint(command.viewpoint)
+            .timeline(command.timeline)
         return episode
     }
     return      

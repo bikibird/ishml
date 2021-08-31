@@ -14,7 +14,7 @@ ishml.Episode=function Episode(plot)
 		Object.defineProperty(this, "retracted", {value:false, writable: true})
 		Object.defineProperty(this, "_narration", {value:()=>_``.say().append("#story"),writable: true})
 		Object.defineProperty(this, "_resolution", {value:()=>true,writable: true})
-		Object.defineProperty(this, "_viewpoint", {value:null,writable: true})
+		Object.defineProperty(this, "_timeline", {value:null,writable: true})
 		Object.defineProperty(this, "stock", {value:null,writable: true})
 
 		Object.defineProperty(this, "told", {value:false,writable: true})
@@ -44,7 +44,7 @@ ishml.Episode.prototype.abridge = function (createEpisode)
 		while (rootEpisode.stock){rootEpisode=rootEpisode.stock}
 		rootEpisode.stock=this
 		episode.abridged=true
-		return episode.viewpoint(this._viewpoint).salience(this._salience)
+		return episode.timeline(this._timeline).salience(this._salience)
 	}
 }
 /* The append method returns generates the most salient episode generated from the subplot of the plotpoint or a new,empty, episode if no plotpoint.  The stock.prolog property is set to true, which causes narrate method to execute on the stock episode prior to executing the narration on the appended episode.  The stock.prolog property is set to true, which causes resolve method to execute on the stock episode prior to executing the resolution on the appended episode. */
@@ -58,7 +58,7 @@ ishml.Episode.prototype.append = function (createEpisode)
 		{	
 			episodes[0].stock=this
 			episodes[0].stock.prolog=true
-			return episodes[0].viewpoint(this._viewpoint).salience(this._salience)
+			return episodes[0].timeline(this._timeline).salience(this._salience)
 		}
 	}
 	else
@@ -69,7 +69,7 @@ ishml.Episode.prototype.append = function (createEpisode)
 		while (rootEpisode.stock){rootEpisode=rootEpisode.stock}
 		rootEpisode.stock=this
 		rootEpisode.stock.prolog=true
-		return episode.viewpoint(this._viewpoint).salience(this._salience)
+		return episode.timeline(this._timeline).salience(this._salience)
 	}
 }
 
@@ -90,7 +90,7 @@ ishml.Episode.prototype.before = function (createEpisode)
 			while (rootEpisode.stock){rootEpisode=rootEpisode.stock}
 			rootEpisode.stock=this
 			rootEpisode.stock.prolog=true
-			return episode.viewpoint(this._viewpoint).salience(this._salience)
+			return episode.timeline(this._timeline).salience(this._salience)
 		}
 	}
 	this.retracted=true
@@ -113,7 +113,7 @@ ishml.Episode.prototype.after = function (createEpisode)
 			while (rootEpisode.stock){rootEpisode=rootEpisode.stock}
 			rootEpisode.stock=this
 			rootEpisode.stock.epilog=true
-			return episode.viewpoint(this._viewpoint).salience(this._salience)
+			return episode.timeline(this._timeline).salience(this._salience)
 		}
 	}
 	this.retracted=true
@@ -183,7 +183,7 @@ ishml.Episode.prototype.revise = function (createEpisode)
 		}
 		else 
 		{	episode.stock=this
-			return episode.viewpoint(this._viewpoint).salience(this._salience)
+			return episode.timeline(this._timeline).salience(this._salience)
 		}
 	}
 	else { return this}
@@ -214,11 +214,11 @@ ishml.Episode.prototype.stop=function(...stop)
 		return this
 	}
 }
-ishml.Episode.prototype.viewpoint=function(viewpoint)
+ishml.Episode.prototype.timeline=function(timeline)
 {
-	if(viewpoint===undefined){return this._viewpoint}
+	if(timeline===undefined){return this._timeline}
 	{
-		this._viewpoint=viewpoint
+		this._timeline=timeline
 		return this
 	}
 }

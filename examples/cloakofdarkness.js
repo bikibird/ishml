@@ -67,8 +67,6 @@ $.actor.player
 	lexicon.register("player").as({part:"noun", number:ishml.enum.number.singular, select:$.actor.player.cord, role:"player"})
 
 
-	
-
 
 /*Actions*/
 $
@@ -128,5 +126,5 @@ lexicon
 		.as({plot:plot.action.hanging, part: "verb", particle:"up", preposition:"on"})	  	
 */
 
-story.harken()
+yarn.harken()
 
