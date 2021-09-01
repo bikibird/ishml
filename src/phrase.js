@@ -1,3 +1,5 @@
+//DOCUMENTATION  during generate if phrases[n].silence is true phrase has text set to "" and results set to []
+
 ishml.Phrase =class Phrase
 {
 	constructor(...precursor) 
@@ -14,7 +16,7 @@ ishml.Phrase =class Phrase
 		this.catalog()
 		return new Proxy(this, ishml.Phrase.__handler)
 	}
-	get also()  //identical to _() below
+	get also()  //simalr to _() below expect does not add space
 	{
 		var primaryPhrase=this
 		return new Proxy((...precursor) => new class thenPhrase extends ishml.Phrase
@@ -44,7 +46,7 @@ ishml.Phrase =class Phrase
 		},ishml.template.__handler)
 	}
 
-	get _() //identical to also() above
+	get _() //similar to also() above, but adds space
 	{
 		var primaryPhrase=this
 		return new Proxy((...precursor) => new class thenPhrase extends ishml.Phrase
@@ -61,8 +63,8 @@ ishml.Phrase =class Phrase
 				var results=this.phrases[0].value.generate()
 				if (results.length>0)
 				{
-					this.results=results.concat(this.phrases[1].value.generate())
-					this.text=this.phrases[0].value.text+ this.phrases[1].value.text
+					this.results=results.concat([{value:" "}],this.phrases[1].value.generate())
+					this.text=this.results.map(item=>item.value).join("")
 				}
 				else
 				{
@@ -142,7 +144,7 @@ ishml.Phrase =class Phrase
 			{
 				super.generate()
 				this.results=this.results.filter(item=>rule(item,this.tags[tag].results))
-				this.text=this.results.map(phrase=>phrase.value).join("")
+				this.text=this.results.map(item=>item.value).join("")
 				return this.results
 			}
 		}(this)
@@ -196,7 +198,7 @@ ishml.Phrase =class Phrase
 					result.subtotal=subtotal
 					result.total=total
 				})
-				this.text=this.results.map(phrase=>phrase.value).join("")
+				this.text=this.results.map(item=>item.value).join("")
 				return this.results
 			}
 		}(this)
@@ -206,29 +208,36 @@ ishml.Phrase =class Phrase
 		this.results=[]
 		phrases.forEach((phrase)=>
 		{
-			if (phrase.value instanceof ishml.Phrase) 
+			if (!phrase.silence)
 			{
-				this.results=this.results.concat(phrase.value.generate().map(subPhrase=>Object.assign(Object.assign({},phrase),subPhrase)))
-			}
-			else
-			{
-				if (phrase.value instanceof Function)
+				if (phrase.value instanceof ishml.Phrase) 
 				{
-					var deferredPhrase=phrase.value(this.tags)
-					if (deferredPhrase instanceof ishml.Phrase)
-					{
-						this.results=this.results.concat(deferredPhrase.generate().map(subPhrase=>Object.assign(Object.assign({},phrase),subPhrase)))
-					}
-					else
-					{
-						this.results=this.results.concat(Object.assign(Object.assign({},phrase),{value:deferredPhrase?.toString()}))
-					}
+					this.results=this.results.concat(phrase.value.generate().map(subPhrase=>Object.assign(Object.assign({},phrase),subPhrase)))
 				}
 				else
 				{
-					this.results=this.results.concat(Object.assign(Object.assign({},phrase),{value:phrase.value?.toString()}))
+					if (phrase.value instanceof Function)
+					{
+						var deferredPhrase=phrase.value(this.tags)
+						if (deferredPhrase instanceof ishml.Phrase)
+						{
+							this.results=this.results.concat(deferredPhrase.generate().map(subPhrase=>Object.assign(Object.assign({},phrase),subPhrase)))
+						}
+						else
+						{
+							this.results=this.results.concat(Object.assign(Object.assign({},phrase),{value:deferredPhrase?.toString()}))
+						}
+					}
+					else
+					{
+						this.results=this.results.concat(Object.assign(Object.assign({},phrase),{value:phrase.value?.toString()}))
+					}
 				}
 			}
+			else
+			{
+				this.text=""
+			}	
 		})
 		this.text=this.results.map(data=>data.value).join("")
 		return this.results
@@ -238,36 +247,6 @@ ishml.Phrase =class Phrase
 		var template = document.createElement("template")
 		template.innerHTML = this.text
 		return template
-	}
-	get if()//DEFECT Not tested
-	{
-		var thisPhrase=this
-		return new Proxy((precursor) => new class ifPhrase extends ishml.Phrase
-		{
-			constructor()
-			{
-				super()
-				this.phrases[0]={value:thisPhrase}  
-				this.phrases[1]={value:precursor}  
-				this.catalog()
-			}
-			generate()
-			{
-				var a=this.phrases[0].value.generate()
-				this.phrases[1].value.generate()
-				if (this.phrases[1].value.text==="")
-				{
-					this.results=[]
-					this.text=""
-				}
-				else
-				{
-					this.results=this.phrases[0].value.generate()
-					this.text=this.phrases[0].value.text
-				}
-				return this.results
-			}
-		},ishml.template.__handler)
 	}
 	get inner()
 	{
@@ -288,8 +267,8 @@ ishml.Phrase =class Phrase
 			{
 				super.generate()
 				var last=this.results.length-1
-				this.text=this.results.map(phrase=>phrase.value).reduce((result,phrase,index,)=>result+phrase+((index===last && trim)?"":separator),"")	
-				this.results=[{value:this.text}]
+				this.text=this.results.map(item=>item.value).reduce((result,phrase,index,)=>result+phrase+((index===last && trim)?"":separator),"")	
+				if (this.text){this.results=[{value:this.text}]}
 				return this.results
 			}
 		}(this)
@@ -334,7 +313,7 @@ ishml.Phrase =class Phrase
 				var b= this.phrases[1].value.generate()
 				var property=this.phrases[1].value._property??"value"
 				this.results=a.filter(a=>b.map(item=>item.value).includes(a[property]))
-				this.text=this.results.map(phrase=>phrase.value).join("")
+				this.text=this.results.map(item=>item.value).join("")
 				return this.results
 			}
 		},ishml.template.__handler)
@@ -357,12 +336,12 @@ ishml.Phrase =class Phrase
 			generate()
 			{
 				super.generate()
-				this.results=this.results.map(phrase=>
+				this.results=this.results.map(item=>
 				{
-					var modifiedPhrase=Object.assign({},phrase)
-					return Object.assign(modifiedPhrase,{value:modifier(phrase)})
+					var modifiedPhrase=Object.assign({},item)
+					return Object.assign(modifiedPhrase,{value:modifier(item)})
 				})	
-				this.text=this.results.map(phrase=>phrase.value).join("")
+				this.text=this.results.map(item=>item.value).join("")
 				return this.results
 			}
 		}()
@@ -383,8 +362,8 @@ ishml.Phrase =class Phrase
 			}
 			generate()
 			{
-				this.results=transformer(super.generate().slice(0).map(phrase=>Object.assign({},phrase)))
-				this.text=this.results.map(phrase=>phrase.value).join("")
+				this.results=transformer(super.generate().slice(0).map(item=>Object.assign({},item)))
+				this.text=this.results.map(item=>item.value).join("")
 				return this.results
 			}
 		}()
