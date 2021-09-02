@@ -13,7 +13,7 @@ $.place.foyer
 		
 	})
 	.singular("foyer", "foyer of the Opera House")
-//lexicon.register("foyer").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.place.foyer})
+//lexicon.register("foyer").as({part:"noun", number:ishml.lang.singular, select:()=>$.place.foyer})
 
 $.place.cloakroom.configure({
 	name:"Cloakroom",
@@ -21,13 +21,13 @@ $.place.cloakroom.configure({
 		The exit is a door to the east.`
 })
 	.singular("cloakroom")
-//lexicon.register("cloakroom").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.place.cloakroom})
+//lexicon.register("cloakroom").as({part:"noun", number:ishml.lang.singular, select:()=>$.place.cloakroom})
 
 $.place.bar.configure({
 	name:"Bar",
 	description:`The bar, much rougher than you'd have guessed after the opulence of the foyer to the north, is completely empty. There seems to be some sort of message scrawled in the sawdust on the floor.`
 }) 
-//lexicon.register("bar").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.place.bar})
+//lexicon.register("bar").as({part:"noun", number:ishml.lang.singular, select:()=>$.place.bar})
 .singular("bar")
 
 /*things*/
@@ -49,7 +49,7 @@ $.thing.cloak.configure({
 //.adjectives("black","velvet")
 
 //DEFECT: adjectives are really the tie is.
-//lexicon.register("cloak").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.cloak})
+//lexicon.register("cloak").as({part:"noun", number:ishml.lang.singular, select:()=>$.thing.cloak})
 
 
 
@@ -64,7 +64,7 @@ $.actor.player
 		role:"player",
 		gender:"female"
 	})
-	lexicon.register("player").as({part:"noun", number:ishml.enum.number.singular, select:$.actor.player.cord, role:"player"})
+	lexicon.register("player").as({part:"noun", number:ishml.lang.singular, select:$.actor.player.cord, role:"player"})
 
 
 
@@ -84,8 +84,7 @@ $.actor.player
 
 
 $.actor.jane
-	.tie("has skill").to($.action.dropping)
-
+	.tie("has_skill").to($.action.dropping,$.action.taking)
 /*$.fixture.hook.tie("in").to($.place.cloakroom)
 $.thing.saucer.tie("on").to($.thing.table)
 $.thing.cup.tie("on").to($.thing.saucer)

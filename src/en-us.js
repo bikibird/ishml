@@ -63,10 +63,10 @@ ishml.yarn.grammar.nounPhrase.conjunct.conjunction.configure({filter:(definition
 
 ishml.yarn.grammar.preposition=ishml.Rule().configure({filter:(definition)=>definition?.part==="preposition"})
 ishml.yarn.grammar.command.snip("subject",ishml.yarn.grammar.nounPhrase.clone()).snip("verb").snip("object")
-ishml.yarn.grammar.ioPhrase=ishml.Rule().configure({mode:ishml.enum.mode.any})
+ishml.yarn.grammar.ioPhrase=ishml.Rule().configure({mode:ishml.Rule.any})
     .snip(1)
     .snip(2)
-ishml.yarn.grammar.ioPhrase[1].snip("recipient",ishml.yarn.grammar.nounPhrase)    
+ishml.yarn.grammar.ioPhrase[1].snip("target",ishml.yarn.grammar.nounPhrase)    
 ishml.yarn.grammar.ioPhrase[2].snip("command",ishml.yarn.grammar.command)
 
 ishml.yarn.grammar.target=ishml.Rule().configure({minimum:0})
@@ -80,7 +80,7 @@ ishml.yarn.grammar.command.subject.noun.configure({separator:/^\s*,\s*|^\s+/})
 ishml.yarn.grammar.command.verb.configure({filter: (definition)=>definition.part==="verb"})
 
 ishml.yarn.grammar.command.object=ishml.Rule()
-.configure({minimum:0, mode:ishml.enum.mode.any})
+.configure({minimum:0, mode:ishml.Rule.any})
 .snip(1)  //verbalParticle(required)/thing/target
 .snip(2)  //thing/verbal particle(optional)/target
 .snip(3)  //target/thing
@@ -137,7 +137,7 @@ ishml.yarn.grammar.command.semantics=(interpretation)=>
     {
         interpretation.gist.preposition=interpretation.gist.target.preposition
         delete interpretation.gist.target.preposition
-        Object.assign(interpretation.gist.target,interpretation.gist.target.phrase?.recipient)
+        Object.assign(interpretation.gist.target,interpretation.gist.target.phrase?.target)
         Object.assign(interpretation.gist.target,interpretation.gist.target.phrase?.command)
         delete interpretation.gist.target.phrase
     }
@@ -252,7 +252,37 @@ cords.lockedDoor=[...cords.closedDoor, ...cords.locked]
 cords.thing=["thing@is:thing",...cords.portable,...cords.touchable]
 
 /*knots*/
+/*enums */
+ishml.lang.positive=Symbol('positive')
+ishml.lang.comparative=Symbol('comparative')
+ishml.lang.superlative=Symbol('superaltive') 
+ishml.lang.number={singular:Symbol('singular'),plural:Symbol('plural')}
+/*ishml.lang.pos=
+{
+	adjective:Symbol("adjective"),
+	adverb:Symbol("adverb"),
+	conjunction:Symbol("conjunction"),
+	noun:Symbol("noun"),
+	prefix:Symbol("prefix"),
+	preposition:Symbol("preposition"),
+	suffix:Symbol("suffix"),
+	verb:Symbol("verb")
+}*/
+ishml.lang.tense=
+{
+	past:Symbol("past"),
+	present:Symbol("present"),
+	future:Symbol("future"),
+	perfect:Symbol("perfect"),
+	pluraperfect:Symbol("pluperfect")
+}
 
+ishml.lang.viewpoint=
+{
+	first:{singular:Symbol("first person singular"),plural:Symbol("first person plural")},
+	second:{singular:Symbol("second person singular"),plural:Symbol("second person plural")},		
+	third:{singular:Symbol("third person singular"),plural:Symbol("third person plural")}
+}
 /* pronouns */
 
 ishml.lang.pronouns=
@@ -636,9 +666,9 @@ ishml.Phrase.define("er").as (precursor =>
 	{
 		if(item.degree)
 		{
-			if (item.degree===ishml.enum.degree.positive){return item}
-			if (item.degree===ishml.enum.degree.comparative){return ishml.lang.er(item.value)}
-			if (item.degree===ishml.enum.degree.superlative){return ishml.lang.est(item.value)}
+			if (item.degree===ishml.lang.positive){return item}
+			if (item.degree===ishml.lang.comparative){return ishml.lang.er(item.value)}
+			if (item.degree===ishml.lang.superlative){return ishml.lang.est(item.value)}
 		}
 		else {return ishml.lang.er(item.value)}
 	})
@@ -669,9 +699,9 @@ ishml.Phrase.define("est").as (precursor =>
 	{
 		if(item.degree)
 		{
-			if (item.degree===ishml.enum.degree.positive){return item}
-			if (item.degree===ishml.enum.degree.comparative){return ishml.lang.er(item.value)}
-			if (item.degree===ishml.enum.degree.superlative){return ishml.lang.est(item.value)}
+			if (item.degree===ishml.lang.positive){return item}
+			if (item.degree===ishml.lang.comparative){return ishml.lang.er(item.value)}
+			if (item.degree===ishml.lang.superlative){return ishml.lang.est(item.value)}
 		}
 		else {return ishml.lang.est(item.value)}
 	})
@@ -737,7 +767,7 @@ ishml.Phrase.define("s").as (precursor =>
 {
 	return precursor.modify(item=>
 	{
-		if (item.number===ishml.enum.number.singular){return item.value}
+		if (item.number===ishml.lang.number.singular){return item.value}
 		return ishml.lang.s(item.value)
 	})
 })
@@ -750,7 +780,7 @@ ishml.template.define("are").as((...data)=>
 {
 	return ishml.Phrase.prototype.transform(results=>
 	{
-		if (results.length>1 || results[0].number ===ishml.enum.number.plural || results.quantity>1 ||results.ply_quantity>1)
+		if (results.length>1 || results[0].number ===ishml.lang.number.plural || results.quantity>1 ||results.ply_quantity>1)
 		{
 			return [{value:"are"}]
 		} 
@@ -765,7 +795,7 @@ ishml.template.define("them").as((...data)=>
 {
 	return ishml.Phrase.prototype.transform(results=>
 	{
-		if (results.length>1  || results[0].number ===ishml.enum.number.plural || results.quantity>1 ||results.ply_quantity>1)
+		if (results.length>1  || results[0].number ===ishml.lang.number.plural || results.quantity>1 ||results.ply_quantity>1)
 		{
 			return [{value:ishml.lang.pronouns.plural.objective[2]}]
 		} 
@@ -781,7 +811,7 @@ ishml.template.define("they").as((...data)=>
 {
 	return ishml.Phrase.prototype.transform(results=>
 	{
-		if (results.length>1 || results[0].number ===ishml.enum.number.plural || results.quantity>1 ||results.ply_quantity>1)
+		if (results.length>1 || results[0].number ===ishml.lang.number.plural || results.quantity>1 ||results.ply_quantity>1)
 		{
 			return [{value:ishml.lang.pronouns.plural.subjective[2]}]
 		} 
@@ -793,10 +823,26 @@ ishml.template.define("They").as((...data)=>
 {
 	return ishml.template.cap(ishml.template.they(...data))	
 })
+ishml.template.define("we").as((...data)=>
+{
+	return ishml.Phrase.prototype.transform(results=>
+	{
+		if (results.length>1 || results[0].number ===ishml.lang.number.plural || results.quantity>1 ||results.ply_quantity>1)
+		{
+			return [{value:ishml.lang.pronouns.plural.subjective[2]}]
+		} 
+		else {return [{value:ishml.lang.pronouns[results[0].gender].subjective[2]}]}
+	},...data)	
+
+})
+ishml.template.define("Us").as((...data)=>
+{
+	return ishml.template.cap(ishml.template.they(...data))	
+})
 /*
 ishml.template.define("are").as((...data)=>
 {
-	if (data.length>1 || data[0].number ===ishml.enum.number.plural || data.quantity>1 ||ply_quantity>1)
+	if (data.length>1 || data[0].number ===ishml.lang.number.plural || data.quantity>1 ||ply_quantity>1)
 	{
 		return new ishml.Phrase`are`
 	} 
@@ -807,7 +853,7 @@ ishml.template.define("are").as((...data)=>
 
 ishml.template.define("them").as((...data)=>
 {
-	if (data.length>1  || data[0].number ===ishml.enum.number.plural || data.quantity>1 ||ply_quantity>1)
+	if (data.length>1  || data[0].number ===ishml.lang.number.plural || data.quantity>1 ||ply_quantity>1)
 	{
 		return new ishml.Phrase(ishml.lang.pronouns.plural[2])
 	} 
@@ -816,7 +862,7 @@ ishml.template.define("them").as((...data)=>
 
 ishml.template.define("you").as((...data)=>
 {
-	if (data.length>1  || data[0].number ===ishml.enum.number.plural || data.quantity>1 ||ply_quantity>1)
+	if (data.length>1  || data[0].number ===ishml.lang.number.plural || data.quantity>1 ||ply_quantity>1)
 	{
 		return new ishml.Phrase(ishml.lang.pronouns.plural[1])
 	} 

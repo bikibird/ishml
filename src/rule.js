@@ -12,7 +12,7 @@ ishml.Rule=function Rule()
 		Object.defineProperty(this, "longest", {value:false, writable: true})
 		Object.defineProperty(this, "minimum", {value:1, writable: true})
 		Object.defineProperty(this, "maximum", {value:1, writable: true})
-		Object.defineProperty(this, "mode", {value:ishml.enum.mode.all, writable: true})
+		Object.defineProperty(this, "mode", {value:ishml.Rule.all, writable: true})
 		Object.defineProperty(this, "semantics", {value:(interpretation)=>true, writable: true})
 		Object.defineProperty(this, "mismatch", {value:(interpretation)=>false, writable: true})
 		Object.defineProperty(this, "separator", {value:/^\s/, writable: true})
@@ -26,6 +26,10 @@ ishml.Rule=function Rule()
 		return new Rule()
 	}
 }
+ishml.Rule.all=Symbol('all')
+ishml.Rule.any=Symbol('any')
+ishml.Rule.apt= Symbol('apt')
+//ishml.Rule.reset=Symbol('reset') 
 ishml.Rule.prototype.clone =function()
 {
 	//DEFECTIVE
@@ -83,7 +87,7 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 	{
 		switch (this.mode) 
 		{
-			case ishml.enum.mode.all:
+			case ishml.Rule.all:
 				if (this.maximum ===1 ){var candidates=[new ishml.Interpretation({},someText)]}
 				else {var candidates=[new ishml.Interpretation([],someText)]}
 				var counter = 0
@@ -144,7 +148,7 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 					}
 				}
 				break
-			case ishml.enum.mode.any:
+			case ishml.Rule.any:
 					if (this.maximum ===1 ){var candidates=[new ishml.Interpretation({},someText)]}
 					else {var candidates=[new ishml.Interpretation([],someText)]}
 					var revisedCandidates=candidates.slice(0)
@@ -201,7 +205,7 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 						revisedCandidates=candidates.slice(0)  //go see if there are more alternatives that work.	
 					}
 					break
-			case ishml.enum.mode.apt:
+			case ishml.Rule.apt:
 				if (this.maximum ===1 ){var candidates=[new ishml.Interpretation({},someText)]}
 				else {var candidates=[new ishml.Interpretation([],someText)]}
 				var revisedCandidates=candidates.slice(0)

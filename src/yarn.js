@@ -9,8 +9,8 @@ ishml.yarn=
 	lexicon:new ishml.Lexicon(),
 	grammar:new ishml.Rule(),
 	parser:null,
-	viewpoint:ishml.enum.viewpoint.second.singular,
-	tense:ishml.enum.tense.present,
+	//viewpoint:ishml.enum.viewpoint.second.singular,
+	//tense:ishml.enum.tense.present,
 	//ishml.util.reseed(seed)  --DEFECT
 	net:new ishml.Knot("$"),
 	undoLength:10

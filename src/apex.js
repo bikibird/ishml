@@ -13,34 +13,7 @@ https://whitewhalestories.com
 
 var ishml = ishml || {}
 //const Ishmael = Ishmael || ishml  //Call me Ishmael.
-ishml.enum=ishml.enum || {}
-ishml.enum.mode={all:Symbol('all'),any:Symbol('any'),apt: Symbol('apt'),reset: Symbol('reset')} 
-ishml.enum.degree={positive:Symbol('positive'),comparative:Symbol('comparative'),superlative:Symbol('superaltive')} 
-ishml.enum.number={singular:Symbol('singular'),plural:Symbol('plural')}
-ishml.enum.pos=
-{
-	adjective:Symbol("adjective"),
-	adverb:Symbol("adverb"),
-	conjunction:Symbol("conjunction"),
-	noun:Symbol("noun"),
-	prefix:Symbol("prefix"),
-	preposition:Symbol("preposition"),
-	suffix:Symbol("suffix"),
-	verb:Symbol("verb")
-}
-ishml.enum.tense=
-{
-	past:Symbol("past"),
-	present:Symbol("present"),
-	future:Symbol("future"),
-	perfect:Symbol("perfect"),
-	pluraperfect:Symbol("pluperfect")
-}
+//ishml.enum=ishml.enum || {}
+//ishml.enum.mode={all:Symbol('all'),any:Symbol('any'),apt: Symbol('apt'),reset: Symbol('reset')} 
 
-ishml.enum.viewpoint=
-{
-	first:{singular:Symbol("first person singular"),plural:Symbol("first person plural")},
-	second:{singular:Symbol("second person singular"),plural:Symbol("second person plural")},		
-	third:{singular:Symbol("third person singular"),plural:Symbol("third person plural")}
-}
 ishml.lang={}
