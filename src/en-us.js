@@ -142,12 +142,11 @@ ishml.yarn.grammar.command.semantics=(interpretation)=>
         delete interpretation.gist.target.phrase
     }
 
-
-    if (interpretation.gist.hasOwnProperty("subject"))  //Jane, drop ball => Ask Jane to drop ball
+	if (interpretation.gist.hasOwnProperty("subject"))  //Jane, drop ball => player Asks Jane to drop ball
     {
         interpretation.gist=
         { 
-            subject:{noun:ishml.yarn.lexicon.search("player", {longest:true, full:true}).filter(snippet=>snippet.token.definition.role==="player")[0].token},
+            subject:{noun:{definition:{select:$.viewpoint}}},
             verb:ishml.yarn.lexicon.search("ask", {longest:true, full:true}).filter(snippet=>snippet.token.definition.part==="verb" && snippet.token.definition.preposition==="to")[0].token,
             thing:interpretation.gist.subject,
             preposition:ishml.yarn.lexicon.search("to", {longest:true, full:true}).filter(snippet=>snippet.token.definition.part==="preposition")[0].token,
@@ -157,10 +156,7 @@ ishml.yarn.grammar.command.semantics=(interpretation)=>
     }
     else
     {
-        interpretation.gist.subject=
-        {
-            noun:ishml.yarn.lexicon.search("player", {longest:true, full:true}).filter(snippet=>snippet.token.definition.role==="player")[0].token
-        }
+        interpretation.gist.subject={noun:{definition:{select:$.viewpoint}}}
     }
     //interpretation.gist.subject.select=(...args)=>interpretation.gist.subject.noun.definition.select(...args).cord
 	interpretation.gist.subject.select=interpretation.gist.subject.noun.definition.select

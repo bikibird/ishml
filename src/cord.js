@@ -221,7 +221,7 @@ ishml.Cord =class Cord extends Function //(function Cord(){})
 		})
 		return cord
 	}
-	like(...someCord)
+	akin(...someCord)
 	{
 		var knots=this.knots.toSet
 		var otherKnots = (new ishml.Cord(...someCord)).knots.toSet
@@ -261,7 +261,7 @@ ishml.Cord =class Cord extends Function //(function Cord(){})
 			if (this._plies.has(ply)){return true}
 			return false
 		}	
-		else {return [...this._plies].some(ply=>ply.knot===knot)}
+		else {return [...this._plies].some(ply=>ply.knot===ply)}
 	}
 	intersect (cord)
 	{

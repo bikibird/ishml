@@ -61,17 +61,17 @@ $
 $.actor.player
 	.configure({
 		name:"player",
-		role:"player",
 		gender:"female"
 	})
-	lexicon.register("player").as({part:"noun", number:ishml.lang.singular, select:$.actor.player.cord, role:"player"})
-
-
+	.singular("player","me","self","myself","I")
 
 /*Actions*/
 $
 	.tie("action").to("dropping","taking","inventorying")
-	
+
+/*setting*/	
+$
+	.tie("viewpoint").to($.actor.player)
 
 /*staging*/
 
