@@ -40,8 +40,12 @@ ishml.Knot= class Knot
 		
 		return Object.values(this).filter(cord=>cord instanceof ishml.Cord) 	
 	}
-	configure(configuration)
+	configure(...configuration)
 	{
+		configuration.flat().forEach(item=>
+			{
+				Object.assign(this,item)		
+			})
 		Object.assign(this,configuration)
 		/*Object.keys(configuration).forEach(key=>
 		{

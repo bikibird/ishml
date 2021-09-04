@@ -246,7 +246,7 @@ ishml.Cord =class Cord extends Function //(function Cord(){})
 	{}
 */	
 	
-	first(count=1)
+	slice(start=0,end=1)
 	{
 		return new ishml.Cord([...this._plies].slice(0,1))
 	}

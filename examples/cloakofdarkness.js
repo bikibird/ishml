@@ -33,7 +33,7 @@ $.place.bar.configure({
 /*things*/
 
 $
-	.tie("thing").to("hook","cloak","cup")
+	.tie(cords.thing).to("hook","cloak","cup")
 	.tie("fixture", "@is:brass").to($.thing.hook)  //Not easily searchable by brass
 	.tie("wearable","black@is:black","velvet@is:velvet").to($.thing.cloak) //easily searchable by velvet: $.velvet
 
@@ -57,7 +57,6 @@ $.thing.cloak.configure({
 /*Actors*/
 $
 	.tie("actor").to("player","jane")
-
 $.actor.player
 	.configure({
 		name:"player",
@@ -70,8 +69,9 @@ $
 	.tie("action").to("dropping","taking","inventorying")
 
 /*setting*/	
+//The story is told from the player's viewpoint
 $
-	.tie("viewpoint").to($.actor.player)
+	.tie("viewpoint:first@person:first").to($.actor.player)
 
 /*staging*/
 

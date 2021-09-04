@@ -386,10 +386,12 @@ ishml.Ply.handler=
 		{
 			if(Reflect.has(knot,property))
 			{
-				if (typeof knot[property]==="function") {return knot[property].bind(knot)}
-				else {knot[property]}
-			}
-			else {return new ishml.Cord()}
+				if (!(knot[property] instanceof ishml.Cord)  && typeof knot[property]==="function" )
+				{
+					return function(...args){return knot[property](args)}
+				}
+				else {return knot[property]}
+			}	
 		}
 		else {return new ishml.Cord()}	
 	},

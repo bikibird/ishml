@@ -211,7 +211,6 @@ cords.container=["container@is:container"]
 cords.contains=["contains=in"]
 cords.in=["in=contains"]
 
-
 cords.door=["door@is:door"]
 cords.down=["exit:down=exit:up"]
 cords.east=["exit:east=exit:west"]
@@ -227,7 +226,6 @@ cords.open=["openable@is:openable","open@is:open"]
 cords.place=["place@is:place","container@is:container"]
 cords.portable=["portable@is:portable"]
 cords.reachable=["reachable@is:reachable"]
-
 
 cords.south=["exit:south=exit:north"]
 cords.southeast=["exit:southeast=exit:northwest"]
