@@ -47,11 +47,6 @@ ishml.Knot= class Knot
 				Object.assign(this,item)		
 			})
 		Object.assign(this,configuration)
-		/*Object.keys(configuration).forEach(key=>
-		{
-			if (this.hasOwnProperty(key)){this[key]=configuration[key]}
-			else{Object.defineProperty(this, key, {value:configuration[key],writable: true}) }
-		})*/
 		return this
 	}	
 /*	defineCord(name)
@@ -83,6 +78,7 @@ ishml.Knot= class Knot
 	}
 	singular(...nouns)
 	{
+
 		ishml.yarn.lexicon.register(...nouns).as({part:"noun", number:ishml.lang.number.singular, select:this.cord})
 		return this
 	}

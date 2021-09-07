@@ -146,7 +146,7 @@ ishml.yarn.grammar.command.semantics=(interpretation)=>
     {
         interpretation.gist=
         { 
-            subject:{noun:{definition:{select:$.viewpoint}}},
+            subject:{noun:{definition:{select:$.actor.player}}},
             verb:ishml.yarn.lexicon.search("ask", {longest:true, full:true}).filter(snippet=>snippet.token.definition.part==="verb" && snippet.token.definition.preposition==="to")[0].token,
             thing:interpretation.gist.subject,
             preposition:ishml.yarn.lexicon.search("to", {longest:true, full:true}).filter(snippet=>snippet.token.definition.part==="preposition")[0].token,
@@ -156,7 +156,7 @@ ishml.yarn.grammar.command.semantics=(interpretation)=>
     }
     else
     {
-        interpretation.gist.subject={noun:{definition:{select:$.viewpoint}}}
+        interpretation.gist.subject={noun:{definition:{select:$.actor.player}}}
     }
     //interpretation.gist.subject.select=(...args)=>interpretation.gist.subject.noun.definition.select(...args).cord
 	interpretation.gist.subject.select=interpretation.gist.subject.noun.definition.select
@@ -200,50 +200,6 @@ ishml.yarn.parser=ishml.Parser({ lexicon: ishml.yarn.lexicon, grammar: ishml.yar
 
 
 /* Cordage */
-var cords=ishml.Cord.cordage
-cords.action=["action@"]
-cords.actor=["actor@is:actor"]
-cords.carries=["carries-carried_by"]
-cords.carried_by=["carried_by-carries"]
-cords.closed=["openable@is:openable","closed@is:closed"]
-cords.commandable=["commandable@is:commandable"]
-cords.container=["container@is:container"]
-cords.contains=["contains=in"]
-cords.in=["in=contains"]
-
-cords.door=["door@is:door"]
-cords.down=["exit:down=exit:up"]
-cords.east=["exit:east=exit:west"]
-cords.edible=["edible@is:edible"]
-cords.fixture=["fixture@is:fixture"]
-cords.has_skill=["has_skill-skill_of"]
-cords.locked=["lockable@is:lockable","locked@is:locked"]
-
-cords.north=["exit:north=exit:south"]
-cords.northeast=["exit:northeast=exit:southwest"]
-cords.northwest=["exit:northwest=exit:southeast"]
-cords.open=["openable@is:openable","open@is:open"]
-cords.place=["place@is:place","container@is:container"]
-cords.portable=["portable@is:portable"]
-cords.reachable=["reachable@is:reachable"]
-
-cords.south=["exit:south=exit:north"]
-cords.southeast=["exit:southeast=exit:northwest"]
-cords.southwest=["exit:southwest=exit:northeast"]
-cords.supporter=["supporter@is:supporter"]
-cords.on=["on=supports"]
-
-cords.touchable=["touchable@is:touchable"]
-cords.unlocked=["lockable@is:lockable","unlocked@is:unlocked"]
-cords.up=["exit:up=exit:down"]
-cords.wearable=["wearable@is:wearable"]
-cords.wears=["wears-worn_by"]
-cords.west=["exit:west=exit:east"]
-
-cords.closedDoor=[...cords.door, ...cords.closed]
-cords.openDoor=[...cords.door, ...cords.open]
-cords.lockedDoor=[...cords.closedDoor, ...cords.locked]
-cords.thing=["thing@is:thing",...cords.portable,...cords.touchable]
 
 /*knots*/
 /*enums */
@@ -251,6 +207,7 @@ ishml.lang.positive=Symbol('positive')
 ishml.lang.comparative=Symbol('comparative')
 ishml.lang.superlative=Symbol('superaltive') 
 ishml.lang.number={singular:Symbol('singular'),plural:Symbol('plural')}
+ishml.lang.person={first:0,second:1,third:2}
 /*ishml.lang.pos=
 {
 	adjective:Symbol("adjective"),
@@ -781,6 +738,23 @@ ishml.template.define("are").as((...data)=>
 		else {return [{value:"is"}]}
 	},...data)	
 })
+ishml.template.define("some").as((...data)=>
+{
+	return ishml.Phrase.prototype.transform(results=>
+	{
+		var some=[]
+		var a=[]
+		results.forEach(item=>
+		{
+			if(item.number===ishml.lang.number.plural || item.quantity>1 ||item.ply_quantity>1)
+			{
+				some.push(item)
+			}
+			else {a.push(item)}
+		})
+		return _`some `.if.list(some)._.a.if.list(a).generate()
+	},...data)	
+})
 ishml.template.define("Are").as((...data)=>
 {
 	return ishml.template.cap(ishml.template.are(...data))	
@@ -807,9 +781,9 @@ ishml.template.define("they").as((...data)=>
 	{
 		if (results.length>1 || results[0].number ===ishml.lang.number.plural || results.quantity>1 ||results.ply_quantity>1)
 		{
-			return [{value:ishml.lang.pronouns.plural.subjective[2]}]
+			return [{value:ishml.lang.pronouns.plural.subjective[results[0].person ?? 2]}]
 		} 
-		else {return [{value:ishml.lang.pronouns[results[0].gender].subjective[2]}]}
+		else {return [{value:ishml.lang.pronouns[results[0].gender].subjective[results[0].person ?? 2]}]}
 	},...data)	
 
 })
@@ -823,15 +797,15 @@ ishml.template.define("we").as((...data)=>
 	{
 		if (results.length>1 || results[0].number ===ishml.lang.number.plural || results.quantity>1 ||results.ply_quantity>1)
 		{
-			return [{value:ishml.lang.pronouns.plural.subjective[2]}]
+			return [{value:ishml.lang.pronouns.plural.subjective[results[0].person ?? 0]}]
 		} 
-		else {return [{value:ishml.lang.pronouns[results[0].gender].subjective[2]}]}
+		else {return [{value:ishml.lang.pronouns[results[0].gender].subjective[results[0].person ?? 0]}]}
 	},...data)	
 
 })
-ishml.template.define("Us").as((...data)=>
+ishml.template.define("We").as((...data)=>
 {
-	return ishml.template.cap(ishml.template.they(...data))	
+	return ishml.template.cap(ishml.template.we(...data))	
 })
 /*
 ishml.template.define("are").as((...data)=>

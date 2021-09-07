@@ -112,7 +112,7 @@ plot.action.dropping.unfold=function(command)
     command.droppable=command.thing?.where(c=>c.worn_by(command.subject))
     .add(command.thing?.where(c=>c.carried_by(command.subject)))
     var episode=ishml.Episode(this)
-        .narration(()=> (command.actor.akin($.viewpoint)?_`<p>${_.they.ACTOR()} dropped the ${_.list().DROPPABLE}.</p>`:_`non-player actor`)
+        .narration(()=> (command.actor.akin($.actor.player)?_`<p>${_.They.ACTOR()} dropped the ${_.list().DROPPABLE}.</p>`:_`${_.cap.ACTOR()} dropped the ${_.list().DROPPABLE}.`)
             .populate(command)
             .say().append("#story"))
         .resolution(()=>

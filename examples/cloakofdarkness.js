@@ -12,8 +12,7 @@ $.place.foyer
 		description:`You are standing in a spacious hall, splendidly decorated in red and gold, with glittering chandeliers overhead. The entrance from the street is to the north, and there are doorways south and west.`,
 		
 	})
-	.singular("foyer", "foyer of the Opera House")
-//lexicon.register("foyer").as({part:"noun", number:ishml.lang.singular, select:()=>$.place.foyer})
+	.singular("foyer", "opera house foyer", "foyer of the opera house")
 
 $.place.cloakroom.configure({
 	name:"Cloakroom",
@@ -21,57 +20,49 @@ $.place.cloakroom.configure({
 		The exit is a door to the east.`
 })
 	.singular("cloakroom")
-//lexicon.register("cloakroom").as({part:"noun", number:ishml.lang.singular, select:()=>$.place.cloakroom})
 
 $.place.bar.configure({
 	name:"Bar",
 	description:`The bar, much rougher than you'd have guessed after the opulence of the foyer to the north, is completely empty. There seems to be some sort of message scrawled in the sawdust on the floor.`
 }) 
-//lexicon.register("bar").as({part:"noun", number:ishml.lang.singular, select:()=>$.place.bar})
 .singular("bar")
 
 /*things*/
 
 $
-	.tie(cords.thing).to("hook","cloak","cup")
+	.tie("thing").to("cloak","hook")
 	.tie("fixture", "@is:brass").to($.thing.hook)  //Not easily searchable by brass
 	.tie("wearable","black@is:black","velvet@is:velvet").to($.thing.cloak) //easily searchable by velvet: $.velvet
 
-
-$.thing.cloak.configure({
-	name:"cloak",
-	description:"the blackest black velvet.",
-	gender:"neuter"
-})
+$.thing.cloak.configure
+(
+	ishml.thing,
+	{
+		name:"cloak",
+		description:"the blackest black velvet.",
+	},
+)
 .singular("cloak")
 
-
-//.adjectives("black","velvet")
-
-//DEFECT: adjectives are really the tie is.
-//lexicon.register("cloak").as({part:"noun", number:ishml.lang.singular, select:()=>$.thing.cloak})
-
-
-
+$.thing.hook.configure
+(
+	ishml.thing,
+	{
+		name:"hook",
+		description:"the blackest black velvet.",
+	},
+)
+.singular("hook")
 
 /*Actors*/
 $
-	.tie("actor").to("player","jane")
+	.tie("actor").to("player")
+
 $.actor.player
-	.configure({
-		name:"player",
-		gender:"female"
-	})
-	.singular("player","me","self","myself","I")
+	.configure(ishml.player)
+	.singular("me","self","myself","I")
 
-/*Actions*/
-$
-	.tie("action").to("dropping","taking","inventorying")
 
-/*setting*/	
-//The story is told from the player's viewpoint
-$
-	.tie("viewpoint:first@person:first").to($.actor.player)
 
 /*staging*/
 
@@ -79,16 +70,12 @@ $.actor.player
 	.tie("in").to($.place.foyer)
 	.tie("has_skill").to($.action.dropping,$.action.inventorying,$.action.taking)
 	.tie("wears").to($.thing.cloak)
-//	.tie("wears").to($.thing.left_shoe)
-//	.tie("wears").to($.thing.right_shoe)
-
 
 $.actor.jane
 	.tie("has_skill").to($.action.dropping,$.action.taking)
-/*$.fixture.hook.tie("in").to($.place.cloakroom)
-$.thing.saucer.tie("on").to($.thing.table)
-$.thing.cup.tie("on").to($.thing.saucer)
-*/
+
+$.fixture.hook.tie("in").to($.place.cloakroom)
+
 /* Adjectives */
 lexicon
 	.register("small").as({part:"adjective",select:subject=>subject.is.small})
@@ -96,34 +83,6 @@ lexicon
 	.register("dark").as({part:"adjective",select:subject=>subject.is.dark})
 	.register("velvet").as({part:"adjective",select:subject=>subject.is.velvet})
 	.register("black").as({part:"adjective",select:subject=>subject.is.black})
-	.register("left").as({part:"adjective",select:subject=>subject.is.left})
-	.register("right").as({part:"adjective",select:subject=>subject.is.right})
-
-	/*scenes-- like inform 7*/
-	//tbd
-
-/*language*/
-/*lexicon
-	.register("hook","peg").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.fixture.hook})
-	.register("cloak").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.cloak})
-	.register("shoe").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.thing.left_shoe.cord.add($.thing.right_shoe)})
-	.register("shoes").as({part:"noun", number:ishml.enum.number.plural, select:()=>$.thing.left_shoe.cord.add($.thing.right_shoe)})
-	.register("jane").as({part:"noun", number:ishml.enum.number.singular, select:()=>$.actor.jane})
-
-
-	.register("small").as({part:"adjective",select:()=>$.small})
-	.register("brass").as({part:"adjective",select:()=>$.brass})
-	.register("dark").as({part:"adjective",select:()=>$.dark})
-	.register("velvet").as({part:"adjective",select:()=>$.velvet})
-	.register("black").as({part:"adjective",select:()=>$.black})
-	.register("left").as({part:"adjective",select:()=>$.left})
-	.register("right").as({part:"adjective",select:()=>$.right})
-
-	.register("hang")
-		.as({plot:plot.action.hanging, part: "verb", preposition:"on" })   
-	.register("hang")
-		.as({plot:plot.action.hanging, part: "verb", particle:"up", preposition:"on"})	  	
-*/
 
 yarn.harken()
 
