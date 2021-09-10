@@ -19,7 +19,7 @@ ishml.template.__handler=
 		{
 			return template	 
 		}
-		if (ishml.template[property]===undefined) //property requests or reffers to tagged phrase
+		if (ishml.template[property]===undefined) //property requests or refers to tagged phrase
 		{
 			if (property.toUpperCase()===property)  
 			{
@@ -138,7 +138,7 @@ ishml.template.define("echo").as(function echo(tag)
 		{
 			if (tag instanceof ishml.Phrase){super(tag)}
 			else {super()}
-			
+			this._tag=tag
 			this.echo=true
 		}
 		generate()

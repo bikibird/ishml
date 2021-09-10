@@ -10,6 +10,7 @@ ishml.Phrase =class Phrase
 		Object.defineProperty(this,"phrases",{value:[],writable:true})
 		Object.defineProperty(this,"_results",{value:[],writable:true})
 		Object.defineProperty(this,"_seed",{value:ishml.util.random().seed,writable:true})
+		Object.defineProperty(this,"_tag",{value:"",writable:true})
 		Object.defineProperty(this,"tags",{value:{},writable:true})
 		Object.defineProperty(this,"text",{value:"",writable:true})
 		this._populate(...precursor)
@@ -19,7 +20,7 @@ ishml.Phrase =class Phrase
 	get also()  //simalr to _() below expect does not add space
 	{
 		var primaryPhrase=this
-		return new Proxy((...precursor) => new class thenPhrase extends ishml.Phrase
+		return new Proxy((...precursor) => new class alsoPhrase extends ishml.Phrase
 		{
 			constructor()
 			{
@@ -49,7 +50,7 @@ ishml.Phrase =class Phrase
 	get _() //similar to also() above, but adds space
 	{
 		var primaryPhrase=this
-		return new Proxy((...precursor) => new class thenPhrase extends ishml.Phrase
+		return new Proxy((...precursor) => new class spacePhrase extends ishml.Phrase
 		{
 			constructor()
 			{
@@ -368,8 +369,43 @@ ishml.Phrase =class Phrase
 			}
 		}()
 	}
+	//_`${_.animal}`.per.ANIMAL("cat","dog","frog")
+	get per()
+	{
+		var primaryPhrase=this
+		return new Proxy((...precursor) => new class perPhrase extends ishml.Phrase
+		{
+			constructor()
+			{
+				super()
+				this.phrases[0]={value:primaryPhrase}
+				this.catalog()
+			}
+			generate()
+			{
+				var results=[]
+				do 
+				{
+					results=results.concat(this.phrases[0].value.generate())
+				}while(!this.tags[precursor[0]._tag].data.reset)
+				this.results=results
+				this.text=this.results.map(data=>data.value).join("")
+				return this.results	
 
-	per(id)
+				/*var items=this.phrases[1].value.generate().filter(item=>item.value).map((item,index,array)=>Object.assign({total:array.length,index:index,rank:index+1},item))
+				this.results=[]
+				items.forEach(item=>
+				{
+					this.results=this.results.concat(this.phrases[0].value.generate())
+				})
+				this.text=this.results.map(data=>data.value).join("")
+				return this.results*/
+
+			}
+		},ishml.template.__handler)
+	}
+
+/*	per(id)
 	{
 		var tag=id
 		return new class perPhrase extends ishml.Phrase
@@ -388,6 +424,7 @@ ishml.Phrase =class Phrase
 			}
 		}(this)
 	}
+*/	
 	populate(literals, ...expressions)
 	{
 		if(this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
@@ -601,6 +638,35 @@ ishml.Phrase =class Phrase
 				{
 					this.results=this.phrases[1].value.generate()
 					this.text=this.phrases[1].value.text
+				}
+				return this.results
+			}
+		},ishml.template.__handler)
+	}
+	get when()
+	{
+		var primaryPhrase=this
+		return new Proxy((...precursor) => new class whenPhrase extends ishml.Phrase
+		{
+			constructor()
+			{
+				super()
+				this.phrases[0]={value:new ishml.Phrase(...precursor)}
+				this.phrases[1]={value:primaryPhrase}
+				this.catalog()
+			}
+			generate()
+			{
+				var results=this.phrases[0].value.generate()
+				if (results.length>0)
+				{
+					this.results=this.phrases[1].value.generate().concat(results)
+					this.text=this.phrases[1].value.text+ this.phrases[0].value.text
+				}
+				else
+				{
+					this.results=results
+					this.text=""
 				}
 				return this.results
 			}
