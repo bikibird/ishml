@@ -441,7 +441,7 @@ ishml.Phrase =class Phrase
 	_populate(literals, ...expressions)
 	{
 		var data=[]
-		if (literals)
+		if (literals !== undefined)
 		{
 			var index=1
 			if( literals.hasOwnProperty("raw"))
@@ -657,17 +657,19 @@ ishml.Phrase =class Phrase
 			}
 			generate()
 			{
-				var results=this.phrases[0].value.generate()
-				if (results.length>0)
+				this.phrases[0].value.generate()
+				if (this.phrases[0].value.text)
 				{
-					this.results=this.phrases[1].value.generate().concat(results)
-					this.text=this.phrases[1].value.text+ this.phrases[0].value.text
+					this.phrases[1].value.generate()
+					this.text=this.phrases[1].value.text + this.phrases[0].value.text
+					this.results=[{value:this.text}]
 				}
 				else
 				{
-					this.results=results
+					this.results=[{value:""}]
 					this.text=""
 				}
+
 				return this.results
 			}
 		},ishml.template.__handler)

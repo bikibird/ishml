@@ -97,25 +97,26 @@ ishml.template.define("cycle").as((...data)=>
 		}
 		generate()
 		{
-			if (this.phrases.length===0)
+			var results=[]	
+			if (this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
+			{
+				results=super.generate()
+				var total=this.results.length
+				results=results.slice(counter,counter+1)
+			}
+			else
+			{
+				var results=super.generate(this.phrases.slice(counter,counter+1))
+				var total=this.phrases.length
+			}
+			if (this.results.length===0)
 			{
 				this.results=[{value:"",index:0, rank:0, total:0,  reset:true}]
 				this.text=""
 				var total=0
 			}
 			else
-			{	
-				if (this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
-				{
-					var results=super.generate()
-					var total=this.results.length
-					results=results.slice(counter,counter+1)
-				}
-				else
-				{
-					var results=super.generate(this.phrases.slice(counter,counter+1))
-					var total=this.phrases.length
-				}
+			{
 				Object.assign(results[0],{index:counter, rank:counter+1,total:total, reset:counter===total-1})
 				this.results=results
 				this.text=results[0].value
@@ -310,6 +311,23 @@ ishml.template.define("re").as((...precursor)=>
 		}
 	}(...precursor)
 })
+
+ishml.template.define("cull").as((...precursor)=>
+{
+	return new class cullPhrase extends ishml.Phrase
+	{
+		generate()
+		{
+			super.generate()
+			this.results=this.results.reduce((results,item)=>
+			{
+				if (item.value){ results.push(item)}
+				return results
+			},[])
+			return this.results
+		}
+	}(...precursor)
+})
 ishml.template.define("refresh").as((...precursor)=>
 {
 	return new class refreshPhrase extends ishml.Phrase
@@ -377,7 +395,8 @@ ishml.template.define("series").as((...data)=>
 		}
 		generate()
 		{
-			if (ended || this.phrases.length===0)
+			var results=[]	
+	/*		if (ended || this.phrases.length===0)
 			{
 				this.text=""
 				this.results=[]
@@ -385,25 +404,31 @@ ishml.template.define("series").as((...data)=>
 				return this.results
 			}
 			else
+			{*/
+			if (this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
 			{
-				if (this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
-				{
-					var results=super.generate()
-					var total=results.length
-					results=results.slice(counter,counter+1)
-				}
-				else
-				{
-					var results=super.generate(this.phrases.slice(counter,counter+1))
-					var total=this.phrases.length
-				}
-				if(results.length===1)
-				{
-					Object.assign(results[0],{index:counter, rank:counter+1,total:total})
-					this.results=results
-					this.text=results[0].value
-				}
+				var results=super.generate()
+				var total=results.length
+				results=results.slice(counter,counter+1)
 			}
+			else
+			{
+				var results=super.generate(this.phrases.slice(counter,counter+1))
+				var total=this.phrases.length
+			}
+			if (this.results.length===0)
+			{
+				this.results=[{value:"",index:0, rank:0, total:0,  reset:true}]
+				this.text=""
+				var total=0
+			}
+			else
+			{
+				Object.assign(results[0],{index:counter, rank:counter+1,total:total})
+				this.results=results
+				this.text=results[0].value
+			}
+
 			counter++
 			if (counter===total)
 			{

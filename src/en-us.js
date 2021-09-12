@@ -663,43 +663,32 @@ ishml.template.define("list").as((...data)=>
 {
 	return ishml.Phrase.prototype.transform(results=>
 	{
-
-		var items=results.filter(item=>item.value!=="")
-
-		return ishml.template._`${ishml.template._.cycle.ITEM(...data)}${tags=>tags.item.data.rank < tags.item.data.total && tags.item.data.total>2?", ":""}${tags=>tags.item.data.rank===1 && tags.item.data.total===2?" and ":""}${tags=>tags.item.data.index===tags.item.data.total-2 && tags.item.data.total>2?"and ":""}`.per.item.generate()
+		//return ishml.template._`${ishml.template._.ITEM.cycle.cull(...data)}${tags=>tags.item.data.rank < tags.item.data.total && tags.item.data.total>2?", ":""}${tags=>tags.item.data.rank===1 && tags.item.data.total===2?" and ":""}${tags=>tags.item.data.index===tags.item.data.total-2 && tags.item.data.total>2?"and ":""}`.per.item.join().generate()
+		return ishml.template._`${ishml.template._.ITEM.cycle.cull(results)}${ishml.template._.item.modify(t=>t.rank < t.total && t.total>2?", ":"")}${ishml.template._.item.modify(t=>t.rank===1 && t.total===2?" and ":"")}${ishml.template._.item.modify(t=>t.index===t.total-2 && t.total>2?"and ":"")}`.per.item.join().generate()
 	},...data)	
 })
-
-/*ishml.template.define("list").as((...data)=>
+ishml.template.define("some").as((...data)=>
 {
 	return ishml.Phrase.prototype.transform(results=>
 	{
-
-		var items=results.filter(item=>item.value!=="")
-
-		return ishml.template._`${ishml.template.cycle.ITEMS(items)}${tags=>tags.items.data.index < tags.items.data.total-1 && tags.items.data.total>2?", ":""}${tags=>tags.items.data.index===0 && tags.items.data.total===2?" and ":""}${tags=>tags.items.data.index===tags.items.data.total-2 && tags.items.data.total>2?"and ":""}`.per("items").join().generate()
+		var some=[]
+		var a=[]
+		var proper=[]
+		results.forEach(item=>
+		{
+			if (item.proper){proper.push(item)}
+			else
+			{
+				if(item.number===ishml.lang.number.plural || item.quantity>1 ||item.ply_quantity>1){some.push(item)}
+				else {a.push(item)}
+			}
+		})
+		return ishml.template.list(ishml.template.list(proper), ishml.template._`some `.when.list(some), ishml.template.a.list(a)).generate()
 	},...data)	
-})*/
-
-
-
-ishml.template.define("norList").as((...data)=>
-{
-	return new class listPhrase extends ishml.Phrase
-	{
-		constructor(...data)
-		{
-			super(ishml.template._`${ishml.template.cycle().tag("items")}${tags=>tags.items.data.index < tags.items.data.total-1 && tags.items.data.total>2?", ":""}${tags=>tags.items.data.index===0 && tags.items.data.total===2?" nor ":""}${tags=>tags.items.data.index===tags.items.data.total-2 && tags.items.data.total>2?"nor ":""}`.per("items").join())
-			this.populate(...data)
-			return this
-		}
-		populate(...data)
-		{
-			this.tags.items.populate(...data)
-			return this
-		}
-	}(...data)
 })
+
+
+
 
 
 
@@ -745,25 +734,7 @@ ishml.template.define("are").as((...data)=>
 		else {return [{value:"is"}]}
 	},...data)	
 })
-ishml.template.define("some").as((...data)=>
-{
-	return ishml.Phrase.prototype.transform(results=>
-	{
-		var some=[]
-		var a=[]
-		var proper=[]
-		results.forEach(item=>
-		{
-			if (item.proper){proper.push(item)}
-			else
-			{
-				if(item.number===ishml.lang.number.plural || item.quantity>1 ||item.ply_quantity>1){some.push(item)}
-				else {a.push(item)}
-			}
-		})
-		return ishml.template.list(ishml.template.list(proper), ishml.template._`some `.when.list(some), ishml.template.a.list(a)).generate()
-	},...data)	
-})
+
 ishml.template.define("Some").as((...data)=>
 {
 	return ishml.template.cap(ishml.template.some(...data))	

@@ -342,7 +342,7 @@ ishml.Ply= class Ply
 	{
 		return this.cord.subtract(...cordage)
 	}
-	untie()
+	untie(cordId)
 	{
 /*Knot must have been reached by traveling along a tie.
 $.room.kitchen.untie() removes the room tie for kitchen and returns kitchen.knot.
@@ -360,6 +360,7 @@ $.room.kitchen.exit.north.untie()
 		}
 		return this
 	}
+
 	where(condition)
 	{
 		if (condition(this)){return this}

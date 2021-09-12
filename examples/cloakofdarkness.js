@@ -56,13 +56,15 @@ $.thing.hook.configure
 
 /*Actors*/
 $
-	.tie("actor").to("player")
+	.tie("actor").to("player","jane")
 
 $.actor.player
 	.configure(ishml.player)
 	.singular("me","self","myself","I")
 
-
+	$.actor.jane
+	.configure(ishml.female)
+	.singular("jane","she","her")
 
 /*staging*/
 

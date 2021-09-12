@@ -100,8 +100,6 @@ plot.action.asking_to.check.unfold=function(command)
 }
 plot.action.asking_to.instead
 
-
-
 plot.action.dropping.unfold=function(command)
 {
     /*	if the actor is the player:
@@ -112,13 +110,14 @@ plot.action.dropping.unfold=function(command)
     command.droppable=command.thing?.where(c=>c.worn_by(command.subject))
     .add(command.thing?.where(c=>c.carried_by(command.subject)))
     var episode=ishml.Episode(this)
-        .narration(()=> (command.actor.akin($.actor.player)?_`<p>${_.They.ACTOR()} dropped the ${_.list().DROPPABLE}.</p>`:_`${_.cap.ACTOR()} dropped the ${_.list().DROPPABLE}.`)
+        .narration(()=> (command.actor.akin($.actor.player)?_`<p>${_.They.ACTOR()} dropped ${_.the.DROPPABLE()}.</p>`:_`${_.cap.ACTOR()} put down ${_.the.DROPPABLE()}.`)
             .populate(command)
             .say().append("#story"))
         .resolution(()=>
         {
-            command.droppable.converse("carried_by").untie().tie("in").to(command.container)
-            command.droppable.converse("worn_by").untie().tie("in").to(command.container)
+            command.droppable.untie("carried_by").tie("in").to(command.container)
+            command.droppable.untie("worn_by").tie("in").to(command.container)
+
         })
         .salience(5)
         .timeline(command.timeline)
@@ -145,6 +144,7 @@ plot.action.dropping.check.nothing.unfold=function(command)
     }
     return      
 }
+
 plot.action.dropping.check.incapable.unfold=function(command)
 {
     command.capable=command.subject.where(c=>c.has_skill($.action.dropping))
@@ -280,9 +280,9 @@ plot.action.taking.unfold=function(command)
     
     command.portable=command.thing.is("portable")
     var episode=ishml.Episode(this)
-        .narration(()=>_`Taken. `.say().append("#story"))
+        .narration(()=> (command.actor.akin($.actor.player)?_`<p>${_.They.ACTOR()} took ${_.the.PORTABLE()}.</p>`:_`${_.cap.ACTOR()} picked up ${_.the.PORTABLE()}.`).populate(command).say().append("#story"))
         //.resolution(()=>{command.portable.in.converse.untie().tie(cords.carries).from(command.capable)})
-        .resolution(()=>{command.portable.in.untie().from.tie("carried_by").to(command.capable)})
+        .resolution(()=>{command.portable.untie("in").tie("carried_by").to(command.actor)})
         .salience(5)
         .timeline(command.timeline)
         .abridge(()=>this.check.unfold(command))

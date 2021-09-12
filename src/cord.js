@@ -570,9 +570,11 @@ ishml.Cord =class Cord extends Function //(function Cord(){})
 		}
 		return {to:to, from:from}
 	}
-	untie()
+	untie(cordId)
 	{
-		this._plies.forEach(ply=>
+		var cord=cordId?this.converse(cordId):this
+
+		cord._plies.forEach(ply=>
 		{
 			ply.untie()
 		})
