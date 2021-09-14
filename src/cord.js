@@ -106,17 +106,17 @@ ishml.Cord =class Cord extends Function //(function Cord(){})
 		})	
 		return this	
 	}
-	converse(cordId)
+	get converse()
 	{
 		var cord = new ishml.Cord()
-		if (cordId)
+		/*if (cordId)
 		{
 			for ( const ply of this[cordId]._plies){cord.add(ply.converse)}
 		}
 		else
-		{	
+		{*/	
 			for ( const ply of this._plies){cord.add(ply.converse)}
-		}	
+		//}	
 		return cord
 	}
 	get cord(){return this}
@@ -520,7 +520,12 @@ ishml.Cord =class Cord extends Function //(function Cord(){})
 		var count=quantity||this.size
 		return new ishml.Cord(ishml.util.shuffle([...this._plies],count))
 	}
-	get size(){return this._plies.size}
+	get size()
+	{
+		//if(_select){return this._select().size}
+
+		return this._plies.size
+	}
 	sort(sorting)
 	{
 		return new Cord([...this._plies].sort(sorting))
@@ -572,7 +577,7 @@ ishml.Cord =class Cord extends Function //(function Cord(){})
 	}
 	untie(cordId)
 	{
-		var cord=cordId?this.converse(cordId):this
+		var cord=cordId?this[cordId].converse:this
 
 		cord._plies.forEach(ply=>
 		{

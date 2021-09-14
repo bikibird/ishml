@@ -69,7 +69,8 @@ ishml.Knot= class Knot
 	}
 	plural(...nouns)
 	{
-		ishml.yarn.lexicon.register(...nouns).as({part:"noun", number:ishml.lang.number.plural, select:this.cord})
+		this.configure({number:ishml.lang.number.plural})
+		ishml.yarn.lexicon.register(...nouns).as({part:"noun", select:this.cord})
 		return this
 	}
 	realm(hops)
@@ -78,8 +79,9 @@ ishml.Knot= class Knot
 	}
 	singular(...nouns)
 	{
-
+		this.configure({number:ishml.lang.number.singular})
 		ishml.yarn.lexicon.register(...nouns).as({part:"noun", number:ishml.lang.number.singular, select:this.cord})
+
 		return this
 	}
 	tie(...someCordage)

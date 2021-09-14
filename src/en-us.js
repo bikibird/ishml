@@ -27,16 +27,16 @@ ishml.yarn.lexicon
     .register("next to", "beside").as({cord: "beside", part:"relation"})
 
 	//directions
-	.register("north","n").as({part: "noun",  select:new ishml.Cord(subject=>subject.in.exit.north)})
-    .register("south","s").as({part: "noun",  select:new ishml.Cord(subject=>subject.in.exit.south)})
-    .register("east","e").as({part: "noun",  select:new ishml.Cord(subject=>subject.in.exit.east)})
-    .register("west","w").as({part: "noun",  select:new ishml.Cord(subject=>subject.in.exit.west)})
-    .register("northeast","ne").as({part: "noun",  select:new ishml.Cord(subject=>subject.in.exit.northeast)})
-    .register("northwest","nw").as({part: "noun",  select:new ishml.Cord(subject=>subject.in.exit.northwest)})
-    .register("southeast","se").as({part: "noun",  select:new ishml.Cord(subject=>subject.in.exit.southeast)})
-    .register("west","w").as({part: "noun",  select:new ishml.Cord(subject=>subject.in.exit.southwest)})
-	.register("up","u").as({part: "noun",  select:new ishml.Cord(subject=>subject.in.exit.up)})
-	.register("down","d").as({part: "noun",  select:new ishml.Cord(subject=>subject.in.exit.down)})
+	.register("north","n").as({part: "noun",  select:subject=>subject.in.exit.north.cord})
+    .register("south","s").as({part: "noun",  select:subject=>subject.in.exit.south.cord})
+    .register("east","e").as({part: "noun",  select:subject=>subject.in.exit.east.cord})
+    .register("west","w").as({part: "noun",  select:subject=>subject.in.exit.west.cord})
+    .register("northeast","ne").as({part: "noun",  select:subject=>subject.in.exit.northeast.cord})
+    .register("northwest","nw").as({part: "noun",  select:subject=>subject.in.exit.northwest.cord})
+    .register("southeast","se").as({part: "noun",  select:subject=>subject.in.exit.southeast.cord})
+    .register("west","w").as({part: "noun",  select:subject=>subject.in.exit.southwest.cord})
+	.register("up","u").as({part: "noun",  select:subject=>subject.in.exit.up.cord})
+	.register("down","d").as({part: "noun",  select:subject=>subject.in.exit.down.cord})
 /*grammar*/
 
 ishml.yarn.grammar.command=ishml.Rule()
@@ -69,7 +69,7 @@ ishml.yarn.grammar.ioPhrase=ishml.Rule().configure({mode:ishml.Rule.any})
 ishml.yarn.grammar.ioPhrase[1].snip("target",ishml.yarn.grammar.nounPhrase)    
 ishml.yarn.grammar.ioPhrase[2].snip("command",ishml.yarn.grammar.command)
 
-ishml.yarn.grammar.target=ishml.Rule().configure({minimum:0})
+ishml.yarn.grammar.indirect=ishml.Rule().configure({minimum:0})
     .snip("preposition",ishml.yarn.grammar.preposition).snip("phrase",ishml.yarn.grammar.ioPhrase)
 
 ishml.yarn.grammar.command.subject.configure({minimum:0 })
@@ -81,13 +81,13 @@ ishml.yarn.grammar.command.verb.configure({filter: (definition)=>definition.part
 
 ishml.yarn.grammar.command.object=ishml.Rule()
 .configure({minimum:0, mode:ishml.Rule.any})
-.snip(1)  //verbalParticle(required)/thing/target
-.snip(2)  //thing/verbal particle(optional)/target
-.snip(3)  //target/thing
+.snip(1)  //verbalParticle(required)/direct/indirect
+.snip(2)  //direct/verbal particle(optional)/indirect
+.snip(3)  //indirect/direct
 
-ishml.yarn.grammar.command.object[1].snip("verbalParticle").snip("thing",ishml.yarn.grammar.nounPhrase).snip("target",ishml.yarn.grammar.target)
-ishml.yarn.grammar.command.object[2].snip("thing",ishml.yarn.grammar.nounPhrase).snip("verbalParticle").snip("target",ishml.yarn.grammar.target)
-ishml.yarn.grammar.command.object[3].snip("target",ishml.yarn.grammar.nounPhrase).snip("thing",ishml.yarn.grammar.nounPhrase)
+ishml.yarn.grammar.command.object[1].snip("verbalParticle").snip("direct",ishml.yarn.grammar.nounPhrase).snip("indirect",ishml.yarn.grammar.indirect)
+ishml.yarn.grammar.command.object[2].snip("direct",ishml.yarn.grammar.nounPhrase).snip("verbalParticle").snip("indirect",ishml.yarn.grammar.indirect)
+ishml.yarn.grammar.command.object[3].snip("indirect",ishml.yarn.grammar.nounPhrase).snip("direct",ishml.yarn.grammar.nounPhrase)
 
 ishml.yarn.grammar.command.object[1].verbalParticle.configure({filter:(definition)=>definition.part==="particle"})
 ishml.yarn.grammar.command.object[2].verbalParticle.configure({minimum:0,filter:(definition)=>definition.part==="particle"})
@@ -97,12 +97,12 @@ ishml.yarn.grammar.nounPhrase.semantics=(interpretation)=>
     var gist=interpretation.gist
     gist.select=new ishml.Cord((...args)=>
     {
-        var cord=gist.noun.definition.select(...args).cord
+        var cord=gist.noun.definition.select(...args)
         if (gist.adjectives)
         {
             gist.adjectives.forEach(adjective=>
             {
-				cord=adjective.definition.select(cord).cord
+				cord=adjective.definition.select(cord)
                 /*cord=cord.cross(adjective.definition.select(...args))
                 .per((noun,adjective)=>noun.knot===adjective.knot)*/
             })
@@ -125,38 +125,42 @@ ishml.yarn.grammar.command.semantics=(interpretation)=>
 {
     var valence=interpretation.gist.verb.definition.valence
     if (valence ===0 && interpretation.gist.hasOwnProperty("object")){return false}
-    if (valence ===1 && (interpretation.gist.object?.hasOwnProperty("target") || !interpretation.gist.object?.hasOwnProperty("thing"))){return false}
-    if (valence ===2 && (!interpretation.gist.object?.hasOwnProperty("target") || !interpretation.gist.object?.hasOwnProperty("thing"))){return false}
+    if (valence ===1 && (interpretation.gist.object?.hasOwnProperty("indirect") || !interpretation.gist.object?.hasOwnProperty("direct"))){return false}
+    if (valence ===2 && (!interpretation.gist.object?.hasOwnProperty("indirect") || !interpretation.gist.object?.hasOwnProperty("direct"))){return false}
     interpretation.gist.verb.plot=interpretation.gist.verb.definition.plot
 	if (interpretation.gist.verb.definition.select){interpretation.gist.verb.select=interpretation.gist.verb.definition.select}
     
     Object.assign(interpretation.gist,interpretation.gist.object)
     delete interpretation.gist.object
 
-    if (interpretation.gist.hasOwnProperty("target"))
+    if (interpretation.gist.hasOwnProperty("indirect"))
     {
-        interpretation.gist.preposition=interpretation.gist.target.preposition
-        delete interpretation.gist.target.preposition
-        Object.assign(interpretation.gist.target,interpretation.gist.target.phrase?.target)
-        Object.assign(interpretation.gist.target,interpretation.gist.target.phrase?.command)
-        delete interpretation.gist.target.phrase
+        interpretation.gist.preposition=interpretation.gist.indirect.preposition
+        delete interpretation.gist.indirect.preposition
+        Object.assign(interpretation.gist.indirect,interpretation.gist.indirect.phrase?.target)
+        Object.assign(interpretation.gist.indirect,interpretation.gist.indirect.phrase?.command)
+        delete interpretation.gist.indirect.phrase
     }
 
-	if (interpretation.gist.hasOwnProperty("subject"))  //Jane, drop ball => player Asks Jane to drop ball
+    if (interpretation.gist.hasOwnProperty("subject"))  //Jane, drop ball => Ask Jane to drop ball
     {
         interpretation.gist=
         { 
-            subject:{noun:{definition:{select:$.actor.player}}},
+            subject:{noun:{lexeme:"",definition:{part:"noun",select:ishml.yarn.net.actor.player}}},
             verb:ishml.yarn.lexicon.search("ask", {longest:true, full:true}).filter(snippet=>snippet.token.definition.part==="verb" && snippet.token.definition.preposition==="to")[0].token,
-            thing:interpretation.gist.subject,
+            direct:interpretation.gist.subject,
             preposition:ishml.yarn.lexicon.search("to", {longest:true, full:true}).filter(snippet=>snippet.token.definition.part==="preposition")[0].token,
-            target:interpretation.gist
+            indirect:{gist:interpretation.gist}
         }
         interpretation.gist.verb.plot=interpretation.gist.verb.definition.plot
     }
     else
     {
-        interpretation.gist.subject={noun:{definition:{select:$.actor.player}}}
+        interpretation.gist.subject=
+        {
+			noun:{lexeme:"",definition:{part:"noun",select:ishml.yarn.net.actor.player}}
+            //noun:ishml.yarn.lexicon.search("player", {longest:true, full:true}).filter(snippet=>snippet.token.definition.role==="player")[0].token
+        }
     }
     //interpretation.gist.subject.select=(...args)=>interpretation.gist.subject.noun.definition.select(...args).cord
 	interpretation.gist.subject.select=interpretation.gist.subject.noun.definition.select
@@ -811,74 +815,7 @@ ishml.template.define("We").as((...data)=>
 {
 	return ishml.template.cap(ishml.template.we(...data))	
 })
-/*
-ishml.template.define("are").as((...data)=>
-{
-	if (data.length>1 || data[0].number ===ishml.lang.number.plural || data.quantity>1 ||ply_quantity>1)
-	{
-		return new ishml.Phrase`are`
-	} 
-	else {return new ishml.Phrase`is`}
 
-})
-
-
-ishml.template.define("them").as((...data)=>
-{
-	if (data.length>1  || data[0].number ===ishml.lang.number.plural || data.quantity>1 ||ply_quantity>1)
-	{
-		return new ishml.Phrase(ishml.lang.pronouns.plural[2])
-	} 
-	else {return new ishml.Phrase(ishml.lang.pronouns[data[0].gender][2])}
-})
-
-ishml.template.define("you").as((...data)=>
-{
-	if (data.length>1  || data[0].number ===ishml.lang.number.plural || data.quantity>1 ||ply_quantity>1)
-	{
-		return new ishml.Phrase(ishml.lang.pronouns.plural[1])
-	} 
-	else {return new ishml.Phrase(ishml.lang.pronouns[data[0].gender][1])}
-
-},...data)
-*/
-/*ishml.template.define("noun").as((cord)=>
-{
-	//set command.noun and return list
-	return new class cordPhrase extends ishml.Phrase
-	{
-		constructor()
-		{
-			super(cord.data())
-			return this
-		}
-		populate()
-		{
-			super.populate(cord.data())
-			return this
-		}
-		generate()
-		{
-			
-			super.generate()
-			this.results=this.results
-			this.text=this.results.map(phrase=>phrase.value).join("")
-			return this.results
-		}
-	}()*/
-	/*,
-	{
-		get: function(target, property, receiver) 
-		{
-			if (Reflect.has(target,property,receiver))  
-			{
-				return Reflect.get(target,property,receiver)
-			}
-			target._knotProperty=property
-			return receiver
-		}
-	})
-})*/
 
 
 

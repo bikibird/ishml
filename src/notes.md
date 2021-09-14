@@ -45,7 +45,7 @@ Add skill to actors that can perform the action in the world plotpoint (see cloa
 * $.action.tie("action").to("gerund")
 * $.actor.player.tie("has skill").to($.action.gerund)
 
-Add verb to lexicon. See outline.js
+Add verb to lexicon. 
 
 lexicon.register("1st person singular verb form", "alias","another alias", "etc").as({ plot: plot.action.gerund, part: "verb", valence:1 })
 
@@ -59,7 +59,7 @@ ishml.yarn.net
 
 Directed weighted graph.  A.K.A network.  
 
-The net stores the story world and is a directed weighted graph also know as a network.  The nodes (vertices) are called knots and the lines connecting them are called plies.
+The net stores the story world and is a directed weighted graph also know as a network.  The nodes (vertices) are called knots and the lines connecting them are called plies. 
 
 
 
@@ -87,4 +87,13 @@ ishml.Knot.prototype.defineCord("example").as(function)
 defines new method on Knot example=new Ishml.Cord().  sets custom getter in handler 
 
 
+## Adding Cords the Lexicon
+
+By convention, the select property of the definition is a function that returns a cord.  Since ishml.Cord is sub-classed from Function, a cord is also a function. Plies have a cord property which returns a cord containing ply.  Knots also have a cord property which contains a ply pointing to the knot.  
+
+//select($.actor.player) returns a cord containing the north ply of the room the player is in.  Parameter is the cord, knot, or ply that is a place.
+.register("north","n").as({part: "noun",  select:subject=>subject.in.exit.north.cord)
+
+//select() returns a cord containg a ply that points to the cloak knot.
+.register("cloak").as({part: "noun",  select:$.thing.cloak.cord)
 

@@ -80,11 +80,11 @@ $.fixture.hook.tie("in").to($.place.cloakroom)
 
 /* Adjectives */
 lexicon
-	.register("small").as({part:"adjective",select:subject=>subject.is.small})
-	.register("brass").as({part:"adjective",select:subject=>subject.is.brass})
-	.register("dark").as({part:"adjective",select:subject=>subject.is.dark})
-	.register("velvet").as({part:"adjective",select:subject=>subject.is.velvet})
-	.register("black").as({part:"adjective",select:subject=>subject.is.black})
+	.register("small").as({part:"adjective",select:subject=>subject.is.small.cord})
+	.register("brass").as({part:"adjective",select:subject=>subject.is.brass.cord})
+	.register("dark").as({part:"adjective",select:subject=>subject.is.dark.cord})
+	.register("velvet").as({part:"adjective",select:subject=>subject.is.velvet.cord})
+	.register("black").as({part:"adjective",select:subject=>subject.is.black.cord})
 
 yarn.harken()
 
