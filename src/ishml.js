@@ -12,38 +12,7 @@ https://whitewhalestories.com
 */
 
 var ishml = ishml || {}
-//const Ishmael = Ishmael || ishml  //Call me Ishmael.
-ishml.enum=ishml.enum || {}
-ishml.enum.mode={all:Symbol('all'),any:Symbol('any'),apt: Symbol('apt'),reset: Symbol('reset')} 
-ishml.enum.degree={positive:Symbol('positive'),comparative:Symbol('comparative'),superlative:Symbol('superaltive')} 
-ishml.enum.number={singular:Symbol('singular'),plural:Symbol('plural')}
-ishml.enum.pos=
-{
-	adjective:Symbol("adjective"),
-	adverb:Symbol("adverb"),
-	conjunction:Symbol("conjunction"),
-	noun:Symbol("noun"),
-	prefix:Symbol("prefix"),
-	preposition:Symbol("preposition"),
-	suffix:Symbol("suffix"),
-	verb:Symbol("verb")
-}
-ishml.enum.tense=
-{
-	past:Symbol("past"),
-	present:Symbol("present"),
-	future:Symbol("future"),
-	perfect:Symbol("perfect"),
-	pluraperfect:Symbol("pluperfect")
-}
-
-ishml.enum.viewpoint=
-{
-	first:{singular:Symbol("first person singular"),plural:Symbol("first person plural")},
-	second:{singular:Symbol("second person singular"),plural:Symbol("second person plural")},		
-	third:{singular:Symbol("third person singular"),plural:Symbol("third person plural")}
-}
-ishml.lang={}
+// #region utility functions
 ishml.util={_seed:undefined}
 
 ishml.util.enumerator=function* (aStart =1)
@@ -89,6 +58,14 @@ ishml.util.shuffle=function(anArray,{length=null,seed=Math.floor(Math.random() *
 	}
 	return {result:array.slice(-count),seed:seed}
 }
+// #endregion
+// #region regex
+ishml.regex=ishml.regex||{}
+ishml.regex.word=/(^\w*)(.*)/
+ishml.regex.floatingPointNumber=/^-?([0-9]*[.])?[0-9]+/
+// #endregion
+// #region Factories and Classes
+// #region Plotpoint 
 
 ishml.Plotpoint = function Plotpoint(id,summary)
 {
@@ -153,7 +130,7 @@ ishml.Plotpoint.prototype.heed = function (aDocumentSelector)
 						text: e.target.value,
 						agent: (e.target.dataset.agent || "player"),
 						target: e.target,
-						grammar: ishml.yarn.grammar[e.target.dataset.grammar] || ishml.yarn.grammar.input
+						grammar: ishml.grammar[e.target.dataset.grammar] || ishml.grammar.input
 					}
 					e.target.value = ""
 					e.target.removeEventListener(eventString, handler)
@@ -209,7 +186,8 @@ ishml.Plotpoint.handler=
 		}
 	}
 }
-
+// #endregion
+// #region Episode 
 //Episodes are added to the yarn's storyline through introduce.  
 //
 /*
@@ -226,7 +204,7 @@ ishml.Episode=function Episode(plot)
 		Object.defineProperty(this, "retracted", {value:false, writable: true})
 		Object.defineProperty(this, "_narration", {value:()=>_``.say().append("#story"),writable: true})
 		Object.defineProperty(this, "_resolution", {value:()=>true,writable: true})
-		Object.defineProperty(this, "_viewpoint", {value:null,writable: true})
+		Object.defineProperty(this, "_timeline", {value:null,writable: true})
 		Object.defineProperty(this, "stock", {value:null,writable: true})
 
 		Object.defineProperty(this, "told", {value:false,writable: true})
@@ -256,7 +234,7 @@ ishml.Episode.prototype.abridge = function (createEpisode)
 		while (rootEpisode.stock){rootEpisode=rootEpisode.stock}
 		rootEpisode.stock=this
 		episode.abridged=true
-		return episode.viewpoint(this._viewpoint).salience(this._salience)
+		return episode.timeline(this._timeline).salience(this._salience)
 	}
 }
 /* The append method returns generates the most salient episode generated from the subplot of the plotpoint or a new,empty, episode if no plotpoint.  The stock.prolog property is set to true, which causes narrate method to execute on the stock episode prior to executing the narration on the appended episode.  The stock.prolog property is set to true, which causes resolve method to execute on the stock episode prior to executing the resolution on the appended episode. */
@@ -270,7 +248,7 @@ ishml.Episode.prototype.append = function (createEpisode)
 		{	
 			episodes[0].stock=this
 			episodes[0].stock.prolog=true
-			return episodes[0].viewpoint(this._viewpoint).salience(this._salience)
+			return episodes[0].timeline(this._timeline).salience(this._salience)
 		}
 	}
 	else
@@ -281,7 +259,7 @@ ishml.Episode.prototype.append = function (createEpisode)
 		while (rootEpisode.stock){rootEpisode=rootEpisode.stock}
 		rootEpisode.stock=this
 		rootEpisode.stock.prolog=true
-		return episode.viewpoint(this._viewpoint).salience(this._salience)
+		return episode.timeline(this._timeline).salience(this._salience)
 	}
 }
 
@@ -302,7 +280,7 @@ ishml.Episode.prototype.before = function (createEpisode)
 			while (rootEpisode.stock){rootEpisode=rootEpisode.stock}
 			rootEpisode.stock=this
 			rootEpisode.stock.prolog=true
-			return episode.viewpoint(this._viewpoint).salience(this._salience)
+			return episode.timeline(this._timeline).salience(this._salience)
 		}
 	}
 	this.retracted=true
@@ -325,7 +303,7 @@ ishml.Episode.prototype.after = function (createEpisode)
 			while (rootEpisode.stock){rootEpisode=rootEpisode.stock}
 			rootEpisode.stock=this
 			rootEpisode.stock.epilog=true
-			return episode.viewpoint(this._viewpoint).salience(this._salience)
+			return episode.timeline(this._timeline).salience(this._salience)
 		}
 	}
 	this.retracted=true
@@ -395,7 +373,7 @@ ishml.Episode.prototype.revise = function (createEpisode)
 		}
 		else 
 		{	episode.stock=this
-			return episode.viewpoint(this._viewpoint).salience(this._salience)
+			return episode.timeline(this._timeline).salience(this._salience)
 		}
 	}
 	else { return this}
@@ -426,14 +404,16 @@ ishml.Episode.prototype.stop=function(...stop)
 		return this
 	}
 }
-ishml.Episode.prototype.viewpoint=function(viewpoint)
+ishml.Episode.prototype.timeline=function(timeline)
 {
-	if(viewpoint===undefined){return this._viewpoint}
+	if(timeline===undefined){return this._timeline}
 	{
-		this._viewpoint=viewpoint
+		this._timeline=timeline
 		return this
 	}
 }
+// #endregion
+// #region Knot 
 /*
 A knot has
 non-enumerable properties
@@ -463,7 +443,7 @@ ishml.Knot= class Knot
 		//Returns cord with ply representing this knot.
 		return new ishml.Cord(this)
 	}
-	
+	get knot(){return this}
 	get ply()
 	{
 		//Turns bare knot into a ply.
@@ -476,14 +456,13 @@ ishml.Knot= class Knot
 		
 		return Object.values(this).filter(cord=>cord instanceof ishml.Cord) 	
 	}
-	configure(configuration)
+	configure(...configuration)
 	{
+		configuration.flat().forEach(item=>
+			{
+				Object.assign(this,item)		
+			})
 		Object.assign(this,configuration)
-		/*Object.keys(configuration).forEach(key=>
-		{
-			if (this.hasOwnProperty(key)){this[key]=configuration[key]}
-			else{Object.defineProperty(this, key, {value:configuration[key],writable: true}) }
-		})*/
 		return this
 	}	
 /*	defineCord(name)
@@ -506,7 +485,8 @@ ishml.Knot= class Knot
 	}
 	plural(...nouns)
 	{
-		ishml.yarn.lexicon.register(...nouns).as({part:"noun", number:ishml.enum.number.plural, select:this.cord})
+		this.configure({number:ishml.lang.number.plural})
+		ishml.lexicon.register(...nouns).as({part:"noun", select:this.cord})
 		return this
 	}
 	realm(hops)
@@ -515,7 +495,9 @@ ishml.Knot= class Knot
 	}
 	singular(...nouns)
 	{
-		ishml.yarn.lexicon.register(...nouns).as({part:"noun", number:ishml.enum.number.singular, select:this.cord})
+		this.configure({number:ishml.lang.number.singular})
+		ishml.lexicon.register(...nouns).as({part:"noun", number:ishml.lang.number.singular, select:this.cord})
+
 		return this
 	}
 	tie(...someCordage)
@@ -675,12 +657,8 @@ $.system.command.tie({cord:subject, id:"subject"})
 
 
 }
-
-
-
-
-
-
+// #endregion
+// #region Ply 
 /*
 The purpose of a knot is to hold data.
 A Knot has cords.
@@ -1025,7 +1003,7 @@ ishml.Ply= class Ply
 	{
 		return this.cord.subtract(...cordage)
 	}
-	untie()
+	untie(cordId)
 	{
 /*Knot must have been reached by traveling along a tie.
 $.room.kitchen.untie() removes the room tie for kitchen and returns kitchen.knot.
@@ -1043,6 +1021,7 @@ $.room.kitchen.exit.north.untie()
 		}
 		return this
 	}
+
 	where(condition)
 	{
 		if (condition(this)){return this}
@@ -1057,8 +1036,6 @@ ishml.Ply.handler=
 
 	get: function(target, property, receiver) 
 	{
-		//console.log("reciever",receiver)
-		
 		if (Reflect.has(target,property)){return Reflect.get(target,property, receiver)}
 		var ply=Reflect.get(target,"ply")
 		if(ply.hasOwnProperty(property))
@@ -1071,10 +1048,12 @@ ishml.Ply.handler=
 		{
 			if(Reflect.has(knot,property))
 			{
-				
-				return knot[property]
-			}
-			else {return new ishml.Cord()}
+				if (!(knot[property] instanceof ishml.Cord)  && typeof knot[property]==="function" )
+				{
+					return function(...args){return knot[property](args)}
+				}
+				else {return knot[property]}
+			}	
 		}
 		else {return new ishml.Cord()}	
 	},
@@ -1114,6 +1093,9 @@ ishml.Ply.handler=
 
 //$.select.green.describes.cup
 //$.cup.is.green
+
+// #endregion
+// #region Cord 
 ishml.Cord =class Cord extends Function //(function Cord(){})
 {
 	//a cord is a collection of unrelated plies
@@ -1222,17 +1204,17 @@ ishml.Cord =class Cord extends Function //(function Cord(){})
 		})	
 		return this	
 	}
-	converse(cordId)
+	get converse()
 	{
 		var cord = new ishml.Cord()
-		if (cordId)
+		/*if (cordId)
 		{
 			for ( const ply of this[cordId]._plies){cord.add(ply.converse)}
 		}
 		else
-		{	
+		{*/	
 			for ( const ply of this._plies){cord.add(ply.converse)}
-		}	
+		//}	
 		return cord
 	}
 	get cord(){return this}
@@ -1337,7 +1319,7 @@ ishml.Cord =class Cord extends Function //(function Cord(){})
 		})
 		return cord
 	}
-	equivalent(...someCord)
+	akin(...someCord)
 	{
 		var knots=this.knots.toSet
 		var otherKnots = (new ishml.Cord(...someCord)).knots.toSet
@@ -1362,7 +1344,7 @@ ishml.Cord =class Cord extends Function //(function Cord(){})
 	{}
 */	
 	
-	first(count=1)
+	slice(start=0,end=1)
 	{
 		return new ishml.Cord([...this._plies].slice(0,1))
 	}
@@ -1372,12 +1354,12 @@ ishml.Cord =class Cord extends Function //(function Cord(){})
 	}
 	has(ply)
 	{
-		if (this._plies.has(ply)){return true}
-		return false
-	}
-	hasKnot(knot)
-	{
-		return [...this._plies].some(ply=>ply.knot===knot)
+		if (ply instanceof ishml.Ply)
+		{
+			if (this._plies.has(ply)){return true}
+			return false
+		}	
+		else {return [...this._plies].some(ply=>ply.knot===ply)}
 	}
 	intersect (cord)
 	{
@@ -1385,7 +1367,7 @@ ishml.Cord =class Cord extends Function //(function Cord(){})
 		var cord=new ishml.Cord()
 		this.forEach(ply=>
 		{
-			if (otherCord.hasKnot(ply.knot))
+			if (otherCord.has(ply.knot))
 			{
 				cord.add(ply)
 			}
@@ -1636,7 +1618,12 @@ ishml.Cord =class Cord extends Function //(function Cord(){})
 		var count=quantity||this.size
 		return new ishml.Cord(ishml.util.shuffle([...this._plies],count))
 	}
-	get size(){return this._plies.size}
+	get size()
+	{
+		//if(_select){return this._select().size}
+
+		return this._plies.size
+	}
 	sort(sorting)
 	{
 		return new Cord([...this._plies].sort(sorting))
@@ -1686,9 +1673,11 @@ ishml.Cord =class Cord extends Function //(function Cord(){})
 		}
 		return {to:to, from:from}
 	}
-	untie()
+	untie(cordId)
 	{
-		this._plies.forEach(ply=>
+		var cord=cordId?this[cordId].converse:this
+
+		cord._plies.forEach(ply=>
 		{
 			ply.untie()
 		})
@@ -1786,6 +1775,8 @@ ishml.Cord.handler=
 		}
 	}
 }
+// #endregion
+// #region Interpretation 
 ishml.Interpretation=function Interpretation(gist={},remainder="",valid=true)
 {
 	if (this instanceof ishml.Interpretation)
@@ -1815,6 +1806,9 @@ ishml.Interpretation=function Interpretation(gist={},remainder="",valid=true)
 		return new Interpretation(gist,remainder)
 	}
 }
+
+// #endregion
+// #region Lexicon
 ishml.Lexicon=function Lexicon() 
 {
 	if (this instanceof ishml.Lexicon)
@@ -2035,6 +2029,8 @@ ishml.Lexicon.prototype.unregister=function(lexeme,definition)
 	}
 	return this	
 }
+// #endregion
+// #region Parser
 ishml.Parser=function Parser({lexicon,grammar}={})
 {
 	if (this instanceof ishml.Parser)
@@ -2086,6 +2082,421 @@ ishml.Parser.prototype.analyze=function(text)
 		}
 	}
 }
+
+// #endregion
+// #region Rule
+ishml.Rule=function Rule() 
+{
+	if (this instanceof ishml.Rule)
+	{
+		
+		Object.defineProperty(this, "caseSensitive", {value:false, writable: true})
+		Object.defineProperty(this, "entire", {value:false, writable: true})
+		Object.defineProperty(this, "full", {value:false, writable: true})
+		Object.defineProperty(this, "filter", {value:(definition)=>true, writable: true})
+		Object.defineProperty(this, "greedy", {value:false, writable: true})
+		Object.defineProperty(this, "keep", {value:true, writable: true})
+		Object.defineProperty(this, "longest", {value:false, writable: true})
+		Object.defineProperty(this, "minimum", {value:1, writable: true})
+		Object.defineProperty(this, "maximum", {value:1, writable: true})
+		Object.defineProperty(this, "mode", {value:ishml.Rule.all, writable: true})
+		Object.defineProperty(this, "semantics", {value:(interpretation)=>true, writable: true})
+		Object.defineProperty(this, "mismatch", {value:(interpretation)=>false, writable: true})
+		Object.defineProperty(this, "separator", {value:/^\s/, writable: true})
+		Object.defineProperty(this, "regex", {value:false, writable: true})
+		//for composing
+		Object.defineProperty(this, "phrases", {value:[], writable: true})
+		return this
+	}
+	else
+	{
+		return new Rule()
+	}
+}
+ishml.Rule.all=Symbol('all')
+ishml.Rule.any=Symbol('any')
+ishml.Rule.apt= Symbol('apt')
+//ishml.Rule.reset=Symbol('reset') 
+ishml.Rule.prototype.clone =function()
+{
+	//DEFECTIVE
+	var circularReferences=new Set()
+
+	function _clone(rule)
+	{
+		var clonedRule= new ishml.Rule().configure({caseSensitive:rule.caseSensitive, entire:rule.entire, filter:rule.filter, full:rule.full, greedy:rule.greedy, keep:rule.keep,longest:rule.longest, minimum:rule.minimum, maximum:rule.maximum, mode:rule.mode, mismatch:rule.mismatch, regex:rule.regex, semantics:rule.semantics, separator:rule.separator,phrases:rule.phrases})
+		var entries=Object.entries(rule)
+		entries.forEach(([key,value])=>
+		{
+			if (circularReferences.has(value))
+			{
+				clonedRule[key]=value
+			}
+			else
+			{
+				circularReferences.add(value)
+				clonedRule[key]=_clone(value)
+			}
+			
+		})
+		return clonedRule
+	}	
+	return _clone(this)
+}	
+ishml.Rule.prototype.configure =function({caseSensitive, entire,filter, full, greedy, keep, longest, minimum,maximum, mode,mismatch, regex, semantics, separator, shuffle, phrases}={})
+{
+
+	if(caseSensitive !== undefined){this.caseSensitive=caseSensitive}
+	if(entire !== undefined){this.entire=entire}
+	if(filter !== undefined){this.filter=filter}
+	if(full !== undefined){this.full=full}
+	if(greedy !== undefined){this.greedy=greedy}
+	if(keep !== undefined){this.keep=keep}
+	if(longest !== undefined){this.longest=longest}
+	if(minimum !== undefined){this.minimum=minimum}
+	if(maximum !== undefined){this.maximum=maximum}
+	if(mode !== undefined){this.mode=mode}
+	if(mismatch !== undefined){this.mismatch=mismatch}
+	if(regex !== undefined){this.regex=regex}
+	if(semantics !== undefined){this.semantics=semantics}
+	if(separator !== undefined){this.separator=separator}
+	if(phrases !== undefined){this.phrases=phrases}
+	return this
+}
+ishml.Rule.prototype.parse =function(text,lexicon)
+{
+	var someText=text.slice(0)
+	var results=[]
+
+	var keys=Object.keys(this)
+	if (keys.length>0)
+	//non-terminal
+	{
+		switch (this.mode) 
+		{
+			case ishml.Rule.all:
+				if (this.maximum ===1 ){var candidates=[new ishml.Interpretation({},someText)]}
+				else {var candidates=[new ishml.Interpretation([],someText)]}
+				var counter = 0
+				var phrases=[]
+				var revisedCandidates=candidates.slice(0)
+				while (counter<this.maximum)
+				{
+					for (let key of keys)
+					{
+						revisedCandidates.forEach(candidate=>
+						{	
+							var {gist,remainder,valid}=candidate
+							//SNIP
+							if (remainder.length>0)
+							{
+								var {snippets}=this[key].parse(remainder.slice(0),lexicon) 
+								snippets.forEach((snippet)=>
+								{
+									
+									var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid)
+									if (this.maximum ===1 )
+									{
+										if(this[key].keep || !phrase.valid){phrase.gist[key]=snippet.gist}
+									}
+									else 
+									{
+										if(phrase.gist.length===counter){phrase.gist.push({})}
+										if(this[key].keep  || !phrase.valid){phrase.gist[counter][key]=snippet.gist}
+									}
+									phrases.push(phrase)
+								
+								})
+							}  
+						})
+						if (this[key].minimum===0)
+						{
+							revisedCandidates=revisedCandidates.concat(phrases.slice(0))
+						}
+						else
+						{
+							revisedCandidates=phrases.slice(0)
+						}
+						
+						phrases=[]
+					}
+					counter++
+					if (revisedCandidates.length===0)
+					{
+						break
+					}
+					else
+					{
+						if (counter >= this.minimum)
+						{
+							if (this.greedy){results=revisedCandidates.slice(0)}
+							else {results=results.concat(revisedCandidates)}
+						}
+					}
+				}
+				break
+			case ishml.Rule.any:
+					if (this.maximum ===1 ){var candidates=[new ishml.Interpretation({},someText)]}
+					else {var candidates=[new ishml.Interpretation([],someText)]}
+					var revisedCandidates=candidates.slice(0)
+					for (let key of keys)
+					{
+						var counter = 0
+						var phrases=[]
+						
+						while (counter<this.maximum)
+						{
+							revisedCandidates.forEach(candidate=>
+							{
+								var {gist,remainder,valid}=candidate
+							//SNIP
+								if (remainder.length>0)
+								{
+									var {snippets}=this[key].parse(remainder.slice(0),lexicon) 
+									snippets.forEach((snippet)=>
+									{
+										
+										var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid)
+										if (this.maximum ===1 )
+										{
+											if(this[key].keep || !phrase.valid){phrase.gist=snippet.gist}
+										}
+										else 
+										{
+											if(phrase.gist.length===counter){phrase.gist.push({})}
+											if(this[key].keep || !phrase.valid){phrase.gist[counter]=snippet.gist}
+										}
+										phrases.push(phrase)
+										
+									})
+								}
+
+							})
+							if (this[key].minimum===0)
+							{
+								revisedCandidates=phrases.slice(0)
+							}
+							else
+							{
+								revisedCandidates=phrases.slice(0) 
+							}
+							phrases=[]
+							counter++
+							if (revisedCandidates.length===0){break}
+							else
+							{
+								if (this.greedy){results=revisedCandidates.slice(0)}
+								else {results=results.concat(revisedCandidates)}
+							}
+						}
+						revisedCandidates=candidates.slice(0)  //go see if there are more alternatives that work.	
+					}
+					break
+			case ishml.Rule.apt:
+				if (this.maximum ===1 ){var candidates=[new ishml.Interpretation({},someText)]}
+				else {var candidates=[new ishml.Interpretation([],someText)]}
+				var revisedCandidates=candidates.slice(0)
+				for (let key of keys)
+				{
+					var counter = 0
+					var phrases=[]
+					
+					while (counter<this.maximum)
+					{
+						revisedCandidates.forEach(candidate=>
+						{
+							var {gist,remainder,valid}=candidate
+							//SNIP
+							if (remainder.length>0)
+							{
+								var {snippets}=this[key].parse(remainder.slice(0),lexicon) 
+								snippets.forEach((snippet)=>
+								{
+									
+									var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid)
+									if (this.maximum ===1 )
+									{
+										if(this[key].keep || !phrase.valid){phrase.gist=snippet.gist}
+									}
+									else 
+									{
+										if(phrase.gist.length===counter){phrase.gist.push({})}
+										if(this[key].keep || !phrase.valid){phrase.gist[counter]=snippet.gist}
+									}
+									phrases.push(phrase)
+									
+								})
+							}
+
+						})
+						
+						if (this[key].minimum===0)
+						{
+							
+							revisedCandidates=phrases.slice(0)
+						}
+						else
+						{
+							revisedCandidates=phrases.slice(0) 
+						}
+						phrases=[]
+						counter++
+						if (revisedCandidates.length===0){break}
+						else
+						{
+							if (this.greedy){results=revisedCandidates.slice(0)}
+							else {results=results.concat(revisedCandidates)}
+						}
+					}
+					if (results.length>0){break} //found something that works, stop looking.
+					revisedCandidates=candidates.slice(0)//try again with next key.	
+				}
+				break
+		}
+	}
+	else
+	{
+	//terminal
+
+		if (this.maximum ===1 ){var candidates=[new ishml.Interpretation({},someText)]}
+		else {var candidates=[new ishml.Interpretation([],someText)]}
+		var revisedCandidates=candidates.slice(0)
+		
+		var counter = 0
+		var phrases=[]
+		var rule = this
+		while (counter<this.maximum)
+		{
+			revisedCandidates.forEach((candidate)=>
+			{
+
+				var {gist,remainder,valid}=candidate
+				//SNIP
+				if (remainder.length>0)
+				{
+					var snippets=lexicon.search(remainder, {regex:rule.regex,separator:rule.separator, caseSensitive:rule.caseSensitive, longest:rule.longest, full:rule.full})
+
+					snippets.forEach((snippet)=>
+					{
+						if (this.filter(snippet.token.definition))
+						{
+							var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid)
+							if (this.maximum ===1 )
+							{
+								if(this.keep || !phrase.valid){phrase.gist=snippet.token}
+							}
+							else 
+							{
+								if(phrase.gist.length===counter){phrase.gist.push({})}
+								if(this.keep || !phrase.valid){phrase.gist[counter]=snippet.token}
+							}
+							phrases.push(phrase)
+						}	
+						
+					})
+				}
+			})
+			
+			revisedCandidates=phrases.slice(0) //}
+			phrases=[]
+			counter++
+			if (revisedCandidates.length===0)
+			{
+				
+				break
+			}
+			else
+			{
+				if (this.greedy){results=revisedCandidates.slice(0)}
+				else {results=results.concat(revisedCandidates)}
+			}
+		}
+		
+	}	
+	results=results.map(interpretation=>
+	{
+		if(interpretation.remainder.length>0 && this.entire)
+		{
+			interpretation.valid=false
+		}
+		return interpretation
+	})
+	
+	if (!results.some(interpretation=>interpretation.valid))
+	{
+		if (results.length===0){results=candidates}
+		results=results.reduce((revisedResults, interpretation) =>
+		{
+			var revisedInterpretation=this.mismatch(interpretation)
+			if (revisedInterpretation)
+			{
+				if (revisedInterpretation)
+				{
+					revisedResults.push(revisedInterpretation)
+				}
+			}
+			return revisedResults
+
+		},[])
+
+	}
+
+	results=results.reduce((revisedResults, interpretation) =>
+	{
+		if (interpretation.valid)
+		{
+			var revisedInterpretation=this.semantics(interpretation)
+			if (revisedInterpretation)
+			{
+				if (revisedInterpretation === true)
+				{
+					revisedResults.push(interpretation)
+				}
+				else
+				{
+					revisedResults.push(revisedInterpretation)
+				}
+			}
+		}
+		else
+		{
+			revisedResults.push(interpretation)
+		}
+		return revisedResults
+
+	},[])
+	if (results.length>0)
+	{
+		return {snippets:results}	
+	}
+	else
+	{
+		return {snippets:[]}
+	}	
+}
+ishml.Rule.prototype.snip =function(key,rule)
+{
+	
+	if (rule instanceof ishml.Rule)
+	{
+		this[key]=rule
+	}
+	else
+	{
+		this[key]=new ishml.Rule(key)
+
+		this[key].caseSensitive=this.caseSensitive
+		this[key].full=this.full
+		this[key].longest=this.longest
+		this[key].separator=this.separator
+		
+	}	
+	return this		
+}
+// #endregion
+// #region Phrase
+//DOCUMENTATION  during generate if phrases[n].silence is true phrase has text set to "" and results set to []
+
 ishml.Phrase =class Phrase
 {
 	constructor(...precursor) 
@@ -2096,16 +2507,17 @@ ishml.Phrase =class Phrase
 		Object.defineProperty(this,"phrases",{value:[],writable:true})
 		Object.defineProperty(this,"_results",{value:[],writable:true})
 		Object.defineProperty(this,"_seed",{value:ishml.util.random().seed,writable:true})
+		Object.defineProperty(this,"_tag",{value:"",writable:true})
 		Object.defineProperty(this,"tags",{value:{},writable:true})
 		Object.defineProperty(this,"text",{value:"",writable:true})
 		this._populate(...precursor)
 		this.catalog()
 		return new Proxy(this, ishml.Phrase.__handler)
 	}
-	get also()
+	get also()  //simalr to _() below expect does not add space
 	{
 		var primaryPhrase=this
-		return new Proxy((...precursor) => new class thenPhrase extends ishml.Phrase
+		return new Proxy((...precursor) => new class alsoPhrase extends ishml.Phrase
 		{
 			constructor()
 			{
@@ -2121,6 +2533,36 @@ ishml.Phrase =class Phrase
 				{
 					this.results=results.concat(this.phrases[1].value.generate())
 					this.text=this.phrases[0].value.text+ this.phrases[1].value.text
+				}
+				else
+				{
+					this.results=results
+					this.text=""
+				}
+				return this.results
+			}
+		},ishml.template.__handler)
+	}
+
+	get _() //similar to also() above, but adds space
+	{
+		var primaryPhrase=this
+		return new Proxy((...precursor) => new class spacePhrase extends ishml.Phrase
+		{
+			constructor()
+			{
+				super()
+				this.phrases[0]={value:primaryPhrase}
+				this.phrases[1]={value:new ishml.Phrase(...precursor)}
+				this.catalog()
+			}
+			generate()
+			{
+				var results=this.phrases[0].value.generate()
+				if (results.length>0)
+				{
+					this.results=results.concat([{value:" "}],this.phrases[1].value.generate())
+					this.text=this.results.map(item=>item.value).join("")
 				}
 				else
 				{
@@ -2200,7 +2642,7 @@ ishml.Phrase =class Phrase
 			{
 				super.generate()
 				this.results=this.results.filter(item=>rule(item,this.tags[tag].results))
-				this.text=this.results.map(phrase=>phrase.value).join("")
+				this.text=this.results.map(item=>item.value).join("")
 				return this.results
 			}
 		}(this)
@@ -2254,7 +2696,7 @@ ishml.Phrase =class Phrase
 					result.subtotal=subtotal
 					result.total=total
 				})
-				this.text=this.results.map(phrase=>phrase.value).join("")
+				this.text=this.results.map(item=>item.value).join("")
 				return this.results
 			}
 		}(this)
@@ -2264,29 +2706,36 @@ ishml.Phrase =class Phrase
 		this.results=[]
 		phrases.forEach((phrase)=>
 		{
-			if (phrase.value instanceof ishml.Phrase) 
+			if (!phrase.silence)
 			{
-				this.results=this.results.concat(phrase.value.generate().map(subPhrase=>Object.assign(Object.assign({},phrase),subPhrase)))
-			}
-			else
-			{
-				if (phrase.value instanceof Function)
+				if (phrase.value instanceof ishml.Phrase) 
 				{
-					var deferredPhrase=phrase.value(this.tags)
-					if (deferredPhrase instanceof ishml.Phrase)
-					{
-						this.results=this.results.concat(deferredPhrase.generate().map(subPhrase=>Object.assign(Object.assign({},phrase),subPhrase)))
-					}
-					else
-					{
-						this.results=this.results.concat(Object.assign(Object.assign({},phrase),{value:deferredPhrase?.toString()}))
-					}
+					this.results=this.results.concat(phrase.value.generate().map(subPhrase=>Object.assign(Object.assign({},phrase),subPhrase)))
 				}
 				else
 				{
-					this.results=this.results.concat(Object.assign(Object.assign({},phrase),{value:phrase.value?.toString()}))
+					if (phrase.value instanceof Function)
+					{
+						var deferredPhrase=phrase.value(this.tags)
+						if (deferredPhrase instanceof ishml.Phrase)
+						{
+							this.results=this.results.concat(deferredPhrase.generate().map(subPhrase=>Object.assign(Object.assign({},phrase),subPhrase)))
+						}
+						else
+						{
+							this.results=this.results.concat(Object.assign(Object.assign({},phrase),{value:deferredPhrase?.toString()}))
+						}
+					}
+					else
+					{
+						this.results=this.results.concat(Object.assign(Object.assign({},phrase),{value:phrase.value?.toString()}))
+					}
 				}
 			}
+			else
+			{
+				this.text=""
+			}	
 		})
 		this.text=this.results.map(data=>data.value).join("")
 		return this.results
@@ -2296,36 +2745,6 @@ ishml.Phrase =class Phrase
 		var template = document.createElement("template")
 		template.innerHTML = this.text
 		return template
-	}
-	get if()//DEFECT Not tested
-	{
-		var thisPhrase=this
-		return new Proxy((precursor) => new class ifPhrase extends ishml.Phrase
-		{
-			constructor()
-			{
-				super()
-				this.phrases[0]={value:thisPhrase}  
-				this.phrases[1]={value:precursor}  
-				this.catalog()
-			}
-			generate()
-			{
-				var a=this.phrases[0].value.generate()
-				this.phrases[1].value.generate()
-				if (this.phrases[1].value.text==="")
-				{
-					this.results=[]
-					this.text=""
-				}
-				else
-				{
-					this.results=this.phrases[0].value.generate()
-					this.text=this.phrases[0].value.text
-				}
-				return this.results
-			}
-		},ishml.template.__handler)
 	}
 	get inner()
 	{
@@ -2346,8 +2765,8 @@ ishml.Phrase =class Phrase
 			{
 				super.generate()
 				var last=this.results.length-1
-				this.text=this.results.map(phrase=>phrase.value).reduce((result,phrase,index,)=>result+phrase+((index===last && trim)?"":separator),"")	
-				this.results=[{value:this.text}]
+				this.text=this.results.map(item=>item.value).reduce((result,phrase,index,)=>result+phrase+((index===last && trim)?"":separator),"")	
+				if (this.text){this.results=[{value:this.text}]}
 				return this.results
 			}
 		}(this)
@@ -2392,7 +2811,7 @@ ishml.Phrase =class Phrase
 				var b= this.phrases[1].value.generate()
 				var property=this.phrases[1].value._property??"value"
 				this.results=a.filter(a=>b.map(item=>item.value).includes(a[property]))
-				this.text=this.results.map(phrase=>phrase.value).join("")
+				this.text=this.results.map(item=>item.value).join("")
 				return this.results
 			}
 		},ishml.template.__handler)
@@ -2415,18 +2834,75 @@ ishml.Phrase =class Phrase
 			generate()
 			{
 				super.generate()
-				this.results=this.results.map(phrase=>
+				this.results=this.results.map(item=>
 				{
-					var modifiedPhrase=Object.assign({},phrase)
-					return Object.assign(modifiedPhrase,{value:modifier(phrase)})
+					var modifiedPhrase=Object.assign({},item)
+					return Object.assign(modifiedPhrase,{value:modifier(item)})
 				})	
-				this.text=this.results.map(phrase=>phrase.value).join("")
+				this.text=this.results.map(item=>item.value).join("")
 				return this.results
 			}
 		}()
 	}
+	transform(transformer,...data)
+	{
+		if(data.length>0)
+		{
+			if(data.length===1 && data[0] instanceof ishml.Phrase){var target=data[0]}
+		}
+		else {var target=this}
+		return new class transformPhrase extends ishml.Phrase
+		{
+			constructor()
+			{
+				if (target){super(target)}
+				else{super(...data)}
+			}
+			generate()
+			{
+				this.results=transformer(super.generate().slice(0).map(item=>Object.assign({},item)))
+				this.text=this.results.map(item=>item.value).join("")
+				return this.results
+			}
+		}()
+	}
+	//_`${_.animal}`.per.ANIMAL("cat","dog","frog")
+	get per()
+	{
+		var primaryPhrase=this
+		return new Proxy((...precursor) => new class perPhrase extends ishml.Phrase
+		{
+			constructor()
+			{
+				super()
+				this.phrases[0]={value:primaryPhrase}
+				this.catalog()
+			}
+			generate()
+			{
+				var results=[]
+				do 
+				{
+					results=results.concat(this.phrases[0].value.generate())
+				}while(!this.tags[precursor[0]._tag].data.reset)
+				this.results=results
+				this.text=this.results.map(data=>data.value).join("")
+				return this.results	
 
-	per(id)
+				/*var items=this.phrases[1].value.generate().filter(item=>item.value).map((item,index,array)=>Object.assign({total:array.length,index:index,rank:index+1},item))
+				this.results=[]
+				items.forEach(item=>
+				{
+					this.results=this.results.concat(this.phrases[0].value.generate())
+				})
+				this.text=this.results.map(data=>data.value).join("")
+				return this.results*/
+
+			}
+		},ishml.template.__handler)
+	}
+
+/*	per(id)
 	{
 		var tag=id
 		return new class perPhrase extends ishml.Phrase
@@ -2445,6 +2921,7 @@ ishml.Phrase =class Phrase
 			}
 		}(this)
 	}
+*/	
 	populate(literals, ...expressions)
 	{
 		if(this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
@@ -2461,7 +2938,7 @@ ishml.Phrase =class Phrase
 	_populate(literals, ...expressions)
 	{
 		var data=[]
-		if (literals)
+		if (literals !== undefined)
 		{
 			var index=1
 			if( literals.hasOwnProperty("raw"))
@@ -2663,6 +3140,37 @@ ishml.Phrase =class Phrase
 			}
 		},ishml.template.__handler)
 	}
+	get when()
+	{
+		var primaryPhrase=this
+		return new Proxy((...precursor) => new class whenPhrase extends ishml.Phrase
+		{
+			constructor()
+			{
+				super()
+				this.phrases[0]={value:new ishml.Phrase(...precursor)}
+				this.phrases[1]={value:primaryPhrase}
+				this.catalog()
+			}
+			generate()
+			{
+				this.phrases[0].value.generate()
+				if (this.phrases[0].value.text)
+				{
+					this.phrases[1].value.generate()
+					this.text=this.phrases[1].value.text + this.phrases[0].value.text
+					this.results=[{value:this.text}]
+				}
+				else
+				{
+					this.results=[{value:""}]
+					this.text=""
+				}
+
+				return this.results
+			}
+		},ishml.template.__handler)
+	}
 
 	//Unlike modify, expand takes a phrase factory and applies the results of this phrase to it.
 	expand(phraseFactory)
@@ -2696,6 +3204,7 @@ ishml.Phrase =class Phrase
 			}
 		}(this)
 	}
+	
 }
 ishml.Phrase.define=function(id)
 {
@@ -2728,427 +3237,9 @@ ishml.Phrase.__handler=
 		}
 	}	
 }
-/*var inside=box=>_`Inside the ${box} was a ${_.favor(_.pick("steel strongbox","wooden casket","silk bag","paper sack","old purse").tag("container"),
-_.pick("ring","ancient coin", "ruby")).tag("contents")}. 
-${_.contents.concur("container").transform(inside)}
-${_`She put the ${_.contents} back in the ${box}. `}`
 
-var example1=_`Cas looked under the bed and found a package wrapped with a red ribbon.  Carefully, she unwrapped the package. 
-${inside("package")}Cas rewrapped the package and put it back under the bed.  ${_.pick("No one would be the wiser. ", 
-"Now she knew. ", "She was elated. ", "She was disappointed.")}`
-*/
-ishml.regex=ishml.regex||{}
-ishml.regex.word=/(^\w*)(.*)/
-ishml.regex.floatingPointNumber=/^-?([0-9]*[.])?[0-9]+/
-ishml.Rule=function Rule() 
-{
-	if (this instanceof ishml.Rule)
-	{
-		
-		Object.defineProperty(this, "caseSensitive", {value:false, writable: true})
-		Object.defineProperty(this, "entire", {value:false, writable: true})
-		Object.defineProperty(this, "full", {value:false, writable: true})
-		Object.defineProperty(this, "filter", {value:(definition)=>true, writable: true})
-		Object.defineProperty(this, "greedy", {value:false, writable: true})
-		Object.defineProperty(this, "keep", {value:true, writable: true})
-		Object.defineProperty(this, "longest", {value:false, writable: true})
-		Object.defineProperty(this, "minimum", {value:1, writable: true})
-		Object.defineProperty(this, "maximum", {value:1, writable: true})
-		Object.defineProperty(this, "mode", {value:ishml.enum.mode.all, writable: true})
-		Object.defineProperty(this, "semantics", {value:(interpretation)=>true, writable: true})
-		Object.defineProperty(this, "mismatch", {value:(interpretation)=>false, writable: true})
-		Object.defineProperty(this, "separator", {value:/^\s/, writable: true})
-		Object.defineProperty(this, "regex", {value:false, writable: true})
-		//for composing
-		Object.defineProperty(this, "phrases", {value:[], writable: true})
-		return this
-	}
-	else
-	{
-		return new Rule()
-	}
-}
-ishml.Rule.prototype.clone =function()
-{
-	//DEFECTIVE
-	var circularReferences=new Set()
-
-	function _clone(rule)
-	{
-		var clonedRule= new ishml.Rule().configure({caseSensitive:rule.caseSensitive, entire:rule.entire, filter:rule.filter, full:rule.full, greedy:rule.greedy, keep:rule.keep,longest:rule.longest, minimum:rule.minimum, maximum:rule.maximum, mode:rule.mode, mismatch:rule.mismatch, regex:rule.regex, semantics:rule.semantics, separator:rule.separator,phrases:rule.phrases})
-		var entries=Object.entries(rule)
-		entries.forEach(([key,value])=>
-		{
-			if (circularReferences.has(value))
-			{
-				clonedRule[key]=value
-			}
-			else
-			{
-				circularReferences.add(value)
-				clonedRule[key]=_clone(value)
-			}
-			
-		})
-		return clonedRule
-	}	
-	return _clone(this)
-}	
-ishml.Rule.prototype.configure =function({caseSensitive, entire,filter, full, greedy, keep, longest, minimum,maximum, mode,mismatch, regex, semantics, separator, shuffle, phrases}={})
-{
-
-	if(caseSensitive !== undefined){this.caseSensitive=caseSensitive}
-	if(entire !== undefined){this.entire=entire}
-	if(filter !== undefined){this.filter=filter}
-	if(full !== undefined){this.full=full}
-	if(greedy !== undefined){this.greedy=greedy}
-	if(keep !== undefined){this.keep=keep}
-	if(longest !== undefined){this.longest=longest}
-	if(minimum !== undefined){this.minimum=minimum}
-	if(maximum !== undefined){this.maximum=maximum}
-	if(mode !== undefined){this.mode=mode}
-	if(mismatch !== undefined){this.mismatch=mismatch}
-	if(regex !== undefined){this.regex=regex}
-	if(semantics !== undefined){this.semantics=semantics}
-	if(separator !== undefined){this.separator=separator}
-	if(phrases !== undefined){this.phrases=phrases}
-	return this
-}
-ishml.Rule.prototype.parse =function(text,lexicon)
-{
-	var someText=text.slice(0)
-	var results=[]
-
-	var keys=Object.keys(this)
-	if (keys.length>0)
-	//non-terminal
-	{
-		switch (this.mode) 
-		{
-			case ishml.enum.mode.all:
-				if (this.maximum ===1 ){var candidates=[new ishml.Interpretation({},someText)]}
-				else {var candidates=[new ishml.Interpretation([],someText)]}
-				var counter = 0
-				var phrases=[]
-				var revisedCandidates=candidates.slice(0)
-				while (counter<this.maximum)
-				{
-					for (let key of keys)
-					{
-						revisedCandidates.forEach(candidate=>
-						{	
-							var {gist,remainder,valid}=candidate
-							//SNIP
-							if (remainder.length>0)
-							{
-								var {snippets}=this[key].parse(remainder.slice(0),lexicon) 
-								snippets.forEach((snippet)=>
-								{
-									
-									var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid)
-									if (this.maximum ===1 )
-									{
-										if(this[key].keep || !phrase.valid){phrase.gist[key]=snippet.gist}
-									}
-									else 
-									{
-										if(phrase.gist.length===counter){phrase.gist.push({})}
-										if(this[key].keep  || !phrase.valid){phrase.gist[counter][key]=snippet.gist}
-									}
-									phrases.push(phrase)
-								
-								})
-							}  
-						})
-						if (this[key].minimum===0)
-						{
-							revisedCandidates=revisedCandidates.concat(phrases.slice(0))
-						}
-						else
-						{
-							revisedCandidates=phrases.slice(0)
-						}
-						
-						phrases=[]
-					}
-					counter++
-					if (revisedCandidates.length===0)
-					{
-						break
-					}
-					else
-					{
-						if (counter >= this.minimum)
-						{
-							if (this.greedy){results=revisedCandidates.slice(0)}
-							else {results=results.concat(revisedCandidates)}
-						}
-					}
-				}
-				break
-			case ishml.enum.mode.any:
-					if (this.maximum ===1 ){var candidates=[new ishml.Interpretation({},someText)]}
-					else {var candidates=[new ishml.Interpretation([],someText)]}
-					var revisedCandidates=candidates.slice(0)
-					for (let key of keys)
-					{
-						var counter = 0
-						var phrases=[]
-						
-						while (counter<this.maximum)
-						{
-							revisedCandidates.forEach(candidate=>
-							{
-								var {gist,remainder,valid}=candidate
-							//SNIP
-								if (remainder.length>0)
-								{
-									var {snippets}=this[key].parse(remainder.slice(0),lexicon) 
-									snippets.forEach((snippet)=>
-									{
-										
-										var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid)
-										if (this.maximum ===1 )
-										{
-											if(this[key].keep || !phrase.valid){phrase.gist=snippet.gist}
-										}
-										else 
-										{
-											if(phrase.gist.length===counter){phrase.gist.push({})}
-											if(this[key].keep || !phrase.valid){phrase.gist[counter]=snippet.gist}
-										}
-										phrases.push(phrase)
-										
-									})
-								}
-
-							})
-							if (this[key].minimum===0)
-							{
-								revisedCandidates=phrases.slice(0)
-							}
-							else
-							{
-								revisedCandidates=phrases.slice(0) 
-							}
-							phrases=[]
-							counter++
-							if (revisedCandidates.length===0){break}
-							else
-							{
-								if (this.greedy){results=revisedCandidates.slice(0)}
-								else {results=results.concat(revisedCandidates)}
-							}
-						}
-						revisedCandidates=candidates.slice(0)  //go see if there are more alternatives that work.	
-					}
-					break
-			case ishml.enum.mode.apt:
-				if (this.maximum ===1 ){var candidates=[new ishml.Interpretation({},someText)]}
-				else {var candidates=[new ishml.Interpretation([],someText)]}
-				var revisedCandidates=candidates.slice(0)
-				for (let key of keys)
-				{
-					var counter = 0
-					var phrases=[]
-					
-					while (counter<this.maximum)
-					{
-						revisedCandidates.forEach(candidate=>
-						{
-							var {gist,remainder,valid}=candidate
-							//SNIP
-							if (remainder.length>0)
-							{
-								var {snippets}=this[key].parse(remainder.slice(0),lexicon) 
-								snippets.forEach((snippet)=>
-								{
-									
-									var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid)
-									if (this.maximum ===1 )
-									{
-										if(this[key].keep || !phrase.valid){phrase.gist=snippet.gist}
-									}
-									else 
-									{
-										if(phrase.gist.length===counter){phrase.gist.push({})}
-										if(this[key].keep || !phrase.valid){phrase.gist[counter]=snippet.gist}
-									}
-									phrases.push(phrase)
-									
-								})
-							}
-
-						})
-						
-						if (this[key].minimum===0)
-						{
-							
-							revisedCandidates=phrases.slice(0)
-						}
-						else
-						{
-							revisedCandidates=phrases.slice(0) 
-						}
-						phrases=[]
-						counter++
-						if (revisedCandidates.length===0){break}
-						else
-						{
-							if (this.greedy){results=revisedCandidates.slice(0)}
-							else {results=results.concat(revisedCandidates)}
-						}
-					}
-					if (results.length>0){break} //found something that works, stop looking.
-					revisedCandidates=candidates.slice(0)//try again with next key.	
-				}
-				break
-		}
-	}
-	else
-	{
-	//terminal
-
-		if (this.maximum ===1 ){var candidates=[new ishml.Interpretation({},someText)]}
-		else {var candidates=[new ishml.Interpretation([],someText)]}
-		var revisedCandidates=candidates.slice(0)
-		
-		var counter = 0
-		var phrases=[]
-		var rule = this
-		while (counter<this.maximum)
-		{
-			revisedCandidates.forEach((candidate)=>
-			{
-
-				var {gist,remainder,valid}=candidate
-				//SNIP
-				if (remainder.length>0)
-				{
-					var snippets=lexicon.search(remainder, {regex:rule.regex,separator:rule.separator, caseSensitive:rule.caseSensitive, longest:rule.longest, full:rule.full})
-
-					snippets.forEach((snippet)=>
-					{
-						if (this.filter(snippet.token.definition))
-						{
-							var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid)
-							if (this.maximum ===1 )
-							{
-								if(this.keep || !phrase.valid){phrase.gist=snippet.token}
-							}
-							else 
-							{
-								if(phrase.gist.length===counter){phrase.gist.push({})}
-								if(this.keep || !phrase.valid){phrase.gist[counter]=snippet.token}
-							}
-							phrases.push(phrase)
-						}	
-						
-					})
-				}
-			})
-			
-			revisedCandidates=phrases.slice(0) //}
-			phrases=[]
-			counter++
-			if (revisedCandidates.length===0)
-			{
-				
-				break
-			}
-			else
-			{
-				if (this.greedy){results=revisedCandidates.slice(0)}
-				else {results=results.concat(revisedCandidates)}
-			}
-		}
-		
-	}	
-	results=results.map(interpretation=>
-	{
-		if(interpretation.remainder.length>0 && this.entire)
-		{
-			interpretation.valid=false
-		}
-		return interpretation
-	})
-	
-	if (!results.some(interpretation=>interpretation.valid))
-	{
-		if (results.length===0){results=candidates}
-		results=results.reduce((revisedResults, interpretation) =>
-		{
-			var revisedInterpretation=this.mismatch(interpretation)
-			if (revisedInterpretation)
-			{
-				if (revisedInterpretation)
-				{
-					revisedResults.push(revisedInterpretation)
-				}
-			}
-			return revisedResults
-
-		},[])
-
-	}
-
-	results=results.reduce((revisedResults, interpretation) =>
-	{
-		if (interpretation.valid)
-		{
-			var revisedInterpretation=this.semantics(interpretation)
-			if (revisedInterpretation)
-			{
-				if (revisedInterpretation === true)
-				{
-					revisedResults.push(interpretation)
-				}
-				else
-				{
-					revisedResults.push(revisedInterpretation)
-				}
-			}
-		}
-		else
-		{
-			revisedResults.push(interpretation)
-		}
-		return revisedResults
-
-	},[])
-	if (results.length>0)
-	{
-		return {snippets:results}	
-	}
-	else
-	{
-		return {snippets:[]}
-	}	
-}
-ishml.Rule.prototype.snip =function(key,rule)
-{
-	
-	if (rule instanceof ishml.Rule)
-	{
-		this[key]=rule
-	}
-	else
-	{
-		this[key]=new ishml.Rule(key)
-
-		this[key].caseSensitive=this.caseSensitive
-		this[key].full=this.full
-		this[key].longest=this.longest
-		this[key].separator=this.separator
-		
-	}	
-	return this		
-}
-
-
-
-
-//ishml.template=(...precursor)=>new ishml.Phrase(...precursor)
+// #endregion
+// #region Template
 ishml.template={}
 //new Proxy((...precursor)=>new ishml.Phrase(...precursor),ishml.templateHandler)
 ishml.template.__handler=
@@ -3166,15 +3257,12 @@ ishml.template.__handler=
 		//template is function that returns a prhase
 		if (property==="asFunction")
 		{
-			//property === "asFunction"
 			return template	 
 		}
-		if (ishml.template[property]===undefined) //property names tagged phrase _.animal _.a.animal
+		if (ishml.template[property]===undefined) //property requests or refers to tagged phrase
 		{
-			if (property.toUpperCase()===property)  //_.ANIMAL.pick.("cat","dog","mouse") beccomes _.pick("cat","dog","mouse").tag("animal")
-			//_.pick.ANIMAL("cat","dog","mouse") ==> _.pick(_.("cat","dog","mouse").tag())
+			if (property.toUpperCase()===property)  
 			{
-				//return new Proxy((precursor)=>template(precursor.tag(property.toLowerCase()))
 				return new Proxy((...precursor)=>
 				{
 					if (precursor.length===1 && precursor[0] instanceof ishml.Phrase) {return template(precursor[0].tag(property.toLowerCase()))}
@@ -3249,25 +3337,26 @@ ishml.template.define("cycle").as((...data)=>
 		}
 		generate()
 		{
-			if (this.phrases.length===0)
+			var results=[]	
+			if (this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
+			{
+				results=super.generate()
+				var total=this.results.length
+				results=results.slice(counter,counter+1)
+			}
+			else
+			{
+				var results=super.generate(this.phrases.slice(counter,counter+1))
+				var total=this.phrases.length
+			}
+			if (this.results.length===0)
 			{
 				this.results=[{value:"",index:0, rank:0, total:0,  reset:true}]
 				this.text=""
 				var total=0
 			}
 			else
-			{	
-				if (this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
-				{
-					var results=super.generate()
-					var total=this.results.length
-					results=results.slice(counter,counter+1)
-				}
-				else
-				{
-					var results=super.generate(this.phrases.slice(counter,counter+1))
-					var total=this.phrases.length
-				}
+			{
 				Object.assign(results[0],{index:counter, rank:counter+1,total:total, reset:counter===total-1})
 				this.results=results
 				this.text=results[0].value
@@ -3290,7 +3379,7 @@ ishml.template.define("echo").as(function echo(tag)
 		{
 			if (tag instanceof ishml.Phrase){super(tag)}
 			else {super()}
-			
+			this._tag=tag
 			this.echo=true
 		}
 		generate()
@@ -3462,6 +3551,23 @@ ishml.template.define("re").as((...precursor)=>
 		}
 	}(...precursor)
 })
+
+ishml.template.define("cull").as((...precursor)=>
+{
+	return new class cullPhrase extends ishml.Phrase
+	{
+		generate()
+		{
+			super.generate()
+			this.results=this.results.reduce((results,item)=>
+			{
+				if (item.value){ results.push(item)}
+				return results
+			},[])
+			return this.results
+		}
+	}(...precursor)
+})
 ishml.template.define("refresh").as((...precursor)=>
 {
 	return new class refreshPhrase extends ishml.Phrase
@@ -3529,7 +3635,8 @@ ishml.template.define("series").as((...data)=>
 		}
 		generate()
 		{
-			if (ended || this.phrases.length===0)
+			var results=[]	
+	/*		if (ended || this.phrases.length===0)
 			{
 				this.text=""
 				this.results=[]
@@ -3537,25 +3644,31 @@ ishml.template.define("series").as((...data)=>
 				return this.results
 			}
 			else
+			{*/
+			if (this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
 			{
-				if (this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
-				{
-					var results=super.generate()
-					var total=results.length
-					results=results.slice(counter,counter+1)
-				}
-				else
-				{
-					var results=super.generate(this.phrases.slice(counter,counter+1))
-					var total=this.phrases.length
-				}
-				if(results.length===1)
-				{
-					Object.assign(results[0],{index:counter, rank:counter+1,total:total})
-					this.results=results
-					this.text=results[0].value
-				}
+				var results=super.generate()
+				var total=results.length
+				results=results.slice(counter,counter+1)
 			}
+			else
+			{
+				var results=super.generate(this.phrases.slice(counter,counter+1))
+				var total=this.phrases.length
+			}
+			if (this.results.length===0)
+			{
+				this.results=[{value:"",index:0, rank:0, total:0,  reset:true}]
+				this.text=""
+				var total=0
+			}
+			else
+			{
+				Object.assign(results[0],{index:counter, rank:counter+1,total:total})
+				this.results=results
+				this.text=results[0].value
+			}
+
 			counter++
 			if (counter===total)
 			{
@@ -3674,6 +3787,8 @@ ishml.template.data=function data(target,property)
 		}
 	}
 }
+// #endregion
+// #region Token
 ishml.Token=function Token(lexeme="",definition)
 {
 	if (this instanceof ishml.Token)
@@ -3691,29 +3806,27 @@ ishml.Token.prototype.clone=function()
 {
 	return new ishml.Token(this.lexeme,this.definition)
 }
-ishml.yarn=
-{
-	storyline:{},  //Episode queue
-	history:[],
-	clock:new Date(),
-	interval: 60000,
-	turn:1,
-	plot:new ishml.Plotpoint(),
-	lexicon:new ishml.Lexicon(),
-	grammar:new ishml.Rule(),
-	parser:null,
-	viewpoint:ishml.enum.viewpoint.second.singular,
-	tense:ishml.enum.tense.present,
-	//ishml.util.reseed(seed)  --DEFECT
-	net:new ishml.Knot("$"),
-	undoLength:10
-}
+// #endregion
+// #endregion
+ishml.storyline={},  //Episode queue
+ishml.history=[], //list of executed commands
+ishml.clock=new Date(),
+ishml.interval= 60000,  //1 minute
+ishml.turn=1,
+ishml.plot=new ishml.Plotpoint(),
+ishml.lexicon=new ishml.Lexicon(),
+ishml.grammar=new ishml.Rule(),
+ishml.parser=null,
+ishml.net=new ishml.Knot("$"),
+ishml.undoLength=10
+ishml.lang={}
 
-ishml.yarn.configure=function(options)
+ishml.configure=function(options)
 {
 	//DEFECT TO DO seed, name, author, etc.
 }
-ishml.yarn.harken=function()
+// #region Interactivity
+ishml.harken=function()
 {
 	var state={dragging:false}
 	document.addEventListener('click', (e)=>this.click(e))
@@ -3724,7 +3837,7 @@ ishml.yarn.harken=function()
 	document.addEventListener('transitionend', (e)=> this.transitionend(e,state))
 
 }
-ishml.yarn.click=function(e)
+ishml.click=function(e)
 {
 	if (e.target.matches('.ishml-choice'))
 	{
@@ -3734,17 +3847,16 @@ ishml.yarn.click=function(e)
 		var twist=Object.assign(
 			{
 				input:e.target.value,
-				viewpoint:"player",
-				moment:ishml.yarn.clock
+				moment:ishml.clock
 			},e.target.dataset)
 
 		this.history.push(twist)
 		
-		var plotpoint=twist.plotpiont??ishml.yarn.plot.points[twist.plot]??ishml.yarn.plot[twist.plot]	
+		var plotpoint=twist.plotpiont??ishml.plot.points[twist.plot]??ishml.plot[twist.plot]	
 		plotpoint.unfold(twist)
 	}
 }
-ishml.yarn.keyup=function(e)
+ishml.keyup=function(e)
 {
 
 	if (e.target.matches('.ishml-input'))
@@ -3757,19 +3869,18 @@ ishml.yarn.keyup=function(e)
 			var twist=Object.assign(
 				{
 					input:e.target.value,
-					viewpoint:"player",
-					moment:ishml.yarn.clock
+					moment:ishml.clock
 				},e.target.dataset)
 	
 			this.history.push(twist)
 			
-			var plotpoint=twist.plotpiont??ishml.yarn.plot.points[twist.plot]??ishml.yarn.plot[twist.plot]	
+			var plotpoint=twist.plotpiont??ishml.plot.points[twist.plot]??ishml.plot[twist.plot]	
 			plotpoint.unfold(twist)
 
 		}
 	}
 }
-ishml.yarn.mousedown=function(e,state)
+ishml.mousedown=function(e,state)
 {
 	if (e.target.matches('.ishml-draggable'))
 	{
@@ -3791,9 +3902,8 @@ ishml.yarn.mousedown=function(e,state)
 		}
 	}
 }
-ishml.yarn.mouseup=function(e,state)
+ishml.mouseup=function(e,state)
 {
-	
 	if (state.dragging && !state.dragging.transitioning)
 	{
 
@@ -3810,7 +3920,7 @@ ishml.yarn.mouseup=function(e,state)
 		state.dragging.transitioning=true
 	}
 }
-ishml.yarn.mousemove=function(e,state)
+ishml.mousemove=function(e,state)
 {
 	if (state.dragging && !state.dragging.clone.matches(".ishml-draggable-rejected"))
 	{
@@ -3837,7 +3947,7 @@ ishml.yarn.mousemove=function(e,state)
 		state.dragging.clone.style.top=right
 	}
 }
-ishml.yarn.transitionend=function(e,state)
+ishml.transitionend=function(e,state)
 {
 	if(e.target===state.dragging.clone && state.dragging.transitioning )
 	{
@@ -3854,20 +3964,20 @@ ishml.yarn.transitionend=function(e,state)
 	}
 }
 
-ishml.yarn.dropHoverStart=function({draggable,dropbox})
+ishml.dropHoverStart=function({draggable,dropbox})
 {
 	draggable.dataset.originalText=draggable.innerText
 	draggable.innerText=draggable.innerText + " " +dropbox.innerText
 	draggable.classList.add("ishml-draggable-hover")
 	dropbox.classList.add("ishml-dropbox-hover")
 }
-ishml.yarn.dropHoverStop=function({draggable,dropbox})
+ishml.dropHoverStop=function({draggable,dropbox})
 {
 	draggable.classList.remove("ishml-draggable-hover")
 	draggable.innerText=draggable.dataset.originalText
 	dropbox.classList.remove("ishml-dropbox-hover")
 }
-ishml.yarn.dropCheck=function({draggable,dropbox})
+ishml.dropCheck=function({draggable,dropbox})
 {
 	var plot=this.plot.points[draggable.dataset.plot]
 	if (plot)
@@ -3879,7 +3989,7 @@ ishml.yarn.dropCheck=function({draggable,dropbox})
 	return false
 }
 		
-ishml.yarn.say=function(aText)
+ishml.say=function(aText)
 {	
 	if (typeof aText === 'string' || aText instanceof String)
 	{
@@ -3898,42 +4008,13 @@ ishml.yarn.say=function(aText)
 	var _first = (aDocumentSelector)=>
 	{
 		var targetNodes=document.querySelectorAll(aDocumentSelector)
-		targetNodes.forEach((aNode)=>
-		{
-			aNode.prepend(fragment)
-			/*aNode.querySelectorAll(".ishml-input").forEach((descendant)=>descendant.onkeyup=this.input.bind(this))
-			aNode.querySelectorAll(".ishml-choice").forEach((descendant)=>descendant.onclick=this.click.bind(this))
-			aNode.querySelectorAll(".ishml-drag").forEach((descendant)=>
-			{
-				descendant.ondragstart=this.drag.bind(this)
-				descendant.draggable=true
-			})
-			aNode.querySelectorAll(".ishml-drop").forEach((descendant)=>
-			{
-				descendant.ondrop=this.drop.bind(this)
-				descendant.ondragenter=this.dragenter.bind(this)
-				descendant.ondragover=this.dragover.bind(this)
-			})*/
-		})
-
+		targetNodes.forEach((aNode)=>{aNode.prepend(fragment)})
 		return this
 	}
 	var _last = (aDocumentSelector)=>
 	{
 		var targetNodes=document.querySelectorAll(aDocumentSelector)
-		targetNodes.forEach((aNode)=>
-		{
-			aNode.append(fragment)
-			/*aNode.querySelectorAll(".ishml-input").forEach((descendant)=>descendant.onkeyup=this.input.bind(this))
-			aNode.querySelectorAll(".ishml-choice").forEach((descendant)=>descendant.onclick=this.click.bind(this))
-			aNode.querySelectorAll(".ishml-drag").forEach((descendant)=>
-			{
-				descendant.ondragstart=this.drag.bind(this)
-				descendant.draggable=true
-			})
-			aNode.querySelectorAll(".ishml-drop").forEach((descendant)=>descendant.ondrop=this.drop.bind(this))
-		*/
-		})
+		targetNodes.forEach((aNode)=>{aNode.append(fragment)})
 		return this
 	}
 	var _instead = (aDocumentSelector)=>
@@ -3942,16 +4023,6 @@ ishml.yarn.say=function(aText)
 		{
 			while(aNode.firstChild){aNode.removeChild(aNode.firstChild)}
 			aNode.append(fragment)
-
-			/*aNode.querySelectorAll(".ishml-input").forEach((descendant)=>descendant.onkeyup=this.input.bind(this))
-			aNode.querySelectorAll(".ishml-choice").forEach((descendant)=>descendant.onclick=this.click.bind(this))
-			aNode.querySelectorAll(".ishml-drag").forEach((descendant)=>
-			{
-				descendant.ondragstart=this.drag.bind(this)
-				descendant.draggable=true
-			})
-			aNode.querySelectorAll(".ishml-drop").forEach((descendant)=>descendant.ondrop=this.drop.bind(this))
-		*/
 		})
 		return this
 	}
@@ -3959,7 +4030,7 @@ ishml.yarn.say=function(aText)
 }
 
 
-ishml.yarn.recite=function(literals, ...expressions)
+ishml.recite=function(literals, ...expressions)
 {
 
 		
@@ -3973,7 +4044,7 @@ ishml.yarn.recite=function(literals, ...expressions)
 
 }
 
-ishml.yarn.restore=function(key)
+ishml.restore=function(key)
 {
 	var yarn = this
 	return new Promise(function(resolve, reject)
@@ -4017,7 +4088,7 @@ ishml.yarn.restore=function(key)
 	})
 }	
 
-ishml.yarn.save=function(key)
+ishml.save=function(key)
 {
 	var yarn =this
 	
@@ -4052,20 +4123,22 @@ ishml.yarn.save=function(key)
 		}	 
 	})	
 }
-ishml.yarn.tell=function(viewpoint="player") 
+// #endregion
+// #region storytelling
+ishml.tell=function(timeline="player") 
 {
-	while(this.storyline[viewpoint].length>0)
+	while(this.storyline[timeline].length>0)
 	{
-		Object.keys(this.storyline).forEach(viewpoint=>
+		Object.keys(this.storyline).forEach(timeline=>
 		{
-			this.storyline[viewpoint].forEach((episode,index)=>
+			this.storyline[timeline].forEach((episode,index)=>
 			{
 				if (!episode.start() || episode.start() <= this.clock)
 				{
 					if (episode.resolve(this.clock).told){episode.narrate()}
 				}
 			})
-			this.storyline[viewpoint]=this.storyline[viewpoint].filter(episode=>!episode.told)
+			this.storyline[timeline]=this.storyline[timeline].filter(episode=>!episode.told)
 		})
 		this.tick()
 	}	
@@ -4073,21 +4146,22 @@ ishml.yarn.tell=function(viewpoint="player")
 	return this
 }
 
-ishml.yarn.introduce=function(episode) 
+ishml.introduce=function(episode) 
 {
-	var viewpoint=episode.viewpoint()
-	if (!this.storyline.hasOwnProperty(viewpoint))
+	var timeline=episode.timeline()
+	if (!this.storyline.hasOwnProperty(timeline))
 	{
-		this.storyline[viewpoint]=[]
+		this.storyline[timeline]=[]
 	}
 
-	this.storyline[viewpoint].push(episode)
+	this.storyline[timeline].push(episode)
 	return this
 }	
+// #endregion
 
 /* A turn is a processing of all the episodes on the the storyline.  An episode is a plotpoint.narrate with bound arguments.*/ 
 
-ishml.yarn.stringify=function()
+ishml.stringify=function()
 {
 	var plies=new Map()
 	var plyPlies=new Map()
@@ -4168,11 +4242,11 @@ ishml.yarn.stringify=function()
 	})
 	return JSON.stringify({knots:knotArray,plies:plyArray,seed:ishml.util._seed})
 }
-ishml.yarn.tick=function(ticks=1)
+ishml.tick=function(ticks=1)
 {
 	this.clock.setTime(this.clock.getTime() + (this.interval*ticks))
 }
-ishml.yarn.yarnify=function(savedGame)
+ishml.yarnify=function(savedGame)
 {
 	var plies={}
 	var plyPlies={}
@@ -4233,7 +4307,7 @@ ishml.yarn.yarnify=function(savedGame)
 	
 	return true
 }
-ishml.yarn.retraction=function({seed,undo=()=>true,episode})
+ishml.retraction=function({seed,undo=()=>true,episode})
 {
 	var retraction={seed:seed||ishml.util._seed,undo:undo,redo:episode}
 	if (!this.undo[this.turn])
@@ -4247,7 +4321,7 @@ ishml.yarn.retraction=function({seed,undo=()=>true,episode})
 	}
 
 }
-ishml.yarn.recant=function()
+ishml.recant=function()
 {
 	[...Object.values(this.undo).shift()].reverse.forEach(retraction=>
 	{
@@ -4258,7 +4332,7 @@ ishml.yarn.recant=function()
 	
 		
 }
-ishml.yarn.reintroduce=function()
+ishml.reintroduce=function()
 {
 	//redo the undo
 	

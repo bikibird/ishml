@@ -86,5 +86,5 @@ lexicon
 	.register("velvet").as({part:"adjective",select:subject=>subject.is.velvet.cord})
 	.register("black").as({part:"adjective",select:subject=>subject.is.black.cord})
 
-yarn.harken()
+ishml.harken()
 

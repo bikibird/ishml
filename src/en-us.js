@@ -1,8 +1,4 @@
-//var grammar = ishml.yarn.grammar || new ishml.Rule()
-//var lexicon = ishml.yarn.lexicon || new ishml.Lexicon()
-//var _ =ishml.template 
-/*ishml.yarn.lexicon*/
-ishml.yarn.lexicon
+ishml.lexicon
     //adjectives
     .register("all").as({part:"adjective",select:()=>$.thing})
 
@@ -39,60 +35,59 @@ ishml.yarn.lexicon
 	.register("down","d").as({part: "noun",  select:subject=>subject.in.exit.down.cord})
 /*grammar*/
 
-ishml.yarn.grammar.command=ishml.Rule()
+ishml.grammar.command=ishml.Rule()
 
-ishml.yarn.grammar.nounPhrase=ishml.Rule()
+ishml.grammar.nounPhrase=ishml.Rule()
     .snip("article").snip("adjectives").snip("noun").snip("adjunct").snip("conjunct")
 
-ishml.yarn.grammar.nounPhrase.article.configure({minimum:0, filter:(definition)=>definition?.part==="article"})
+ishml.grammar.nounPhrase.article.configure({minimum:0, filter:(definition)=>definition?.part==="article"})
 
-ishml.yarn.grammar.nounPhrase.adjectives.configure({minimum:0, maximum:Infinity, separator:/^\s*,?and\s+|^\s*,\s*|^\s+/, 
+ishml.grammar.nounPhrase.adjectives.configure({minimum:0, maximum:Infinity, separator:/^\s*,?and\s+|^\s*,\s*|^\s+/, 
     filter:(definition)=>definition?.part==="adjective"})
-ishml.yarn.grammar.nounPhrase.noun.filter=(definition)=>definition?.part==="noun"
+ishml.grammar.nounPhrase.noun.filter=(definition)=>definition?.part==="noun"
 
-ishml.yarn.grammar.nounPhrase.adjunct
+ishml.grammar.nounPhrase.adjunct
     .configure({minimum:0})
-    .snip("relation").snip("nounPhrase",ishml.yarn.grammar.nounPhrase)
+    .snip("relation").snip("nounPhrase",ishml.grammar.nounPhrase)
     
-ishml.yarn.grammar.nounPhrase.adjunct.relation.configure({filter:(definition)=>definition?.part==="relation"})
+ishml.grammar.nounPhrase.adjunct.relation.configure({filter:(definition)=>definition?.part==="relation"})
 
-ishml.yarn.grammar.nounPhrase.conjunct
+ishml.grammar.nounPhrase.conjunct
     .configure({minimum:0})    
-    .snip("conjunction").snip("nounPhrase",ishml.yarn.grammar.nounPhrase)
-ishml.yarn.grammar.nounPhrase.conjunct.conjunction.configure({filter:(definition)=>definition?.part==="conjunction"})
+    .snip("conjunction").snip("nounPhrase",ishml.grammar.nounPhrase)
+ishml.grammar.nounPhrase.conjunct.conjunction.configure({filter:(definition)=>definition?.part==="conjunction"})
 
-ishml.yarn.grammar.preposition=ishml.Rule().configure({filter:(definition)=>definition?.part==="preposition"})
-ishml.yarn.grammar.command.snip("subject",ishml.yarn.grammar.nounPhrase.clone()).snip("verb").snip("object")
-ishml.yarn.grammar.ioPhrase=ishml.Rule().configure({mode:ishml.Rule.any})
+ishml.grammar.preposition=ishml.Rule().configure({filter:(definition)=>definition?.part==="preposition"})
+ishml.grammar.command.snip("subject",ishml.grammar.nounPhrase.clone()).snip("verb").snip("object")
+ishml.grammar.ioPhrase=ishml.Rule().configure({mode:ishml.Rule.any})
     .snip(1)
     .snip(2)
-ishml.yarn.grammar.ioPhrase[1].snip("target",ishml.yarn.grammar.nounPhrase)    
-ishml.yarn.grammar.ioPhrase[2].snip("command",ishml.yarn.grammar.command)
+ishml.grammar.ioPhrase[1].snip("target",ishml.grammar.nounPhrase)    
+ishml.grammar.ioPhrase[2].snip("command",ishml.grammar.command)
 
-ishml.yarn.grammar.indirect=ishml.Rule().configure({minimum:0})
-    .snip("preposition",ishml.yarn.grammar.preposition).snip("phrase",ishml.yarn.grammar.ioPhrase)
+ishml.grammar.indirect=ishml.Rule().configure({minimum:0})
+    .snip("preposition",ishml.grammar.preposition).snip("phrase",ishml.grammar.ioPhrase)
 
-ishml.yarn.grammar.command.subject.configure({minimum:0 })
+ishml.grammar.command.subject.configure({minimum:0 })
 
+ishml.grammar.command.subject.noun.configure({separator:/^\s*,\s*|^\s+/})
 
-ishml.yarn.grammar.command.subject.noun.configure({separator:/^\s*,\s*|^\s+/})
+ishml.grammar.command.verb.configure({filter: (definition)=>definition.part==="verb"})
 
-ishml.yarn.grammar.command.verb.configure({filter: (definition)=>definition.part==="verb"})
-
-ishml.yarn.grammar.command.object=ishml.Rule()
+ishml.grammar.command.object=ishml.Rule()
 .configure({minimum:0, mode:ishml.Rule.any})
 .snip(1)  //verbalParticle(required)/direct/indirect
 .snip(2)  //direct/verbal particle(optional)/indirect
 .snip(3)  //indirect/direct
 
-ishml.yarn.grammar.command.object[1].snip("verbalParticle").snip("direct",ishml.yarn.grammar.nounPhrase).snip("indirect",ishml.yarn.grammar.indirect)
-ishml.yarn.grammar.command.object[2].snip("direct",ishml.yarn.grammar.nounPhrase).snip("verbalParticle").snip("indirect",ishml.yarn.grammar.indirect)
-ishml.yarn.grammar.command.object[3].snip("indirect",ishml.yarn.grammar.nounPhrase).snip("direct",ishml.yarn.grammar.nounPhrase)
+ishml.grammar.command.object[1].snip("verbalParticle").snip("direct",ishml.grammar.nounPhrase).snip("indirect",ishml.grammar.indirect)
+ishml.grammar.command.object[2].snip("direct",ishml.grammar.nounPhrase).snip("verbalParticle").snip("indirect",ishml.grammar.indirect)
+ishml.grammar.command.object[3].snip("indirect",ishml.grammar.nounPhrase).snip("direct",ishml.grammar.nounPhrase)
 
-ishml.yarn.grammar.command.object[1].verbalParticle.configure({filter:(definition)=>definition.part==="particle"})
-ishml.yarn.grammar.command.object[2].verbalParticle.configure({minimum:0,filter:(definition)=>definition.part==="particle"})
+ishml.grammar.command.object[1].verbalParticle.configure({filter:(definition)=>definition.part==="particle"})
+ishml.grammar.command.object[2].verbalParticle.configure({minimum:0,filter:(definition)=>definition.part==="particle"})
 
-ishml.yarn.grammar.nounPhrase.semantics=(interpretation)=>
+ishml.grammar.nounPhrase.semantics=(interpretation)=>
 {
     var gist=interpretation.gist
     gist.select=new ishml.Cord((...args)=>
@@ -103,8 +98,6 @@ ishml.yarn.grammar.nounPhrase.semantics=(interpretation)=>
             gist.adjectives.forEach(adjective=>
             {
 				cord=adjective.definition.select(cord)
-                /*cord=cord.cross(adjective.definition.select(...args))
-                .per((noun,adjective)=>noun.knot===adjective.knot)*/
             })
         }
         if(gist.adjunct)
@@ -120,8 +113,8 @@ ishml.yarn.grammar.nounPhrase.semantics=(interpretation)=>
     })
     return interpretation
 }
-ishml.yarn.grammar.command.subject.semantics=ishml.yarn.grammar.nounPhrase.semantics
-ishml.yarn.grammar.command.semantics=(interpretation)=>
+ishml.grammar.command.subject.semantics=ishml.grammar.nounPhrase.semantics
+ishml.grammar.command.semantics=(interpretation)=>
 {
     var valence=interpretation.gist.verb.definition.valence
     if (valence ===0 && interpretation.gist.hasOwnProperty("object")){return false}
@@ -146,10 +139,10 @@ ishml.yarn.grammar.command.semantics=(interpretation)=>
     {
         interpretation.gist=
         { 
-            subject:{noun:{lexeme:"",definition:{part:"noun",select:ishml.yarn.net.actor.player}}},
-            verb:ishml.yarn.lexicon.search("ask", {longest:true, full:true}).filter(snippet=>snippet.token.definition.part==="verb" && snippet.token.definition.preposition==="to")[0].token,
+            subject:{noun:{lexeme:"",definition:{part:"noun",select:ishml.net.actor.player}}},
+            verb:ishml.lexicon.search("ask", {longest:true, full:true}).filter(snippet=>snippet.token.definition.part==="verb" && snippet.token.definition.preposition==="to")[0].token,
             direct:interpretation.gist.subject,
-            preposition:ishml.yarn.lexicon.search("to", {longest:true, full:true}).filter(snippet=>snippet.token.definition.part==="preposition")[0].token,
+            preposition:ishml.lexicon.search("to", {longest:true, full:true}).filter(snippet=>snippet.token.definition.part==="preposition")[0].token,
             indirect:{gist:interpretation.gist}
         }
         interpretation.gist.verb.plot=interpretation.gist.verb.definition.plot
@@ -158,11 +151,9 @@ ishml.yarn.grammar.command.semantics=(interpretation)=>
     {
         interpretation.gist.subject=
         {
-			noun:{lexeme:"",definition:{part:"noun",select:ishml.yarn.net.actor.player}}
-            //noun:ishml.yarn.lexicon.search("player", {longest:true, full:true}).filter(snippet=>snippet.token.definition.role==="player")[0].token
+			noun:{lexeme:"",definition:{part:"noun",select:ishml.net.actor.player}}
         }
     }
-    //interpretation.gist.subject.select=(...args)=>interpretation.gist.subject.noun.definition.select(...args).cord
 	interpretation.gist.subject.select=interpretation.gist.subject.noun.definition.select
     var vPreposition=interpretation.gist.verb.definition.preposition
     var vParticle=interpretation.gist.verb.definition.particle
@@ -197,11 +188,7 @@ ishml.yarn.grammar.command.semantics=(interpretation)=>
     return true
 }
 
-ishml.yarn.parser=ishml.Parser({ lexicon: ishml.yarn.lexicon, grammar: ishml.yarn.grammar.command})
-
-
-
-
+ishml.parser=ishml.Parser({ lexicon: ishml.lexicon, grammar: ishml.grammar.command})
 
 /* Cordage */
 
@@ -212,17 +199,6 @@ ishml.lang.comparative=Symbol('comparative')
 ishml.lang.superlative=Symbol('superaltive') 
 ishml.lang.number={singular:Symbol('singular'),plural:Symbol('plural')}
 ishml.lang.person={first:0,second:1,third:2}
-/*ishml.lang.pos=
-{
-	adjective:Symbol("adjective"),
-	adverb:Symbol("adverb"),
-	conjunction:Symbol("conjunction"),
-	noun:Symbol("noun"),
-	prefix:Symbol("prefix"),
-	preposition:Symbol("preposition"),
-	suffix:Symbol("suffix"),
-	verb:Symbol("verb")
-}*/
 ishml.lang.tense=
 {
 	past:Symbol("past"),
@@ -595,7 +571,7 @@ ishml.Plotpoint.prototype.verbs=function(...verbs)
 			}
 			if (particle){entry.particle=particle}
 			if (preposition){entry.preposition=preposition}
-			ishml.yarn.lexicon.register(...verbs).as(entry)
+			ishml.lexicon.register(...verbs).as(entry)
 			return thisPlotpoint
 		}
 	}

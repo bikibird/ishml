@@ -1,5 +1,5 @@
 
-var $ =ishml.yarn.net
+var $ =ishml.net
 var _ =ishml.template._ 
 
 /*Cordage*/

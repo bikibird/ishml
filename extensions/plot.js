@@ -4,15 +4,14 @@
  //   _`Confusedly, you think <q>${cache=>cache.remainder.data}</q> to yourself.`,
 //    _`You realize <q>${cache=>cache.remainder.data}</q> doesn't make any sense here once you say it out loud.`)}</p>`
  //       .cache("remainder")
-var yarn=ishml.yarn
-var plot=yarn.plot
-var lexicon=yarn.lexicon
-var $ = yarn.net
+var plot=ishml.plot
+var lexicon=ishml.lexicon
+var $ = ishml.net
 var _ =ishml.template._ 
 plot.main.dialog.input.unfold=function(twist)
 {
     var episodes=[]
-    var results=yarn.parser.analyze(this.twist.input)
+    var results=ishml.parser.analyze(this.twist.input)
     if(results.success)
     {
         results.interpretations.forEach(interpretation=>
@@ -27,8 +26,8 @@ plot.main.dialog.input.unfold=function(twist)
         })   
         if (episodes.length>0)
         {
-            yarn.introduce(episodes[0])
-            yarn.tell(this.twist.timeline)
+            ishml.introduce(episodes[0])
+            ishml.tell(this.twist.timeline)
         } 
     }
     else
@@ -71,7 +70,7 @@ plot.action.asking_to.unfold=function(command)
         {
             var actionEpisode=plot.action.unfold(command.indirect)
             actionEpisode.timeline(command.timeline)
-            yarn.introduce(actionEpisode)
+            ishml.introduce(actionEpisode)
         })
         .salience(5)
         .timeline(command.timeline)  
@@ -92,7 +91,7 @@ plot.action.asking_to.instead
         {
             var actionEpisode=command.indirect.verb.plot.unfold(command.indirect)
             actionEpisode.timeline(command.timeline)
-            yarn.introduce(actionEpisode)
+            ishml.introduce(actionEpisode)
         })
         .salience(5)
         .timeline(command.timeline)  
