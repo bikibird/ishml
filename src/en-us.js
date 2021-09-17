@@ -10,12 +10,12 @@ ishml.lexicon
     .register("and",",").as({ part: "conjunction" })
 
     //particles
-    .register("up").as({ key: "up", part: "particle" })
+    .register("up").as({ select: "up", part: "particle" })
 
     //prepositions
-    .register("from").as({ key: "from", part: "preposition" })
-    .register("in").as({ key: "in", part: "preposition" })
-    .register("to").as({ key: "to", part: "preposition" })
+    .register("from").as({ select: "from", part: "preposition" })
+    .register("in").as({ select: "in", part: "preposition" })
+    .register("to").as({ select: "to", part: "preposition" })
     
     //relations
     .register("in", "inside","inside of").as({cord: "in", part:"relation"})
@@ -120,66 +120,70 @@ ishml.grammar.command.subject.semantics=ishml.grammar.nounPhrase.semantics
 ishml.grammar.command.semantics=(interpretation)=>
 {
     var valence=interpretation.gist.verb.definition.valence
+	var vPreposition=interpretation.gist.verb.definition.preposition
+    var vParticle=interpretation.gist.verb.definition.particle
     if (valence ===0 && interpretation.gist.hasOwnProperty("object")){return false}
     if (valence ===1 && (interpretation.gist.object?.hasOwnProperty("indirect") || !interpretation.gist.object?.hasOwnProperty("direct"))){return false}
     if (valence ===2 && (!interpretation.gist.object?.hasOwnProperty("indirect") || !interpretation.gist.object?.hasOwnProperty("direct"))){return false}
-
-    interpretation.gist.verb.plot=interpretation.gist.verb.definition.plot
-	if (interpretation.gist.verb.definition.select){interpretation.gist.verb.select=interpretation.gist.verb.definition.select}
-    
-    Object.assign(interpretation.gist,interpretation.gist.object)
-    delete interpretation.gist.object
-
-    if (interpretation.gist.hasOwnProperty("indirect"))
-    {
-        interpretation.gist.preposition=interpretation.gist.indirect.preposition
-        delete interpretation.gist.indirect.preposition
-        Object.assign(interpretation.gist.indirect,interpretation.gist.indirect.phrase?.target)
-        Object.assign(interpretation.gist.indirect,interpretation.gist.indirect.phrase?.command.gist)
-        delete interpretation.gist.indirect.phrase
-    }
-
-    if (interpretation.gist.hasOwnProperty("subject"))  //Jane, drop ball => Ask Jane to drop ball
-    {
-        interpretation.gist=
-        { 
-            verb:ishml.lexicon.search("ask", {longest:true, full:true}).filter(snippet=>snippet.token.definition.part==="verb" && snippet.token.definition.preposition==="to")[0].token,
-            direct:interpretation.gist.subject,
-            preposition:ishml.lexicon.search("to", {longest:true, full:true}).filter(snippet=>snippet.token.definition.part==="preposition")[0].token,
-            indirect:{gist:interpretation.gist}
-        }
-        interpretation.gist.verb.plot=interpretation.gist.verb.definition.plot
-    }
-    var vPreposition=interpretation.gist.verb.definition.preposition
-    var vParticle=interpretation.gist.verb.definition.particle
     if(vPreposition)
     {
-        if (!(interpretation.gist.preposition?.definition.key===vPreposition))
+        if (!(interpretation.gist.object?.indirect?.preposition?.definition.select===vPreposition))
         {
             return false
         }
     }
     else
     {
-        if (interpretation.gist.hasOwnProperty("preposition"))
+        if (interpretation.gist.object?.indirect?.hasOwnProperty("preposition"))
         {
             return false
         }
     }
     if (vParticle)
     {
-        if (!(interpretation.gist.verbalParticle?.definition.key===vParticle))
+        if (!(interpretation.gist.Object?.verbalParticle?.definition.select===vParticle))
         {
             return false
         }
     }
     else
     {
-        if (interpretation.gist.hasOwnProperty("verbalParticle"))
+        if (interpretation.gist.Object?.verbalParticle?.hasOwnProperty("verbalParticle"))
         {
             return false
         }
     }
+	var command={verb:interpretation.gist.verb.definition.select}
+	if (interpretation.gist.object?.hasOwnProperty("direct"))
+	{
+		command.direct=interpretation.gist.object.direct.select
+	}
+    if (interpretation.gist.object?.hasOwnProperty("indirect"))
+    {
+		if (interpretation.gist.object.indirect.hasOwnProperty("preposition"))
+		{
+			command.preposition=interpretation.gist.object.indirect.preposition?.definition.select
+		}
+		command.indirect=interpretation.gist.object.indirect.phrase?.target?.select ?? interpretation.gist.object.indirect.phrase?.command
+
+    }
+    if (interpretation.gist.hasOwnProperty("subject"))  //Jane, drop ball => Ask Jane to drop ball
+    {
+		 var indirect={}
+		indirect.verb=command.verb
+		if (command.preposition){indirect.preposition=command.preposition}
+		if (command.direct){indirect.direct=command.direct}
+		if (command.indirect){indirect.indirect=command.indirect}
+		command.indirect=indirect
+		command.verb=ishml.lexicon.search("ask", {longest:true, full:true}).filter(snippet=>snippet.token.definition.part==="verb" && snippet.token.definition.preposition==="to")[0].token.definition.select
+
+		command.direct=interpretation.gist.subject.select
+
+		command.preposition=ishml.lexicon.search("to", {longest:true, full:true}).filter(snippet=>snippet.token.definition.part==="preposition")[0].token.definition.select
+
+    }
+	Object.assign(interpretation.gist,{command:command})
+	console.log(interpretation.gist)
     return true
 }
 

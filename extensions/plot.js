@@ -16,7 +16,7 @@ plot.main.dialog.input.unfold=function(twist)
                 actor:$.actor[this.twist.timeline].cord,
                 subject:$.actor[this.twist.timeline].cord,
                 timeline:this.twist.timeline,
-            },interpretation.gist)
+            },interpretation.gist.command)
             episodes=episodes.concat(plot.action.unfold(command))
         })   
         if (episodes.length>0)
@@ -58,8 +58,8 @@ plot.action.asking_to.unfold=function(command)
 {
     command.indirect.timeline=command.timeline
     return this.Episode()
-        .narration(()=>(command.actor.akin(command.subject)?_`<p>${_.They.SUBJECT()} asked ${_.the.DIRECT()} to ${command.indirect.gist.verb.lexeme} something`:_`${_.cap.SUBJECT()} asked ${_.the.DIRECT()} to do something.`)
-            .populate(command).populate({verb:command.indirect.gist.verb.lexeme})
+        .narration(()=>(command.actor.akin(command.subject)?_`<p>${_.They.SUBJECT()} asked ${_.the.DIRECT()} to do something`:_`${_.cap.SUBJECT()} asked ${_.the.DIRECT()} to do something.`)
+            .populate(command)
             .say().append("#story"))
         .resolution(()=>
         {

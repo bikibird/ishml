@@ -165,16 +165,16 @@ ishml.Plotpoint.prototype.verbs=function(...verbs)
 			{
 				if (typeof options==="number")
 				{
-					var entry={plot:thisPlotpoint,part:"verb"}
+					var entry={select:thisPlotpoint,part:"verb", valence:options}
 				}
 				else 
 				{
-					var entry = Object.assign({plot:thisPlotpoint,part:"verb"},options)
+					var entry = Object.assign({select:thisPlotpoint,part:"verb"},options)
 				}
 			}
 			else
 			{
-				var entry={plot:thisPlotpoint,part:"verb", valence:1}
+				var entry={select:thisPlotpoint,part:"verb", valence:1}
 			}
 			if (particle){entry.particle=particle}
 			if (preposition){entry.preposition=preposition}
