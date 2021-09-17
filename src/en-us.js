@@ -1,3 +1,4 @@
+// #region lexicon
 ishml.lexicon
     //adjectives
     .register("all").as({part:"adjective",select:()=>$.thing})
@@ -33,7 +34,9 @@ ishml.lexicon
     .register("west","w").as({part: "noun",  select:subject=>subject.in.exit.southwest.cord})
 	.register("up","u").as({part: "noun",  select:subject=>subject.in.exit.up.cord})
 	.register("down","d").as({part: "noun",  select:subject=>subject.in.exit.down.cord})
-/*grammar*/
+//#endregion
+
+// #region grammar
 
 ishml.grammar.command=ishml.Rule()
 
@@ -120,6 +123,7 @@ ishml.grammar.command.semantics=(interpretation)=>
     if (valence ===0 && interpretation.gist.hasOwnProperty("object")){return false}
     if (valence ===1 && (interpretation.gist.object?.hasOwnProperty("indirect") || !interpretation.gist.object?.hasOwnProperty("direct"))){return false}
     if (valence ===2 && (!interpretation.gist.object?.hasOwnProperty("indirect") || !interpretation.gist.object?.hasOwnProperty("direct"))){return false}
+
     interpretation.gist.verb.plot=interpretation.gist.verb.definition.plot
 	if (interpretation.gist.verb.definition.select){interpretation.gist.verb.select=interpretation.gist.verb.definition.select}
     
@@ -131,7 +135,7 @@ ishml.grammar.command.semantics=(interpretation)=>
         interpretation.gist.preposition=interpretation.gist.indirect.preposition
         delete interpretation.gist.indirect.preposition
         Object.assign(interpretation.gist.indirect,interpretation.gist.indirect.phrase?.target)
-        Object.assign(interpretation.gist.indirect,interpretation.gist.indirect.phrase?.command)
+        Object.assign(interpretation.gist.indirect,interpretation.gist.indirect.phrase?.command.gist)
         delete interpretation.gist.indirect.phrase
     }
 
@@ -139,7 +143,6 @@ ishml.grammar.command.semantics=(interpretation)=>
     {
         interpretation.gist=
         { 
-            subject:{noun:{lexeme:"",definition:{part:"noun",select:ishml.net.actor.player}}},
             verb:ishml.lexicon.search("ask", {longest:true, full:true}).filter(snippet=>snippet.token.definition.part==="verb" && snippet.token.definition.preposition==="to")[0].token,
             direct:interpretation.gist.subject,
             preposition:ishml.lexicon.search("to", {longest:true, full:true}).filter(snippet=>snippet.token.definition.part==="preposition")[0].token,
@@ -147,14 +150,6 @@ ishml.grammar.command.semantics=(interpretation)=>
         }
         interpretation.gist.verb.plot=interpretation.gist.verb.definition.plot
     }
-    else
-    {
-        interpretation.gist.subject=
-        {
-			noun:{lexeme:"",definition:{part:"noun",select:ishml.net.actor.player}}
-        }
-    }
-	interpretation.gist.subject.select=interpretation.gist.subject.noun.definition.select
     var vPreposition=interpretation.gist.verb.definition.preposition
     var vParticle=interpretation.gist.verb.definition.particle
     if(vPreposition)
@@ -189,11 +184,8 @@ ishml.grammar.command.semantics=(interpretation)=>
 }
 
 ishml.parser=ishml.Parser({ lexicon: ishml.lexicon, grammar: ishml.grammar.command})
-
-/* Cordage */
-
-/*knots*/
-/*enums */
+// #endregion
+// #region enumerations
 ishml.lang.positive=Symbol('positive')
 ishml.lang.comparative=Symbol('comparative')
 ishml.lang.superlative=Symbol('superaltive') 
@@ -214,8 +206,8 @@ ishml.lang.viewpoint=
 	second:{singular:Symbol("second person singular"),plural:Symbol("second person plural")},		
 	third:{singular:Symbol("third person singular"),plural:Symbol("third person plural")}
 }
-/* pronouns */
-
+// #endregion
+// #region pronouns
 ishml.lang.pronouns=
 {
 	
@@ -225,6 +217,8 @@ ishml.lang.pronouns=
   neuter:{subjective:["I","you","it"],objective:["me","you","it"],reflexive:["myself","yourself","itself"],possessive:["mine","yours","its"]},
   plural:{subjective:["we","you","they"],objective:["us","you","them"],reflexive:["ourself","yourself","themselves"],possessive:["ours","yours","theirs"]}
 }
+//#endregion
+//#region text functions
 ishml.lang.preserveCase=function (text, pattern,initialism=true)
 {
 	var result = ""
@@ -535,52 +529,12 @@ ishml.lang.est=function(word)
 	return ishml.lang.preserveCase("most "+key,word)
 }
 ishml.lang.est.superlatives={bad:"worst",far:"farthest",good:"best"}
+// #endregion
 
-/* Plotpoints */
-ishml.Plotpoint.prototype.verbs=function(...verbs)
-{
-	var particle, preposition
-	var thisPlotpoint=this
-	result={
-		particle:p=>
-		{
-			particle=p
-			return result
-		},
-		preposition:p=>
-		{
-			preposition=p
-			return result
-		},
-		register:(options)=>
-		{
-			if (options)
-			{
-				if (typeof options==="number")
-				{
-					var entry={plot:thisPlotpoint,part:"verb"}
-				}
-				else 
-				{
-					var entry = Object.assign({plot:thisPlotpoint,part:"verb"},options)
-				}
-			}
-			else
-			{
-				var entry={plot:thisPlotpoint,part:"verb", valence:1}
-			}
-			if (particle){entry.particle=particle}
-			if (preposition){entry.preposition=preposition}
-			ishml.lexicon.register(...verbs).as(entry)
-			return thisPlotpoint
-		}
-	}
-	return result
-}
+// ishml.Plotpoint.prototype.verbs defaults to english
 
-/*** Templates Prefixes***/
+// #region Templates Prefixes and phrase suffixes/infixes
 
-//ishml.template.define("a").as((...data)=> ishml.template._(...data).modify(item=>`${ishml.lang.a(item.value)} ${item.value}`))
 ishml.template.define("a").as((...data)=> ishml.Phrase.prototype.modify(item=>`${ishml.lang.a(item.value)} ${item.value}`,...data))
 ishml.template.define("A").as((...data)=>ishml.Phrase.prototype.modify(item=>`${ishml.lang.capitalize(ishml.lang.a(item.value))} ${item.value}`,...data))
 ishml.template.an=ishml.template.a
@@ -643,7 +597,6 @@ ishml.template.define("list").as((...data)=>
 {
 	return ishml.Phrase.prototype.transform(results=>
 	{
-		//return ishml.template._`${ishml.template._.ITEM.cycle.cull(...data)}${tags=>tags.item.data.rank < tags.item.data.total && tags.item.data.total>2?", ":""}${tags=>tags.item.data.rank===1 && tags.item.data.total===2?" and ":""}${tags=>tags.item.data.index===tags.item.data.total-2 && tags.item.data.total>2?"and ":""}`.per.item.join().generate()
 		return ishml.template._`${ishml.template._.ITEM.cycle.cull(results)}${ishml.template._.item.modify(t=>t.rank < t.total && t.total>2?", ":"")}${ishml.template._.item.modify(t=>t.rank===1 && t.total===2?" and ":"")}${ishml.template._.item.modify(t=>t.index===t.total-2 && t.total>2?"and ":"")}`.per.item.join().generate()
 	},...data)	
 })
@@ -793,12 +746,5 @@ ishml.template.define("We").as((...data)=>
 })
 
 
-
-
-/*
-_.inflect`[The] fragile [droppable] [have] broken.`.populate(command)
-_`${The(t=>t.command.data.droppable)} fragile ${t=>t.command.droppable.text()} ${_.have(t=>t.command.droppable)}`.tag("command").populate(command)
-
-_`${The(t=>t.command.data.droppable)} fragile ${_.prior.text()} ${_.have(t=>t.command.data.droppable)}`.tag("command").populate(command)
-*/
+//#endregion
 

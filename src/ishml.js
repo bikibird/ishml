@@ -100,7 +100,7 @@ ishml.Plotpoint.prototype.add = function (id,summary)
 	this[id] = plotpoint
 	return this
 }
-
+ishml.Plotpoint.prototype.Episode=function(){return new ishml.Episode(this)}
 ishml.Plotpoint.prototype.heed = function (aDocumentSelector)
 {
 	var element = document.querySelector(aDocumentSelector)
@@ -144,7 +144,46 @@ ishml.Plotpoint.prototype.heed = function (aDocumentSelector)
 		})
 	}
 }
-
+ishml.Plotpoint.prototype.verbs=function(...verbs)
+{
+	var particle, preposition
+	var thisPlotpoint=this
+	var result={
+		particle:p=>
+		{
+			particle=p
+			return result
+		},
+		preposition:p=>
+		{
+			preposition=p
+			return result
+		},
+		register:(options)=>
+		{
+			if (options)
+			{
+				if (typeof options==="number")
+				{
+					var entry={plot:thisPlotpoint,part:"verb"}
+				}
+				else 
+				{
+					var entry = Object.assign({plot:thisPlotpoint,part:"verb"},options)
+				}
+			}
+			else
+			{
+				var entry={plot:thisPlotpoint,part:"verb", valence:1}
+			}
+			if (particle){entry.particle=particle}
+			if (preposition){entry.preposition=preposition}
+			ishml.lexicon.register(...verbs).as(entry)
+			return thisPlotpoint
+		}
+	}
+	return result
+}
 
 	
 //DOCUMENTATION:  unfold should return false if twist not handled to allow siblings to have a chance at resolving. Return truthy value if plotpoint resolves twist. Returned object may return information to parent plotpoint, which the parent can use to determine whether it is successful. Twist may be modified, which also conveys info back to the parent.
@@ -154,7 +193,7 @@ ishml.Plotpoint.prototype.unfoldSubplot = function (twist)
 {
 	var episodes=[]
 	var episode
-	for (plotpoint of Object.values(this))
+	for (const plotpoint of this)
 	{
 		episode=plotpoint.unfold(twist)
 		if (episode){episodes=episodes.concat(episode)}
@@ -188,7 +227,7 @@ ishml.Plotpoint.handler=
 }
 // #endregion
 // #region Episode 
-//Episodes are added to the yarn's storyline through introduce.  
+//Episodes are added to the storyline through ishml.introduce.  
 //
 /*
 	configuration={salience,start,stop,etc}

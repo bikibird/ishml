@@ -74,6 +74,7 @@ $.actor.player
 	.tie("wears").to($.thing.cloak)
 
 $.actor.jane
+	.tie("in").to($.place.foyer)
 	.tie("has_skill").to($.action.dropping,$.action.taking)
 
 $.fixture.hook.tie("in").to($.place.cloakroom)
