@@ -153,7 +153,13 @@ ishml.grammar.command.semantics=(interpretation)=>
             return false
         }
     }
-	var command={verb:interpretation.gist.verb.definition.select}
+	
+	var command={}
+	if (interpretation.gist.hasOwnProperty("subject"))
+	{
+		command.subject=interpretation.gist.subject.select
+	}
+	command.verb=interpretation.gist.verb.definition.select
 	if (interpretation.gist.object?.hasOwnProperty("direct"))
 	{
 		command.direct=interpretation.gist.object.direct.select
@@ -167,24 +173,24 @@ ishml.grammar.command.semantics=(interpretation)=>
 		command.indirect=interpretation.gist.object.indirect.phrase?.target?.select ?? interpretation.gist.object.indirect.phrase?.command
 
     }
-    if (interpretation.gist.hasOwnProperty("subject"))  //Jane, drop ball => Ask Jane to drop ball
+    /*if (interpretation.gist.hasOwnProperty("subject"))  //Jane, drop ball => Ask Jane to drop ball
     {
-		 var indirect={}
+		var indirect={}
 		indirect.verb=command.verb
 		if (command.preposition){indirect.preposition=command.preposition}
 		if (command.direct){indirect.direct=command.direct}
 		if (command.indirect){indirect.indirect=command.indirect}
-		command.indirect=indirect
+		indirect.subject=interpretation.gist.subject.select
+		command.indirect={command:indirect}
 		command.verb=ishml.lexicon.search("ask", {longest:true, full:true}).filter(snippet=>snippet.token.definition.part==="verb" && snippet.token.definition.preposition==="to")[0].token.definition.select
 
 		command.direct=interpretation.gist.subject.select
 
 		command.preposition=ishml.lexicon.search("to", {longest:true, full:true}).filter(snippet=>snippet.token.definition.part==="preposition")[0].token.definition.select
 
-    }
+    }*/
 	Object.assign(interpretation.gist,{command:command})
-	console.log(interpretation.gist)
-    return true
+	return true
 }
 
 ishml.parser=ishml.Parser({ lexicon: ishml.lexicon, grammar: ishml.grammar.command})
@@ -604,25 +610,7 @@ ishml.template.define("list").as((...data)=>
 		return ishml.template._`${ishml.template._.ITEM.cycle.cull(results)}${ishml.template._.item.modify(t=>t.rank < t.total && t.total>2?", ":"")}${ishml.template._.item.modify(t=>t.rank===1 && t.total===2?" and ":"")}${ishml.template._.item.modify(t=>t.index===t.total-2 && t.total>2?"and ":"")}`.per.item.join().generate()
 	},...data)	
 })
-ishml.template.define("some").as((...data)=>
-{
-	return ishml.Phrase.prototype.transform(results=>
-	{
-		var some=[]
-		var a=[]
-		var proper=[]
-		results.forEach(item=>
-		{
-			if (item.proper){proper.push(item)}
-			else
-			{
-				if(item.number===ishml.lang.number.plural || item.quantity>1 ||item.ply_quantity>1){some.push(item)}
-				else {a.push(item)}
-			}
-		})
-		return ishml.template.list(ishml.template.list(proper), ishml.template._`some `.when.list(some), ishml.template.a.list(a)).generate()
-	},...data)	
-})
+
 
 
 
@@ -658,17 +646,25 @@ ishml.Phrase.define("s").as (precursor =>
 ishml.template.define("a").as((...data)=> ishml.Phrase.prototype.modify(item=>`${ishml.lang.a(item.value)} ${item.value}`,...data))
 ishml.Phrase.define("z").as(precursor =>precursor.modify(item=>ishml.lang.z(item.value)))
 
-/* Inflected Text */
-
-ishml.template.define("are").as((...data)=>
+// #region inflected text
+// #region articles
+ishml.template.define("some").as((...data)=>
 {
 	return ishml.Phrase.prototype.transform(results=>
 	{
-		if (results.length>1 || results[0].number ===ishml.lang.number.plural || results.quantity>1 ||results.ply_quantity>1)
+		var some=[]
+		var a=[]
+		var proper=[]
+		results.forEach(item=>
 		{
-			return [{value:"are"}]
-		} 
-		else {return [{value:"is"}]}
+			if (item.proper){proper.push(item)}
+			else
+			{
+				if(item.number===ishml.lang.number.plural || item.quantity>1 ||item.ply_quantity>1){some.push(item)}
+				else {a.push(item)}
+			}
+		})
+		return ishml.template.list(ishml.template.list(proper), ishml.template._`some `.when.list(some), ishml.template.a.list(a)).generate()
 	},...data)	
 })
 
@@ -695,36 +691,101 @@ ishml.template.define("The").as((...data)=>
 {
 	return ishml.template.cap(ishml.template.the(...data))	
 })
-
-ishml.template.define("Are").as((...data)=>
-{
-	return ishml.template.cap(ishml.template.are(...data))	
-})
-ishml.template.define("them").as((...data)=>
-{
-	return ishml.Phrase.prototype.transform(results=>
-	{
-		if (results.length>1  || results[0].number ===ishml.lang.number.plural || results.quantity>1 ||results.ply_quantity>1)
-		{
-			return [{value:ishml.lang.pronouns.plural.objective[2]}]
-		} 
-		else {return [{value:ishml.lang.pronouns[results[0].gender].objective[2]}]}
-		
-	},...data)
-})
-ishml.template.define("Them").as((...data)=>
-{
-	return ishml.template.cap(ishml.template.them(...data))	
-})
-ishml.template.define("they").as((...data)=>
+// #endregion
+// #region pronouns
+//I,we,you,he, she, it, they
+ishml.template.define("I").as((...data)=>
 {
 	return ishml.Phrase.prototype.transform(results=>
 	{
 		if (results.length>1 || results[0].number ===ishml.lang.number.plural || results.quantity>1 ||results.ply_quantity>1)
 		{
-			return [{value:ishml.lang.pronouns.plural.subjective[results[0].person ?? 2]}]
+			return [{value:ishml.lang.pronouns.plural.subjective[results[0].person ?? ishml.lang.person.first]}]
+			[{value:ishml.lang.pronouns[results[0].gender ?? "epicene"].subjective[results[0].person ?? ishml.lang.person.first]}]
 		} 
-		else {return [{value:ishml.lang.pronouns[results[0].gender].subjective[results[0].person ?? 2]}]}
+		else {return [{value:ishml.lang.pronouns[results[0].gender ?? "epicene"].subjective[results[0].person ?? ishml.lang.person.first]}]}
+	},...data)	
+})
+ishml.template.define("we").as((...data)=>
+{
+	return ishml.Phrase.prototype.transform(results=>
+	{
+		if (results.length===1 || results[0].number ===ishml.lang.number.singular || results.quantity===1 ||results.ply_quantity===1)
+		{
+			return [{value:ishml.lang.pronouns[results[0].gender ?? "epicene"].subjective[results[0].person ?? ishml.lang.person.first]}]
+		} 
+		else {return [{value:ishml.lang.pronouns.plural.subjective[results[0].person ?? ishml.lang.person.first]}]}
+	},...data)	
+})
+ishml.template.define("We").as((...data)=>
+{
+	return ishml.template.cap(ishml.template.we(...data))	
+})
+ishml.template.define("you").as((...data)=>
+{
+	return ishml.Phrase.prototype.transform(results=>
+	{
+		return [{value:ishml.lang.pronouns[results[0].gender ?? "epicene"].subjective[results[0].person ?? ishml.lang.person.second]}]
+	},...data)	
+})
+ishml.template.define("You").as((...data)=>
+{
+	return ishml.template.cap(ishml.template.you(...data))	
+})
+ishml.template.define("he").as((...data)=>
+{
+	return ishml.Phrase.prototype.transform(results=>
+	{
+		if (results.length>1 || results[0].number ===ishml.lang.number.plural || results.quantity>1 ||results.ply_quantity>1)
+		{
+			return [{value:ishml.lang.pronouns.plural.subjective[results[0].person ?? ishml.lang.person.third]}]
+		} 
+		else {return [{value:ishml.lang.pronouns[results[0].gender ?? "male"].subjective[results[0].person ?? ishml.lang.person.third]}]}
+	},...data)	
+})
+ishml.template.define("He").as((...data)=>
+{
+	return ishml.template.cap(ishml.template.he(...data))	
+})
+ishml.template.define("she").as((...data)=>
+{
+	return ishml.Phrase.prototype.transform(results=>
+	{
+		if (results.length>1 || results[0].number ===ishml.lang.number.plural || results.quantity>1 ||results.ply_quantity>1)
+		{
+			return [{value:ishml.lang.pronouns.plural.subjective[results[0].person ?? ishml.lang.person.third]}]
+		} 
+		else {return [{value:ishml.lang.pronouns[results[0].gender ?? "female"].subjective[results[0].person ?? ishml.lang.person.third]}]}
+	},...data)	
+})
+ishml.template.define("She").as((...data)=>
+{
+	return ishml.template.cap(ishml.template.She(...data))	
+})
+ishml.template.define("it").as((...data)=>
+{
+	return ishml.Phrase.prototype.transform(results=>
+	{
+		if (results.length>1 || results[0].number ===ishml.lang.number.plural || results.quantity>1 ||results.ply_quantity>1)
+		{
+			return [{value:ishml.lang.pronouns.plural.subjective[results[0].person ?? ishml.lang.person.third]}]
+		} 
+		else {return [{value:ishml.lang.pronouns[results[0].gender ?? "neuter"].subjective[results[0].person ?? ishml.lang.person.third]}]}
+	},...data)	
+})
+ishml.template.define("It").as((...data)=>
+{
+	return ishml.template.cap(ishml.template.it(...data))	
+})
+ishml.template.define("they").as((...data)=>
+{
+	return ishml.Phrase.prototype.transform(results=>
+	{
+		if (results.length===1 || results[0].number ===ishml.lang.number.singular || results.quantity===1 ||results.ply_quantity===1)
+		{
+			return [{value:ishml.lang.pronouns[results[0].gender ?? "epicene"].subjective[results[0].person ?? ishml.lang.person.third]}]
+		} 
+		else {return [{value:ishml.lang.pronouns.plural.subjective[results[0].person ?? ishml.lang.person.third]}]}
 	},...data)	
 
 })
@@ -732,23 +793,65 @@ ishml.template.define("They").as((...data)=>
 {
 	return ishml.template.cap(ishml.template.they(...data))	
 })
-ishml.template.define("we").as((...data)=>
+
+//me,us,him, her, them
+ishml.template.define("me").as((...data)=>
+{
+	return ishml.Phrase.prototype.transform(results=>
+	{
+		if (results.length>1  || results[0].number ===ishml.lang.number.plural || results.quantity>1 ||results.ply_quantity>1)
+		{
+			return [{value:ishml.lang.pronouns.plural.objective[results[0].person ?? ishml.lang.person.first]}]
+		} 
+		else {return [{value:ishml.lang.pronouns[results[0].gender ?? "epicene"].objective[results[0].person ?? ishml.lang.person.first]}]}
+	},...data)
+})
+ishml.template.define("us").as((...data)=>
+{
+	return ishml.Phrase.prototype.transform(results=>
+	{
+		if (results.length===1  || results[0].number ===ishml.lang.number.singular || results.quantity===1 ||results.ply_quantity===1)
+		{
+			return [{value:ishml.lang.pronouns[results[0].gender ?? "epicene"].objective[results[0].person ?? ishml.lang.person.first]}]
+		} 
+		else {return [{value:ishml.lang.pronouns.plural.objective[results[0].person ?? ishml.lang.person.first]}]}
+	},...data)
+})
+ishml.template.define("them").as((...data)=>
+{
+	return ishml.Phrase.prototype.transform(results=>
+	{
+		if (results.length>1  || results[0].number ===ishml.lang.number.plural || results.quantity>1 ||results.ply_quantity>1)
+		{
+			return [{value:ishml.lang.pronouns.plural.objective[results[0].person ?? ishml.lang.person.third]}]
+		} 
+		else {return [{value:ishml.lang.pronouns[results[0].gender].objective[results[0].person ?? ishml.lang.person.third]}]}
+		
+	},...data)
+})
+ishml.template.define("Them").as((...data)=>
+{
+	return ishml.template.cap(ishml.template.them(...data))	
+})
+
+
+//#endregion
+//#region verbs
+ishml.template.define("are").as((...data)=>
 {
 	return ishml.Phrase.prototype.transform(results=>
 	{
 		if (results.length>1 || results[0].number ===ishml.lang.number.plural || results.quantity>1 ||results.ply_quantity>1)
 		{
-			return [{value:ishml.lang.pronouns.plural.subjective[results[0].person ?? 0]}]
+			return [{value:"are"}]
 		} 
-		else {return [{value:ishml.lang.pronouns[results[0].gender].subjective[results[0].person ?? 0]}]}
+		else {return [{value:"is"}]}
 	},...data)	
-
 })
-ishml.template.define("We").as((...data)=>
+ishml.template.define("Are").as((...data)=>
 {
-	return ishml.template.cap(ishml.template.we(...data))	
+	return ishml.template.cap(ishml.template.are(...data))	
 })
-
-
-//#endregion
+// #endregion
+// #endregion
 

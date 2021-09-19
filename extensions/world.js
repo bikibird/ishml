@@ -48,7 +48,7 @@ ishml.Cord.cordage.lockedDoor=[...ishml.Cord.cordage.closedDoor, ...ishml.Cord.c
 ishml.Cord.cordage.thing=["thing@is:thing",...ishml.Cord.cordage.portable,...ishml.Cord.cordage.touchable]
 
 /*Actions*/
-$.tie("action").to("dropping","taking","inventorying")
+$.tie("action").to("dropping","taking","inventorying","asking")
 
 /*Things*/
 

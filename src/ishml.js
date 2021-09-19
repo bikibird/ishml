@@ -1374,15 +1374,8 @@ ishml.Cord =class Cord extends Function //(function Cord(){})
 	}
 	get isEmpty()
 	{
-		return this._plies.size===0
+		return this.size===0
 	}
-	
-/*	get subsetOf()
-	{}
-	get supersetOf()
-	{}
-*/	
-	
 	slice(start=0,end=1)
 	{
 		return new ishml.Cord([...this._plies].slice(0,1))

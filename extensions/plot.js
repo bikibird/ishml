@@ -14,7 +14,7 @@ plot.main.dialog.input.unfold=function(twist)
             var command=Object.assign(
             {
                 actor:$.actor[this.twist.timeline].cord,
-                subject:$.actor[this.twist.timeline].cord,
+               // subject:$.actor[this.twist.timeline].cord,
                 timeline:this.twist.timeline,
             },interpretation.gist.command)
             episodes=episodes.concat(plot.action.unfold(command))
@@ -52,19 +52,37 @@ plot.main.dialog.input.unfold=function(twist)
 plot.action.unfold=function(command)
 {
    // Object.keys(command.gist).forEach(key=>(command[key]=command.gist[key].select ?? command.gist[key]))
-    return command.verb.plot.unfold(command)
+    command.subject=command.subject ?? command.actor
+    if (!command.actor.akin(command.subject) && !command.requestor )
+    {
+        var request=
+        {
+            actor:command.actor,
+            timeline:command.timeline,
+            direct:command.subject,
+            subject:command.actor,
+            indirect:{command:Object.assign({},command)}
+        }
+        return plot.action.asking_to.unfold(request)
+    }
+    command.subject= command.subject ?? command.actor
+    return command.verb.unfold(command)
 }
 plot.action.asking_to.unfold=function(command)
 {
-    command.indirect.timeline=command.timeline
+    command.indirect.command.timeline=command.timeline
+    command.indirect.command.subject=command.direct
+    command.indirect.command.requestor=command.subject
+    command.indirect.command.actor=command.actor
     return this.Episode()
         .narration(()=>(command.actor.akin(command.subject)?_`<p>${_.They.SUBJECT()} asked ${_.the.DIRECT()} to do something`:_`${_.cap.SUBJECT()} asked ${_.the.DIRECT()} to do something.`)
             .populate(command)
             .say().append("#story"))
         .resolution(()=>
         {
-            command.indirect.actor=command.actor
-            var actionEpisode=plot.action.unfold(command.indirect)
+            //command.indirect.command.actor=command.actor
+           
+            var actionEpisode=plot.action.unfold(command.indirect.command)
             actionEpisode.timeline(command.timeline)
             ishml.introduce(actionEpisode)
         })
@@ -72,8 +90,6 @@ plot.action.asking_to.unfold=function(command)
         .timeline(command.timeline)  
         .abridge(()=>this.check.unfold(command))
         .revise(()=>this.instead.unfold(command))
-       
-
 }
 plot.action.asking_to.verbs("ask").preposition("to").register(2)
 plot.action.asking_to.check
@@ -105,7 +121,7 @@ plot.action.dropping.verbs("drop","leave").register()
 plot.action.dropping.check.nothing.unfold=function(command)
 {
     
-    command.undroppable=command.direct?.subtract(command.droppable)
+    command.undroppable=command.direct.subtract(command.droppable)
     if(!command.direct ||(command.droppable.isEmpty && command.undroppable.isEmpty))
     {
         return this.ishml.Episode()
@@ -139,7 +155,7 @@ plot.action.dropping.check.undroppable.unfold=function(command)
     if (!command.undroppable.isEmpty)
     {
         return this.Episode()
-            .narration(()=> _`<p>${_.SUBJECT()} ${_.pick("think about dropping","want to drop", "would drop")} the ${_.list.UNDROPPABLE()}, but ${_.pick(_`you don't even have ${_.them(_.UNDROPPABLE())}`,_`${_.they.undroppable} ${_.are.undroppable}n't in your possession`)}.</p>`
+            .narration(()=> _`<p>${_.SUBJECT()} ${_.pick("think about dropping","want to drop", "would drop")} the ${_.list.UNDROPPABLE()}, but ${_.pick(_`you don't even have ${_.them.undroppable}`,_`${_.they.undroppable} ${_.are.undroppable}n't in your possession`)}.</p>`
                 .populate(command)
                 .say().append("#story"))
 

@@ -56,26 +56,34 @@ $.thing.hook.configure
 
 /*Actors*/
 $
-	.tie("actor").to("player","jane")
+	.tie("actor").to("player","jane","alice")
 
 $.actor.player
 	.configure(ishml.player)
 	.singular("me","self","myself","I")
 
-	$.actor.jane
+$.actor.jane
 	.configure(ishml.female)
 	.singular("jane","she","her")
+
+$.actor.alice
+	.configure(ishml.female)
+	.singular("alice","she","her")
 
 /*staging*/
 
 $.actor.player
 	.tie("in").to($.place.foyer)
-	.tie("has_skill").to($.action.dropping,$.action.inventorying,$.action.taking)
+	.tie("has_skill").to($.action.dropping,$.action.inventorying,$.action.taking, $.action.asking)
 	.tie("wears").to($.thing.cloak)
 
 $.actor.jane
 	.tie("in").to($.place.foyer)
-	.tie("has_skill").to($.action.dropping,$.action.taking)
+	.tie("has_skill").to($.action.dropping,$.action.taking,$.action.asking)
+
+$.actor.alice
+	.tie("in").to($.place.foyer)
+	.tie("has_skill").to($.action.dropping,$.action.taking, $.action.asking)
 
 $.fixture.hook.tie("in").to($.place.cloakroom)
 
