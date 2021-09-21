@@ -76,6 +76,7 @@ ishml.Plotpoint = function Plotpoint(id,summary)
 
 		Object.defineProperty(this, "uid", {value:ishml.util.formatId(),writable: true})
 		Object.defineProperty(this, "twist", {value:{},writable: true})
+		Object.defineProperty(this, "lexeme", {value:"",writable: true})
 		this.points[this.uid]=this
 
 		return new Proxy(this,ishml.Plotpoint.handler)
@@ -248,6 +249,7 @@ ishml.Episode=function Episode(plot)
 
 		Object.defineProperty(this, "told", {value:false,writable: true})
 		Object.defineProperty(this, "twist", {value:plot?.twist,writable: true})
+		Object.defineProperty(this, "lexeme", {value:"",writable: true})
 		return this
 	}
 	else
@@ -472,6 +474,7 @@ ishml.Knot= class Knot
 		this.id=id
 		this.name=id.replace("_"," ")
 		this.description=this.name
+		Object.defineProperty(this, "lexeme", {value:"",writable: true})
 		/*Object.defineProperty(this, "id", {value:id,writable: true}) //
 		Object.defineProperty(this, "name", {value:id.replace("_"," "),writable: true}) //local name
 		Object.defineProperty(this, "description", {value:this.name,writable: true}) */
@@ -746,6 +749,7 @@ ishml.Ply= class Ply
 			this.knot=null
 			this.ply=null
 		}	
+		Object.defineProperty(this, "lexeme", {value:"",writable: true})
 		this.hop=0
 		this.cost=0
 		/*this.adjunct=null //for adjunctive cording  What???? probably meant cord hopping*/
@@ -1140,12 +1144,12 @@ ishml.Cord =class Cord extends Function //(function Cord(){})
 	//a cord is a collection of unrelated plies
 	constructor(...members) 
 	{
-		//function Cord(){}  //sets function's name
 		super()
 		Object.setPrototypeOf(this, ishml.Cord.prototype)
 		Object.defineProperty(this,"id",{writable:true})
 		Object.defineProperty(this,"__plies",{value:new Set(),writable:true})
 		Object.defineProperty(this,"_select",{value:null,writable:true})
+		Object.defineProperty(this, "lexeme", {value:"",writable: true})
 		members.forEach(member=>
 		{
 			if (member instanceof Set ||member instanceof ishml.Cord ||member instanceof Array)
@@ -1809,25 +1813,33 @@ ishml.Cord.handler=
 }
 // #endregion
 // #region Interpretation 
-ishml.Interpretation=function Interpretation(gist={},remainder="",valid=true)
+ishml.Interpretation=function Interpretation(gist={},remainder="",valid=true,lexeme)
 {
+	this.lexeme=lexeme??""
 	if (this instanceof ishml.Interpretation)
 	{
 		if (gist instanceof Array)
 		{
-			this.gist=gist.slice(0)
+			this.gist=gist.map(g=>
+			{
+				g.lexeme=this.lexeme
+				return g	
+			})
 		}
 		else
 		{
 			if(gist instanceof ishml.Token)
 			{
 				this.gist=gist.clone()
+				this.gist.lexeme=this.lexeme
 			}
 			else
 			{
 				this.gist=Object.assign({},gist)
+				this.gist.lexeme=this.lexeme
 			}	
 		}
+		
 
 		this.remainder=remainder.slice()
 		this.valid=valid
@@ -2148,10 +2160,8 @@ ishml.Rule=function Rule()
 ishml.Rule.all=Symbol('all')
 ishml.Rule.any=Symbol('any')
 ishml.Rule.apt= Symbol('apt')
-//ishml.Rule.reset=Symbol('reset') 
 ishml.Rule.prototype.clone =function()
 {
-	//DEFECTIVE
 	var circularReferences=new Set()
 
 	function _clone(rule)
@@ -2199,7 +2209,6 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 {
 	var someText=text.slice(0)
 	var results=[]
-
 	var keys=Object.keys(this)
 	if (keys.length>0)
 	//non-terminal
@@ -2225,8 +2234,8 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 								var {snippets}=this[key].parse(remainder.slice(0),lexicon) 
 								snippets.forEach((snippet)=>
 								{
-									
-									var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid)
+									var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid,candidate.lexeme+remainder.slice(0,remainder.length-snippet.remainder.length))
+
 									if (this.maximum ===1 )
 									{
 										if(this[key].keep || !phrase.valid){phrase.gist[key]=snippet.gist}
@@ -2287,8 +2296,7 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 									var {snippets}=this[key].parse(remainder.slice(0),lexicon) 
 									snippets.forEach((snippet)=>
 									{
-										
-										var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid)
+										var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid,candidate.lexeme+remainder.slice(0,remainder.length-snippet.remainder.length))
 										if (this.maximum ===1 )
 										{
 											if(this[key].keep || !phrase.valid){phrase.gist=snippet.gist}
@@ -2344,8 +2352,7 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 								var {snippets}=this[key].parse(remainder.slice(0),lexicon) 
 								snippets.forEach((snippet)=>
 								{
-									
-									var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid)
+									var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid,candidate.lexeme+remainder.slice(0,remainder.length-snippet.remainder.length))
 									if (this.maximum ===1 )
 									{
 										if(this[key].keep || !phrase.valid){phrase.gist=snippet.gist}
@@ -2412,7 +2419,7 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 					{
 						if (this.filter(snippet.token.definition))
 						{
-							var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid)
+							var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid,candidate.lexeme+remainder.slice(0,remainder.length-snippet.remainder.length))
 							if (this.maximum ===1 )
 							{
 								if(this.keep || !phrase.valid){phrase.gist=snippet.token}
@@ -2657,7 +2664,6 @@ ishml.Phrase =class Phrase
 			}	
 		})
 	}
-
 //There are three different ways to specify a condition.
 //Concur should work like then  _.hobby.concur.person.interest
 	concur(tag,condition)
@@ -3318,9 +3324,9 @@ ishml.template.__handler=
 						}
 						else //datum is parameter of data phrase, so return the actual correct phrase
 						{
-							if (template.name==="_"){return ishml.template.data(echo,datum)}//strip off outer phrase 
-							if (template.name==="next"){return ishml.template.data(template(echo),datum)}
-							else {return template(ishml.template.data(echo,datum))}
+							if (template.name==="_"){return new Proxy(ishml.template.data(echo,datum),ishml.template.__dataHandler)}//strip off outer phrase 
+							if (template.name==="next"){return new Proxy(ishml.template.data(template(echo),datum),ishml.template.__dataHandler)}
+							else {return new Proxy(template(ishml.template.data(echo,datum)),ishml.template.__dataHandler)}
 						}
 					}
 				})
@@ -3336,6 +3342,22 @@ ishml.template.__handler=
 		return new Proxy((...precursor)=>template(propertyAsFunction(...precursor)),ishml.template.__handler)
 		}	
 			
+	}
+}
+ishml.template.__dataHandler=
+{
+	get:function(target,datum,receiver)  // datum === data.datum
+	{
+		if (Reflect.has(target,datum,receiver))  //datum is property of phrase
+		{
+			return target[datum] //removes proxy
+		}
+		else //datum is parameter of data phrase, so return the actual correct phrase
+		{
+			if (template.name==="_"){return ishml.template.data(echo,datum)}//strip off outer phrase 
+			if (template.name==="next"){return ishml.template.data(template(echo),datum)}
+			else {return template(ishml.template.data(echo,datum))}
+		}
 	}
 }
 ishml.template.defineClass=function(id)
