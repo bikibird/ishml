@@ -3331,11 +3331,12 @@ ishml.template.__handler=
 		//_.a.b.tag becomes _.a(b(echo(tag)))
 		if (!template.echo)
 		{
+			var echo=ishml.template.echo(property)
 			var t=()=>
 			{
-				return template(ishml.template.echo(property))
+				return template(echo)
 			}
-			t.echo=ishml.template.echo(property)
+			t.echo=echo
 			return new Proxy(t, ishml.template.__handler)
 		}
 		//_.a.b.tag.data1 becomes _.a(b(data1(echo(property)))))
@@ -3442,7 +3443,10 @@ ishml.template.echo=function echo(tag)
 
 			if (this.echo){this.results=this.phrases[0].value.results}
 			else{this.results=this.phrases[0].value.generate()}
-			this.results.forEach(result=>result.value=this._properties.reduce((a,b)=>a=a[b],result.value))
+			if (this._properties.length>0)
+			{
+				this.results.forEach(result=>result.value=this._properties.reduce((a,b)=>a=a[b],result))
+			}
 			this.text=this.results.map(result=>result.value).join("")
 			this.tally=this.phrases[0].value.tally
 			return this.results
