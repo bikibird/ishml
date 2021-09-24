@@ -153,42 +153,31 @@ ishml.grammar.command.semantics=(interpretation)=>
             return false
         }
     }
-	
-	var command={}
+
+	var command={lexeme:interpretation.gist.lexeme}
 	if (interpretation.gist.hasOwnProperty("subject"))
 	{
 		command.subject=interpretation.gist.subject.select
+		command.subject.lexeme=	interpretation.gist.subject.lexeme	
 	}
 	command.verb=interpretation.gist.verb.definition.select
+	command.verb.lexeme=interpretation.gist.verb.lexeme
 	if (interpretation.gist.object?.hasOwnProperty("direct"))
 	{
 		command.direct=interpretation.gist.object.direct.select
+		command.direct.lexeme=interpretation.gist.object.direct.lexeme
 	}
     if (interpretation.gist.object?.hasOwnProperty("indirect"))
     {
 		if (interpretation.gist.object.indirect.hasOwnProperty("preposition"))
 		{
-			command.preposition=interpretation.gist.object.indirect.preposition?.definition.select
+			command.preposition=interpretation.gist.object.indirect.preposition.definition.select
+			command.preposition.lexeme=interpretation.gist.object.indirect.preposition.lexeme
 		}
-		command.indirect=interpretation.gist.object.indirect.phrase?.target?.select ?? interpretation.gist.object.indirect.phrase?.command
-
+		command.indirect=interpretation.gist.object.indirect.phrase.target?.select ?? interpretation.gist.object.indirect.phrase.command
+		command.indirect.lexeme=interpretation.gist.object.indirect.phrase.lexeme
     }
-    /*if (interpretation.gist.hasOwnProperty("subject"))  //Jane, drop ball => Ask Jane to drop ball
-    {
-		var indirect={}
-		indirect.verb=command.verb
-		if (command.preposition){indirect.preposition=command.preposition}
-		if (command.direct){indirect.direct=command.direct}
-		if (command.indirect){indirect.indirect=command.indirect}
-		indirect.subject=interpretation.gist.subject.select
-		command.indirect={command:indirect}
-		command.verb=ishml.lexicon.search("ask", {longest:true, full:true}).filter(snippet=>snippet.token.definition.part==="verb" && snippet.token.definition.preposition==="to")[0].token.definition.select
 
-		command.direct=interpretation.gist.subject.select
-
-		command.preposition=ishml.lexicon.search("to", {longest:true, full:true}).filter(snippet=>snippet.token.definition.part==="preposition")[0].token.definition.select
-
-    }*/
 	Object.assign(interpretation.gist,{command:command})
 	return true
 }

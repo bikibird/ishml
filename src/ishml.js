@@ -2664,6 +2664,7 @@ ishml.Phrase =class Phrase
 			}	
 		})
 	}
+
 //There are three different ways to specify a condition.
 //Concur should work like then  _.hobby.concur.person.interest
 	concur(tag,condition)
@@ -3283,13 +3284,16 @@ ishml.template={}
 ishml.template.__handler=
 {
 	 //_.a.b.c() becomes _.a(b(c()))
+	 //_.a.b.c.TAG() becomes _.a(b(c())) c() is tagged
+	 //_.a.TAG.b.c() becomes _.a(b(c())) b(c()) is tagged
+	 //_.a.b.tag becomes _.a(b(echo(tag)))
+	 //_.a.b.tag.data1 becomes _.a(b(data1(echo(tag)))))
+	 //_.a.b.tag.data1.data2 becomes _.a(b(datadata1(echo(tag)))))
 	 //_.a.tags.b becomes 
 	 //_.a.cap.pick("cat","dog","frog")
 	 //t=>_.a.cap(t.noun.description.z)
 
 	//if template[asfunction] is undefined, property refers to a tagged phrase.
-	
-
 	get:function(template, property,receiver)
 	{
 		//template is function that returns a prhase
@@ -3297,69 +3301,72 @@ ishml.template.__handler=
 		{
 			return template	 
 		}
-		if (ishml.template[property]===undefined) //property requests or refers to tagged phrase
+		//_.a.b.c() becomes _.a(b(c()))
+		if (ishml.template.hasOwnProperty(property)) //property is a template
 		{
-			if (property.toUpperCase()===property)  
-			{
-				return new Proxy((...precursor)=>
+			return new Proxy
+			(
+				function(...precursor)
 				{
-					if (precursor.length===1 && precursor[0] instanceof ishml.Phrase) {return template(precursor[0].tag(property.toLowerCase()))}
+					return template(ishml.template[property].asFunction(...precursor))
+				},		
+				ishml.template.__handler
+			)
+		}
+		//_.a.b.c.TAG() becomes _.a(b(c())) c() is tagged
+	 	//_.a.TAG.b.c() becomes _.a(b(c())) b(c()) is tagged
+		if (property.toUpperCase()===property)  //property is request to create a tagged phrase
+		{
+			return new Proxy
+			(
+				(...precursor)=>
+				{
+					if (precursor.length===1 && precursor[0] instanceof ishml.Phrase) {return template(precursor[0].tag(property.toLowerCase()))}  //_.ANIMAL.pick()
+					else {return template(new ishml.Phrase(...precursor).tag(property.toLowerCase()))} //_.pick.ANIMAL() 
+				}, ishml.template.__handler
+			)
+		}
+		//By process of elimination, must want an echo or data template, but an echo template may be complete on its own or followed by one or more data templates.  data templates wrap around echo or prior data templates, but not other templates.
 
-					else {return template(new ishml.Phrase(...precursor).tag(property.toLowerCase()))}
-
-				}, ishml.template.__handler)
+		//_.a.b.tag becomes _.a(b(echo(tag)))
+		if (!template.echo && !template.data)
+		{
+			var t=()=>
+			{
+				t.echo=true
+				t.template=template
+				t.property=property
+				return template(ishml.template.echo.asFunction(property))
 			}
-			else
+			return new Proxy(t, ishml.template.__handler)
+		}
+		if (template.echo)
+		{
+			var t=()=>
 			{
-				//maybe we want template(echo) maybe we want template(data(echo))
-				var echo=ishml.template.echo.asFunction(property)//echo instanceof ishml.Phrase
-				
-				return new Proxy(template(echo), // returns phrase which may be wrong. proxy is chance to correct it.
-				{
-					get:function(target,datum,receiver)  // datum === data.datum
-					{
-						if (Reflect.has(target,datum,receiver))  //datum is property of phrase
-						{
-							return target[datum] //removes proxy
-						}
-						else //datum is parameter of data phrase, so return the actual correct phrase
-						{
-							if (template.name==="_"){return new Proxy(ishml.template.data(echo,datum),ishml.template.__dataHandler)}//strip off outer phrase 
-							if (template.name==="next"){return new Proxy(ishml.template.data(template(echo),datum),ishml.template.__dataHandler)}
-							else {return new Proxy(template(ishml.template.data(echo,datum)),ishml.template.__dataHandler)}
-						}
-					}
-				})
-			}	
+				t.data=true
+				t.template=template.template
+				t.property=property
+				return template.template(ishml.template.data.asFunction(ishml.template.echo.asFunction(template.property),property))
+			}
+			return new Proxy(t, ishml.template.__handler)
 		}
-		var propertyAsFunction= ishml.template[property].asFunction // get template corresponding to property string
-		if (template.name==="_") //property is a function and so don't need initial outer phrase
+		if(template.data)
 		{
-			return new Proxy((...precursor)=>propertyAsFunction(...precursor),ishml.template.__handler)
+			var t=()=>
+			{
+				t.data=true
+				t.template=template.template
+				t.property=property
+				return template.template(ishml.template.data.asFunction(template(template.property),property))
+			}
+			return new Proxy(t, ishml.template.__handler)	
 		}
-		else //Nest property function inside template function.  Wrap in proxy so that next property can be read
-		{
-		return new Proxy((...precursor)=>template(propertyAsFunction(...precursor)),ishml.template.__handler)
-		}	
-			
+		
+
 	}
 }
-ishml.template.__dataHandler=
-{
-	get:function(target,datum,receiver)  // datum === data.datum
-	{
-		if (Reflect.has(target,datum,receiver))  //datum is property of phrase
-		{
-			return target[datum] //removes proxy
-		}
-		else //datum is parameter of data phrase, so return the actual correct phrase
-		{
-			if (template.name==="_"){return ishml.template.data(echo,datum)}//strip off outer phrase 
-			if (template.name==="next"){return ishml.template.data(template(echo),datum)}
-			else {return template(ishml.template.data(echo,datum))}
-		}
-	}
-}
+
 ishml.template.defineClass=function(id)
 {
 	var as= (phraseClass)=>
@@ -3376,8 +3383,15 @@ ishml.template.define=function(id)
 	}
 	return {as:as}	
 }
-//ishml.template.define("_").as((...data)=>new ishml.Phrase(...data))
-ishml.template._=new Proxy(function _(...data){return new ishml.Phrase(...data)},ishml.template.__handler)
+ishml.template._=new Proxy
+(
+	function _(...data)
+	{
+		if (data.length===1 && data[0] instanceof ishml.Phrase) return data[0]
+		else return new ishml.Phrase(...data)
+	}
+	,ishml.template.__handler
+)
 ishml.template.define("cycle").as((...data)=>
 {
 	var counter=0

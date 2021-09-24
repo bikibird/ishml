@@ -51,7 +51,6 @@ plot.main.dialog.input.unfold=function(twist)
 /*actions*/
 plot.action.unfold=function(command)
 {
-   // Object.keys(command.gist).forEach(key=>(command[key]=command.gist[key].select ?? command.gist[key]))
     command.subject=command.subject ?? command.actor
     if (!command.actor.akin(command.subject) && !command.requestor )
     {
@@ -75,7 +74,7 @@ plot.action.asking_to.unfold=function(command)
     command.indirect.command.requestor=command.subject
     command.indirect.command.actor=command.actor
     return this.Episode()
-        .narration(()=>(command.actor.akin(command.subject)?_`<p>${_.They.SUBJECT()} asked ${_.the.DIRECT()} to do something`:_`${_.cap.SUBJECT()} asked ${_.the.DIRECT()} to do something.`)
+        .narration(()=>(command.actor.akin(command.subject)?_`<p>${_.They.SUBJECT()} asked ${_.the.DIRECT()} to ${_.VERB()}.`.populate(command.indirect.command):_`${_.cap.SUBJECT()} asked ${_.the.DIRECT()} to do something.`)
             .populate(command)
             .say().append("#story"))
         .resolution(()=>
