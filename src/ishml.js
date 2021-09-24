@@ -3333,11 +3333,11 @@ ishml.template.__handler=
 		{
 			var t=()=>
 			{
-				t.echo=ishml.template.echo.asFunction(property)
-				t.template=template
-				t.property=property
-				return template(ishml.template.echo.asFunction(property))
+				return template(ishml.template.echo(property))
 			}
+			t.echo=ishml.template.echo(property)
+			t.template=template
+			t.property=property
 			return new Proxy(t, ishml.template.__handler)
 		}
 		//_.a.b.tag.data1 becomes _.a(b(data1(echo(property)))))
@@ -3345,11 +3345,11 @@ ishml.template.__handler=
 		{
 			var t=()=>
 			{
-				t.data=ishml.template.data.asFunction(template.echo,property)
-				t.template=template.template
-				t.property=property
-				return template.template(ishml.template.data.asFunction(template.echo,property))
+				return template.template(ishml.template.data(template.echo,property))
 			}
+			t.data=ishml.template.data(template.echo,property)
+			t.template=template.template
+			t.property=property
 			return new Proxy(t, ishml.template.__handler)
 		}
 		//_.a.b.tag.data1.data2 becomes _.a(b(datadata1(echo(tag)))))
@@ -3357,11 +3357,11 @@ ishml.template.__handler=
 		{
 			var t=()=>
 			{
-				t.data=true
-				t.template=template.template
-				t.property=property
-				return template.template(ishml.template.data.asFunction(template.data,property))
+				return template.template(ishml.template.data(template.data,property))
 			}
+			t.data=ishml.template.data(template.data,property)
+			t.template=template.template
+			t.property=property
 			return new Proxy(t, ishml.template.__handler)	
 		}
 		
@@ -3441,7 +3441,7 @@ ishml.template.define("cycle").as((...data)=>
 		}
 	}(...data)
 })
-ishml.template.define("echo").as(function echo(tag)
+ishml.template.echo=function echo(tag)
 {
 	return new class echoPhrase extends ishml.Phrase
 	{
@@ -3477,7 +3477,7 @@ ishml.template.define("echo").as(function echo(tag)
 		}
 		set results(value){this._results=value}
 	}()		
-})
+}
 ishml.template.define("ante").as(function ante(outer)
 {
 	return new class antePhrase extends ishml.Phrase
