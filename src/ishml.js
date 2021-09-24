@@ -3329,15 +3329,13 @@ ishml.template.__handler=
 		//By process of elimination, must want an echo or data template, but an echo template may be complete on its own or followed by one or more data templates.  data templates wrap around echo or prior data templates, but not other templates.
 
 		//_.a.b.tag becomes _.a(b(echo(tag)))
-		if (!template.echo && !template.data)
+		if (!template.echo)
 		{
 			var t=()=>
 			{
 				return template(ishml.template.echo(property))
 			}
 			t.echo=ishml.template.echo(property)
-			t.template=template
-			t.property=property
 			return new Proxy(t, ishml.template.__handler)
 		}
 		//_.a.b.tag.data1 becomes _.a(b(data1(echo(property)))))
@@ -3345,27 +3343,12 @@ ishml.template.__handler=
 		{
 			var t=()=>
 			{
-				return template.template(ishml.template.data(template.echo,property))
+				return template(template.echo)
 			}
-			t.data=ishml.template.data(template.echo,property)
-			t.template=template.template
-			t.property=property
+			template.echo._properties.push(property)
+			t.echo=template.echo
 			return new Proxy(t, ishml.template.__handler)
 		}
-		//_.a.b.tag.data1.data2 becomes _.a(b(datadata1(echo(tag)))))
-		if(template.data)
-		{
-			var t=()=>
-			{
-				return template.template(ishml.template.data(template.data,property))
-			}
-			t.data=ishml.template.data(template.data,property)
-			t.template=template.template
-			t.property=property
-			return new Proxy(t, ishml.template.__handler)	
-		}
-		
-
 	}
 }
 
@@ -3450,6 +3433,7 @@ ishml.template.echo=function echo(tag)
 			if (tag instanceof ishml.Phrase){super(tag)}
 			else {super()}
 			this._tag=tag
+			this._properties=[]
 			this.echo=true
 		}
 		generate()
@@ -3458,8 +3442,8 @@ ishml.template.echo=function echo(tag)
 
 			if (this.echo){this.results=this.phrases[0].value.results}
 			else{this.results=this.phrases[0].value.generate()}
-
-			this.text=this.phrases[0].value.text
+			this.results.forEach(result=>result.value=this._properties.reduce((a,b)=>a=a[b],result.value))
+			this.text=this.results.map(result=>result.value).join("")
 			this.tally=this.phrases[0].value.tally
 			return this.results
 		}
@@ -3825,38 +3809,7 @@ ishml.template.define("next").as(function next(precursor)
 	precursor.echo=false
 	return precursor
 })
-ishml.template.data=function data(target,property)
-{
-	return new class dataPhrase extends ishml.Phrase
-	{
-		constructor()
-		{
-			super(target)  //echo.phrase
-			this.echo=target.echo
-			Object.defineProperty(this,"_property",{value:property,writable:true})
-			return this
-		}
-		generate()
-		{
-			this.results=target.generate()
-			this.results=this.results.map(o=>
-			{
-				var item = Object.assign({},o)
-				item.value=o[property]
-				return item
-			})
-			this.text=this.results.join("")
-			return this.results
-		}
-		get inner()
-		{
-			var phrase=data(this.phrases[0].value.inner,property)
-			phrase.echo=this.echo
-			phrase.phrases[0].value.echo=this.echo
-			return phrase
-		}
-	}
-}
+
 // #endregion
 // #region Token
 ishml.Token=function Token(lexeme="",definition)
