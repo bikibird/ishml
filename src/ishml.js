@@ -3333,24 +3333,26 @@ ishml.template.__handler=
 		{
 			var t=()=>
 			{
-				t.echo=true
+				t.echo=ishml.template.echo.asFunction(property)
 				t.template=template
 				t.property=property
 				return template(ishml.template.echo.asFunction(property))
 			}
 			return new Proxy(t, ishml.template.__handler)
 		}
+		//_.a.b.tag.data1 becomes _.a(b(data1(echo(property)))))
 		if (template.echo)
 		{
 			var t=()=>
 			{
-				t.data=true
+				t.data=ishml.template.data.asFunction(template.echo,property)
 				t.template=template.template
 				t.property=property
-				return template.template(ishml.template.data.asFunction(ishml.template.echo.asFunction(template.property),property))
+				return template.template(ishml.template.data.asFunction(template.echo,property))
 			}
 			return new Proxy(t, ishml.template.__handler)
 		}
+		//_.a.b.tag.data1.data2 becomes _.a(b(datadata1(echo(tag)))))
 		if(template.data)
 		{
 			var t=()=>
@@ -3358,7 +3360,7 @@ ishml.template.__handler=
 				t.data=true
 				t.template=template.template
 				t.property=property
-				return template.template(ishml.template.data.asFunction(template(template.property),property))
+				return template.template(ishml.template.data.asFunction(template.data,property))
 			}
 			return new Proxy(t, ishml.template.__handler)	
 		}
