@@ -2544,6 +2544,7 @@ ishml.Phrase =class Phrase
 		Object.defineProperty(this,"echo",{value:false,writable:true})
 		Object.defineProperty(this,"outset",{value:this,writable:true})
 		Object.defineProperty(this,"phrases",{value:[],writable:true})
+		Object.defineProperty(this,"_properties",{value:[],writable:true})
 		Object.defineProperty(this,"_results",{value:[],writable:true})
 		Object.defineProperty(this,"_seed",{value:ishml.util.random().seed,writable:true})
 		Object.defineProperty(this,"_tag",{value:"",writable:true})
@@ -2776,6 +2777,10 @@ ishml.Phrase =class Phrase
 				this.text=""
 			}	
 		})
+		if (this._properties.length>0)
+		{
+			this.results.forEach(result=>result.value=this._properties.reduce((a,b)=>a=a[b],result))
+		}
 		this.text=this.results.map(data=>data.value).join("")
 		return this.results
 	}
@@ -2905,7 +2910,7 @@ ishml.Phrase =class Phrase
 			}
 		}()
 	}
-	//_`${_.animal}`.per.ANIMAL("cat","dog","frog")
+	//_`${_.animal()}`.per.ANIMAL("cat","dog","frog")
 	get per()
 	{
 		var primaryPhrase=this
@@ -2927,40 +2932,9 @@ ishml.Phrase =class Phrase
 				this.results=results
 				this.text=this.results.map(data=>data.value).join("")
 				return this.results	
-
-				/*var items=this.phrases[1].value.generate().filter(item=>item.value).map((item,index,array)=>Object.assign({total:array.length,index:index,rank:index+1},item))
-				this.results=[]
-				items.forEach(item=>
-				{
-					this.results=this.results.concat(this.phrases[0].value.generate())
-				})
-				this.text=this.results.map(data=>data.value).join("")
-				return this.results*/
-
 			}
 		},ishml.template.__handler)
 	}
-
-/*	per(id)
-	{
-		var tag=id
-		return new class perPhrase extends ishml.Phrase
-		{
-
-			generate()
-			{
-				var results=[]
-				do 
-				{
-					results=results.concat(super.generate())
-				}while(!this.phrases[0].value.tags[tag].data.reset)
-				this.results=results
-				this.text=this.results.map(data=>data.value).join("")
-				return this.results	
-			}
-		}(this)
-	}
-*/	
 	populate(literals, ...expressions)
 	{
 		if(this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
@@ -3149,7 +3123,6 @@ ishml.Phrase =class Phrase
 		this.catalog()
 		return this
 	}
-
 	get then()
 	{
 		var primaryPhrase=this
@@ -3214,7 +3187,6 @@ ishml.Phrase =class Phrase
 	//Unlike modify, expand takes a phrase factory and applies the results of this phrase to it.
 	expand(phraseFactory)
 	{
-		//var property=this._property
 		var thisPhrase=this
 		return new class expandPhrase extends ishml.Phrase
 		{
@@ -3272,6 +3244,11 @@ ishml.Phrase.__handler=
 			if (property.toUpperCase()===property) 
 			{
 				return receiver.tag(property.toLowerCase())
+			}
+			else
+			{
+				target._properties.push(property)
+				return receiver
 			}
 		}
 	}	
@@ -3434,7 +3411,7 @@ ishml.template.echo=function echo(tag)
 			if (tag instanceof ishml.Phrase){super(tag)}
 			else {super()}
 			this._tag=tag
-			this._properties=[]
+			
 			this.echo=true
 		}
 		generate()
@@ -3694,15 +3671,6 @@ ishml.template.define("series").as((...data)=>
 		generate()
 		{
 			var results=[]	
-	/*		if (ended || this.phrases.length===0)
-			{
-				this.text=""
-				this.results=[]
-				this.tally++
-				return this.results
-			}
-			else
-			{*/
 			if (this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
 			{
 				var results=super.generate()
