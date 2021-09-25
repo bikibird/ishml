@@ -3243,7 +3243,8 @@ ishml.Phrase.__handler=
 		{
 			if (property.toUpperCase()===property) 
 			{
-				return receiver.tag(property.toLowerCase())
+				return new ishml.Phrase(target).tag(property.toLowerCase())
+				//return receiver.tag(property.toLowerCase())
 			}
 			else
 			{
