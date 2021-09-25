@@ -2549,6 +2549,7 @@ ishml.Phrase =class Phrase
 		Object.defineProperty(this,"_seed",{value:ishml.util.random().seed,writable:true})
 		Object.defineProperty(this,"_tag",{value:"",writable:true})
 		Object.defineProperty(this,"tags",{value:{},writable:true})
+		Object.defineProperty(this,"tally",{value:0,writable:true})
 		Object.defineProperty(this,"text",{value:"",writable:true})
 		this._populate(...precursor)
 		this.catalog()

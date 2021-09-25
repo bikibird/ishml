@@ -596,13 +596,9 @@ ishml.template.define("list").as((...data)=>
 {
 	return ishml.Phrase.prototype.transform(results=>
 	{
-		return ishml.template._`${ishml.template._.ITEM.cycle.cull(results)}${ishml.template._.item.modify(t=>t.rank < t.total && t.total>2?", ":"")}${ishml.template._.item.modify(t=>t.rank===1 && t.total===2?" and ":"")}${ishml.template._.item.modify(t=>t.index===t.total-2 && t.total>2?"and ":"")}`.per.item.join().generate()
+		return ishml.template._`${ishml.template._.ITEM.cycle.cull(results)}${ishml.template._.item().modify(t=>t.rank < t.total && t.total>2?", ":"")}${ishml.template._.item().modify(t=>t.rank===1 && t.total===2?" and ":"")}${ishml.template._.item().modify(t=>t.index===t.total-2 && t.total>2?"and ":"")}`.per.item().join().generate()
 	},...data)	
 })
-
-
-
-
 
 
 
