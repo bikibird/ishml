@@ -2852,11 +2852,9 @@ ishml.Phrase =class Phrase
 			}
 			generate()
 			{
-			//_.pick(_().tag("hobby").match.person.interest)	
 				var a=this.phrases[0].value.generate()
 				var b= this.phrases[1].value.generate()
-				var property=this.phrases[1].value._property??"value"
-				this.results=a.filter(a=>b.map(item=>item.value).includes(a[property]))
+				this.results=a.filter(a=>b.map(item=>item.value).includes(a.value))
 				this.text=this.results.map(item=>item.value).join("")
 				return this.results
 			}
