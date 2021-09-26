@@ -2542,6 +2542,7 @@ ishml.Phrase =class Phrase
 	{
 		Object.defineProperty(this,"id",{value:"",writable:true})
 		Object.defineProperty(this,"echo",{value:false,writable:true})
+		Object.defineProperty(this,"ended",{value:false,writable:true})
 		Object.defineProperty(this,"outset",{value:this,writable:true})
 		Object.defineProperty(this,"phrases",{value:[],writable:true})
 		Object.defineProperty(this,"_properties",{value:[],writable:true})
@@ -2570,7 +2571,7 @@ ishml.Phrase =class Phrase
 			generate()
 			{
 				var results=this.phrases[0].value.generate()
-				if (results.length>0)
+				if (results.length>1 || (results.length===1 && results[0].value!==""))
 				{
 					this.results=results.concat(this.phrases[1].value.generate())
 					this.text=this.phrases[0].value.text+ this.phrases[1].value.text
@@ -2600,7 +2601,7 @@ ishml.Phrase =class Phrase
 			generate()
 			{
 				var results=this.phrases[0].value.generate()
-				if (results.length>0)
+				if (results.length>1 || (results.length===1 && results[0].value!==""))
 				{
 					this.results=results.concat([{value:" "}],this.phrases[1].value.generate())
 					this.text=this.results.map(item=>item.value).join("")
@@ -3139,7 +3140,7 @@ ishml.Phrase =class Phrase
 			generate()
 			{
 				var results=this.phrases[0].value.generate()
-				if (results.length>0)
+				if (results.length>1 || (results.length===1 && results[0].value!==""))
 				{
 					this.results=results
 					this.text=this.phrases[0].value.text
@@ -3660,13 +3661,12 @@ ishml.template.defineClass("roll").as( class rollPhrase extends ishml.Phrase
 ishml.template.define("series").as((...data)=>
 {
 	var counter=0
-	var ended =false
 	return new class seriesPhrase extends ishml.Phrase
 	{
 		populate(literals, ...expressions)
 		{
 			super.populate(literals, ...expressions)
-			ended=false
+			this.ended=false
 			counter=0
 			return this
 		}
@@ -3684,7 +3684,7 @@ ishml.template.define("series").as((...data)=>
 				var results=super.generate(this.phrases.slice(counter,counter+1))
 				var total=this.phrases.length
 			}
-			if (this.results.length===0)
+			if (this.ended || this.results.length===0 )
 			{
 				this.results=[{value:"",index:0, rank:0, total:0,  reset:true}]
 				this.text=""
@@ -3700,7 +3700,7 @@ ishml.template.define("series").as((...data)=>
 			counter++
 			if (counter===total)
 			{
-				ended=true
+				this.ended=true
 				counter=0
 			}
 			return this.results
@@ -3708,7 +3708,7 @@ ishml.template.define("series").as((...data)=>
 		reset()
 		{
 			super.reset()
-			ended=false
+			this.ended=false
 			counter=0
 			return this
 		}
