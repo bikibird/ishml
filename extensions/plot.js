@@ -2,6 +2,7 @@
 var plot=ishml.plot
 var lexicon=ishml.lexicon
 var $ = ishml.net
+var pb = ishml.phrasebook
 var _ =ishml.template._ 
 plot.main.dialog.input.unfold=function(twist)
 {
@@ -74,7 +75,7 @@ plot.action.asking_to.unfold=function(command)
     command.indirect.command.requestor=command.subject
     command.indirect.command.actor=command.actor
     return this.Episode()
-        .narration(()=>(command.actor.akin(command.subject)?_`<p>${_.They.SUBJECT()} asked ${_.the.DIRECT()} to ${_.VERB()}.`.populate(command.indirect.command):_`${_.cap.SUBJECT()} asked ${_.the.DIRECT()} to do something.`)
+        .narration(()=>(command.actor.akin(command.subject)?pb.player.asked:_`${_.cap.SUBJECT()} asked ${_.the.DIRECT()} to do something.`)
             .populate(command)
             .say().append("#story"))
         .resolution(()=>

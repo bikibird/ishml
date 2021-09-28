@@ -600,26 +600,6 @@ ishml.template.define("list").as((...data)=>
 	},...data)	
 })
 
-
-
-ishml.template.define("orList").as((...data)=>
-{
-	return new class listPhrase extends ishml.Phrase
-	{
-		constructor(...data)
-		{
-			super(ishml.template._`${ishml.template.cycle().tag("items")}${tags=>tags.items.data.index < tags.items.data.total-1 && tags.items.data.total>2?", ":""}${tags=>tags.items.data.index===0 && tags.items.data.total===2?" or ":""}${tags=>tags.items.data.index===tags.items.data.total-2 && tags.items.data.total>2?"or ":""}`.per("items").join())
-			this.populate(...data)
-			return this
-		}
-		populate(...data)
-		{
-			this.tags.items.populate(...data)
-			return this
-		}
-	}(...data)
-})
-
 ishml.Phrase.define("s").as (precursor => 
 {
 	return precursor.modify(item=>

@@ -2694,33 +2694,6 @@ ishml.Phrase =class Phrase
 		if (this.results.length>0){return this.results[0]}
 		else{return {}}
 	}
-	cache(data)
-	{
-		return new class cachePhrase extends ishml.Phrase
-		{
-			generate()
-			{
-				super.generate()
-				this.text=this.inner.text
-				this.results=this.inner.results
-				return this.results
-			}
-			constructor(...precursor)
-			{
-				super(...precursor)
-				this.catalog()
-				Object.defineProperty(this,"data",{value:{},writable:true})
-				this.populate(data)
-				return this
-			}
-			populate(data)
-			{
-				Object.assign(this,data)
-				return this
-			}
-		}(this)
-	}
-
 	first(count=1)
 	{
 		return new class firstPhrase extends ishml.Phrase
@@ -3055,7 +3028,7 @@ ishml.Phrase =class Phrase
 				})
 			}	
 		}
-		else  // ishml phrase or simple data object or cord
+		else  //simple data object or cord
 		{
 			if (data instanceof ishml.Cord){data=data.data()}
 			Object.keys(data).forEach(key=>
@@ -3815,6 +3788,20 @@ ishml.parser=null,
 ishml.net=new ishml.Knot("$"),
 ishml.undoLength=10
 ishml.lang={}
+ishml.phrasebook_handler=
+{
+	get: function(target, property,receiver) 
+	{ 
+		if (Reflect.has(target,property)){return Reflect.get(target,property,receiver)}
+		else 
+		{
+			//magic properties
+			target[property]=new Proxy({},ishml.phrasebook_handler)
+			return target[property]
+		}
+	}
+}
+ishml.phrasebook=new Proxy({},ishml.phrasebook_handler)
 
 ishml.configure=function(options)
 {
