@@ -2552,7 +2552,7 @@ ishml.Phrase =class Phrase
 		Object.defineProperty(this,"tags",{value:{},writable:true})
 		Object.defineProperty(this,"tally",{value:0,writable:true})
 		Object.defineProperty(this,"text",{value:"",writable:true})
-		this._populate(...precursor)
+		this.populate(...precursor)
 		this.catalog()
 		return new Proxy(this, ishml.Phrase.__handler)
 	}
@@ -2908,49 +2908,49 @@ ishml.Phrase =class Phrase
 			}
 		},ishml.template.__handler)
 	}
+	get _corePhrase()
+	{
+		var phrase=this
+		while(phrase.phrases.length===1  && phrase.phrases[0].value instanceof ishml.Phrase)
+		{phrase=phrase.phrases[0].value}
+		return phrase
+	}
 	populate(...items)
 	{
-		if(this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
+		if (items.length===1)
+		{
+			var data =false
+			if (items[0] instanceof ishml.Cord)
+			{
+				data=items[0].data()
+			}
+			if (Object.getPrototypeOf(items[0])===Object.prototype) //item is POJO
+			{
+				data=items[0]
+			}
+			if (data)  //Populate according to POJO rule: apply properties to tagged phrases
+			{
+				Object.keys(data).forEach(key=>
+				{
+					if (this.tags.hasOwnProperty(key))
+					{
+						this.tags[key].populate(data[key]) //still a pojo so sub object also attemps to populate tagged phrase.
+					}
+				})
+				this.catalog()
+				return this	
+			}
+		}
+		if (this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)  //send items down to the core phrase
 		{
 			this.phrases[0].value.populate(...items)
+			this.catalog()
+			return this	
+
 		}
-		else
-		{
-			if (items.length===1)
-			{
-				var data =false
-				if (items[0] instanceof ishml.Cord)
-				{
-					data=items[0].data()
-				}
-				if (Object.getPrototypeOf(items[0])===Object.prototype) //item is POJO
-				{
-					data=items[0]
-				}
-				if (data)  //POJO or Cord
-				{
-					Object.keys(data).forEach(key=>
-					{
-						if (this.tags.hasOwnProperty(key))
-						{
-							this.tags[key]._populate(data[key])
-						}
-					})
-				}
-				else 
-				{
-					this._populate(...items)
-				}
-				
-				
-			}
-			else
-			{
-				this._populate(...items)
-			}
-		}
+		this._populate(...items) //We're at the core so update phrase array with items.
 		this.catalog()
-		return this
+		return this 
 	}
 	_populate(literals, ...expressions)
 	{
@@ -3420,7 +3420,12 @@ ishml.template.echo=function echo(tag)
 			else{this.results=this.phrases[0].value.generate()}
 			if (this._properties.length>0)
 			{
-				this.results.forEach(result=>result.value=this._properties.reduce((a,b)=>a=a[b],result))
+				this.results=(this.results.map(r=>
+				{
+					var result=Object.assign({},r)
+					result.value=this._properties.reduce((a,b)=>a=a[b],result)
+					return result
+				}))
 			}
 			this.text=this.results.map(result=>result.value).join("")
 			this.tally=this.phrases[0].value.tally
