@@ -2908,15 +2908,46 @@ ishml.Phrase =class Phrase
 			}
 		},ishml.template.__handler)
 	}
-	populate(literals, ...expressions)
+	populate(...items)
 	{
 		if(this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)
 		{
-			this.phrases[0].value.populate(literals,...expressions)
+			this.phrases[0].value.populate(...items)
 		}
 		else
 		{
-			this._populate(literals, ...expressions)
+			if (items.length===1)
+			{
+				var data =false
+				if (items[0] instanceof ishml.Cord)
+				{
+					data=items[0].data()
+				}
+				if (Object.getPrototypeOf(items[0])===Object.prototype) //item is POJO
+				{
+					data=items[0]
+				}
+				if (data)  //POJO or Cord
+				{
+					Object.keys(data).forEach(key=>
+					{
+						if (this.tags.hasOwnProperty(key))
+						{
+							this.tags[key]._populate(data[key])
+						}
+					})
+				}
+				else 
+				{
+					this._populate(...items)
+				}
+				
+				
+			}
+			else
+			{
+				this._populate(...items)
+			}
 		}
 		this.catalog()
 		return this
@@ -3028,16 +3059,9 @@ ishml.Phrase =class Phrase
 				})
 			}	
 		}
-		else  //simple data object or cord
+		else  //POJO
 		{
-			if (data instanceof ishml.Cord){data=data.data()}
-			Object.keys(data).forEach(key=>
-			{
-				if (this.tags.hasOwnProperty(key))
-				{
-					this.tags[key].populate(data[key])
-				}
-			})
+			this.phrases[0]==[{value:data}]
 		}
 		return this
 	}
