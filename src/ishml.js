@@ -2917,9 +2917,10 @@ ishml.Phrase =class Phrase
 	}
 	populate(...items)
 	{
+		var data =false
 		if (items.length===1)
 		{
-			var data =false
+			
 			if (items[0] instanceof ishml.Cord)
 			{
 				data=items[0].data()
@@ -2930,15 +2931,19 @@ ishml.Phrase =class Phrase
 			}
 			if (data)  //Populate according to POJO rule: apply properties to tagged phrases
 			{
-				Object.keys(data).forEach(key=>
+				if (!data._tagPhrase)
 				{
-					if (this.tags.hasOwnProperty(key))
+					Object.keys(data).forEach(key=>
 					{
-						this.tags[key].populate(data[key]) //still a pojo so sub object also attemps to populate tagged phrase.
-					}
-				})
-				this.catalog()
+						if (this.tags.hasOwnProperty(key))
+						{
+							this.tags[key].populate({_tagPhrase:true,_data:data[key]}) //still a pojo so sub-object also attempts to populate tagged phrase.
+						}
+					})
+					this.catalog()
 				return this	
+				}	
+				
 			}
 		}
 		if (this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)  //send items down to the core phrase
@@ -2948,7 +2953,10 @@ ishml.Phrase =class Phrase
 			return this	
 
 		}
-		this._populate(...items) //We're at the core so update phrase array with items.
+		//We're at the core so update phrase array with items.
+		if(data._tagPhrase){this._populate(data._data)}
+		else{this._populate(...items)}
+		 
 		this.catalog()
 		return this 
 	}
