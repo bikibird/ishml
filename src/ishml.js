@@ -2915,12 +2915,15 @@ ishml.Phrase =class Phrase
 		{phrase=phrase.phrases[0].value}
 		return phrase
 	}
+
+	//populate figures out the core phrase to populate
+	//_populate formats data and assigns to phrases array.
+
 	populate(...items)
 	{
-		var data =false
+		var data
 		if (items.length===1)
 		{
-			
 			if (items[0] instanceof ishml.Cord)
 			{
 				data=items[0].data()
@@ -2931,7 +2934,7 @@ ishml.Phrase =class Phrase
 			}
 			if (data)  //Populate according to POJO rule: apply properties to tagged phrases
 			{
-				if (!data._tagPhrase)
+				if (!data?._tagPhrase)
 				{
 					Object.keys(data).forEach(key=>
 					{
@@ -2941,9 +2944,8 @@ ishml.Phrase =class Phrase
 						}
 					})
 					this.catalog()
-				return this	
+					return this	
 				}	
-				
 			}
 		}
 		if (this.phrases.length===1 && this.phrases[0].value instanceof ishml.Phrase)  //send items down to the core phrase
@@ -2954,9 +2956,12 @@ ishml.Phrase =class Phrase
 
 		}
 		//We're at the core so update phrase array with items.
-		if(data._tagPhrase){this._populate(data._data)}
-		else{this._populate(...items)}
-		 
+		if(data?._tagPhrase)
+		{
+			if (data._data instanceof ishml.Cord) {this._populate(data._data.data())}
+			else {this._populate(data._data)}
+		}
+		else {this._populate(...items)}
 		this.catalog()
 		return this 
 	}
@@ -3069,7 +3074,7 @@ ishml.Phrase =class Phrase
 		}
 		else  //POJO
 		{
-			this.phrases[0]==[{value:data}]
+			this.phrases[0]=data
 		}
 		return this
 	}

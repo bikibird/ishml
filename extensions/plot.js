@@ -74,6 +74,7 @@ plot.action.asking_to.unfold=function(command)
     command.indirect.command.subject=command.direct
     command.indirect.command.requestor=command.subject
     command.indirect.command.actor=command.actor
+
     return this.Episode()
         .narration(()=>(command.actor.akin(command.subject)?pb.player.asked:_`${_.cap.SUBJECT()} asked ${_.the.DIRECT()} to do something.`)
             .populate(command)
