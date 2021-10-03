@@ -2545,7 +2545,7 @@ ishml.Phrase =class Phrase
 		Object.defineProperty(this,"ended",{value:false,writable:true})
 		Object.defineProperty(this,"outset",{value:this,writable:true})
 		Object.defineProperty(this,"phrases",{value:[],writable:true})
-		Object.defineProperty(this,"_properties",{value:[],writable:true})
+		Object.defineProperty(this,"_property",{value:"",writable:true})
 		Object.defineProperty(this,"_results",{value:[],writable:true})
 		Object.defineProperty(this,"_seed",{value:ishml.util.random().seed,writable:true})
 		Object.defineProperty(this,"_tag",{value:"",writable:true})
@@ -2752,11 +2752,11 @@ ishml.Phrase =class Phrase
 				this.text=""
 			}	
 		})
-		if (this._properties.length>0)
+	/*	if (this._properties.length>0)
 		{
 			this.results.forEach(result=>result.value=this._properties.reduce((a,b)=>a=a[b],result))
 		}
-		this.text=this.results.map(data=>data.value).join("")
+		this.text=this.results.map(data=>data.value).join("")*/
 		return this.results
 	}
 	htmlTemplate()
@@ -2908,14 +2908,6 @@ ishml.Phrase =class Phrase
 			}
 		},ishml.template.__handler)
 	}
-	get _corePhrase()
-	{
-		var phrase=this
-		while(phrase.phrases.length===1  && phrase.phrases[0].value instanceof ishml.Phrase)
-		{phrase=phrase.phrases[0].value}
-		return phrase
-	}
-
 	//populate figures out the core phrase to populate
 	//_populate formats data and assigns to phrases array.
 
@@ -3074,7 +3066,7 @@ ishml.Phrase =class Phrase
 		}
 		else  //POJO
 		{
-			this.phrases[0]=data
+			this.phrases[0]={value:data}
 		}
 		return this
 	}
@@ -3245,23 +3237,21 @@ ishml.Phrase.__handler=
 {
 	get: function(target, property, receiver) 
 	{
-		if (Reflect.has(target,property,receiver)) 
-		{
+	//	if (Reflect.has(target,property,receiver)) 
+	//	{
 			return Reflect.get(target,property,receiver)
-		}
-		else 
-		{
-			if (property.toUpperCase()===property) 
-			{
-				return new ishml.Phrase(target).tag(property.toLowerCase())
-				//return receiver.tag(property.toLowerCase())
-			}
-			else
-			{
-				target._properties.push(property)
-				return receiver
-			}
-		}
+	//	}
+	//	else 
+	//	{
+	//		if (property.toUpperCase()===property) 
+	//		{
+	//			return new ishml.Phrase(target).tag(property.toLowerCase())
+	//		}
+	//		else
+	//		{
+	//			return ishml.template.data(this,property)
+	//		}
+	//	}
 	}	
 }
 
@@ -3305,38 +3295,63 @@ ishml.template.__handler=
 	 	//_.a.TAG.b.c() becomes _.a(b(c())) b(c()) is tagged
 		if (property.toUpperCase()===property)  //property is request to create a tagged phrase
 		{
-			return new Proxy
-			(
-				(...precursor)=>
+			var finalPhraseFactory=(...precursor)=>
+			{
+				if (precursor.length===1 && precursor[0] instanceof ishml.Phrase) {return template(precursor[0].tag(property.toLowerCase()))}  //_.ANIMAL.pick()
+				else {return template(new ishml.Phrase(...precursor).tag(property.toLowerCase()))} //_.pick.ANIMAL() 
+			}
+			var priorPhraseFactory=(...precursor)=>
+			{
+				if (precursor.length===1 && precursor[0] instanceof ishml.Phrase) {return precursor[0].tag(property.toLowerCase())}  //_.ANIMAL.pick()
+				else {return new ishml.Phrase(...precursor).tag(property.toLowerCase())} //_.pick.ANIMAL() 
+			}
+			var handler=Object.assign(
 				{
-					if (precursor.length===1 && precursor[0] instanceof ishml.Phrase) {return template(precursor[0].tag(property.toLowerCase()))}  //_.ANIMAL.pick()
-					else {return template(new ishml.Phrase(...precursor).tag(property.toLowerCase()))} //_.pick.ANIMAL() 
-				}, ishml.template.__handler
+					wrapper:template,
+					prior:priorPhraseFactory
+				},
+				ishml.template.__handler	
 			)
+			return new Proxy(finalPhraseFactory,handler)
 		}
-		//By process of elimination, must want an echo or data template, but an echo template may be complete on its own or followed by one or more data templates.  data templates wrap around echo or prior data templates, but not other templates.
+		if (this.prior)  //property is request for data phrase
+		{
+			var finalPhraseFactory=()=>
+			{
+				return this.wrapper(ishml.template.data(this.prior(),property))
+			}
+			var priorPhraseFactory=()=>
+			{
+				return ishml.template.data(this.prior(),property)
+			}
+			var handler=Object.assign(
+				{
+					wrapper:this.wrapper,
+					prior:priorPhraseFactory
+				},
+				ishml.template.__handler	
+			)
+			return new Proxy(finalPhraseFactory,handler)			
 
-		//_.a.b.tag becomes _.a(b(echo(tag)))
-		if (!template.echo)
-		{
-			var echo=ishml.template.echo(property)
-			var t=()=>
-			{
-				return template(echo)
-			}
-			t.echo=echo
-			return new Proxy(t, ishml.template.__handler)
 		}
-		//_.a.b.tag.data1 becomes _.a(b(data1(echo(property)))))
-		if (template.echo)
+		else //property is request for echo phrase
 		{
-			var t=()=>
+			var finalPhraseFactory=()=>
 			{
-				return template(template.echo)
+				return template(ishml.template.echo(property))
 			}
-			template.echo._properties.push(property)
-			t.echo=template.echo
-			return new Proxy(t, ishml.template.__handler)
+			var priorPhraseFactory=()=>
+			{
+				ishml.template.echo(property)
+			}
+			var handler=Object.assign(
+				{
+					wrapper:template,
+					prior:priorPhraseFactory
+				},
+				ishml.template.__handler	
+			)
+			return new Proxy(finalPhraseFactory,handler)
 		}
 	}
 }
@@ -3419,10 +3434,8 @@ ishml.template.echo=function echo(tag)
 	{
 		constructor()
 		{
-			if (tag instanceof ishml.Phrase){super(tag)}
-			else {super()}
+			super()
 			this._tag=tag
-			
 			this.echo=true
 		}
 		generate()
@@ -3431,15 +3444,6 @@ ishml.template.echo=function echo(tag)
 
 			if (this.echo){this.results=this.phrases[0].value.results}
 			else{this.results=this.phrases[0].value.generate()}
-			if (this._properties.length>0)
-			{
-				this.results=(this.results.map(r=>
-				{
-					var result=Object.assign({},r)
-					result.value=this._properties.reduce((a,b)=>a=a[b],result)
-					return result
-				}))
-			}
 			this.text=this.results.map(result=>result.value).join("")
 			this.tally=this.phrases[0].value.tally
 			return this.results
@@ -3450,6 +3454,35 @@ ishml.template.echo=function echo(tag)
 			else {var innerPhrase= echo(this.phrases[0].value.inner)}
 			innerPhrase.echo=this.echo
 			return innerPhrase
+		}
+		get results()
+		{
+			if (this.phrases.length===0){this.tags[tag].results}
+			else {return super.results}
+		}
+		set results(value){this._results=value}
+	}()		
+}
+//_.blah.echo.data.data
+//_blah.data.data
+
+ishml.template.data=function data(phrase, property)
+{
+	return new class dataPhrase extends ishml.Phrase
+	{
+		constructor()
+		{
+			super()
+			this._property=property
+			this.phrases[0]={value:phrase}
+		}
+		generate()
+		{
+			this.results=this.phrases[0].value.generate()
+			this.results=this.results.map(result=>result[this._property])
+			this.text=this.results.map(result=>result.value).join("")
+			this.tally=this.phrases[0].value.tally
+			return this.results
 		}
 		get results()
 		{
