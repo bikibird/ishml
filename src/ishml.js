@@ -2534,7 +2534,6 @@ ishml.Rule.prototype.snip =function(key,rule)
 }
 // #endregion
 // #region Phrase
-//DOCUMENTATION  during generate if phrases[n].silence is true phrase has text set to "" and results set to []
 
 ishml.Phrase =class Phrase
 {
@@ -2604,7 +2603,7 @@ ishml.Phrase =class Phrase
 				if (results.length>1 || (results.length===1 && results[0].value!==""))
 				{
 					this.results=results.concat([{value:" "}],this.phrases[1].value.generate())
-					this.text=this.results.map(item=>item.value).join("")
+					this.text=this.toString()
 				}
 				else
 				{
@@ -2684,7 +2683,7 @@ ishml.Phrase =class Phrase
 			{
 				super.generate()
 				this.results=this.results.filter(item=>rule(item,this.tags[tag].results))
-				this.text=this.results.map(item=>item.value).join("")
+				this.text=this.toString()
 				return this.results
 			}
 		}(this)
@@ -2711,7 +2710,7 @@ ishml.Phrase =class Phrase
 					result.subtotal=subtotal
 					result.total=total
 				})
-				this.text=this.results.map(item=>item.value).join("")
+				this.text=this.toString
 				return this.results
 			}
 		}(this)
@@ -2721,42 +2720,32 @@ ishml.Phrase =class Phrase
 		this.results=[]
 		phrases.forEach((phrase)=>
 		{
-			if (!phrase.silence)
+			if (phrase.value instanceof ishml.Phrase) 
 			{
-				if (phrase.value instanceof ishml.Phrase) 
-				{
-					this.results=this.results.concat(phrase.value.generate().map(subPhrase=>Object.assign(Object.assign({},phrase),subPhrase)))
-				}
-				else
-				{
-					if (phrase.value instanceof Function)
-					{
-						var deferredPhrase=phrase.value(this.tags)
-						if (deferredPhrase instanceof ishml.Phrase)
-						{
-							this.results=this.results.concat(deferredPhrase.generate().map(subPhrase=>Object.assign(Object.assign({},phrase),subPhrase)))
-						}
-						else
-						{
-							this.results=this.results.concat(Object.assign(Object.assign({},phrase),{value:deferredPhrase?.toString()}))
-						}
-					}
-					else
-					{
-						this.results=this.results.concat(Object.assign(Object.assign({},phrase),{value:phrase.value?.toString()}))
-					}
-				}
+				this.results=this.results.concat(phrase.value.generate().map(subPhrase=>Object.assign(Object.assign({},phrase),subPhrase)))
 			}
 			else
 			{
-				this.text=""
-			}	
+				if (phrase.value instanceof Function)
+				{
+					var deferredPhrase=phrase.value(this.tags)
+					if (deferredPhrase instanceof ishml.Phrase)
+					{
+						this.results=this.results.concat(deferredPhrase.generate().map(subPhrase=>Object.assign(Object.assign({},phrase),subPhrase)))
+					}
+					else
+					{
+						this.results=this.results.concat(Object.assign(Object.assign({},phrase),{value:deferredPhrase}))
+					}
+				}
+				else
+				{
+					this.results=this.results.concat(Object.assign(Object.assign({},phrase),{value:phrase.value}))
+				}
+			}
+			
 		})
-	/*	if (this._properties.length>0)
-		{
-			this.results.forEach(result=>result.value=this._properties.reduce((a,b)=>a=a[b],result))
-		}
-		this.text=this.results.map(data=>data.value).join("")*/
+		this.text=this.toString()
 		return this.results
 	}
 	htmlTemplate()
@@ -2828,7 +2817,7 @@ ishml.Phrase =class Phrase
 				var a=this.phrases[0].value.generate()
 				var b= this.phrases[1].value.generate()
 				this.results=a.filter(a=>b.map(item=>item.value).includes(a.value))
-				this.text=this.results.map(item=>item.value).join("")
+				this.text=this.toString()
 				return this.results
 			}
 		},ishml.template.__handler)
@@ -2856,7 +2845,7 @@ ishml.Phrase =class Phrase
 					var modifiedPhrase=Object.assign({},item)
 					return Object.assign(modifiedPhrase,{value:modifier(item)})
 				})	
-				this.text=this.results.map(item=>item.value).join("")
+				this.text=this.toString()
 				return this.results
 			}
 		}()
@@ -2878,7 +2867,7 @@ ishml.Phrase =class Phrase
 			generate()
 			{
 				this.results=transformer(super.generate().slice(0).map(item=>Object.assign({},item)))
-				this.text=this.results.map(item=>item.value).join("")
+				this.text=this.toString()
 				return this.results
 			}
 		}()
@@ -2903,7 +2892,7 @@ ishml.Phrase =class Phrase
 					results=results.concat(this.phrases[0].value.generate())
 				}while(!this.tags[precursor[0]._tag].data.reset)
 				this.results=results
-				this.text=this.results.map(data=>data.value).join("")
+				this.text=this.toString()
 				return this.results	
 			}
 		},ishml.template.__handler)
@@ -3195,7 +3184,7 @@ ishml.Phrase =class Phrase
 			generate()
 			{
 				this.results=thisPhrase.generate()
-				this.text=this.results.map(result=>result.value).join("")
+				this.text=this.toString()
 				if (this.text)
 				{
 					if(this.results.length===1 && this.results[0].value instanceof Array)
@@ -3206,7 +3195,7 @@ ishml.Phrase =class Phrase
 					{
 						this.results=phraseFactory(this.results).generate().map(item=>Object.assign({},item))
 					}
-					this.text=this.results.map(result=>result.value).join("")
+					this.text=this.toString()
 				}
 				else 
 				{
@@ -3216,6 +3205,10 @@ ishml.Phrase =class Phrase
 				return this.results
 			}
 		}(this)
+	}
+	toString()
+	{
+		return this.results.map(result=>result?.value?.toString() ?? "undefined").join("")
 	}
 	
 }
@@ -3444,7 +3437,7 @@ ishml.template.echo=function echo(tag)
 
 			if (this.echo){this.results=this.phrases[0].value.results}
 			else{this.results=this.phrases[0].value.generate()}
-			this.text=this.results.map(result=>result.value).join("")
+			this.text=this.toString()
 			this.tally=this.phrases[0].value.tally
 			return this.results
 		}
@@ -3473,14 +3466,13 @@ ishml.template.data=function data(phrase, property)
 		constructor()
 		{
 			super()
-			this._property=property
 			this.phrases[0]={value:phrase}
 		}
 		generate()
 		{
 			this.results=this.phrases[0].value.generate()
-			this.results=this.results.map(result=>result[this._property])
-			this.text=this.results.map(result=>result.value).join("")
+			this.results=this.results.map(result=>Object.assign(Object.assign({},result),{value:result.value[property]}))
+			this.text=this.toString()
 			this.tally=this.phrases[0].value.tally
 			return this.results
 		}
@@ -3740,7 +3732,7 @@ ishml.template.define("series").as((...data)=>
 			{
 				Object.assign(results[0],{index:counter, rank:counter+1,total:total})
 				this.results=results
-				this.text=results[0].value
+				this.text=results[0].value.toString()
 			}
 
 			counter++
@@ -3775,7 +3767,7 @@ ishml.template.define("shuffle").as((...data)=>
 				this.results=ishml.util.shuffle(this.results,random).result
 				reshuffle=false
 			}
-			this.text=this.results.map(phrase=>phrase.value).join("")
+			this.text=this.toString()
 			return this.results
 		}
 		
