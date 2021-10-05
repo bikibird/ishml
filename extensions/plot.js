@@ -7,23 +7,23 @@ var _ =ishml.template._
 plot.main.dialog.input.unfold=function(twist)
 {
     var episodes=[]
-    var results=ishml.parser.analyze(this.twist.input)
+    var results=ishml.parser.analyze(twist.input)
     if(results.success)
     {
         results.interpretations.forEach(interpretation=>
         {
             var command=Object.assign(
             {
-                actor:$.actor[this.twist.timeline].cord,
-               // subject:$.actor[this.twist.timeline].cord,
-                timeline:this.twist.timeline,
+                actor:$.actor[twist.timeline].cord,
+               // subject:$.actor[twist.timeline].cord,
+                timeline:twist.timeline,
             },interpretation.gist.command)
             episodes=episodes.concat(plot.action.unfold(command))
         })   
         if (episodes.length>0)
         {
             ishml.introduce(episodes[0])
-            ishml.tell(this.twist.timeline)
+            ishml.tell(twist.timeline)
         } 
     }
     else
@@ -68,7 +68,7 @@ plot.action.unfold=function(command)
     command.subject= command.subject ?? command.actor
     return command.verb.unfold(command)
 }
-plot.action.asking_to.unfold=function(command)
+plot.action.asking_to.unfold=function ask(command)
 {
     command.indirect.command.timeline=command.timeline
     command.indirect.command.subject=command.direct
@@ -96,7 +96,7 @@ plot.action.asking_to.verbs("ask").preposition("to").register(2)
 plot.action.asking_to.check
 plot.action.asking_to.instead
 
-plot.action.dropping.unfold=function(command)
+plot.action.dropping.unfold=function drop(command)
 {
     command.indirect=command.indirect ?? command.subject.in
     command.droppable=command.direct.worn_by(command.subject).converse
@@ -202,7 +202,7 @@ plot.action.dropping.check.selfContainer.unfold=function(command)
 }
 plot.action.dropping.instead
 
-plot.action.going.unfold=function(command)
+plot.action.going.unfold=function go(command)
 {
     if (!command.direct){command.direct={select:command.verb.select}}
     command.destination=command.direct.select(command.subject.select())
@@ -249,7 +249,7 @@ lexicon
 plot.action.looking.check
 plot.action.looking.instead
 /*Taking*/
-plot.action.taking.unfold=function(command)
+plot.action.taking.unfold=function take(command)
 {
     if (!command.indirect)
     {

@@ -145,6 +145,10 @@ ishml.Plotpoint.prototype.heed = function (aDocumentSelector)
 		})
 	}
 }
+ishml.Plotpoint.prototype.toString=function()
+{
+	return this.unfold.name
+}
 ishml.Plotpoint.prototype.verbs=function(...verbs)
 {
 	var particle, preposition
@@ -209,14 +213,14 @@ ishml.Plotpoint.handler=
 {
 	get: function(target, property,receiver) 
 	{ 
-		if (property=="unfold" || property=="unfoldSubplot")
+		/*if (property=="unfold" || property=="unfoldSubplot")
 		{
 			return function(twist)
 			{
 				target.twist=twist 
 				return Reflect.get(target,property,receiver).bind(target)(target.twist)
 			}
-		}
+		}*/
 		if (Reflect.has(target,property)){return Reflect.get(target,property,receiver)}
 		else 
 		{
