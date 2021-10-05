@@ -147,7 +147,7 @@ ishml.Plotpoint.prototype.heed = function (aDocumentSelector)
 }
 ishml.Plotpoint.prototype.toString=function()
 {
-	return this.unfold.name
+	return this.unfold.name.replaceAll("_"," ")
 }
 ishml.Plotpoint.prototype.verbs=function(...verbs)
 {
@@ -207,24 +207,14 @@ ishml.Plotpoint.prototype.unfoldSubplot = function (twist)
 	if (episodes.length>0){return episodes[0]}
 	else {return undefined}
 }
-
-
 ishml.Plotpoint.handler=
 {
 	get: function(target, property,receiver) 
 	{ 
-		/*if (property=="unfold" || property=="unfoldSubplot")
-		{
-			return function(twist)
-			{
-				target.twist=twist 
-				return Reflect.get(target,property,receiver).bind(target)(target.twist)
-			}
-		}*/
 		if (Reflect.has(target,property)){return Reflect.get(target,property,receiver)}
 		else 
 		{
-			//magic plotpoint
+			//magic plotpoints
 			target[property]=new ishml.Plotpoint(property,property)
 			return target[property]
 		}
@@ -3313,14 +3303,8 @@ ishml.template.__handler=
 		}
 		if (this.prior)  //property is request for data phrase
 		{
-			var finalPhraseFactory=()=>
-			{
-				return this.wrapper(ishml.template.data(this.prior(),property))
-			}
-			var priorPhraseFactory=()=>
-			{
-				return ishml.template.data(this.prior(),property)
-			}
+			var finalPhraseFactory=()=>this.wrapper(ishml.template.data(this.prior(),property))
+			var priorPhraseFactory=()=>ishml.template.data(this.prior(),property)
 			var handler=Object.assign(
 				{
 					wrapper:this.wrapper,
@@ -3333,14 +3317,8 @@ ishml.template.__handler=
 		}
 		else //property is request for echo phrase
 		{
-			var finalPhraseFactory=()=>
-			{
-				return template(ishml.template.echo(property))
-			}
-			var priorPhraseFactory=()=>
-			{
-				ishml.template.echo(property)
-			}
+			var finalPhraseFactory=()=>template(ishml.template.echo(property))
+			var priorPhraseFactory=()=>ishml.template.echo(property)
 			var handler=Object.assign(
 				{
 					wrapper:template,
