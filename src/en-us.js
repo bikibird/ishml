@@ -592,14 +592,17 @@ ishml.Phrase.define("est").as (precursor =>
 })
 ishml.Phrase.define("ing").as( precursor => precursor.modify(item=>ishml.lang.ing(item.value)))
 
-ishml.template.define("list").as((...data)=>
+/*ishml.template.define("list").as((...data)=>
 {
 	return ishml.Phrase.prototype.transform(results=>
 	{
-		return ishml.template._`${ishml.template._.ITEM.cycle.cull(results)}${ishml.template._.item().modify(t=>t.rank < t.total && t.total>2?", ":"")}${ishml.template._.item().modify(t=>t.rank===1 && t.total===2?" and ":"")}${ishml.template._.item().modify(t=>t.index===t.total-2 && t.total>2?"and ":"")}`.per.item().join().generate()
+		return ishml.template._`${ishml.template._.ITEM.cycle.items()}${ishml.template._.item().modify(t=>t.rank < t.total && t.total>2?", ":"")}${ishml.template._.item().modify(t=>t.rank===1 && t.total===2?" and ":"")}${ishml.template._.item().modify(t=>t.index===t.total-2 && t.total>2?"and ":"")}`.per.ITEMS.cull(results).join().generate()
 	},...data)	
+})*/
+ishml.template.define("list").as((...data)=>
+{
+	return ishml.template._`${ishml.template._.ITEM.cycle.items()}${ishml.template._.item().modify(t=>t.rank < t.total && t.total>2?", ":"")}${ishml.template._.item().modify(t=>t.rank===1 && t.total===2?" and ":"")}${ishml.template._.item().modify(t=>t.index===t.total-2 && t.total>2?"and ":"")}`.per.ITEMS.cull(...data).join().lock()
 })
-
 ishml.Phrase.define("s").as (precursor => 
 {
 	return precursor.modify(item=>

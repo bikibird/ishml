@@ -77,7 +77,7 @@ plot.action.asking_to.unfold=function ask(command)
 
     return this.Episode()
         .narration(()=>(command.actor.akin(command.subject)?pb.player.asked:_`${_.cap.SUBJECT()} asked ${_.the.DIRECT()} to do something.`)
-            .populate(command)
+            .fill(command)
             .say().append("#story"))
         .resolution(()=>
         {
@@ -103,7 +103,7 @@ plot.action.dropping.unfold=function drop(command)
     .add(command.direct.carried_by(command.subject).converse)
     return this.Episode()
         .narration(()=> (command.actor.akin(command.subject)?_`<p>${_.They.SUBJECT()} dropped ${_.the.DROPPABLE()}.</p>`:_`${_.cap.SUBJECT()} put down ${_.the.DROPPABLE()}.`)
-            .populate(command)
+            .fill(command)
             .say().append("#story"))
         .resolution(()=>
         {
@@ -127,7 +127,7 @@ plot.action.dropping.check.nothing.unfold=function(command)
     {
         return this.ishml.Episode()
             .narration(()=>_`<p>${_SUBJECT()} think about dropping something, but what?</p>`
-                .populate(command)
+                .fill(command)
                 .say().append("#story"))
             .salience(3)   
             .timeline(command.timeline)
@@ -143,7 +143,7 @@ plot.action.dropping.check.incapable.unfold=function(command)
     {
        return this.Episode()
         .narration(()=>_`${_.cap.SUBJECT()} are not capable of dropping ${_.INCAPABLE()}.`
-            .populate(command)
+            .fill(command)
             .say().append("#story"))
         .salience(3)   
         .timeline(command.timeline)
@@ -157,7 +157,7 @@ plot.action.dropping.check.undroppable.unfold=function(command)
     {
         return this.Episode()
             .narration(()=> _`<p>${_.SUBJECT()} ${_.pick("think about dropping","want to drop", "would drop")} the ${_.list.UNDROPPABLE()}, but ${_.pick(_`you don't even have ${_.them.undroppable}`,_`${_.they.undroppable} ${_.are.undroppable}n't in your possession`)}.</p>`
-                .populate(command)
+                .fill(command)
                 .say().append("#story"))
 
             .salience(3)   
@@ -172,7 +172,7 @@ plot.action.dropping.check.notContainer.unfold=function(command)
     if (command.container.isEmpty )
     {
         return this.Episode()
-        .narration(()=>_`That's not a container.`.cache("selfContainer").populate(command.selfContainer).say().append("#story"))
+        .narration(()=>_`That's not a container.`.cache("selfContainer").fill(command.selfContainer).say().append("#story"))
         .salience(3)   
         .timeline(command.timeline)
     }
@@ -183,7 +183,7 @@ plot.action.dropping.check.whichContainer.unfold=function(command)
     if (command.container.size >1  )
     {
         return this.Episode()
-        .narration(()=>_`Which container?`.cache("selfContainer").populate(command.selfContainer).say().append("#story"))
+        .narration(()=>_`Which container?`.cache("selfContainer").fill(command.selfContainer).say().append("#story"))
         .salience(3)   
         .timeline(command.timeline)
     }
@@ -194,7 +194,7 @@ plot.action.dropping.check.selfContainer.unfold=function(command)
     if (command.container.subtract(command.droppable).size!==command.container.size)
     {
         return this.Episode()
-        .narration(()=>_`It cannot contain itself.`.cache("selfContainer").populate(command.selfContainer).say().append("#story"))
+        .narration(()=>_`It cannot contain itself.`.cache("selfContainer").fill(command.selfContainer).say().append("#story"))
         .salience(3)   
         .timeline(command.timeline)
     }
@@ -257,7 +257,7 @@ plot.action.taking.unfold=function take(command)
     }
     command.portable=command.direct.is("portable")
     return this.Episode()
-        .narration(()=> (command.actor.akin(command.subject)?_`<p>${_.They.SUBJECT()} took ${_.the.PORTABLE()}.</p>`:_`${_.cap.SUBJECT()} picked up ${_.the.PORTABLE()}.`).populate(command).say().append("#story"))
+        .narration(()=> (command.actor.akin(command.subject)?_`<p>${_.They.SUBJECT()} took ${_.the.PORTABLE()}.</p>`:_`${_.cap.SUBJECT()} picked up ${_.the.PORTABLE()}.`).fill(command).say().append("#story"))
         //.resolution(()=>{command.portable.in.converse.untie().tie(cords.carries).from(command.capable)})
         .resolution(()=>{command.portable.untie("in").tie("carried_by").to(command.subject)})
         .salience(5)
@@ -287,7 +287,7 @@ plot.action.taking.check.notCapable.unfold=function(command)
     if (!command.notCapable.isEmpty)
     {
         return this.Episode()
-            .narration(()=>_`You are not capable of taking.`.cache("notCapable").populate(command.notCapable).say().append("#story"))
+            .narration(()=>_`You are not capable of taking.`.cache("notCapable").fill(command.notCapable).say().append("#story"))
             .salience(3)   
             .timeline(command.timeline)
     }
