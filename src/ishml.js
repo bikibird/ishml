@@ -3308,40 +3308,54 @@ ishml.template.__handler=
 			var handler=Object.assign(
 				{
 					wrapper:template,
-					prior:priorPhraseFactory
+					prior:priorPhraseFactory,
+					sibling:true //next property request for sibling
 				},
 				ishml.template.__handler	
 			)
 			return new Proxy(finalPhraseFactory,handler)
 		}
-		if (this.prior)  //property is request for data phrase
+		if (this.sibling)  //property is request for sibling phrase
 		{
-			console.log(this.prior.constructor.name)
 			var finalPhraseFactory=()=>this.wrapper(ishml.template.sibling(this.prior(),property))
 			var priorPhraseFactory=()=>ishml.template.sibling(this.prior(),property)
 			var handler=Object.assign(
 				{
 					wrapper:this.wrapper,
-					prior:priorPhraseFactory
+					prior:priorPhraseFactory,
+					child:true  //next property request is for child
 				},
 				ishml.template.__handler	
 			)
 			return new Proxy(finalPhraseFactory,handler)			
 
 		}
-		else //property is request for echo phrase
+		if (this.child)
 		{
-			var finalPhraseFactory=()=>template(ishml.template.echo(property))
-			var priorPhraseFactory=()=>ishml.template.echo(property)
+			var finalPhraseFactory=()=>this.wrapper(ishml.template.child(this.prior(),property))
+			var priorPhraseFactory=()=>ishml.template.child(this.prior(),property)
 			var handler=Object.assign(
 				{
-					wrapper:template,
-					prior:priorPhraseFactory
+					wrapper:this.wrapper,
+					prior:priorPhraseFactory,
+					child:true  //all future property request are for children
 				},
 				ishml.template.__handler	
 			)
-			return new Proxy(finalPhraseFactory,handler)
+			return new Proxy(finalPhraseFactory,handler)	
 		}
+		//property is neither request for child nor sibling; must be echo phrase
+		var finalPhraseFactory=()=>template(ishml.template.echo(property))
+		var priorPhraseFactory=()=>ishml.template.echo(property)
+		var handler=Object.assign(
+			{
+				wrapper:template,
+				prior:priorPhraseFactory,
+				sibling:true //next property request for sibling
+			},
+			ishml.template.__handler	
+		)
+		return new Proxy(finalPhraseFactory,handler)
 	}
 }
 
@@ -3457,7 +3471,7 @@ ishml.template.echo=function echo(tag)
 
 ishml.template.sibling=function sibling(phrase, property)
 {
-	return new class propertyPhrase extends ishml.Phrase
+	return new class siblingPhrase extends ishml.Phrase
 	{
 		constructor()
 		{
@@ -3467,11 +3481,12 @@ ishml.template.sibling=function sibling(phrase, property)
 		generate()
 		{
 			this.results=this.phrases[0].generate()
-			this.results=this.results.map(result=>Object.assign
+			this.results=this.results.map(result=>({value:result[property]}))
+			/*Object.assign
 			(
 				{},
 				(result[property].data?{value:result[property].data()}:{value:result[property]})
-			))
+			))*/
 			this.text=this.toString()
 			//this.tally=this.phrases[0].value.tally
 			return this.results
@@ -3484,7 +3499,7 @@ ishml.template.sibling=function sibling(phrase, property)
 		set results(value){this._results=value}
 	}()		
 }
-ishml.template.define("child").as(function child(parent)
+ishml.template.define("child").as(function child(parent,property)
 {
 	return new class childPhrase extends ishml.Phrase
 	{
@@ -3496,11 +3511,12 @@ ishml.template.define("child").as(function child(parent)
 		generate()
 		{
 			this.results=this.phrases[0].generate()
-			this.results=this.results.map(result=Object.assign
+			this.results=this.results.map(result=>({value:result.value[property]}))
+			/*Object.assign
 			(
 				{},
-				(result.value.data?{value:result.value.data()}:{value:result.value})
-			))
+				(result.value[property].data?{value:result.value[property].data()}:{value:result.value[property]})
+			))*/
 			this.text=this.toString()
 			//this.tally=this.phrases[0].value.tally
 			return this.results
