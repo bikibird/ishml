@@ -601,7 +601,7 @@ ishml.Phrase.define("ing").as( precursor => precursor.modify(item=>ishml.lang.in
 })*/
 ishml.template.define("list").as((...data)=>
 {
-	return ishml.template._`${ishml.template._.ITEM.cycle.items()}${ishml.template._.item().modify(t=>t.rank < t.total && t.total>2?", ":"")}${ishml.template._.item().modify(t=>t.rank===1 && t.total===2?" and ":"")}${ishml.template._.item().modify(t=>t.index===t.total-2 && t.total>2?"and ":"")}`.per.ITEMS.cull(...data).join().lock()
+	return ishml.template._`${ishml.template._.ITEM.cycle.items()}${ishml.template._.item().modify(t=>t.rank < t.total && t.total>2?", ":"")}${ishml.template._.item().modify(t=>t.rank===1 && t.total===2?" and ":"")}${ishml.template._.item().modify(t=>t.index===t.total-2 && t.total>2?"and ":"")}`.per.ITEMS.cull(...data)
 })
 ishml.Phrase.define("s").as (precursor => 
 {

@@ -2632,12 +2632,12 @@ ishml.Phrase =class Phrase
 		}
 		this.phrases.forEach(phrase=> 
 		{
-			if (phrase instanceof ishml.Phrase  && !phrase._locked)
+			if (phrase instanceof ishml.Phrase )
 			{
 				var tags= phrase._catalogUp()  // recursive catalog for sub phrases
 				Object.keys(tags).forEach(key=>
 				{
-					if(!this.tags.hasOwnProperty(key))
+					if(!this.tags[key])
 					{
 						this.tags[key]=tags[key] //add sub phrases to this's tags
 					} 
@@ -2654,11 +2654,11 @@ ishml.Phrase =class Phrase
 			{
 				Object.keys(this.tags).forEach(key=>
 				{
-					if (!phrase._locked)
+					if (!phrase.tags[key])
 					{
 						phrase.tags[key]=this.tags[key]  //add selfs tags to sub phrses
-						phrase._catalogDown()  //recursively
 					}	
+					phrase._catalogDown()  //recursively
 				})
 			}	
 		})
@@ -2759,7 +2759,7 @@ ishml.Phrase =class Phrase
 			return this
 		}
 	}
-	join({separator="", trim=true}={})
+	join({separator=" ", trim=true}={})
 	{
 		return new class joinPhrase extends ishml.Phrase
 		{
@@ -3245,21 +3245,22 @@ ishml.Phrase.__handler=
 {
 	get: function(target, property, receiver) 
 	{
-	//	if (Reflect.has(target,property,receiver)) 
-	//	{
+		if (Reflect.has(target,property,receiver)) 
+		{
 			return Reflect.get(target,property,receiver)
-	//	}
-	//	else 
-	//	{
-	//		if (property.toUpperCase()===property) 
-	//		{
-	//			return new ishml.Phrase(target).tag(property.toLowerCase())
-	//		}
-	//		else
-	//		{
-	//			return ishml.template.sibling(this,property)
-	//		}
-	//	}
+		}
+		else 
+		{
+			if (property.toUpperCase()===property) 
+			{
+				return new ishml.Phrase(target).tag(property.toLowerCase())
+			}
+			else
+			{
+				if(target.constructor.name==="siblingPhrase"){return ishml.template.child(target,property)}
+				else{return ishml.template.sibling(target,property)}
+			}
+		}
 	}	
 }
 
