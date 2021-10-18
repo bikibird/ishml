@@ -3227,12 +3227,11 @@ ishml.Phrase =class Phrase
 		return this.results.map(result=>
 		{	
 			if (result===undefined){return "[undefined]"}
-			if (result instanceof Object)
+			if (Object.getPrototypeOf(result)===Object.prototype)
 			{
-				if (result.value)
+				if ( result.hasOwnProperty("value"))
 				{
-					if (Object.getPrototypeOf(result.value)===Object.prototype){return "[Object]"}
-					else {return result.value.toString()}
+					return result.value.toString()
 				}
 				var value =Object.values(result)[0]
 				if (value===undefined){return "[undefined]"}
