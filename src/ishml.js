@@ -151,7 +151,7 @@ ishml.Plotpoint.prototype.toString=function()
 }
 ishml.Plotpoint.prototype.generate=function()
 {
-	return {value:this.toString()}
+	return [{value:this.toString()}]
 }
 ishml.Plotpoint.prototype.verbs=function(...verbs)
 {
@@ -2725,12 +2725,23 @@ ishml.Phrase =class Phrase
 			{
 				if(Object.getPrototypeOf(phrase)===Object.prototype)
 				{
-					if(phrase.hasOwnProperty("value")){this.results.push(phrase)}
+					if(phrase.hasOwnProperty("value"))
+					{
+						if (phrase.value.generate){this.results=this.results.concat(phrase.value.generate())}
+						else{this.results=this.results.concat(phrase)}
+					}
 					else
 					{
 						var values=Object.values(phrase)
-						if (values.length>0){this.results.push(Object.assign({value:values[0]},phrase))}
-						else {this.results.push({value:""})}
+						if (values.length>0)
+						{
+							if (values[0].generate){this.results=this.results.concat(values[0].generate())}
+							else{this.results.push(Object.assign({value:values[0]},phrase))}
+						}
+						else 
+						{
+							this.results.push({value:""})
+						}
 					}
 				}
 				else
@@ -3215,12 +3226,16 @@ ishml.Phrase =class Phrase
 	{
 		return this.results.map(result=>
 		{	
-			if (result===undefined){return "undefined"}
+			if (result===undefined){return "[undefined]"}
 			if (result instanceof Object)
 			{
-				if (result.value){return result.value.toString()}
+				if (result.value)
+				{
+					if (Object.getPrototypeOf(result.value)===Object.prototype){return "[Object]"}
+					else {return result.value.toString()}
+				}
 				var value =Object.values(result)[0]
-				if (value===undefined){return "undefined"}
+				if (value===undefined){return "[undefined]"}
 				return value.toString()
 			}
 		}).join("")	
@@ -3482,7 +3497,14 @@ ishml.template.sibling=function sibling(phrase, property)
 		generate()
 		{
 			this.results=this.phrases[0].generate()
-			this.results=this.results.map(result=>({value:result[property]}))
+			if (this.results.length===1 && this.results[0][property].generate)
+			{
+				this.results= this.results[0][property].generate()
+			}
+			else
+			{	
+				this.results=this.results.map(result=>({value:result[property]}))
+			}	
 			/*Object.assign
 			(
 				{},
@@ -3492,12 +3514,6 @@ ishml.template.sibling=function sibling(phrase, property)
 			//this.tally=this.phrases[0].value.tally
 			return this.results
 		}
-		get results()
-		{
-			if (this.phrases.length===0){this.tags[tag].results}
-			else {return super.results}
-		}
-		set results(value){this._results=value}
 	}()		
 }
 ishml.template.define("child").as(function child(parent,property)
@@ -3512,7 +3528,15 @@ ishml.template.define("child").as(function child(parent,property)
 		generate()
 		{
 			this.results=this.phrases[0].generate()
-			this.results=this.results.map(result=>({value:result.value[property]}))
+			if (this.results.length===1 && this.result[0].value[property].generate)
+			{
+				this.results= this.results[0].value[property].generate()
+			}
+			else
+			{	
+				this.results=this.results.map(result=>({value:result.value[property]}))
+			}
+			
 			/*Object.assign
 			(
 				{},

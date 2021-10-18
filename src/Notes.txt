@@ -182,3 +182,4 @@ _.noun() returns current noun or command.directObject formatted as list.  noun2 
 _.description.noun()
 _.A.noun("droppable") //changes noun to command.droppable 
 _.re.noun(capable) //changes noun to the cord capable from the closure.
+
