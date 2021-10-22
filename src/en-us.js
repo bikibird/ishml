@@ -190,21 +190,16 @@ ishml.lang.comparative=Symbol('comparative')
 ishml.lang.superlative=Symbol('superaltive') 
 ishml.lang.number={singular:Symbol('singular'),plural:Symbol('plural')}
 ishml.lang.person={first:0,second:1,third:2}
-ishml.lang.tense=
-{
-	past:Symbol("past"),
-	present:Symbol("present"),
-	future:Symbol("future"),
-	perfect:Symbol("perfect"),
-	pluraperfect:Symbol("pluperfect")
-}
 
-ishml.lang.viewpoint=
-{
-	first:{singular:Symbol("first person singular"),plural:Symbol("first person plural")},
-	second:{singular:Symbol("second person singular"),plural:Symbol("second person plural")},		
-	third:{singular:Symbol("third person singular"),plural:Symbol("third person plural")}
-}
+
+ishml.lang.past=0 //I ate
+ishml.lang.present=1 //I eat
+ishml.lang.future=2 //I will eat
+ishml.lang.perfect=3 //I have eaten
+ishml.lang.pluperfect=4 //I had eaten
+
+ishml.tense=ishml.lang.past
+
 // #endregion
 // #region pronouns
 ishml.lang.pronouns=
@@ -558,13 +553,10 @@ ishml.Phrase.define("er").as (precursor =>
 	})
 })
 
-//DEFECT change back to suffix style
 ishml.Phrase.prototype.es= function(subject)
 {	
 	return this.modify(item=>
 	{
-		console.log(this)
-		
 		if (subject)
 		{
 			if(subject.length>1){return item.value}
@@ -820,6 +812,101 @@ ishml.template.define("Are").as((...data)=>
 {
 	return ishml.template.cap(ishml.template.are(...data))	
 })
+
+//you, i, they, we run
+//jane, train  runs
+//jack and jill run 
+
+ishml.Phrase.prototype.inflect=function (...nouns)
+{
+	var verb=this
+	return new class inflectPhrase extends ishml.Phrase
+	{
+		constructor()
+		{
+			super()
+			this.phrases[0]=verb
+		}
+		generate()
+		{
+			if (!this.phrases[1])
+			{
+				this.phrases[1]=new ishml.Phrase(...nouns)
+				this.catalog()
+			}
+			super.generate()
+			if(ishml.tense===0) //past
+			{
+				this.results=[{value:ishml.lang.ed(this.phrases[0].results[0].value)}]
+			}
+			if(ishml.tense===ishml.lang.present ) //present
+			{
+				var subject=this.phrases[1].results
+
+				if (subject.length>0)
+				{
+					//changed
+					var lowerCaseSubject=subject[0].value.toLowerCase()
+					if(subject.length>1 || subject[0].number===ishml.lang.number.plural || subject[0].quantity>1 || subject[0].ply_number===ishml.lang.number.plural || subject[0].ply_quantity >1 ||lowerCaseSubject==="i" || lowerCaseSubject==="you" ||lowerCaseSubject==="we" ||lowerCaseSubject==="they" )  //I, you, we, they, Alice and Bob, run.
+					{
+						if(ishml.tense===1){this.results=[{value:this.phrases[0].results[0].value}]}
+						else {{this.results=[{value:this.phrases[0].results[0].value}]}}
+					}
+					else  // He, she, it, no one, nobody, Alice runs.  
+					{
+						this.results=[{value:ishml.lang.es(this.phrases[0].results[0].value)}]
+					}
+				}
+				else  //Run. (imperative)
+				{
+					this.results=[{value:this.phrases[0].results[0].value}]
+				}
+			}
+			if(ishml.tense===ishml.lang.future) //future
+			{
+				this.results=[{value:"will " + this.phrases[0].results[0].value}]
+			}
+			if(ishml.tense===ishml.lang.past) //past
+			{
+				this.results=[{value:"had" + ishml.lang.ed(this.phrases[0].results[0].value)}]
+			}
+
+			//ishml.lang.perfect=3 //I have eaten
+			if(ishml.tense===ishml.lang.perfect ) 
+			{
+				var subject=this.phrases[1].results
+
+				if (subject.length>0)
+				{
+					var lowerCaseSubject=subject[0].value.toLowerCase()
+					if(subject.length>1 || subject[0].number===ishml.lang.number.plural || subject[0].quantity>1 || subject[0].ply_number===ishml.lang.number.plural || subject[0].ply_quantity >1 ||lowerCaseSubject==="i" || lowerCaseSubject==="you" ||lowerCaseSubject==="we" ||lowerCaseSubject==="they" )  //I, you, we, they, Alice and Bob, run.
+					{
+						if(ishml.tense===1){this.results=[{value:this.phrases[0].results[0].value}]}
+						else {this.results=[{value:"have"+ ishml.lang.en(this.phrases[0].results[0].value)}]}
+					}
+					else  // He, she, it, no one, nobody, Alice runs.  
+					{
+						this.results=[{value:"has"+ ishml.lang.en(this.phrases[0].results[0].value)}]
+					}
+				}
+				else  
+				{
+					this.results=[{value:"have"+ ishml.lang.en(this.phrases[0].results[0].value)}]
+				}
+			}
+			
+//ishml.lang.pluperfect=4 //I had eaten
+			if(ishml.tense===ishml.lang.perfect ) 
+			{
+				this.results=[{value:"had"+ ishml.lang.en(this.phrases[0].results[0].value)}]
+			}
+
+			this.text=this.toString()
+			return this.results
+		}
+	}
+}
+ishml.phrase
 // #endregion
 // #endregion
 

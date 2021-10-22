@@ -1,3 +1,4 @@
+ishml.tense=ishml.lang.tense.past
 /*places*/	
 $
 	.tie("place").to("foyer")

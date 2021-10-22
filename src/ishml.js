@@ -502,7 +502,6 @@ ishml.Knot= class Knot
 			{
 				Object.assign(this,item)		
 			})
-		Object.assign(this,configuration)
 		return this
 	}	
 /*	defineCord(name)

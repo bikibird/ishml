@@ -56,8 +56,8 @@ ishml.thing={person:ishml.lang.person.third,gender:"neuter"}
 
 /*Actors*/
 
-ishml.epicene={person:ishml.lang.person.third,gender:"epicene"}
-ishml.female={person:ishml.lang.person.third,gender:"female"}
-ishml.male={person:ishml.lang.person.third,gender:"male"}
+ishml.epicene={person:ishml.lang.person.third,gender:"epicene",proper:true}
+ishml.female={person:ishml.lang.person.third,gender:"female",proper:true}
+ishml.male={person:ishml.lang.person.third,gender:"male",proper:true}
 ishml.neuter={person:ishml.lang.person.third,gender:"neuter"}
 ishml.player={person:ishml.lang.person.second,gender:"epicene"}
