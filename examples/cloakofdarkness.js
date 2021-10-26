@@ -1,4 +1,4 @@
-ishml.tense=ishml.lang.tense.past
+ishml.tense=ishml.lang.present
 /*places*/	
 $
 	.tie("place").to("foyer")
@@ -60,8 +60,9 @@ $
 	.tie("actor").to("player","jane","alice")
 
 $.actor.player
-	.configure(ishml.player)
+	.configure(ishml.female)
 	.singular("me","self","myself","I")
+//	.configure({person:ishml.lang.person.third})
 
 $.actor.jane
 	.configure(ishml.female)

@@ -1,3 +1,4 @@
+"use strict"
 // #region lexicon
 ishml.lexicon
     //adjectives
@@ -191,6 +192,7 @@ ishml.lang.superlative=Symbol('superaltive')
 ishml.lang.number={singular:Symbol('singular'),plural:Symbol('plural')}
 ishml.lang.person={first:0,second:1,third:2}
 
+// #region tense
 
 ishml.lang.past=0 //I ate
 ishml.lang.present=1 //I eat
@@ -199,6 +201,23 @@ ishml.lang.perfect=3 //I have eaten
 ishml.lang.pluperfect=4 //I had eaten
 
 ishml.tense=ishml.lang.past
+// # endregion
+
+// #region mood
+ishml.lang.indicative=0 //I ate
+ishml.lang.imperative=1 //I eat
+ishml.lang.subjunctive=2 //I will eat
+
+ishml.tense=ishml.lang.mood=ishml.lang.indicative
+// #endregion
+
+// #region voice
+ishml.lang.active=0 //I ate
+ishml.lang.passive=1 //I eat
+
+ishml.tense=ishml.lang.voice=ishml.lang.active
+// #endregion
+
 
 // #endregion
 // #region pronouns
@@ -433,6 +452,18 @@ ishml.lang.ing.trie={n:{a:{e:0,o:0,l:{p:1},p:{a:{j:1},$:1},m:{o:0,$:1},h:0,g:0,$
 
 ishml.lang.ing.gerunds={bcc:"bcc'ing",cc:"cc'ing",dj:"dj'ing",id:"id'ing",ko:"ko'ing",od:"od'ing",ok:"ok'ing"}
 
+ishml.lang.modalVerbs=
+[
+	"can",
+	"could",
+	"may",
+	"might",
+	"must",
+	"shall",
+	"should",
+	"will",
+	"would"
+]
 ishml.lang.s=function(word)
 {
 	var words = word.split(" ")
@@ -741,7 +772,7 @@ ishml.template.define("they").as((...data)=>
 {
 	return ishml.Phrase.prototype.transform(results=>
 	{
-		if (results.length===1 || results[0].number ===ishml.lang.number.singular || results.quantity===1 ||results.ply_quantity===1)
+		if (results.length===1 && results[0].number !==ishml.lang.number.plural && !(results.quantity>1) && !(results.ply_quantity>1))
 		{
 			return [{value:ishml.lang.pronouns[results[0].gender ?? "epicene"].subjective[results[0].person ?? ishml.lang.person.third]}]
 		} 
@@ -817,88 +848,120 @@ ishml.template.define("Are").as((...data)=>
 //jane, train  runs
 //jack and jill run 
 
-ishml.Phrase.prototype.inflect=function (...nouns)
+ishml.Phrase.prototype.inflect=function (...verb)
 {
-	var verb=this
+	var nouns=this
 	return new class inflectPhrase extends ishml.Phrase
 	{
 		constructor()
 		{
-			super()
-			this.phrases[0]=verb
+			super(nouns)
+			this.phrases[1]=new ishml.Phrase(...verb)
 		}
 		generate()
 		{
-			if (!this.phrases[1])
+			if (!this.phrases[2])
 			{
-				this.phrases[1]=new ishml.Phrase(...nouns)
-				this.catalog()
+				this.phrases[2]=ishml.template._.list(nouns)
+				
 			}
 			super.generate()
-			if(ishml.tense===0) //past
-			{
-				this.results=[{value:ishml.lang.ed(this.phrases[0].results[0].value)}]
-			}
-			if(ishml.tense===ishml.lang.present ) //present
-			{
-				var subject=this.phrases[1].results
 
+			var subject=this.phrases[0].results
+			var lowerCaseSubject=subject[0].value.toLowerCase()	
+			var re=this.phrases[2].re
+			var subjectString=re?"":this.phrases[2].text
+			if(subject.length>1 || subject[0].number===ishml.lang.number.plural || subject[0].quantity>1 || subject[0].ply_number===ishml.lang.number.plural || subject[0].ply_quantity >1 ||lowerCaseSubject==="i" || lowerCaseSubject==="you" ||lowerCaseSubject==="we" ||lowerCaseSubject==="they" )
+			{var lemma =true} else {lemma=false}
+
+			var verbs = this.phrases[1].text.split(" ")
+			var modal=ishml.lang.modalVerbs.includes(verbs[0].toLowerCase())
+
+			if (verbs[0].toLowercase==="not"  && (ishml.tense===ishml.lang.present ||ishml.tense===ishml.lang.past))
+			{verbs.unshift("do")}
+
+			if(ishml.tense===ishml.lang.present ) //present  she goes, he does go, he could go  not go=> does not go
+			{
 				if (subject.length>0)
 				{
-					//changed
-					var lowerCaseSubject=subject[0].value.toLowerCase()
-					if(subject.length>1 || subject[0].number===ishml.lang.number.plural || subject[0].quantity>1 || subject[0].ply_number===ishml.lang.number.plural || subject[0].ply_quantity >1 ||lowerCaseSubject==="i" || lowerCaseSubject==="you" ||lowerCaseSubject==="we" ||lowerCaseSubject==="they" )  //I, you, we, they, Alice and Bob, run.
+					if(lemma)  //I, you, we, they, Alice and Bob, go.
 					{
-						if(ishml.tense===1){this.results=[{value:this.phrases[0].results[0].value}]}
-						else {{this.results=[{value:this.phrases[0].results[0].value}]}}
+						this.results=[{value:(subjectString +" "+this.phrases[1].text).trim()}]
 					}
-					else  // He, she, it, no one, nobody, Alice runs.  
+					else  // He, she, it, no one, nobody, Alice goes.  
 					{
-						this.results=[{value:ishml.lang.es(this.phrases[0].results[0].value)}]
+						if (modal){var verbString =this.phrases[1].text}  //He could go
+						else {var verbString=(ishml.lang.es(verbs[0])+" "+verbs.slice(1).join(" ")).trim()}
+
+						this.results=[{value:(subjectString +" "+verbString).trim()}]
 					}
 				}
 				else  //Run. (imperative)
 				{
-					this.results=[{value:this.phrases[0].results[0].value}]
+					this.results=[{value:this.phrases[1].text}]
 				}
 			}
 			if(ishml.tense===ishml.lang.future) //future
 			{
-				this.results=[{value:"will " + this.phrases[0].results[0].value}]
+				verbs=verbs.filter(verb=>!(ishml.lang.modalVerbs.includes(verb.toLowerCase())||verb.toLowerCase()===
+				"do"))
+
+				if (verbs[0].toLowercase==="not"){var will=ishml.lang.preserveCase("will not",this.phrases[1].text)}
+				else {var will=ishml.lang.preserveCase("will",this.phrases[1].text)}
+
+				this.results=[{value:(subjectString +" "+will + " " +verbs.join(" ")).trim()}]
 			}
 			if(ishml.tense===ishml.lang.past) //past
 			{
-				this.results=[{value:"had" + ishml.lang.ed(this.phrases[0].results[0].value)}]
+				verbs=verbs.filter(verb=>!(ishml.lang.modalVerbs.includes(verb.toLowerCase())))
+				this.results=[{value:(subjectString +" "+ishml.lang.ed(verbs[0])+" "+verbs.slice(1).join(" ")).trim()}]  //she went did not go
 			}
 
-			//ishml.lang.perfect=3 //I have eaten
-			if(ishml.tense===ishml.lang.perfect ) 
+			//ishml.lang.perfect=3 //I have gone
+			if(ishml.tense===ishml.lang.perfect ) //coukld not go =>could not have gone  not go => have not gone
 			{
-				var subject=this.phrases[1].results
+				var pastParticiple=ishml.lang.en(verbs[verbs.length-1])  
 
-				if (subject.length>0)
+				if(lemma)  //I, you, we, they, Alice and Bob, have gone/ have not gone.  could have gone/ could not have gone.
 				{
-					var lowerCaseSubject=subject[0].value.toLowerCase()
-					if(subject.length>1 || subject[0].number===ishml.lang.number.plural || subject[0].quantity>1 || subject[0].ply_number===ishml.lang.number.plural || subject[0].ply_quantity >1 ||lowerCaseSubject==="i" || lowerCaseSubject==="you" ||lowerCaseSubject==="we" ||lowerCaseSubject==="they" )  //I, you, we, they, Alice and Bob, run.
+					//could not go  =>  could not have gone  //
+					if (verbs.length>1 && verbs[0].toLowercase()==="do" ){verb[0]="did"}
+					
+					if (verbs[0].toLowercase()==="not")
 					{
-						if(ishml.tense===1){this.results=[{value:this.phrases[0].results[0].value}]}
-						else {this.results=[{value:"have"+ ishml.lang.en(this.phrases[0].results[0].value)}]}
+						if (lemma){var have=ishml.lang.preserveCase("have not",this.phrases[1].text)}
+						else {var have=ishml.lang.preserveCase("has not",this.phrases[1].text)}
+						verbs.shift()
 					}
-					else  // He, she, it, no one, nobody, Alice runs.  
+					else 
 					{
-						this.results=[{value:"has"+ ishml.lang.en(this.phrases[0].results[0].value)}]
-					}
+						if (lemma){var have=ishml.lang.preserveCase("have",this.phrases[1].text)}
+						else {var have =ishml.lang.preserveCase("has",this.phrases[1].text)}
+						
+					}	
 				}
-				else  
-				{
-					this.results=[{value:"have"+ ishml.lang.en(this.phrases[0].results[0].value)}]
-				}
+				this.results=[{value:(subjectString +" "+verbs.slice(0,-1).join(" ")+" "+have+" "+pastParticiple).trim()}]
 			}
 			
 //ishml.lang.pluperfect=4 //I had eaten
-			if(ishml.tense===ishml.lang.perfect ) 
+			if(ishml.tense===ishml.lang.pluperfect ) 
 			{
-				this.results=[{value:"had"+ ishml.lang.en(this.phrases[0].results[0].value)}]
+				var pastParticiple=ishml.lang.en(verbs[verbs.length-1])  
+				//could not go  =>  could not had gone  //
+				if (verbs.length>1 && verbs[0].toLowercase()==="do" ){verb[0]="did"} //did had gone
+				
+				if (verbs[0].toLowercase()==="not")
+				{
+					var had=ishml.lang.preserveCase("had not",this.phrases[1].text)
+					verbs.shift()
+				}
+				else 
+				{
+					var had =ishml.lang.preserveCase("had",this.phrases[1].text)
+					
+				}	
+
+				this.results=[{value:(subjectString +" "+verbs.slice(0,-1).join(" ")+" "+had+" "+pastParticiple).trim()}]
 			}
 
 			this.text=this.toString()

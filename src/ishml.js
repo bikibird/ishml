@@ -2541,6 +2541,7 @@ ishml.Phrase =class Phrase
 		Object.defineProperty(this,"ended",{value:false,writable:true})
 		Object.defineProperty(this,"_locked",{value:false,writable:true})
 		Object.defineProperty(this,"phrases",{value:[],writable:true})
+		Object.defineProperty(this,"re",{value:false,writable:true})
 		Object.defineProperty(this,"_property",{value:"",writable:true})
 		Object.defineProperty(this,"_results",{value:[],writable:true})
 		Object.defineProperty(this,"_seed",{value:ishml.util.random().seed,writable:true})
@@ -2921,7 +2922,7 @@ ishml.Phrase =class Phrase
 						this.tags[key].fill({_tagPhrase:true,_data:items[0][key]}) 
 					}
 				})
-				this.catalog()
+				//this.catalog()
 				return this	
 			}
 
@@ -2929,7 +2930,7 @@ ishml.Phrase =class Phrase
 		if (this.phrases.length===1 && this.phrases[0] instanceof ishml.Phrase)  //send items down to the core phrase
 		{
 			this.phrases[0].fill(...items)
-			this.catalog()
+			//this.catalog()
 			return this	
 
 		}
@@ -2939,7 +2940,7 @@ ishml.Phrase =class Phrase
 			this._fill(items[0]._data)
 		}
 		else {this._fill(...items)}
-		this.catalog()
+		//this.catalog()
 		return this 
 	}
 	_fill(literals, ...expressions)
@@ -3280,7 +3281,6 @@ ishml.Phrase.__handler=
 // #endregion
 // #region Template
 ishml.template={}
-//new Proxy((...precursor)=>new ishml.Phrase(...precursor),ishml.templateHandler)
 ishml.template.__handler=
 {
 	 //_.a.b.c() becomes _.a(b(c()))
@@ -3673,21 +3673,10 @@ ishml.template.define("pick").as((...data)=>
 		}
 	}(...data)
 })
-ishml.template.define("re").as((...precursor)=>
+ishml.template.define("re").as((phrase)=>
 {
-	return new class rePhrase extends ishml.Phrase
-	{
-		generate()
-		{
-			super.generate()
-			this.results.forEach(result=>
-			{
-				result.re=true
-			})
-			this.text=""
-			return this.results
-		}
-	}(...precursor)
+	phrase.re=true
+	return phrase
 })
 
 ishml.template.define("cull").as((...precursor)=>
