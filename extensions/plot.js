@@ -68,6 +68,7 @@ plot.action.unfold=function(command)
     command.subject= command.subject ?? command.actor
     return command.verb.unfold(command)
 }
+
 plot.action.asking_to.unfold=function ask(command)
 {
     command.indirect.command.timeline=command.timeline
@@ -76,7 +77,7 @@ plot.action.asking_to.unfold=function ask(command)
     command.indirect.command.actor=command.actor
 
     return this.Episode()
-        .narration(()=>(command.actor.akin(command.subject)?pb.player.asked:_`${_.cap.SUBJECT()} asked ${_.the.DIRECT()} to do something.`)
+        .narration(()=>(command.actor.akin(command.subject)?pb.player.asked:pb.npc.asked)
             .fill(command)
             .say().append("#story"))
         .resolution(()=>
@@ -102,7 +103,7 @@ plot.action.dropping.unfold=function drop(command)
     command.droppable=command.direct.worn_by(command.subject).converse
     .add(command.direct.carried_by(command.subject).converse)
     return this.Episode()
-        .narration(()=> (command.actor.akin(command.subject)?_`<p>${_.They.SUBJECT()} dropped ${_.the.DROPPABLE()}.</p>`:_`${_.cap.SUBJECT()} put down ${_.the.DROPPABLE()}.`)
+        .narration(()=> (command.actor.akin(command.subject)?pb.player.acted.transitive:_`${_.cap.SUBJECT()} put down ${_.the.DROPPABLE()}.`)
             .fill(command)
             .say().append("#story"))
         .resolution(()=>
