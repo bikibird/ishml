@@ -173,7 +173,7 @@ ishml.grammar.command.semantics=(interpretation)=>
 		if (interpretation.gist.object.indirect.hasOwnProperty("preposition"))
 		{
 			command.preposition=interpretation.gist.object.indirect.preposition.definition.select
-			command.preposition.lexeme=interpretation.gist.object.indirect.preposition.lexeme
+	//		command.preposition.lexeme=interpretation.gist.object.indirect.preposition.lexeme
 		}
 		command.indirect=interpretation.gist.object.indirect.phrase.target?.select ?? interpretation.gist.object.indirect.phrase.command
 		command.indirect.lexeme=interpretation.gist.object.indirect.phrase.lexeme

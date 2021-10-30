@@ -127,7 +127,7 @@ plot.action.dropping.check.nothing.unfold=function(command)
     if(!command.direct ||(command.droppable.isEmpty && command.undroppable.isEmpty))
     {
         return this.ishml.Episode()
-            .narration(()=>_`<p>${_SUBJECT()} think about dropping something, but what?</p>`
+            .narration(()=>_`<p>${_.cap.SUBJECT()} think about dropping something, but what?</p>`
                 .fill(command)
                 .say().append("#story"))
             .salience(3)   
