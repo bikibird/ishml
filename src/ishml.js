@@ -231,6 +231,29 @@ ishml.Plotpoint.handler=
 /*
 	configuration={salience,start,stop,etc}
 */
+
+/*
+	ishml tells and episode in the following order
+	resolve prolog
+	resolve episode
+	resolve epilog
+	narrate prolog
+	narrate episode
+	narrate epilog
+
+Abridge and revise REPLACE the prior episode in the evaluation change with the most salient episode returned from the episode generator provided. The new episode has the stock property set to the prior episode in the evaluation chain, which the new epsisode may use in its narration or resolution.	
+
+1.2.3
+
+Before sets new episode's prolog to prior episode in the evaluation chain
+episode2.prolog=episode1
+episode3.prolog=episode2
+
+resolve episode 3 :
+
+
+
+*/
 ishml.Episode=function Episode(plot) 
 {
 	
@@ -239,7 +262,7 @@ ishml.Episode=function Episode(plot)
 		Object.defineProperty(this, "abridged", {value:false,writable: true})
 		Object.defineProperty(this, "epilog", {value:false, writable: true})
 		Object.defineProperty(this, "prolog", {value:false, writable: true})
-		Object.defineProperty(this, "retracted", {value:false, writable: true})
+		//Object.defineProperty(this, "retracted", {value:false, writable: true})
 		Object.defineProperty(this, "_narration", {value:()=>_``.say().append("#story"),writable: true})
 		Object.defineProperty(this, "_resolution", {value:()=>true,writable: true})
 		Object.defineProperty(this, "_timeline", {value:null,writable: true})
@@ -255,98 +278,83 @@ ishml.Episode=function Episode(plot)
 		return new Episode(plot)
 	}	
 }
-/* The abridge method returns the most salient episode generated from the subplot of the plotpoint.  The abridged property is set to true, which causes all future revise method calls on the evaluation chain to be ignored.  append method calls are NOT ignored.*/
+/* The abridge method returns the most salient episode generated from the subplot of the plotpoint.  The abridged property is set to true, which causes all future revise method calls on the evaluation chain to be ignored.  Append method calls are NOT ignored.*/
 ishml.Episode.prototype.abridge = function (createEpisode)
 {
 	if (this.abridged){return this}
 	
 	var episode=createEpisode()
 
- 	if (!episode || episode.retracted)
+ 	if (!episode)
 	{
 		this.abridged=false
 		return this
 	}
     else 
 	{
-		var rootEpisode=episode
-		while (rootEpisode.stock){rootEpisode=rootEpisode.stock}
-		rootEpisode.stock=this
+		episode.twist=this.twist
+		episode.stock=this
 		episode.abridged=true
-		return episode.timeline(this._timeline).salience(this._salience)
+		return episode.timeline(episode._timeline ?? this._timeline).salience(episode._salience ?? this._salience)
 	}
 }
-/* The append method returns generates the most salient episode generated from the subplot of the plotpoint or a new,empty, episode if no plotpoint.  The stock.prolog property is set to true, which causes narrate method to execute on the stock episode prior to executing the narration on the appended episode.  The stock.prolog property is set to true, which causes resolve method to execute on the stock episode prior to executing the resolution on the appended episode. */
+
+/* The revise method returns the most salient episode generated from the subplot of the plotpoint or returns this if the current episode in the evaluation chain is an abridged episode or no episode is generated from the subplot.*/
+ishml.Episode.prototype.revise = function (createEpisode)
+{
+	if (this.abridged){return this}
+	if (createEpisode)
+	{
+		var episode=createEpisode()
+		if (!episode)
+		{
+			return this
+		}
+			episode.stock=this
+			episode.twist=this.twist
+			return episode.timeline(episode._timeline ?? this._timeline).salience(episode._salience ?? this._salience)
+
+	}
+	else { return this}
+}
+
+/* The append method returns the most salient episode generated from the subplot of the plotpoint or a new,empty, episode if no plotpoint.  The new episode's prolog property is set to the prior episode in the evaluation chain. */
 ishml.Episode.prototype.append = function (createEpisode)
 {
 	if (createEpisode)
 	{
 		var episode=createEpisode()
-		if (!episode || episode.retracted){return  this}
-		else 
-		{	
-			episodes[0].stock=this
-			episodes[0].stock.prolog=true
-			return episodes[0].timeline(this._timeline).salience(this._salience)
-		}
+		if (!episode){return  this}
+		
 	}
 	else
 	{
 		var episode=new ishml.Episode()
-		episode.twist=this.twist
-		var rootEpisode=episode
-		while (rootEpisode.stock){rootEpisode=rootEpisode.stock}
-		rootEpisode.stock=this
-		rootEpisode.stock.prolog=true
-		return episode.timeline(this._timeline).salience(this._salience)
+		
 	}
+	episode.twist=this.twist
+	episode.stock=this
+	episode.prolog=this
+	return episode.timeline(episode._timeline ?? this._timeline).salience(episode._salience ?? this._salience)
 }
 
-ishml.Episode.prototype.before = function (createEpisode)
+ishml.Episode.prototype.prepend = function (createEpisode)
 {
 	if (createEpisode)
 	{
 		var episode=createEpisode()
-		if (!episode || episode.retracted)
-		{
-			this.retracted=true
-			this.abridged=false
-			return this
-		}
-		else 
-		{	
-			var rootEpisode=episode
-			while (rootEpisode.stock){rootEpisode=rootEpisode.stock}
-			rootEpisode.stock=this
-			rootEpisode.stock.prolog=true
-			return episode.timeline(this._timeline).salience(this._salience)
-		}
+		if (!episode){return  this}
+		
 	}
-	this.retracted=true
-	return this
-}
-ishml.Episode.prototype.after = function (createEpisode)
-{
-	if (createEpisode)
+	else
 	{
-		var episode=createEpisode()
-		if (!episode || episode.retracted)
-		{
-			this.retracted=true
-			this.abridged=false
-			return
-		}
-		else 
-		{	
-			var rootEpisode=episode
-			while (rootEpisode.stock){rootEpisode=rootEpisode.stock}
-			rootEpisode.stock=this
-			rootEpisode.stock.epilog=true
-			return episode.timeline(this._timeline).salience(this._salience)
-		}
+		var episode=new ishml.Episode()
+		
 	}
-	this.retracted=true
-	return this
+	episode.twist=this.twist
+	episode.stock=this
+	episode.epilog=this
+	return episode.timeline(episode._timeline ?? this._timeline).salience(episode._salience ?? this._salience)
 }
 
 
@@ -367,14 +375,11 @@ return this
 */
 ishml.Episode.prototype.narrate=function narrate()
 {
-	if (!this.retracted)
+	if (!this.twist?.silently)
 	{
-		if (!this.twist?.silently)
-		{
-			if (this.stock?.prolog){this.stock.narrate()}
-			this._narration(this)
-			if (this.stock?.epilog){this.stock.narrate()}
-		}	
+		if (this.prolog){this.prolog.narrate()}
+		this._narration(this)
+		if (this.epilog){this.epilog.narrate()}
 	}	
 	return this
 }
@@ -390,33 +395,13 @@ ishml.Episode.prototype.resolution=function(resolution)
 }
 ishml.Episode.prototype.resolve=function resolve(time)
 {
-	if (!this.retracted)
-	{
-		if (this.stock?.prolog){this.stock.resolve(time)}
-		this.told=this._resolution(this,time)??true
-		if (this.stock?.epilog){this.stock.resolve(time)}
-		return this
-	}
+
+	if (this.prolog){this.prolog.resolve(time)}
+	this.told=this._resolution(this,time)??true
+	if (this.epilog){this.epilog.resolve(time)}
 	return this
 }
-/* The revise method returns the most salient episode generated from the subplot of the plotpoint or returns this if the current episode in the evaluation chain is an abridged episode or no episode is generated from the subplot.*/
-ishml.Episode.prototype.revise = function (createEpisode)
-{
-	if (this.abridged){return this}
-	if (createEpisode)
-	{
-		var episode=createEpisode()
-		if (!episode || episode.retracted)
-		{
-			return this
-		}
-		else 
-		{	episode.stock=this
-			return episode.timeline(this._timeline).salience(this._salience)
-		}
-	}
-	else { return this}
-}
+
 
 ishml.Episode.prototype.salience=function(salience)
 {
@@ -2597,17 +2582,16 @@ ishml.Phrase =class Phrase
 			}
 			generate()
 			{
-				var results=this.phrases[0].generate()
-				if (results.length>1 || (results.length===1 && results[0].value!==""))
-				{
-					this.results=results.concat([{value:" "}],this.phrases[1].generate())
-					this.text=this.toString()
-				}
-				else
-				{
-					this.results=results
-					this.text=""
-				}
+				var results1=this.phrases[0].generate()
+				var results2=this.phrases[1].generate()
+				if (
+					(results1.length>1 || (results1.length===1 && results1[0].value!=="")) &&
+					(results2.length>1 || (results2.length===1 && results2[0].value!==""))
+				){var space=" "}
+				else{var space=""}
+				
+				this.results=results1.concat([{value:space}],results2)
+				this.text=this.toString()
 				return this.results
 			}
 		},ishml.template.__handler)

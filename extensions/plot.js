@@ -19,7 +19,8 @@ plot.main.dialog.input.unfold=function(twist)
                 timeline:twist.timeline,
             },interpretation.gist.command)
             episodes=episodes.concat(plot.action.unfold(command))
-        })   
+        })
+        episodes.sort((a,b)=>b.salience()-a.salience())   
         if (episodes.length>0)
         {
             ishml.introduce(episodes[0])
@@ -103,7 +104,7 @@ plot.action.dropping.unfold=function drop(command)
     command.droppable=command.direct.worn_by(command.subject).converse
     .add(command.direct.carried_by(command.subject).converse)
     return this.Episode()
-        .narration(()=> (command.actor.akin(command.subject)?pb.player.acted.transitive:_`${_.cap.SUBJECT()} put down ${_.the.DROPPABLE()}.`)
+        .narration(()=> (command.actor.akin(command.subject)?ishml.phrasebook.player.acted:_`${_.cap.SUBJECT()} put down ${_.the.DROPPABLE()}.`)
             .fill(command)
             .say().append("#story"))
         .resolution(()=>
