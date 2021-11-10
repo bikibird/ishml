@@ -59,6 +59,10 @@ ishml.util.shuffle=function(anArray,{length=null,seed=Math.floor(Math.random() *
 	return {result:array.slice(-count),seed:seed}
 }
 // #endregion
+// #region enumerations
+ishml.lighting={dark:1,dim:2,bright:3}
+
+// #endregion
 // #region regex
 ishml.regex=ishml.regex||{}
 ishml.regex.word=/(^\w*)(.*)/
@@ -254,7 +258,7 @@ resolve episode 3 :
 
 
 */
-ishml.Episode=function Episode(plot) 
+ishml.Episode=function Episode(/*plot*/) 
 {
 	
 	if (this instanceof Episode)
@@ -269,7 +273,7 @@ ishml.Episode=function Episode(plot)
 		Object.defineProperty(this, "stock", {value:null,writable: true})
 
 		Object.defineProperty(this, "told", {value:false,writable: true})
-		Object.defineProperty(this, "twist", {value:plot?.twist,writable: true})
+		//Object.defineProperty(this, "twist", {value:plot?.twist,writable: true})
 		Object.defineProperty(this, "lexeme", {value:"",writable: true})
 		return this
 	}
@@ -292,7 +296,7 @@ ishml.Episode.prototype.abridge = function (createEpisode)
 	}
     else 
 	{
-		episode.twist=this.twist
+		//episode.twist=this.twist
 		episode.stock=this
 		episode.abridged=true
 		return episode.timeline(episode._timeline ?? this._timeline).salience(episode._salience ?? this._salience)
@@ -311,7 +315,7 @@ ishml.Episode.prototype.revise = function (createEpisode)
 			return this
 		}
 			episode.stock=this
-			episode.twist=this.twist
+			//episode.twist=this.twist
 			return episode.timeline(episode._timeline ?? this._timeline).salience(episode._salience ?? this._salience)
 
 	}
@@ -332,7 +336,7 @@ ishml.Episode.prototype.append = function (createEpisode)
 		var episode=new ishml.Episode()
 		
 	}
-	episode.twist=this.twist
+	//episode.twist=this.twist
 	episode.stock=this
 	episode.prolog=this
 	return episode.timeline(episode._timeline ?? this._timeline).salience(episode._salience ?? this._salience)
@@ -351,7 +355,7 @@ ishml.Episode.prototype.prepend = function (createEpisode)
 		var episode=new ishml.Episode()
 		
 	}
-	episode.twist=this.twist
+	//episode.twist=this.twist
 	episode.stock=this
 	episode.epilog=this
 	return episode.timeline(episode._timeline ?? this._timeline).salience(episode._salience ?? this._salience)
@@ -385,11 +389,17 @@ ishml.Episode.prototype.narrate=function narrate()
 }
 ishml.Episode.prototype.narration=function(narration)
 {
-	this._narration=narration
-	return this
+	if (narration!==undefined)
+	{
+		this._narration=narration
+		return this
+	}
+	else {return this._narration}
+	
 }
 ishml.Episode.prototype.resolution=function(resolution)
 {
+	
 	this._resolution=resolution
 	return this
 }
@@ -530,8 +540,7 @@ ishml.Knot= class Knot
 $.thing.cup.tie("cord:ply=otherCord:otherPly").to(otherKnot/otherPly) --converse relation converse === another ply
 $.thing.cup.tie("cord:ply-otherCord:otherPly").to(otherKnot/otherPly) --mutual relation converse === another ply, but when ply properties updated, other ply is updated automatically because both share the same properties object.
 $.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexive relation converse=== this ply.
-DEFECT NOT Implemented: $.thing.cup.tie("cord:ply").back() --reflexive relation converse=== this ply.
-$.system.command.tie({cord:subject, id:"subject"})
+
 */
 		var cordages=someCordage.filter(cordage=>
 			{
@@ -1368,7 +1377,7 @@ ishml.Cord =class Cord extends Function //(function Cord(){})
 	}
 	forEach(f)
 	{
-		this._plies.forEach(f)
+		this.plies.toArray.forEach(f)
 	}
 	has(ply)
 	{
@@ -1624,10 +1633,17 @@ ishml.Cord =class Cord extends Function //(function Cord(){})
 	}
 	retie(...knots)
 	{
-		this.forEach(ply=>
+		if(this.size)
 		{
-			ply.retie(...knots)
-		})
+			this.forEach(ply=>
+			{
+				ply.retie(...knots)
+			})
+		}
+		else
+		{
+			this.add(...knots)
+		}	
 		return this
 	}
 	reduce(f){return [...this.__plies].reduce(f)}
@@ -2525,6 +2541,7 @@ ishml.Phrase =class Phrase
 		Object.defineProperty(this,"echo",{value:false,writable:true})
 		Object.defineProperty(this,"ended",{value:false,writable:true})
 		Object.defineProperty(this,"_locked",{value:false,writable:true})
+		Object.defineProperty(this,"_erasable",{value:false,writable:true})
 		Object.defineProperty(this,"phrases",{value:[],writable:true})
 		Object.defineProperty(this,"re",{value:false,writable:true})
 		Object.defineProperty(this,"_property",{value:"",writable:true})
@@ -2538,7 +2555,7 @@ ishml.Phrase =class Phrase
 		this.catalog()
 		return new Proxy(this, ishml.Phrase.__handler)
 	}
-	get also()  //simalr to _() below expect does not add space
+	get also()  //Joins second phrase if first phrase generates non empty string
 	{
 		var primaryPhrase=this
 		return new Proxy((...precursor) => new class alsoPhrase extends ishml.Phrase
@@ -2567,11 +2584,61 @@ ishml.Phrase =class Phrase
 			}
 		},ishml.template.__handler)
 	}
+	get when()
+	{
+		var primaryPhrase=this
+		return new Proxy((...precursor) => new class whenPhrase extends ishml.Phrase
+		{
+			constructor()
+			{
+				super()
+				this.phrases[0]=primaryPhrase
+				this.phrases[1]=new ishml.Phrase(...precursor)
+				this.catalog()
+			}
+			generate()
+			{
+				this.phrases[1].generate()
+				if (this.phrases[1].text)
+				{
+					this.phrases[0].generate()
+					this.text=this.phrases[0].text + this.phrases[1].text
+					this.results=[{value:this.text}]
+				}
+				else
+				{
+					this.results=[{value:""}]
+					this.text=""
+				}
 
-	get _() //similar to also() above, but adds space
+				return this.results
+			}
+		},ishml.template.__handler)
+	}
+	get _() //joins two phrases without space
 	{
 		var primaryPhrase=this
 		return new Proxy((...precursor) => new class spacePhrase extends ishml.Phrase
+		{
+			constructor()
+			{
+				super()
+				this.phrases[0]=primaryPhrase
+				this.phrases[1]=new ishml.Phrase(...precursor)
+				this.catalog()
+			}
+			generate()
+			{
+				super.generate()
+				this.text=this.toString()
+				return this.results
+			}
+		},ishml.template.__handler)
+	}
+	get spc()  //joins two phrases with space
+	{
+		var primaryPhrase=this
+		return new Proxy((...precursor) => new class spcPhrase extends ishml.Phrase
 		{
 			constructor()
 			{
@@ -2596,6 +2663,116 @@ ishml.Phrase =class Phrase
 			}
 		},ishml.template.__handler)
 	}
+	get spc1()  //joins 2 phrases with space  if first phrase generates non-empty string. 
+	{
+		var primaryPhrase=this
+		return new Proxy((...precursor) => new class spc1Phrase extends ishml.Phrase
+		{
+			constructor()
+			{
+				super()
+				this.phrases[0]=primaryPhrase
+				this.phrases[1]=new ishml.Phrase(...precursor)
+				this.catalog()
+			}
+			generate()
+			{
+				var results1=this.phrases[0].generate()
+				var results2=this.phrases[1].generate()
+				if (
+					(results1.length>1 || (results1.length===1 && results1[0].value!=="")) &&
+					(results2.length>1 || (results2.length===1 && results2[0].value!==""))
+				) {this.results=results1.concat([{value:" "}],results2)}
+				else {this.results=results1}
+				this.text=this.toString()
+				return this.results
+			}
+		},ishml.template.__handler)
+	}
+	get spc2()  //joins 2 phrases with space  if and only if both phrases genenerate non-empty strings. 
+	{
+		var primaryPhrase=this
+		return new Proxy((...precursor) => new class spc2Phrase extends ishml.Phrase
+		{
+			constructor()
+			{
+				super()
+				this.phrases[0]=primaryPhrase
+				this.phrases[1]=new ishml.Phrase(...precursor)
+				this.catalog()
+			}
+			generate()
+			{
+				var results1=this.phrases[0].generate()
+				var results2=this.phrases[1].generate()
+				if (
+					(results1.length>1 || (results1.length===1 && results1[0].value!=="")) &&
+					(results2.length>1 || (results2.length===1 && results2[0].value!==""))
+				) {this.results=results1.concat([{value:" "}],results2)}
+				else {this.results=[{value:""}]}
+				this.text=this.toString()
+				return this.results
+			}
+		},ishml.template.__handler)
+	}
+	get comma()  //joins two phrases with , or space
+	{
+		var primaryPhrase=this
+		return new Proxy((...precursor) => new class spacePhrase extends ishml.Phrase
+		{
+			constructor()
+			{
+				super()
+				this.phrases[0]=primaryPhrase
+				this.phrases[1]=new ishml.Phrase(...precursor)
+				this.catalog()
+			}
+			generate()
+			{
+				var results1=this.phrases[0].generate()
+				var results2=this.phrases[1].generate()
+				if (
+					(results1.length>1 || (results1.length===1 && results1[0].value!=="")) &&
+					(results2.length>1 || (results2.length===1 && results2[0].value!==""))
+				){var space=", "}
+				else{var space=" "}
+				
+				this.results=results1.concat([{value:space}],results2)
+				this.text=this.toString()
+				return this.results
+			}
+		},ishml.template.__handler)
+	}
+
+	get comma2()  //joins two phrases with , or period
+	{
+		var primaryPhrase=this
+		return new Proxy((...precursor) => new class spacePhrase extends ishml.Phrase
+		{
+			constructor()
+			{
+				super()
+				this.phrases[0]=primaryPhrase
+				this.phrases[1]=new ishml.Phrase(...precursor)
+				this.catalog()
+			}
+			generate()
+			{
+				var results1=this.phrases[0].generate()
+				var results2=this.phrases[1].generate()
+				if (
+					(results1.length>1 || (results1.length===1 && results1[0].value!=="")) &&
+					(results2.length>1 || (results2.length===1 && results2[0].value!==""))
+				){var space=", "}
+				else{var space=". "}
+				
+				this.results=results1.concat([{value:space}],results2)
+				this.text=this.toString()
+				return this.results
+			}
+		},ishml.template.__handler)
+	}
+
 	append(documentSelector="#story")
 	{
 		var targetNodes = document.querySelectorAll(documentSelector)
@@ -2695,6 +2872,13 @@ ishml.Phrase =class Phrase
 				return this.results
 			}
 		}(this)
+	}
+	erase(...tags)
+	{
+		var erasures=tags.flat()
+		if (erasures.length===0){erasures=Object.keys(this.tags)}
+		erasures.forEach(erasure=>{if (this.tags[erasure]._eraseable){this.tags[erasure].phrases=[]}})
+		return this
 	}
 	generate(phrases=this.phrases)
 	{
@@ -2839,6 +3023,25 @@ ishml.Phrase =class Phrase
 			}
 		}()
 	}
+	slot(rank)
+	{
+		return new class slotPhrase extends ishml.Phrase
+		{
+			constructor(primaryPhrase)
+			{
+				super(primaryPhrase,rank)
+				this.catalog()
+			}
+			generate()
+			{
+				super.generate()
+				var rank=parseInt(this.phrases[1])
+				this.results=[Object.assign({index:rank-1 ,rank:rank ,total:this.results[0].length},this.results[rank-1])]
+				this.text=this.toString()
+				return this.results
+			}
+		}(this)
+	}
 	transform(transformer,...data)
 	{
 		if(data.length>0)
@@ -2903,6 +3106,7 @@ ishml.Phrase =class Phrase
 				{
 					if (this.tags.hasOwnProperty(key))
 					{
+						this.tags[key].erasable=true
 						this.tags[key].fill({_tagPhrase:true,_data:items[0][key]}) 
 					}
 				})
@@ -2919,6 +3123,8 @@ ishml.Phrase =class Phrase
 
 		}
 		//We're at the core so update phrase array with items.
+
+		this.erase()  //get rid of leftovers from last fill
 		if(!(items[0]===undefined) && (Object.getPrototypeOf(items[0])===Object.prototype && items[0]?._tagPhrase))
 		{
 			this._fill(items[0]._data)
@@ -3008,11 +3214,12 @@ ishml.Phrase =class Phrase
 		{
 			this.phrases=data.map(phrase=> //normalize phrases
 			{
-				if(typeof phrase==="string" ||Object.getPrototypeOf(phrase)===Object.prototype || phrase.generate || phraseType==="function" )
+				//if (phrase===undefined || phrase === null){return ""}
+				var phraseType=typeof phrase
+				if(phraseType==="string" ||Object.getPrototypeOf(phrase)===Object.prototype || phrase.generate || phraseType==="function" )
 				{return phrase}
 
-				if(phrase.toString)
-				{return phrase.toString()}
+				return phrase.toString()
 				
 				/*
 				if (phraseType ==="object")
@@ -3143,37 +3350,7 @@ ishml.Phrase =class Phrase
 			}
 		},ishml.template.__handler)
 	}
-	get when()
-	{
-		var primaryPhrase=this
-		return new Proxy((...precursor) => new class whenPhrase extends ishml.Phrase
-		{
-			constructor()
-			{
-				super()
-				this.phrases[0]=new ishml.Phrase(...precursor)
-				this.phrases[1]=primaryPhrase
-				this.catalog()
-			}
-			generate()
-			{
-				this.phrases[0].generate()
-				if (this.phrases[0].text)
-				{
-					this.phrases[1].generate()
-					this.text=this.phrases[1].text + this.phrases[0].text
-					this.results=[{value:this.text}]
-				}
-				else
-				{
-					this.results=[{value:""}]
-					this.text=""
-				}
-
-				return this.results
-			}
-		},ishml.template.__handler)
-	}
+	
 
 	//Unlike modify, expand takes a phrase factory and applies the results of this phrase to it.
 	expand(phraseFactory)
@@ -3210,7 +3387,7 @@ ishml.Phrase =class Phrase
 	{
 		return this.results.map(result=>
 		{	
-			if (result===undefined){return "[undefined]"}
+			if (result===undefined){return ""}
 			if (Object.getPrototypeOf(result)===Object.prototype)
 			{
 				if ( result.hasOwnProperty("value"))
@@ -3218,7 +3395,7 @@ ishml.Phrase =class Phrase
 					return result.value.toString()
 				}
 				var value =Object.values(result)[0]
-				if (value===undefined){return "[undefined]"}
+				if (value===undefined){return ""}
 				return value.toString()
 			}
 		}).join("")	
@@ -3820,6 +3997,7 @@ ishml.template.define("shuffle").as((...data)=>
 		
 	}(...data)
 })
+
 ishml.template.define("pin").as((...data)=>
 {
 	var pin =true
@@ -3850,12 +4028,33 @@ ishml.template.define("pin").as((...data)=>
 		}
 	}(...data)
 })
+ishml.template.define("spc").as((...precursor)=>
+{
+	return new class spacePhrase extends ishml.Phrase
+	{
+		generate()
+		{
+			super.generate()
+			
+			this.text=this.toString()
+			
+			if (this.text!==""){var space=" "}
+			else{var space=""}
+			this.results.unshift({value:space})
+			this.text=space+this.text
+			
+			return this.results
+		}
+	}(...precursor)
+})
 
 ishml.template.define("next").as(function next(precursor)
 {
 	precursor.echo=false
 	return precursor
 })
+
+
 
 // #endregion
 // #region Token
@@ -3878,16 +4077,29 @@ ishml.Token.prototype.clone=function()
 }
 // #endregion
 // #endregion
-ishml.storyline={},  //Episode queue
-ishml.history=[], //list of executed commands
-ishml.clock=new Date(),
-ishml.interval= 60000,  //1 minute
-ishml.turn=1,
-ishml.plot=new ishml.Plotpoint(),
-ishml.lexicon=new ishml.Lexicon(),
-ishml.grammar=new ishml.Rule(),
-ishml.parser=null,
-ishml.net=new ishml.Knot("$"),
+ishml.storyline={}  //Episode queue
+ishml.history=[] //list of executed commands
+ishml.clock=new Date()
+ishml.interval= 60000  //1 minute
+ishml.turn=1
+ishml.plot=new ishml.Plotpoint()
+ishml.lexicon=new ishml.Lexicon()
+ishml.grammar=new ishml.Rule()
+ishml.parser=null
+ishml.net=new ishml.Knot("$")
+
+ishml.net.i=new ishml.Cord()
+ishml.net.we=new ishml.Cord()
+ishml.net.you=new ishml.Cord()
+ishml.net.he=new ishml.Cord()
+ishml.net.she=new ishml.Cord()
+ishml.net.they=new ishml.Cord()
+ishml.net.it=new ishml.Cord()
+ishml.net.me=new ishml.Cord()
+ishml.net.us=new ishml.Cord()
+ishml.net.them=new ishml.Cord()
+ishml.net.him=new ishml.Cord()
+ishml.net.her=new ishml.Cord()
 ishml.undoLength=10
 ishml.lang={}
 ishml.phrasebook_handler=

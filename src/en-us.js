@@ -186,10 +186,8 @@ ishml.grammar.command.semantics=(interpretation)=>
 ishml.parser=ishml.Parser({ lexicon: ishml.lexicon, grammar: ishml.grammar.command})
 // #endregion
 // #region enumerations
-ishml.lang.positive=Symbol('positive')
-ishml.lang.comparative=Symbol('comparative')
-ishml.lang.superlative=Symbol('superaltive') 
-ishml.lang.number={singular:Symbol('singular'),plural:Symbol('plural')}
+ishml.lang.degree={positive:0,comparative:1,superlative:2}
+ishml.lang.number={singular:0,plural:1}
 ishml.lang.person={first:0,second:1,third:2}
 
 // #region tense
@@ -237,7 +235,6 @@ ishml.lang.preserveCase=function (text, pattern)
 	var results = []
 	var words=text.split(" ")
 	var patterns=pattern.split(" ")
-	var pLastWord=patterns.length-1
 	var c=""
 	var p=""
 	var pWordIndex=0
@@ -581,9 +578,9 @@ ishml.Phrase.define("er").as (precursor =>
 	{
 		if(item.degree)
 		{
-			if (item.degree===ishml.lang.positive){return item}
-			if (item.degree===ishml.lang.comparative){return ishml.lang.er(item.value)}
-			if (item.degree===ishml.lang.superlative){return ishml.lang.est(item.value)}
+			if (item.degree===ishml.degree.positive){return item}
+			if (item.degree===ishml.degree.comparative){return ishml.lang.er(item.value)}
+			if (item.degree===ishml.degree.superlative){return ishml.lang.est(item.value)}
 		}
 		else {return ishml.lang.er(item.value)}
 	})
@@ -611,9 +608,9 @@ ishml.Phrase.define("est").as (precursor =>
 	{
 		if(item.degree)
 		{
-			if (item.degree===ishml.lang.positive){return item}
-			if (item.degree===ishml.lang.comparative){return ishml.lang.er(item.value)}
-			if (item.degree===ishml.lang.superlative){return ishml.lang.est(item.value)}
+			if (item.degree===ishml.lang.degree.positive){return item}
+			if (item.degree===ishml.lang.degree.comparative){return ishml.lang.er(item.value)}
+			if (item.degree===ishml.lang.degree.superlative){return ishml.lang.est(item.value)}
 		}
 		else {return ishml.lang.est(item.value)}
 	})

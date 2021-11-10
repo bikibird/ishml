@@ -4,6 +4,111 @@ var lexicon=ishml.lexicon
 var $ = ishml.net
 var pb = ishml.phrasebook
 var _ =ishml.template._ 
+
+plot.check.direct.empty.unfold=function(command)
+{
+    if(!command.direct ||command.direct.isEmpty)
+    {
+        return this.ishml.Episode()
+            .narration(()=>pb.direct.empty.fill(command).say().append("#story"))
+            .salience(3)   
+            .timeline(command.timeline)
+    }
+    return      
+}
+plot.check.indirect.empty.unfold=function(command)
+{
+    if(!command.indirect ||command.indirect.isEmpty)
+    {
+        return this.ishml.Episode()
+            .narration(()=>pb.indirect.empty.fill(command).say().append("#story"))
+            .salience(3)   
+            .timeline(command.timeline)
+    }
+    return      
+}
+plot.check.unpossessed.unfold=function(command)
+{
+    command.possessed = command.direct.worn_by(command.subject).converse.add(command.direct.carried_by(command.subject).converse)
+    command.unpossessed = command.direct.subtract(command.possessed)
+    if (command.unpossessed.size>0)
+    {
+        return this.ishml.Episode()
+            .narration(()=>pb.unpossessed.fill(command).say().append("#story"))
+            .salience(3)   
+            .timeline(command.timeline)
+    }
+    return
+}
+
+/*
+
+plot.action.dropping.check.incapable.unfold=function(command)
+{
+    command.capable=command.subject.where(c=>c.has_skill($.action.dropping))
+    command.incapable=command.subject.subtract(command.capable)
+    if (!command.incapable.isEmpty)
+    {
+       return this.Episode()
+        .narration(()=>_`${_.cap.SUBJECT()} are not capable of dropping ${_.INCAPABLE()}.`
+            .fill(command)
+            .say().append("#story"))
+        .salience(3)   
+        .timeline(command.timeline)
+    }
+    return 
+}
+
+plot.action.dropping.check.undroppable.unfold=function(command)
+{
+    if (!command.undroppable.isEmpty)
+    {
+        return this.Episode()
+            .narration(()=> _`<p>${_.SUBJECT()} ${_.pick("think about dropping","want to drop", "would drop")} the ${_.list.UNDROPPABLE()}, but ${_.pick(_`you don't even have ${_.them.undroppable}`,_`${_.they.undroppable} ${_.are.undroppable}n't in your possession`)}.</p>`
+                .fill(command)
+                .say().append("#story"))
+
+            .salience(3)   
+            .timeline(command.timeline)
+    }
+    return 
+}
+plot.action.dropping.check.notContainer.unfold=function(command)
+{
+    command.container=command.indirect.is("container")
+    command.notContainer=command.indirect.subtract(command.container)
+    if (command.container.isEmpty )
+    {
+        return this.Episode()
+        .narration(()=>_`That's not a container.`.cache("selfContainer").fill(command.selfContainer).say().append("#story"))
+        .salience(3)   
+        .timeline(command.timeline)
+    }
+    return 
+}
+plot.action.dropping.check.whichContainer.unfold=function(command)
+{
+    if (command.container.size >1  )
+    {
+        return this.Episode()
+        .narration(()=>_`Which container?`.cache("selfContainer").fill(command.selfContainer).say().append("#story"))
+        .salience(3)   
+        .timeline(command.timeline)
+    }
+    return 
+}
+plot.action.dropping.check.selfContainer.unfold=function(command)
+{
+    if (command.container.subtract(command.droppable).size!==command.container.size)
+    {
+        return this.Episode()
+        .narration(()=>_`It cannot contain itself.`.cache("selfContainer").fill(command.selfContainer).say().append("#story"))
+        .salience(3)   
+        .timeline(command.timeline)
+    }
+    return 
+}*/
+
 plot.main.dialog.input.unfold=function(twist)
 {
     var episodes=[]
@@ -64,10 +169,25 @@ plot.action.unfold=function(command)
             subject:command.actor,
             indirect:{command:Object.assign({},command)}
         }
-        return plot.action.asking_to.unfold(request)
+        var episode = plot.action.asking_to.unfold(request)
     }
-    command.subject= command.subject ?? command.actor
-    return command.verb.unfold(command)
+    else
+    {
+        command.subject= command.subject ?? command.actor
+        var episode= command.verb.unfold(command)
+    }
+    
+    return episode
+        .revise(this.Episode)
+        .narration((ep)=>
+        {
+            _`<p>`.say().append("#story")  //start new paragraph
+            ep.stock.narrate()
+        })
+        .resolution((ep)=>
+        {
+            ep.stock.resolve()
+        })
 }
 
 plot.action.asking_to.unfold=function ask(command)
@@ -104,7 +224,7 @@ plot.action.dropping.unfold=function drop(command)
     command.droppable=command.direct.worn_by(command.subject).converse
     .add(command.direct.carried_by(command.subject).converse)
     return this.Episode()
-        .narration(()=> (command.actor.akin(command.subject)?ishml.phrasebook.player.acted:_`${_.cap.SUBJECT()} put down ${_.the.DROPPABLE()}.`)
+        .narration(()=> (command.actor.akin(command.subject)?ishml.phrasebook.player.acted:_`${_.cap.SUBJECT()} put down ${_.the.POSSESSED()}.`)
             .fill(command)
             .say().append("#story"))
         .resolution(()=>
@@ -121,14 +241,18 @@ plot.action.dropping.unfold=function drop(command)
 plot.action.dropping.verbs("drop","leave").preposition("in").register(2)
 plot.action.dropping.verbs("drop","leave").register()
 
-plot.action.dropping.check.nothing.unfold=function(command)
+
+plot.action.dropping.check.nothing.unfold=plot.check.direct.empty.unfold
+plot.action.dropping.check.possessed.unfold=plot.check.unpossessed.unfold
+
+/*plot.action.dropping.check.nothing.unfold=function(command)
 {
     
     command.undroppable=command.direct.subtract(command.droppable)
     if(!command.direct ||(command.droppable.isEmpty && command.undroppable.isEmpty))
     {
         return this.ishml.Episode()
-            .narration(()=>_`<p>${_.cap.SUBJECT()} think about dropping something, but what?</p>`
+            .narration(()=>_`<p>${_.cap.SUBJECT()}   think about dropping something, but what?</p>`
                 .fill(command)
                 .say().append("#story"))
             .salience(3)   
@@ -201,7 +325,7 @@ plot.action.dropping.check.selfContainer.unfold=function(command)
         .timeline(command.timeline)
     }
     return 
-}
+}*/
 plot.action.dropping.instead
 
 plot.action.going.unfold=function go(command)
