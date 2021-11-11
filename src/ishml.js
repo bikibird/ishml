@@ -3102,6 +3102,7 @@ ishml.Phrase =class Phrase
 		{
 			if (!items[0]._tagPhrase)
 			{
+				this.erase()
 				Object.keys(items[0]).forEach(key=>
 				{
 					if (this.tags.hasOwnProperty(key))
@@ -3124,7 +3125,7 @@ ishml.Phrase =class Phrase
 		}
 		//We're at the core so update phrase array with items.
 
-		this.erase()  //get rid of leftovers from last fill
+		//this.erase()  //get rid of leftovers from last fill
 		if(!(items[0]===undefined) && (Object.getPrototypeOf(items[0])===Object.prototype && items[0]?._tagPhrase))
 		{
 			this._fill(items[0]._data)
@@ -4632,4 +4633,9 @@ ishml.reintroduce=function()
 {
 	//redo the undo
 	
+}
+ishml.reify=function(source)
+{
+	console.log("This function will eventually convert a sub-set of Inform 7 source code into declarations to populate ishml.net")
+	return this
 }

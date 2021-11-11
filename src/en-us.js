@@ -852,21 +852,16 @@ ishml.template.define("Are").as((...data)=>
 
 ishml.Phrase.prototype.inflect=function (...verb)
 {
-	var nouns=this
+	var subjectPhrase=this
 	return new class inflectPhrase extends ishml.Phrase
 	{
 		constructor()
 		{
-			super(nouns)
-			this.phrases[1]=new ishml.Phrase(...verb)
+			super(subjectPhrase,new ishml.Phrase(...verb))
+			
 		}
 		generate()
 		{
-			if (!this.phrases[2])
-			{
-				this.phrases[2]=ishml.template._.list(nouns)
-				
-			}
 			super.generate()
 			var verbs = this.phrases[1].text.split(" ")
 			var does=(verbs.some(verb=>verb==="do")  && verbs.length>1)
@@ -875,8 +870,7 @@ ishml.Phrase.prototype.inflect=function (...verb)
 			var verb=verbs[verbs.length-1]
 			var subject=this.phrases[0].results
 			var lowerCaseSubject=subject[0].value.toLowerCase()	
-			var re=this.phrases[2].re
-			var subjectString=re?"":this.phrases[2].text.trim()
+			var subjectString=subjectPhrase.re?"":this.phrases[0].text
 			var verbString=""
 
 			if(subject.length>1 || subject[0].number===ishml.lang.number.plural || subject[0].quantity>1 || subject[0].ply_number===ishml.lang.number.plural || subject[0].ply_quantity >1 ||lowerCaseSubject==="i" || lowerCaseSubject==="you" ||lowerCaseSubject==="we" ||lowerCaseSubject==="they" )
