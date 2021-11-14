@@ -4089,18 +4089,6 @@ ishml.grammar=new ishml.Rule()
 ishml.parser=null
 ishml.net=new ishml.Knot("$")
 
-ishml.net.i=new ishml.Cord()
-ishml.net.we=new ishml.Cord()
-ishml.net.you=new ishml.Cord()
-ishml.net.he=new ishml.Cord()
-ishml.net.she=new ishml.Cord()
-ishml.net.they=new ishml.Cord()
-ishml.net.it=new ishml.Cord()
-ishml.net.me=new ishml.Cord()
-ishml.net.us=new ishml.Cord()
-ishml.net.them=new ishml.Cord()
-ishml.net.him=new ishml.Cord()
-ishml.net.her=new ishml.Cord()
 ishml.undoLength=10
 ishml.lang={}
 ishml.phrasebook_handler=
@@ -4639,3 +4627,34 @@ ishml.reify=function(source)
 	console.log("This function will eventually convert a sub-set of Inform 7 source code into declarations to populate ishml.net")
 	return this
 }
+ishml.reify.lexicon=new ishml.Lexicon()
+
+/*
+The garden is east of the gazebo  -- subject copula complement (relation ojbect)
+East of the Garden is the Gazebo. -- complement (relation object) subject
+Above is the Treehouse.  -- relation copula subject
+A billiards table is in the Gazebo. -- subject copula complement (relation ojbect)
+On it is a trophy cup. 	-- 
+A starting pistol is in the trophy cup.
+
+statment =>	subject copula complement | 
+			complement copula subject 
+
+subject => nounPhrase
+
+complement =>	prepositionalPhrase | 
+				nounPhrase 
+
+nounPhrase => adjective* noun
+
+noun in subject's nounPhrase indicates an instance of something.
+noun in complement's nounPhrase indicate a class.  boat is a vehicle => new ishml.Knot.Vehicle()
+
+
+ it may be a noun or noun phrase, an adjective or adjective phrase, a prepositional phrase (as above) 
+
+*/
+ishml.reify.statements=new ishml.Rule()
+	.configure({maximum:Infinity,mode:ishml.Rule.any })
+    	.snip("relation").snip("nounPhrase",ishml.grammar.nounPhrase)
+ishml.reify.parser=ishml.parser=ishml.Parser({ lexicon: ishml.reify.lexicon, grammar: ishml.reify})

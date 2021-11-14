@@ -1,9 +1,13 @@
 ishml.tense=ishml.lang.present
 /*places*/	
-$
+/*$
 	.tie("place").to("foyer")
 	.tie("place").to("cloakroom")
-	.tie("place").to("bar")
+	.tie("place").to("bar")*/
+
+	new ishml.Knot.Place("foyer")	
+	new ishml.Knot.Place("cloakroom")
+	new ishml.Knot.Place("bar")
 
 $.place.foyer
 	.tie("west").to($.place.cloakroom)
@@ -56,7 +60,22 @@ $.thing.hook.configure
 .singular("hook")
 
 /*Actors*/
-$
+
+new ishml.Knot.Player("you")
+	.tie("in").to($.place.foyer)
+//	.tie("has_skill").to($.action.dropping,$.action.inventorying,$.action.taking, $.action.asking)
+	.tie("wears").to($.thing.cloak)
+
+new ishml.Knot.Woman("Jane")
+	.tie("in").to($.place.foyer)
+	.tie("has_skill").to($.action.dropping,$.action.taking,$.action.asking)
+
+new ishml.Knot.Woman("Alice")
+	.tie("in").to($.place.foyer)
+	.tie("has_skill").to($.action.dropping,$.action.taking, $.action.asking)
+
+
+/*$
 	.tie("actor").to("player","jane","alice")
 $
 	.tie("you").to($.actor.player)
@@ -74,9 +93,9 @@ $.actor.alice
 
 /*staging*/
 
-$.actor.player
+/*$.actor.player
 	.tie("in").to($.place.foyer)
-	.tie("has_skill").to($.action.dropping,$.action.inventorying,$.action.taking, $.action.asking)
+//	.tie("has_skill").to($.action.dropping,$.action.inventorying,$.action.taking, $.action.asking)
 	.tie("wears").to($.thing.cloak)
 
 $.actor.jane
@@ -86,6 +105,7 @@ $.actor.jane
 $.actor.alice
 	.tie("in").to($.place.foyer)
 	.tie("has_skill").to($.action.dropping,$.action.taking, $.action.asking)
+*/	
 
 $.fixture.hook.tie("in").to($.place.cloakroom)
 
