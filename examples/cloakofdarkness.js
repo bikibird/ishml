@@ -1,15 +1,37 @@
 ishml.tense=ishml.lang.present
 /*places*/	
-/*$
-	.tie("place").to("foyer")
-	.tie("place").to("cloakroom")
-	.tie("place").to("bar")*/
 
-	new ishml.Knot.Place("foyer")	
-	new ishml.Knot.Place("cloakroom")
-	new ishml.Knot.Place("bar")
+new ishml.Knot.Place("foyer")
+new ishml.Knot.Place("cloakroom")
+new ishml.Knot.Place("bar")
 
 $.place.foyer
+	.tie("west").to($.place.cloakroom)
+	.tie("south").to($.place.bar)
+	.configure({
+		name:"Foyer of the Opera House",
+		description:`You are standing in a spacious hall, splendidly decorated in red and gold, with glittering chandeliers overhead. The entrance from the street is to the north, and there are doorways south and west.`,
+		
+	})
+	.singular("foyer", "opera house foyer", "foyer of the opera house")
+
+$.place.cloakroom
+	.configure({
+		name:"Cloakroom",
+		description:`The walls of this small room were clearly once lined with hooks, though now only one remains.
+			The exit is a door to the east.`
+	})
+	.singular("cloakroom")
+
+$.place.bar	
+	
+	.configure({
+		name:"Bar",
+		description:`The bar, much rougher than you'd have guessed after the opulence of the foyer to the north, is completely empty. There seems to be some sort of message scrawled in the sawdust on the floor.`
+	}) 
+	.singular("bar")
+
+/*$.place.foyer
 	.tie("west").to($.place.cloakroom)
 	.tie("south").to($.place.bar)
 	.configure({

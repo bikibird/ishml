@@ -25,8 +25,8 @@ ishml.util.formatId=function(id)
 {
 	if(id)
 	{ 
-		if (typeof(id)==="string"){return id.replace(/\s+/g, '_')}
-		else{return id.id.replace(/\s+/g, '_')}
+		if (typeof(id)==="string"){return id.toLowerCase().replace(/\s+/g, '_')}
+		else{return id.id.toLowerCase().replace(/\s+/g, '_')}
 	}	
 	else 
 	{
@@ -65,8 +65,9 @@ ishml.lighting={dark:1,dim:2,bright:3}
 // #endregion
 // #region regex
 ishml.regex=ishml.regex||{}
-ishml.regex.word=/(^\w*)(.*)/
 ishml.regex.floatingPointNumber=/^-?([0-9]*[.])?[0-9]+/
+ishml.regex.whitespace=/^\s+/
+ishml.regex.word=/^\w*/
 // #endregion
 // #region Factories and Classes
 // #region Plotpoint 
@@ -1813,15 +1814,27 @@ ishml.Cord.handler=
 // #region Interpretation 
 ishml.Interpretation=function Interpretation(gist={},remainder="",valid=true,lexeme)
 {
-	this.lexeme=lexeme??""
+	
 	if (this instanceof ishml.Interpretation)
 	{
+		this.lexeme=lexeme??""
 		if (gist instanceof Array)
 		{
 			this.gist=gist.map(g=>
 			{
-				g.lexeme=this.lexeme
-				return g	
+				if (g instanceof ishml.Token)
+				{
+					return g.clone()
+					//this.gist.lexeme=this.lexeme
+					//g.lexeme=this.lexeme
+					//return g
+				}	
+				else
+				{
+					return Object.assign({},g)
+					
+				}	
+
 			})
 		}
 		else
@@ -1829,7 +1842,7 @@ ishml.Interpretation=function Interpretation(gist={},remainder="",valid=true,lex
 			if(gist instanceof ishml.Token)
 			{
 				this.gist=gist.clone()
-				this.gist.lexeme=this.lexeme
+				//this.gist.lexeme=this.lexeme
 			}
 			else
 			{
@@ -1929,7 +1942,7 @@ ishml.Lexicon.prototype.register = function (...someLexemes)
 	})	
 	return this
 }*/
-ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^\s+/, caseSensitive=false, longest=false, full=false}={}) 
+ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^\s+/, caseSensitive=false, longest=false, full=false, lax=false}={}) 
 {
 	var _trie = this.trie
 	var _results = []
@@ -1939,9 +1952,7 @@ ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^
 		if (match)
 		{
 			var result={}
-			var definitions=[]
-			definitions[0]={fuzzy:true}
-			result.token=new ishml.Token(match[0],definitions)
+			result.token=new ishml.Token(match[0],{fuzzy:true, match:match[0]})
 			result.remainder=searchText.slice(match[0].length)
 			if (separator && result.remainder.length>0)
 			{
@@ -1950,6 +1961,13 @@ ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^
 				{
 					if (discard[0] !==""){result.remainder=result.remainder.slice(discard[0].length)}
 					_results.unshift(result)
+				}
+				else 
+				{ 
+					if (lax)
+					{
+						_results.unshift(result)
+					}
 				}
 			}
 			else
@@ -1968,7 +1986,7 @@ ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^
 			else{var character=searchText.charAt(i).toLowerCase()}
 			if ( ! _trie[character])
 			{	
-				if(longest|full)
+				if(longest || full)
 				{
 					_results= _results.slice(0,1)
 					if(full && _results[0].remainder.length>0 ){_results=[]}
@@ -1991,13 +2009,20 @@ ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^
 							var result={}
 							result.token=new ishml.Token(searchText.substring(0,i+1),definition)
 							result.remainder=searchText.substring(i+1).slice(0)
-							if (separator)
+							if (separator  && result.remainder.length >0)
 							{
 								var discard=result.remainder.match(separator)
 								if (discard !== null)
 								{
 									if (discard[0] !==""){result.remainder=result.remainder.slice(discard[0].length)}
 									_results.unshift(result)
+								}
+								else 
+								{ 
+									if (lax)
+									{
+										_results.unshift(result)
+									}
 								}
 							}
 							else
@@ -2012,6 +2037,7 @@ ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^
 							result.remainder=""
 							_results.unshift(result)
 						}	
+						
 					})
 				}	
 				_trie = _trie[character]
@@ -2134,20 +2160,21 @@ ishml.Rule=function Rule()
 		
 		Object.defineProperty(this, "caseSensitive", {value:false, writable: true})
 		Object.defineProperty(this, "entire", {value:false, writable: true})
-		Object.defineProperty(this, "full", {value:false, writable: true})
 		Object.defineProperty(this, "filter", {value:(definition)=>true, writable: true})
+		Object.defineProperty(this, "full", {value:false, writable: true})
 		Object.defineProperty(this, "greedy", {value:false, writable: true})
 		Object.defineProperty(this, "keep", {value:true, writable: true})
+		Object.defineProperty(this, "lax", {value:false, writable: true})
 		Object.defineProperty(this, "longest", {value:false, writable: true})
 		Object.defineProperty(this, "minimum", {value:1, writable: true})
 		Object.defineProperty(this, "maximum", {value:1, writable: true})
 		Object.defineProperty(this, "mode", {value:ishml.Rule.all, writable: true})
+		Object.defineProperty(this, "prefer", {value:false, writable: true})
 		Object.defineProperty(this, "semantics", {value:(interpretation)=>true, writable: true})
 		Object.defineProperty(this, "mismatch", {value:(interpretation)=>false, writable: true})
 		Object.defineProperty(this, "separator", {value:/^\s/, writable: true})
 		Object.defineProperty(this, "regex", {value:false, writable: true})
-		//for composing
-		Object.defineProperty(this, "phrases", {value:[], writable: true})
+
 		return this
 	}
 	else
@@ -2164,7 +2191,7 @@ ishml.Rule.prototype.clone =function()
 
 	function _clone(rule)
 	{
-		var clonedRule= new ishml.Rule().configure({caseSensitive:rule.caseSensitive, entire:rule.entire, filter:rule.filter, full:rule.full, greedy:rule.greedy, keep:rule.keep,longest:rule.longest, minimum:rule.minimum, maximum:rule.maximum, mode:rule.mode, mismatch:rule.mismatch, regex:rule.regex, semantics:rule.semantics, separator:rule.separator,phrases:rule.phrases})
+		var clonedRule= new ishml.Rule().configure({caseSensitive:rule.caseSensitive, entire:rule.entire, filter:rule.filter, full:rule.full, greedy:rule.greedy, keep:rule.keep,longest:rule.lax,longest:rule.longest, minimum:rule.minimum, maximum:rule.maximum, mode:rule.mode, mismatch:rule.mismatch, prefer:rule.prefer, regex:rule.regex, semantics:rule.semantics, separator:rule.separator})
 		var entries=Object.entries(rule)
 		entries.forEach(([key,value])=>
 		{
@@ -2183,7 +2210,7 @@ ishml.Rule.prototype.clone =function()
 	}	
 	return _clone(this)
 }	
-ishml.Rule.prototype.configure =function({caseSensitive, entire,filter, full, greedy, keep, longest, minimum,maximum, mode,mismatch, regex, semantics, separator, shuffle, phrases}={})
+ishml.Rule.prototype.configure =function({caseSensitive, entire, filter, full, greedy, keep, longest, lax, minimum,maximum, mode,mismatch,prefer, regex, semantics, separator}={})
 {
 
 	if(caseSensitive !== undefined){this.caseSensitive=caseSensitive}
@@ -2192,15 +2219,16 @@ ishml.Rule.prototype.configure =function({caseSensitive, entire,filter, full, gr
 	if(full !== undefined){this.full=full}
 	if(greedy !== undefined){this.greedy=greedy}
 	if(keep !== undefined){this.keep=keep}
+	if(lax !== undefined){this.lax=lax}
 	if(longest !== undefined){this.longest=longest}
 	if(minimum !== undefined){this.minimum=minimum}
 	if(maximum !== undefined){this.maximum=maximum}
 	if(mode !== undefined){this.mode=mode}
 	if(mismatch !== undefined){this.mismatch=mismatch}
+	if(prefer !== undefined){this.prefer=prefer}
 	if(regex !== undefined){this.regex=regex}
 	if(semantics !== undefined){this.semantics=semantics}
 	if(separator !== undefined){this.separator=separator}
-	if(phrases !== undefined){this.phrases=phrases}
 	return this
 }
 ishml.Rule.prototype.parse =function(text,lexicon)
@@ -2223,17 +2251,20 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 				{
 					for (let key of keys)
 					{
+						console.log("All "+key)
 						revisedCandidates.forEach(candidate=>
 						{	
 							var {gist,remainder,valid}=candidate
 							//SNIP
 							if (remainder.length>0)
 							{
+
 								var {snippets}=this[key].parse(remainder.slice(0),lexicon) 
 								snippets.forEach((snippet)=>
 								{
-									var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid,candidate.lexeme+remainder.slice(0,remainder.length-snippet.remainder.length))
-
+									var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid,
+										candidate.lexeme+remainder.slice(0,remainder.length-snippet.remainder.length))
+										//remainder.slice(0,remainder.length-snippet.remainder.length))
 									if (this.maximum ===1 )
 									{
 										if(this[key].keep || !phrase.valid){phrase.gist[key]=snippet.gist}
@@ -2248,9 +2279,18 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 								})
 							}  
 						})
+						
 						if (this[key].minimum===0)
 						{
-							revisedCandidates=revisedCandidates.concat(phrases.slice(0))
+							if (this[key].greedy && phrases.length>0)
+							{
+								revisedCandidates=phrases.slice(0)
+							}
+							else
+							{
+								revisedCandidates=revisedCandidates.concat(phrases.slice(0))
+							}
+							
 						}
 						else
 						{
@@ -2282,7 +2322,7 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 					{
 						var counter = 0
 						var phrases=[]
-						
+						console.log("Any "+key)
 						while (counter<this.maximum)
 						{
 							revisedCandidates.forEach(candidate=>
@@ -2294,7 +2334,9 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 									var {snippets}=this[key].parse(remainder.slice(0),lexicon) 
 									snippets.forEach((snippet)=>
 									{
-										var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid,candidate.lexeme+remainder.slice(0,remainder.length-snippet.remainder.length))
+										var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid,
+											candidate.lexeme+remainder.slice(0,remainder.length-snippet.remainder.length))
+											//remainder.slice(0,remainder.length-snippet.remainder.length))
 										if (this.maximum ===1 )
 										{
 											if(this[key].keep || !phrase.valid){phrase.gist=snippet.gist}
@@ -2338,7 +2380,7 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 				{
 					var counter = 0
 					var phrases=[]
-					
+					console.log("Apt "+key)
 					while (counter<this.maximum)
 					{
 						revisedCandidates.forEach(candidate=>
@@ -2350,7 +2392,9 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 								var {snippets}=this[key].parse(remainder.slice(0),lexicon) 
 								snippets.forEach((snippet)=>
 								{
-									var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid,candidate.lexeme+remainder.slice(0,remainder.length-snippet.remainder.length))
+									var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid,
+										candidate.lexeme+remainder.slice(0,remainder.length-snippet.remainder.length))
+										//remainder.slice(0,remainder.length-snippet.remainder.length))
 									if (this.maximum ===1 )
 									{
 										if(this[key].keep || !phrase.valid){phrase.gist=snippet.gist}
@@ -2411,13 +2455,16 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 				//SNIP
 				if (remainder.length>0)
 				{
-					var snippets=lexicon.search(remainder, {regex:rule.regex,separator:rule.separator, caseSensitive:rule.caseSensitive, longest:rule.longest, full:rule.full})
+					var snippets=lexicon.search(remainder, {regex:rule.regex,separator:rule.separator, caseSensitive:rule.caseSensitive, longest:rule.longest, full:rule.full, lax:rule.lax})
 
 					snippets.forEach((snippet)=>
 					{
 						if (this.filter(snippet.token.definition))
 						{
-							var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid,candidate.lexeme+remainder.slice(0,remainder.length-snippet.remainder.length))
+							console.log(snippet)
+							var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid,
+								candidate.lexeme+remainder.slice(0,remainder.length-snippet.remainder.length))
+								//remainder.slice(0,remainder.length-snippet.remainder.length))
 							if (this.maximum ===1 )
 							{
 								if(this.keep || !phrase.valid){phrase.gist=snippet.token}
@@ -4624,10 +4671,10 @@ ishml.reintroduce=function()
 }
 ishml.reify=function(source)
 {
-	console.log("This function will eventually convert a sub-set of Inform 7 source code into declarations to populate ishml.net")
-	return this
+	console.log(ishml.reify.parser.analyze(source))
 }
 ishml.reify.lexicon=new ishml.Lexicon()
+ishml.reify.neolog
 
 /*
 The garden is east of the gazebo  -- subject copula complement (relation ojbect)
@@ -4648,13 +4695,77 @@ complement =>	prepositionalPhrase |
 nounPhrase => adjective* noun
 
 noun in subject's nounPhrase indicates an instance of something.
-noun in complement's nounPhrase indicate a class.  boat is a vehicle => new ishml.Knot.Vehicle()
+noun in complement's nounPhrase indicate a class, variety, or toggle.  boat is a vehicle => new ishml.Knot.Vehicle()
+
+pickle flavor is either sweet or sour  //Toggle because only two choices
+pickle flavor may be either sweet or sour 
+
+
+ice cream flavor may be chocolate, vanilla, or strawberry  //Variety 
+ice cream flavor is either chocolate, vanilla, or strawberry
+ice cream flavor is chocolate, vanilla, or strawberry.
+ice cream flavor is usually vanilla  --sets default selection.  Otherwise first item
+
+capacity is the number 150.
+now capicity is the number 250.
+
+greeting is "Hello world".
+
+foyer is a place
+
+animal is a kind of actor.
+
+water is a kind of knot.
+
+lake is water.  The condition of the lake is usually calm.  The condition of the lake may be calm or choppy
+
+
+The lake is water. Water is a kind of liquid. Liquid is a kind of knot. The potability of the lake is potable. Water may be either potable or not.  Water is usually not potable.
+
+{lake:water}
+{water:{kind:liquid}}
+{liquid:{kind:knot}}
+{knot:ishml.Knot}
+
+output:
+ operation, subject, complement
+
+operation=> definition | instantiate | class
+
+
+
+
+operation
+The garden is east of the gazebo  -- subject copula complement (relation ojbect)
+East of the Garden is the Gazebo. -- complement (relation object) subject
+Above is the Treehouse.  -- relation copula subject
+A billiards table is in the Gazebo. -- subject copula complement (relation ojbect)
+On it is a trophy cup. 	-- 
+A starting pistol is in the trophy cup.
+
+{garden:{east:gazebo}}
+{garden:{above:treehouse}}
+{billiards table{in:gazebo}}
+{trophy cup:{on:billiards table}}
+{starting pistol:{in: trophy cup}}
 
 
  it may be a noun or noun phrase, an adjective or adjective phrase, a prepositional phrase (as above) 
 
+
+ [
+    {
+        "token": {
+            "lexeme": "lake",
+            "definition": [
+                {
+                    "fuzzy": true
+                }
+            ]
+        },
+        "remainder": "is"
+    }
+]
+
 */
-ishml.reify.statements=new ishml.Rule()
-	.configure({maximum:Infinity,mode:ishml.Rule.any })
-    	.snip("relation").snip("nounPhrase",ishml.grammar.nounPhrase)
-ishml.reify.parser=ishml.parser=ishml.Parser({ lexicon: ishml.reify.lexicon, grammar: ishml.reify})
+

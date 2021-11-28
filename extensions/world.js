@@ -134,9 +134,134 @@ ishml.Knot.Place= class Place extends ishml.Knot
 	constructor (id)
 	{
 		super(id)
-		ishml.net.tie("place").to(this)
+		ishml.net.tie("place@is:place","container@is:container").to(this)
 	}
 }
+
+ishml.Knot.Thing= class Thing extends ishml.Knot
+{
+	constructor (id)
+	{
+		super(id)
+		ishml.net.tie("thing").to(this)
+	}
+}
+ishml.reify.createFromKind=(definition,kind)=>
+{
+	if(definition.fuzzy)
+	{
+		var id=ishml.util.formatId(definition.match)
+		if (ishml.Knot.isPrototypeOf(kind) || ishml.Knot===kind)
+		{
+			var instance=new kind(id)
+			ishml.reify.lexicon.register(definition.match).as(instance)
+			return this
+		}
+	}
+
+}
+ishml.reify.lexicon
+	.register("is").as({part: "copula", number:ishml.lang.singular, operation:(id,kind)=>
+	{
+		//instantiation
+		ishml.reify.createFromKind(id,kind)
+	}})
+	.register("are").as({part: "copula", number:ishml.lang.plural, operation:(id,kind)=>
+	{
+		//instantiation
+		ishml.reify.createFromKind(id,kind)
+	}})
+	.register("knot").as({part:"noun",kind: ishml.Knot})
+	.register("place","room").as({part:"noun", kind:ishml.Knot.Place})
+	.register("actor").as({part:"noun", kind:ishml.Knot.Actor})
+	.register("man").as({part:"noun",kind:ishml.Knot.Man})
+	.register("woman").as({part:"noun",kind:ishml.Knot.Woman})
+	.register("epicene").as({part:"noun",kind:ishml.Knot.Epicene})
+	.register("neuter").as({part:"noun",kind:ishml.Knot.Neuter})
+	.register("kind of").as({part:"relation",operation:(definition,c)=>
+	{
+		if (definition.fuzzy)
+		{
+			var id=ishml.util.formatId(definition.match)
+			if (ishml.Knot.isPrototypeOf(c) || ishml.Knot===c)
+			{
+				ishml.Knot[id]=class extends c
+				{
+					constructor(id)
+					{
+						super (id)
+						ishml.net.tie(id).to(this)
+
+					}
+					
+				}
+
+				ishml.reify.lexicon.register(definition.match).as({part:"noun",kind:ishml.Knot[id]})
+				return ishml.Knot[id]
+			}
+		}
+	}})
+	.register(".").as({part:"end"})
+	.register(",").as({part:"comma"})
+
+
+ishml.reify.space=new ishml.Rule().configure({regex:ishml.regex.whitespace,minimum:0,maximum:1,separator:false,greedy:true, keep:false})	
+
+ishml.reify.noun=new ishml.Rule().configure({mode:ishml.Rule.apt})
+	.snip(1)
+	.snip(2)
+ishml.reify.noun[1].filter=(definition)=>definition?.part==="noun"
+ishml.reify.noun[2].configure({regex:/^.+?(?=\s+is\s+|\s+are\s+)/})
+
+ishml.reify.relation=new ishml.Rule().configure({minimum:0,filter:(definition)=>definition?.part==="relation"})
+
+ishml.reify.statements=new ishml.Rule().configure({maximum:Infinity})
+
+ishml.reify.statements
+	.snip("space1", ishml.reify.space.clone()).snip("statement").snip("end").snip("space2", ishml.reify.space.clone())
+
+ishml.reify.statements.statement.configure({regex:/^[^.]+/, lax:true})
+	.snip("subject").snip("copula").snip("complement")
+
+ishml.reify.statements.statement.subject
+	.snip("relation",ishml.reify.relation).snip("noun")
+
+ishml.reify.statements.statement.subject.noun=new ishml.Rule().configure({mode:ishml.Rule.apt})
+	.snip(1)
+	.snip(2)
+ishml.reify.statements.statement.subject.noun[1].filter=(definition)=>definition?.part==="noun"
+ishml.reify.statements.statement.subject.noun[2].configure({regex:/^.+?(?=\s+is\s+|\s+are\s+)/})
+
+ishml.reify.statements.statement.copula.filter=(definition)=>definition?.part==="copula"	
+
+ishml.reify.statements.statement.complement
+	.snip("relation",ishml.reify.relation).snip("noun")
+
+ishml.reify.statements.statement.complement.noun=new ishml.Rule()
+ishml.reify.statements.statement.complement.noun.configure({lax:true,filter:(definition)=>definition?.part==="noun"})
+
+ishml.reify.statements.end.configure({lax:true,filter:(definition)=>definition?.part==="end",keep:false})
+
+/*ishml.reify.statements.statement.subject[1].filter=(definition)=>definition?.part==="noun"
+
+ishml.reify.statements.statement.subject[2].configure({regex:/^.+?(?=\s+is\s+|\s+are\s+)/})
+
+ishml.reify.statements.statement.complement.relation.configure({minimum:0,filter:(definition)=>definition?.part==="relation"})
+ishml.reify.statements.statement.complement.object.configure({lax:true,filter:(definition)=>definition?.part==="noun"})
+*/
+
+ishml.reify.statements.statement.semantics=(interpretation)=>
+{
+	var args=[interpretation.gist.subject.noun.definition,interpretation.gist.complement.noun.definition.kind]
+	var operation=interpretation.gist.complement.relation?.definition.operation ?? interpretation.gist.copula.definition.operation
+	operation(...args)
+	return interpretation
+}
+
+ishml.reify.parser=ishml.Parser({ lexicon: ishml.reify.lexicon, grammar: ishml.reify.statements})
+
+
+
 /* 
 Notes:
 
@@ -207,30 +332,17 @@ An object can be ambiguously plural.
 
 Directions:
 
-	place1 is north of place2  
-	north of place2 is place1
+The Debris Room is west of the Crawl.  --east/west
+crawl.exit.west === debris_room
+debris_room.exit.east === crawl
 
-	place1 is above place2
-	above place2 is place1
+The Hidden Alcove is east of the Debris Room.  
+debris_room.exit.east === hidden_alcove
+hidden_alcove.exit.west === debris_room
 
-	place1, a stadium, is north of  place2
-	north of place2 is place1 which is a stadium a stadium
+West of the Garden is south of the Meadow.
 
-	place1
 
-	ties are bilateral, but subsequent statements may overwrite and non-involved items aren't checked.
-
-	place1 is north of place2
-	place2 is south of place3 
-
-	place1 is above place2
-	below place2 is nowhere/nothing.
-
-	place1 is north of place2.  above is a bacony.  (implied subject!)
-
-	The heavy iron grating is east of the Orchard and west of the Undertomb. The grating is a door.
-	The property property thing is east of place1 and west of place2.  The thing is a door.
-	The property property thing which is a door, is east of place1 and west of place2. 
 	
 East of the Garden is the Gazebo. Above is the Treehouse. A billiards table is in the Gazebo. On it is a trophy cup. A starting pistol is in the trophy cup.
 
