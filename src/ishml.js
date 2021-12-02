@@ -1984,7 +1984,7 @@ ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^
 		{
 			if (caseSensitive){var character=searchText.charAt(i)}
 			else{var character=searchText.charAt(i).toLowerCase()}
-			if ( ! _trie[character])
+			if ( ! (_trie[character]  || (!caseSensitive && _trie[character.toUpperCase()])))
 			{	
 				if(longest || full)
 				{
@@ -2054,7 +2054,7 @@ ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^
 
 ishml.Lexicon.prototype.unregister=function(lexeme,definition)
 {
-	var _lexeme=lexeme.toLowerCase()
+	var _lexeme=lexeme
 	var _trie = this.trie
 	var j=0
 	for (let i=0; i < _lexeme.length; i++)
@@ -4674,7 +4674,7 @@ ishml.reify=function(source)
 	console.log(ishml.reify.parser.analyze(source))
 }
 ishml.reify.lexicon=new ishml.Lexicon()
-ishml.reify.neolog
+ishml.reify.cache={}
 
 /*
 The garden is east of the gazebo  -- subject copula complement (relation ojbect)
