@@ -437,3 +437,45 @@ open/closed
 transparent/not transparent
 
 */
+
+
+/*
+	adj(adj(adj(knot)))  the red wheelbarrow is a thing =>the(red(is(wheelbarrow,a(thing)))
+	adj(adj(adj(knot)))tie(adj(adj(adj(knot))))
+	
+	the formal garden is east of the gazebo 
+	the(formal(is_east_of(garden,the(gazebo))))
+	
+	the garden is a place. The gazebo is east.
+	the (is(garden,(a(place)))) the (is(gazebo,east))
+
+	east of garden is north of gazebo
+
+	The wheelbarrow is a thing.  the wheelbarrow is red.
+	the (is (wheelbarrow, a(thing))) the(is(wheelbarrow,red))
+
+	the wheelbarrow is a red thing.
+	the (is (wheelbarrow, a(red(thing))))
+
+	instantiate, modify, assign, modify
+
+	the wheelbarrow is a red thing
+	the (wheelbarrow(red(a(thing))))
+	the red wheelbarrow is a thing
+	the(red(wheelbarrow(a(thing))))
+
+	wheelbarrow definition {fuzzy:true, match:wheelbarrow, operation:define}
+
+	east of garden is north of gazebo
+	east_of(garden(north_of(gazebo())))
+
+	Everything is an operation!
+	statement.snip(operation)
+	statement.operation.configure({maximum:infinity,apt})
+		.snip(1)
+		.snip(2)
+	statement.operation[1]=	{longest: true, operation:act on prior returned thing}	
+	statement.operation[2]=	{fuzzy:true, match:whatever, operation:instantiate thing}
+
+
+*/
