@@ -171,14 +171,14 @@ ishml.reify.direction=(a,b,forward,back)=>  //exit:north=exit:south
 	{
 		var id=ishml.util.formatId(a.match)
 		var fromKnot=new ishml.Knot.place(id)
-		ishml.reify.lexicon.register(a.match).as({part:"noun",instance:fromKnot})
+		ishml.reify.lexicon.register(a.match.toLowerCase()).as({part:"noun",instance:fromKnot})
 	}
 	else {var fromKnot = a.instance}
 	if (b.fuzzy)
 	{
 		var id=ishml.util.formatId(b.match)
 		var toKnot=new ishml.Knot.place(id)
-		ishml.reify.lexicon.register(a.match).as({part:"noun",instance:toKnot})
+		ishml.reify.lexicon.register(a.match.toLowerCase()).as({part:"noun",instance:toKnot})
 	}
 	else {var toKnot = b.instance}
 
@@ -186,29 +186,21 @@ ishml.reify.direction=(a,b,forward,back)=>  //exit:north=exit:south
 	else {return fromKnot.tie(`exit:${forward}`).to(toKnot)}
 }
 ishml.reify.lexicon
-	.register("is").as({part: "copula", number:ishml.lang.singular, operation:(id,kind)=>
-	{
-		//instantiation
-		ishml.reify.createFromKind(id,kind)
-	}})
-	.register("are").as({part: "copula", number:ishml.lang.plural, operation:(id,kind)=>
-	{
-		//instantiation
-		ishml.reify.createFromKind(id,kind)
-	}})
-	.register("it").as({part:"noun",instance: ishml.reify.cache.it})
-	.register("here").as({part:"noun",instance: ishml.reify.cache.here})
-	.register("he").as({part:"noun",instance: ishml.reify.cache.here})
-	.register("she").as({part:"noun",instance: ishml.reify.cache.here})
-	.register("they").as({part:"noun",instance: ishml.reify.cache.here})
-	.register("knot").as({part:"noun",kind: ishml.Knot})
-	.register("place","room").as({part:"noun", kind:ishml.Knot.Place})
-	.register("actor").as({part:"noun", kind:ishml.Knot.Actor})
-	.register("man").as({part:"noun",kind:ishml.Knot.Man})
-	.register("woman").as({part:"noun",kind:ishml.Knot.Woman})
-	.register("epicene").as({part:"noun",kind:ishml.Knot.Epicene})
-	.register("neuter").as({part:"noun",kind:ishml.Knot.Neuter})
-	.register("kind of").as({part:"relation",operation:(definition,c)=>
+	.register("is").as({part:"verb", operation:item=>item})
+	.register("are").as({part:"",operation:item=>item})
+	.register("it").as({operation:()=>ishml.reify.cache.it})
+	.register("here").as({operation:()=>ishml.reify.cache.here})
+	.register("he").as({operation:()=>ishml.reify.cache.here})
+	.register("she").as({operation:()=>ishml.reify.cache.here})
+	.register("they").as({operation:()=>ishml.reify.cache.here})
+	.register("knot").as({operation:()=>ishml.Knot})
+	.register("place","room").as({part:"operator",operation:()=>ishml.Knot.Place})
+	.register("actor").as({part:"operator",operation:()=> ishml.Knot.Actor})
+	.register("man").as({part:"operator",operation:()=> ishml.Knot.Man})
+	.register("woman").as({part:"operator",operation:()=> ishml.Knot.Woman})
+	.register("epicene").as({part:"operator",operation:()=> ishml.Knot.Epicene})
+	.register("neuter").as({part:"operator",operation:()=> ishml.Knot.Neuter})
+	.register("kind of").as({part:"operator",operation:(definition,c)=>
 	{
 		if (definition.fuzzy)
 		{
@@ -224,12 +216,46 @@ ishml.reify.lexicon
 					}
 				}
 				ishml.Knot[id].id=id
-				ishml.reify.lexicon.register(definition.match).as({part:"noun",kind:ishml.Knot[id]})
+				ishml.reify.lexicon.register(definition.match.toLowerCase()).as({part:"noun",kind:ishml.Knot[id]})
 				return ishml.Knot[id]
 			}
 		}
 	}})
-	.register("north of").as({part:"relation",forward:"north", back:"south",operation:ishml.reify.direction})
+/*converse: Proxy {id: 'south', knot: Place, ply: {…}, hop: 0, cost: 0, …}
+cordId: "exit"
+cost: 0
+from: Place {id: 'garden', name: 'garden', description: 'garden', is: Proxy, exit: Proxy, …}
+hop: 0
+id: "north"
+knot: Place {id: 'house', name: 'house', description: 'house', is: Proxy, exit: Proxy, …}
+
+*/
+	.register("is north of").as({part:"verb",subject:ishml.Knot.Place,object:ishml.Knot.Place,operation:(item)=> //garden is north of house -- item===house
+	{
+		if (item instanceof ishml.Knot)
+		{
+			if( !(item instanceof ishml.Knot.Place))  //Is knot provisional from fuzzy def?
+			{
+				var knot=Object.assign(new ishml.Knot.Place(item.id,item.name,item.description),item)
+			}
+			else {var knot=item}
+			knot.tie("exit:north=exit:south").to(new ishml.Knot.Place())
+			return knot.exit.north  //garden
+			
+		}
+		if (item instanceof ishml.Ply)
+		{
+
+		}
+		if (!item)
+		{
+
+		}
+		if (item.fuzzy)
+		{
+
+		}
+	}})
 	.register("east of").as({part:"relation",forward:"east", back:"west",operation:ishml.reify.direction})
 	.register("south of").as({part:"relation",forward:"south", back:"north",operation:ishml.reify.direction})
 	.register("west of").as({part:"relation",forward:"west", back:"east",operation:ishml.reify.direction})
@@ -251,6 +277,32 @@ ishml.reify.statements=new ishml.Rule().configure({maximum:Infinity})
 
 ishml.reify.statements
 	.snip("space1", ishml.reify.space.clone()).snip("statement").snip("end").snip("space2", ishml.reify.space.clone())
+ishml.reify.statements.end.configure({lax:true,filter:(definition)=>definition?.part==="end",keep:false})
+
+ishml.reify.statements.statement
+	.snip("subject").snip("verb").snip("object") //.snip("adverb") //Lizzy likes charlotte a lot.  
+// .snip("subject").snip("adverb").snip("verb").snip("object") //Lizzy barely likes charlotte.
+																//house is 500 ft north of garden.
+
+ishml.reify.statements.statement.subject.snip("operations")	
+ishml.reify.statements.statement.subject.operations.configure({maximum:Infinity,minimum:1})
+	.snip("operation")
+ishml.reify.statements.statement.subject.operations.operation.configure({mode:ishml.Rule.apt})	
+	.snip(1)
+	.snip(2)
+ishml.reify.statements.statement.subject.operations.operation[1].configure({longest:true, greedy:true,lax:true,maximum:1,minimum:0, filter:(definition)=>definition.operation}) 
+ishml.reify.statements.statement.subject.operations.operation[2].configure({maximum:1,minimum:0, lax:true, regex:/^[^.]+?(?=\s+is\s+|\s+are\s+|\s*[.]\s*)/})
+ishml.reify.statements.statement.verb.configure({maximum:1,minimum:1,filter:(definition)=>definition?.part==="verb"})
+ishml.reify.statements.statement.object.snip("operations")	
+ishml.reify.statements.statement.object.operations.configure({maximum:Infinity,minimum:1})
+	.snip("operation")
+ishml.reify.statements.statement.object.operations.operation.configure({mode:ishml.Rule.apt})	
+	.snip(1)
+	.snip(2)
+ishml.reify.statements.statement.object.operations.operation[1].configure({longest:true, greedy:true,lax:true,maximum:1,minimum:0, filter:(definition)=>definition.operation}) 
+ishml.reify.statements.statement.object.operations.operation[2].configure({maximum:1,minimum:0, lax:true, regex:/^.+?(?=\s+[.]\s+)/})
+
+/*
 
 ishml.reify.statements.statement.configure({regex:/^[^.]+/, lax:true})
 	.snip("subject").snip("copula").snip("complement")
@@ -271,8 +323,8 @@ ishml.reify.statements.statement.copula.filter=(definition)=>definition?.part===
 ishml.reify.statements.statement.complement
 	.snip("relation",ishml.reify.relation.clone()).snip("noun")
 
-/*ishml.reify.statements.statement.complement.noun=new ishml.Rule()
-ishml.reify.statements.statement.complement.noun.configure({lax:true,filter:(definition)=>definition?.part==="noun"})*/
+//ishml.reify.statements.statement.complement.noun=new ishml.Rule()
+//ishml.reify.statements.statement.complement.noun.configure({lax:true,filter:(definition)=>definition?.part==="noun"})
 
 ishml.reify.statements.statement.complement.noun.configure({mode:ishml.Rule.apt})
 	.snip(1)
@@ -335,7 +387,7 @@ ishml.reify.statements.statement.semantics=(interpretation)=>
 	
 	return interpretation
 }
-
+*/
 ishml.reify.parser=ishml.Parser({ lexicon: ishml.reify.lexicon, grammar: ishml.reify.statements})
 
 
@@ -477,5 +529,62 @@ transparent/not transparent
 	statement.operation[1]=	{longest: true, operation:act on prior returned thing}	
 	statement.operation[2]=	{fuzzy:true, match:whatever, operation:instantiate thing}
 
+	garden is north of gazebo
+
+	garden(north_of(gazebo))
+
+	garden({forward,back, knot:gazebo, operation})
+
+statment =
+{
+	fromKnot : instance | class
+	fromKnotName,
+	toKnot,
+	toKnotName,
+	cords:[{tie:"a=b",weight,converseWeight}]
+}
+_.reify`house is north of garden.`
+_.reify`house is north of ${_.pick("store","garden","post office").say().text})`
+_.reify`house is north of garden. the desription of house is ${_pick("cozy","inviting","run down")})`
+friendly Lizzy likes charlotte a lot.
+
+likes(friendly(Lizzy()),charlotte(), a_lot())
+
+description of house is cozy.
+
+statement => relational statemnet | assignment statement
+
+relational statement=>(adjective)* knot1 verb (adjective)* knot2 adverb
+relation statements will do knot creation is knots don't exist
+verb creates tie between knots
+adverbs set weight of ply 
+
+
+assignment statement
+
+description of house is cozy.
+property knot1 copula (value | class)
+desciption of green house is "value"
+
+lizzy does not like charlotte
+
+
+property is a property of the knot like "description of"=> knot1.description
+
+subject verb object adverb
+
+subject => operation*
+object => operation*
+verb => verb
+adverb ->adverb
+complement => (unary_operations)* knot weight?
+
+operation* 
+
+{subject:{operations} object:{operations} verb:{operations}}
+
+garden is north of house.
+garden 
 
 */
+

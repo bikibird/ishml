@@ -463,11 +463,11 @@ Cords only no other user defined properties.  twists are a set of plotpoints tha
 */ 
 ishml.Knot= class Knot
 {
-	constructor(id) //,uid)
+	constructor(id, name, description) //,uid)
 	{
-		this.id=id
-		this.name=id.replace("_"," ")
-		this.description=this.name
+		this.id=ishml.util.formatId(id)
+		this.name=name??this.id.replace("_"," ")
+		this.description=description??this.name
 		Object.defineProperty(this, "lexeme", {value:"",writable: true})
 		/*Object.defineProperty(this, "id", {value:id,writable: true}) //
 		Object.defineProperty(this, "name", {value:id.replace("_"," "),writable: true}) //local name
@@ -1984,7 +1984,7 @@ ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^
 		{
 			if (caseSensitive){var character=searchText.charAt(i)}
 			else{var character=searchText.charAt(i).toLowerCase()}
-			if ( ! (_trie[character]  || (!caseSensitive && _trie[character.toUpperCase()])))
+			if ( ! (_trie[character] ))
 			{	
 				if(longest || full)
 				{
@@ -4671,10 +4671,64 @@ ishml.reintroduce=function()
 }
 ishml.reify=function(source)
 {
-	console.log(ishml.reify.parser.analyze(source))
+	var statements=ishml.reify.parser.analyze(source).interpretations[0].gist.map(item=>item.statement)
+	console.log(statements)
+
+	
+
+	/*statements.forEach((statement,statementIndex)=>
+	{
+		var result=null
+		for (let index = statement.operations.length-1; index > -1; index--) 
+		{
+			var definition=statement.operations[index].operation.definition
+			if (definition.fuzzy)
+			{
+				operation=(item)=>
+				{
+					if (!item)
+					{
+						var instance=new ishml.Knot(definition.match)
+						ishml.reify.lexicon.register(definition.match).as({operation:()=>instance})
+
+						return instance
+					}
+					if (ishml.Knot.isPrototypeOf(item) || ishml.Knot===item)
+					{
+						var instance=new item(definition.match)
+						ishml.reify.lexicon.register(definition.match).as({operation:()=>instance})
+
+						return instance
+					}
+					if (item instanceof ishml.Ply)
+					{
+						var instance =item.knot
+						instance.id=ishml.util.formatId(definition.match)
+						instance.name=definition.match
+						instance.description=definition.match
+						ishml.reify.lexicon.register(definition.match).as({operation:()=>instance})
+						
+						return instance
+					}
+					else
+					{
+						console.log(`Unable to assign ${item.name} to ${definition.match}. (Statement # ${statementIndex+1})`)
+					}
+				}
+			}
+			else
+			{
+				var operation=statement.operations[index].operation.definition.operation
+			}	
+			result=operation(result)
+			
+		}	
+		console.log(result)
+	})*/
 }
 ishml.reify.lexicon=new ishml.Lexicon()
 ishml.reify.cache={}
+
 
 /*
 The garden is east of the gazebo  -- subject copula complement (relation ojbect)
