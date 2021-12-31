@@ -514,6 +514,7 @@ ishml.Knot= class Knot
 		
 	}
 	*/
+
 	nearby(hops)
 	{
 		return new ishml.Cord(this).nearby(hops)
@@ -4671,6 +4672,8 @@ ishml.reintroduce=function()
 }
 ishml.reify=function(source)
 {
+	//var source = new ishml.Phrase(...sources)
+
 	var statements=ishml.reify.parser.analyze(source).interpretations[0].gist.map(item=>item.statement)
 	console.log(statements)
 
@@ -4727,8 +4730,12 @@ ishml.reify=function(source)
 	})*/
 }
 ishml.reify.lexicon=new ishml.Lexicon()
-ishml.reify.cache={}
-
+ishml.reify.cache={subect:null, object:null}
+/*ishml.reify.knot(item)
+{
+	if (typeof item === "string" ){return ishml.Knot(item)}
+	else {return item.knot}
+}*/
 
 /*
 The garden is east of the gazebo  -- subject copula complement (relation ojbect)
