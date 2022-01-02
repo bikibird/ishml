@@ -4676,7 +4676,11 @@ ishml.reify=function(source)
 
 	var statements=ishml.reify.parser.analyze(source).interpretations[0].gist.map(item=>item.statement)
 	console.log(statements)
-
+	statements.forEach(statement =>
+	{
+		var operations=statement.operations.map(operation=>operation.operation.definition).values()
+		operations.next().value(operations)
+	})	
 	
 
 	/*statements.forEach((statement,statementIndex)=>

@@ -174,18 +174,22 @@ ishml.reify.direction=(a,b,forward,back)=>  //exit:north=exit:south
 ishml.reify.lexicon
 	//gazebo is place  //gazebo is place north of garden  //north_of(is_place(subject),object)
 	//always return subject
-	.register("is place").as((subject,operations)=>
+	.register("is place").as((operations,subject)=>
 	{
 		ishml.net.tie("place@is:place","container@is:container").to(subject)
-		return subject
+		var operator=operations.next()
+		if (operator.done) return subject
+		else return operator.value(subject)
 	})
-	.register("is north of").as((subject,operations)=> //garden is north of house -- item===house
+	.register("is north of").as((operations,subject)=> //garden is north of house -- item===house
 	{
-		var toKnot=operations.next()
+		var toKnot=operations.next().value(operations)
 		ishml.net.tie("place@is:place","container@is:container").to(toKnot)
 		ishml.net.tie("place@is:place","container@is:container").to(subject)
 		subject.tie("exit:north=exit:south").to(toKnot)	
-		return subject
+		var operator=operations.next()
+		if (operator.done) return subject
+		else return operator.value(operations,subject)
 	})
 	
 /*	.register("south of").as({part:"adjective",operator:(item)=> //garden is north of house -- item===house
@@ -240,8 +244,14 @@ ishml.reify.statements.statement.operations.operation[2].semantics=(interpretati
 	var definition=interpretation.gist.definition
 	console.log(definition)
 	var subject=new ishml.Knot(definition.match)
-	definition.operation=()=>subject
-	ishml.reify.lexicon.register(definition.match).as(definition.operation)
+	interpretation.gist.definition=(operations)=>
+	{
+		var operator=operations.next()
+		if (operator.done) return subject
+		else return operator.value(operations,subject)
+	}	
+
+	ishml.reify.lexicon.register(definition.match).as(interpretation.gist.definition.operation)
 	
 	return interpretation
 }
