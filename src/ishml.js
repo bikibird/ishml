@@ -4675,63 +4675,11 @@ ishml.reify=function(source)
 	//var source = new ishml.Phrase(...sources)
 
 	var statements=ishml.reify.parser.analyze(source).interpretations[0].gist.map(item=>item.statement)
-	console.log(statements)
 	statements.forEach(statement =>
 	{
 		var operations=statement.operations.map(operation=>operation.operation.definition).values()
-		operations.next().value(operations)
+		operations.next().value(operations,[])
 	})	
-	
-
-	/*statements.forEach((statement,statementIndex)=>
-	{
-		var result=null
-		for (let index = statement.operations.length-1; index > -1; index--) 
-		{
-			var definition=statement.operations[index].operation.definition
-			if (definition.fuzzy)
-			{
-				operation=(item)=>
-				{
-					if (!item)
-					{
-						var instance=new ishml.Knot(definition.match)
-						ishml.reify.lexicon.register(definition.match).as({operation:()=>instance})
-
-						return instance
-					}
-					if (ishml.Knot.isPrototypeOf(item) || ishml.Knot===item)
-					{
-						var instance=new item(definition.match)
-						ishml.reify.lexicon.register(definition.match).as({operation:()=>instance})
-
-						return instance
-					}
-					if (item instanceof ishml.Ply)
-					{
-						var instance =item.knot
-						instance.id=ishml.util.formatId(definition.match)
-						instance.name=definition.match
-						instance.description=definition.match
-						ishml.reify.lexicon.register(definition.match).as({operation:()=>instance})
-						
-						return instance
-					}
-					else
-					{
-						console.log(`Unable to assign ${item.name} to ${definition.match}. (Statement # ${statementIndex+1})`)
-					}
-				}
-			}
-			else
-			{
-				var operation=statement.operations[index].operation.definition.operation
-			}	
-			result=operation(result)
-			
-		}	
-		console.log(result)
-	})*/
 }
 ishml.reify.lexicon=new ishml.Lexicon()
 ishml.reify.cache={subect:null, object:null}

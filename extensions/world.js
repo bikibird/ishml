@@ -133,77 +133,38 @@ ishml.Knot.Thing= function(id)
 	ishml.net.tie("thing@is:thing","portable@is:portable","touchable@is:touchable").to(knot)
 	return knot
 }
-ishml.reify.createFromKind=(subject,definition)=>
-{
-	if(subject.fuzzy)
-	{
-		var id=ishml.util.formatId(subject.match)
-		if (ishml.Knot.isPrototypeOf(definition.kind) || ishml.Knot===definition.kind)
-		{
-			var instance=new definition.kind(id)
-			ishml.reify.lexicon.register(subject.match).as({part:"noun",id:id,instance:instance})
 
-			return instance
-		}
-	}
-}
-ishml.reify.relate=(a,b,...cordage)=>
-{
-	return a.tie(...cordage).to(b)
-}
-ishml.reify.direction=(a,b,forward,back)=>  //exit:north=exit:south
-{
-	if (a.fuzzy)
-	{
-		var id=ishml.util.formatId(a.match)
-		var fromKnot=new ishml.Knot.place(id)
-		ishml.reify.lexicon.register(a.match.toLowerCase()).as({part:"noun",instance:fromKnot})
-	}
-	else {var fromKnot = a.instance}
-	if (b.fuzzy)
-	{
-		var id=ishml.util.formatId(b.match)
-		var toKnot=new ishml.Knot.place(id)
-		ishml.reify.lexicon.register(a.match.toLowerCase()).as({part:"noun",instance:toKnot})
-	}
-	else {var toKnot = b.instance}
-
-	if(back){return fromKnot.tie(`exit:${forward}=exit:${back}`).to(toKnot)}
-	else {return fromKnot.tie(`exit:${forward}`).to(toKnot)}
-}
 ishml.reify.lexicon
 	//gazebo is place  //gazebo is place north of garden  //north_of(is_place(subject),object)
 	//always return subject
-	.register("is place").as((operations,subject)=>
+	.register(".").as({part:"end"})
+	.register("is place","are places").as((operations,subjects)=>
 	{
-		ishml.net.tie("place@is:place","container@is:container").to(subject)
+		subjects.forEach(subject=>ishml.net.tie("place@is:place","container@is:container").to(subject))
 		var operator=operations.next()
-		if (operator.done) return subject
-		else return operator.value(subject)
+		if (operator.done) return subjects
+		else return operator.value(subjects)
+		
 	})
-	.register("is north of").as((operations,subject)=> //garden is north of house -- item===house
+	.register("is north of", "are north of").as((operations,subjects)=> //garden is north of house -- item===house
 	{
-		var toKnot=operations.next().value(operations)
-		ishml.net.tie("place@is:place","container@is:container").to(toKnot)
-		ishml.net.tie("place@is:place","container@is:container").to(subject)
-		subject.tie("exit:north=exit:south").to(toKnot)	
+		var directObjects=operations.next().value(operations)
+		subjects.forEach(subject=>ishml.net.tie("place@is:place","container@is:container").to(subject))
+		directObjects.forEach(directObject=>ishml.net.tie("place@is:place","container@is:container").to(directObject))
+		subjects.forEach(subject=>
+		{
+			directObjects.forEach(directObject=>
+			{
+				directObject.tie("exit:north=exit:south").to(subject)	
+			})
+		})
 		var operator=operations.next()
-		if (operator.done) return subject
-		else return operator.value(operations,subject)
+		if (operator.done) return subjects
+		else return operator.value(operations,subjects)
 	})
 	
-/*	.register("south of").as({part:"adjective",operator:(item)=> //garden is north of house -- item===house
-	{
-		var knot=ishml.reify.knot(item)
-		ishml.net.tie("place@is:place","container@is:container").to(knot)
-		knot.tie("exit:north=exit:south").to(knot)	
-		return knot.exit.north
-	}})
-	.register("east of").as({part:"relation",forward:"east", back:"west",operation:ishml.reify.direction})
-	.register("south of").as({part:"relation",forward:"south", back:"north",operation:ishml.reify.direction})
-	.register("west of").as({part:"relation",forward:"west", back:"east",operation:ishml.reify.direction})*/
-	.register(".").as({part:"end"})
-	.register(",").as({part:"comma"})
+
+
 
 
 ishml.reify.space=new ishml.Rule().configure({regex:ishml.regex.whitespace,minimum:0,maximum:1,separator:false,greedy:true, keep:false})	
@@ -214,41 +175,31 @@ ishml.reify.noun=new ishml.Rule().configure({mode:ishml.Rule.apt})
 ishml.reify.noun[1].filter=(definition)=>definition?.part==="noun"
 ishml.reify.noun[2].configure({regex:/^.+?(?=\s+is\s+|\s+are\s+)/})
 
-ishml.reify.relation=new ishml.Rule().configure({minimum:0, greedy:true, filter:(definition)=>definition?.part==="relation"})
-
 ishml.reify.statements=new ishml.Rule().configure({maximum:Infinity})
 
 ishml.reify.statements
 	.snip("space1", ishml.reify.space.clone()).snip("statement").snip("end").snip("space2", ishml.reify.space.clone())
 ishml.reify.statements.end.configure({lax:true,filter:(definition)=>definition?.part==="end",keep:false})
 
-//	.snip("subject").snip("verb").snip("object") //.snip("adverb") //Lizzy likes charlotte a lot.  
-// .snip("subject").snip("adverb").snip("verb").snip("object") //Lizzy barely likes charlotte.
-																//house is 500 ft north of garden.
-
-																
-//statement=> (subject predicate) | (predicate)
-//subject=> operation* fuzzy? | fuzzy
-//predicate=> opertion* fuzzy?
 ishml.reify.statements.statement.snip("operations")	
 ishml.reify.statements.statement.operations.configure({maximum:Infinity,minimum:1})
 	.snip("operation")
 ishml.reify.statements.statement.operations.operation.configure({mode:ishml.Rule.apt})	
 	.snip(1)
 	.snip(2)
-ishml.reify.statements.statement.operations.operation[1].configure({longest:true, greedy:true,lax:true,maximum:1,minimum:0, /*filter:(definition)=>definition.operation*/}) 
+ishml.reify.statements.statement.operations.operation[1].configure({longest:true, greedy:true,lax:true,maximum:1,minimum:0}) 
 ishml.reify.statements.statement.operations.operation[2].configure({maximum:1,minimum:0, lax:true, regex:/^[^.]+?(?=\s+is\s+|\s+are\s+|\s*[.]\s*)/})
 
 ishml.reify.statements.statement.operations.operation[2].semantics=(interpretation)=>
 {
 	var definition=interpretation.gist.definition
 	console.log(definition)
-	var subject=new ishml.Knot(definition.match)
+	var subjects=[new ishml.Knot(definition.match)]
 	interpretation.gist.definition=(operations)=>
 	{
 		var operator=operations.next()
-		if (operator.done) return subject
-		else return operator.value(operations,subject)
+		if (operator.done) return subjects
+		else return operator.value(operations,subjects)
 	}	
 
 	ishml.reify.lexicon.register(definition.match).as(interpretation.gist.definition.operation)
@@ -256,102 +207,6 @@ ishml.reify.statements.statement.operations.operation[2].semantics=(interpretati
 	return interpretation
 }
 
-/*ishml.reify.statements.statement.verb.configure({maximum:1,minimum:1,filter:(definition)=>definition?.part==="verb"})
-ishml.reify.statements.statement.object.snip("operations")	
-ishml.reify.statements.statement.object.operations.configure({maximum:Infinity,minimum:1})
-	.snip("operation")
-ishml.reify.statements.statement.object.operations.operation.configure({mode:ishml.Rule.apt})	
-	.snip(1)
-	.snip(2)
-ishml.reify.statements.statement.object.operations.operation[1].configure({longest:true, greedy:true,lax:true,maximum:1,minimum:0, filter:(definition)=>definition.operation}) 
-ishml.reify.statements.statement.object.operations.operation[2].configure({maximum:1,minimum:0, lax:true, regex:/^.+?(?=\s+[.]\s+)/})*/
-
-/*
-
-ishml.reify.statements.statement.configure({regex:/^[^.]+/, lax:true})
-	.snip("subject").snip("copula").snip("complement")
-
-ishml.reify.statements.statement.subject
-	.snip("relation",ishml.reify.relation.clone()).snip("noun")
-
-ishml.reify.statements.statement.subject.noun=new ishml.Rule().configure({mode:ishml.Rule.apt})
-	.snip(1)
-	.snip(2)
-ishml.reify.statements.statement.subject.noun[1].filter=(definition)=>definition?.part==="noun"
-ishml.reify.statements.statement.subject.noun[2].configure({regex:/^.+?(?=\s+is\s+|\s+are\s+)/})
-
-
-
-ishml.reify.statements.statement.copula.filter=(definition)=>definition?.part==="copula"	
-
-ishml.reify.statements.statement.complement
-	.snip("relation",ishml.reify.relation.clone()).snip("noun")
-
-//ishml.reify.statements.statement.complement.noun=new ishml.Rule()
-//ishml.reify.statements.statement.complement.noun.configure({lax:true,filter:(definition)=>definition?.part==="noun"})
-
-ishml.reify.statements.statement.complement.noun.configure({mode:ishml.Rule.apt})
-	.snip(1)
-	.snip(2)
-ishml.reify.statements.statement.complement.noun[1].configure({lax:true,filter:(definition)=>definition?.part==="noun"})
-ishml.reify.statements.statement.complement.noun[2].configure({regex:/^.+?(?=\s+[.]\s+)/})
-
-
-ishml.reify.statements.statement.subject.noun=ishml.reify.noun.clone().configure({lax:true})
-
-ishml.reify.statements.end.configure({lax:true,filter:(definition)=>definition?.part==="end",keep:false})
-
-ishml.reify.statements.statement.semantics=(interpretation)=>
-{
-		var operation=interpretation.gist.complement.relation?.definition.operation ?? interpretation.gist.copula.definition.operation
-
-	if (interpretation.gist.complement?.relation && interpretation.gist.subject.relation)  //south of garden is east of house
-	{
-		interpretation.gist.complement.relation.definition.operation  
-		(
-			interpretation.gist.subject.noun.definition,
-			interpretation.gist.complement.noun.definition,
-			interpretation.gist.subject.relation.definition.forward,  //garden.exit.south=== house
-			interpretation.gist.complement.relation.definition.back   //house.exit.east === garden
-
-		)
-	}
-	else
-	{
-		if (interpretation.gist.complement.relation)  //garden is east of house
-		{
-			interpretation.gist.complement.relation.definition.operation
-			(
-				interpretation.gist.subject.noun.definition,	
-				interpretation.gist.complement.noun.definition,
-				interpretation.gist.complement.relation.definition.back,	//garden.exit.west === house
-				interpretation.gist.complement.relation.definition.forward  //house.exit.east === garden
-
-			)
-		}
-		else 
-		{
-			if(interpretation.gist.subject.relation)
-			{
-				interpretation.gist.complement.relation.definition.operation // west of garden ishouse
-				(
-					interpretation.gist.subject.noun.definition,	
-					interpretation.gist.complement.noun.definition,
-					interpretation.gist.subject.relation.definition.forward,	//garden.exit.west === house
-					interpretation.gist.subject.relation.definition.back  //house.exit.east === garden
-
-				)
-			}
-			else
-			{
-				interpretation.gist.copula.definition.operation(interpretation.gist.subject.noun.definition,interpretation.gist.complement.noun.definition)
-			}
-		}	
-	}
-	
-	return interpretation
-}
-*/
 ishml.reify.parser=ishml.Parser({ lexicon: ishml.reify.lexicon, grammar: ishml.reify.statements})
 
 
