@@ -2,13 +2,15 @@
 /*
 ISC License
 
-Copyright 2019-2021, Jennifer L Schmidt
+Copyright 2019-2022, Jennifer L Schmidt
 
 Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
 
 THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 https://whitewhalestories.com
+
+@bikibird
 */
 
 var ishml = ishml || {}
@@ -544,6 +546,8 @@ $.thing.cup.tie("cord:ply-otherCord:otherPly").to(otherKnot/otherPly) --mutual r
 $.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexive relation converse=== this ply.
 
 */
+
+//DEFECT why are we dealing with cordage that aren't strings or arrays of strings
 		var cordages=someCordage.filter(cordage=>
 			{
 				if (cordage?.cord instanceof ishml.Cord)
@@ -561,6 +565,7 @@ $.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexiv
 				}
 				return true
 			})
+//END DEFECt			
 		cordages=cordages.flat(Infinity).map(cordage=>ishml.Cord.cordage[ishml.util.formatId(cordage)]??cordage).flat(Infinity)
 		var thisKnot=this
 		var tie=(from,to)=>
@@ -4678,7 +4683,13 @@ ishml.reify=function(source)
 	statements.forEach(statement =>
 	{
 		var operations=statement.operations.map(operation=>operation.operation.definition).values()
-		operations.next().value(operations,[])
+		var subjects=[]
+		var operator=operations.next()
+		while (operator.value)
+		{
+			subjects=operator.value(operations,subjects)
+			operator=operations.next()
+		}
 	})	
 }
 ishml.reify.lexicon=new ishml.Lexicon()
