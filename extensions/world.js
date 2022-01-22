@@ -133,40 +133,27 @@ ishml.Knot.Thing= function(id)
 	ishml.net.tie("thing@is:thing","portable@is:portable","touchable@is:touchable").to(knot)
 	return knot
 }
-ishml.reify.space=new ishml.Rule().configure({regex:ishml.regex.whitespace,minimum:0,maximum:1,separator:false,greedy:true, keep:false})	
-
-ishml.reify.noun=new ishml.Rule().configure({mode:ishml.Rule.apt})
-	.snip(1)
-	.snip(2)
-ishml.reify.noun[1].filter=(definition)=>definition?.part==="noun"
-ishml.reify.noun[2].configure({regex:/^.+?(?=\s+is\s+|\s+are\s+)/})
-
-ishml.reify.statements=new ishml.Rule().configure({maximum:Infinity})
-
-ishml.reify.statements
-	.snip("space1", ishml.reify.space.clone()).snip("statement").snip("end").snip("space2", ishml.reify.space.clone())
-ishml.reify.statements.end.configure({lax:true,filter:(definition)=>definition?.part==="end",keep:false})
-
-ishml.reify.statements.statement.snip("operations")	
-ishml.reify.statements.statement.operations.configure({maximum:Infinity,minimum:1})
-	.snip("operation")
-ishml.reify.statements.statement.operations.operation.configure({mode:ishml.Rule.apt})	
-	.snip(1)
-	.snip(2)
-ishml.reify.statements.statement.operations.operation[1].configure({longest:true, greedy:true,lax:true,maximum:1,minimum:0}) 
-ishml.reify.statements.statement.operations.operation[2].configure({maximum:1,minimum:0, lax:true, regex:/^[^.]+?(?=\s+is\s+|\s+are\s+|\s*[.]\s*)/})
-
-ishml.reify.statements.statement.operations.operation[2].semantics=(interpretation)=>
+ishml.reify.an=(operations,subjects)=>
 {
-	var definition=interpretation.gist.definition
-	interpretation.gist.definition=()=>[ishml.util.formatId(definition.match)]
-	ishml.reify.lexicon.register(definition.match).as(interpretation.gist.definition)
-	return interpretation
+	var operator=operations.next()
+	if (operator.done) return subjects
+	else 
+	{
+		subjects=operator.value(operations,subjects)
+		subjects.forEach(subject=>
+		{
+			subject.configure({number:ishml.lang.number.singular,proper:false})
+		})
+		operator=operations.next()
+		if (operator.done){return subjects}
+		else {return operator.value(operations,subjects)}
+	}
+	
+	
 }
-
-ishml.reify.parser=ishml.Parser({ lexicon: ishml.reify.lexicon, grammar: ishml.reify.statements})
 ishml.reify.isDirectionOf=(operations,subjects,fore,aft)=> //garden is north of house -- item===house
 {
+	var id
 	var directObjects=operations.next().value(operations)
 	subjects.forEach(subject=>ishml.net.tie("place@is:place","container@is:container").to(subject))
 	directObjects.forEach(directObject=>ishml.net.tie("place@is:place","container@is:container").to(directObject))
@@ -174,13 +161,17 @@ ishml.reify.isDirectionOf=(operations,subjects,fore,aft)=> //garden is north of 
 	{
 		if (typeof subject === "string")
 		{
-			subject=new ishml.Knot(subject)
+			id =subject
+			subject=new ishml.Knot(id)
+			ishml.reify.lexicon.register(id).as(()=>subject)
 		}
-		directObjects.forEach((directObject,index)=>
+		directObjects.forEach((directObject)=>
 		{
 			if (typeof directObject === "string")
 			{
+				id=directObject
 				directObject=new ishml.Knot(directObject)
+				ishml.reify.lexicon.register(id).as(()=>directObject)
 			} 
 			if(subject instanceof ishml.Knot)
 			{
@@ -215,7 +206,9 @@ ishml.reify.directionOf=(operations,fore,aft)=>
 	{
 		if (typeof subject === "string")
 		{
+			id =subject
 			subject=new ishml.Knot(subject)
+			ishml.reify.lexicon.register(id).as(()=>subject)
 		}
 		ishml.net.tie("place@is:place","container@is:container").to(subject)
 		subject.tie("exit:"+fore+"=exit:"+aft).to(subject)
@@ -225,22 +218,102 @@ ishml.reify.directionOf=(operations,fore,aft)=>
 	if (operator.done) return subjects
 	else return operator.value(operations,subjects)
 }	
+ishml.reify.nop=(operations,subjects)=>
+{
+	var operator=operations.next()
+	if (operator.done) return subjects
+	else return operator.value(operations,subjects)
+}
 
 ishml.reify.lexicon
 	//gazebo is place  //gazebo is place north of garden  //north_of(is_place(subject),object)
 	//always return subject
-	.register(".").as({part:"end"})
+	.register(".").as(ishml.reify.nop)
 	.register("is place","are places").as((operations,subjects)=>
 	{
 		subjects.forEach(subject=>ishml.net.tie("place@is:place","container@is:container").to(subject))
 		var operator=operations.next()
 		if (operator.done) return subjects
-		else return operator.value(subjects)
+		else return operator.value(operations,subjects)
 		
 	})
-	.register("is","are").as((operations,subjects)=>
+	.register("is","are").as((operations,subjects,...ties)=>
 	{
+		ties=ties.flat()
+		subjects.forEach((subject)=>
+		{
+			var directObjects=operations.next().value(operations)
+			if (subject instanceof ishml.Ply)
+			{
+				directObjects.forEach(directObject=>
+				{
 
+					
+				})
+			}
+		})
+	})
+	
+	.register("a", "an").as((operations,subjects=[])=>
+	{
+		var operator=operations.next()
+		if (!operator.done)
+		{
+			subjects=operator.value(operations,subjects).map(subject=>
+			{
+				if (typeof subject === "string")
+				{
+					id =subject
+					subject=new ishml.Knot(id)
+					ishml.reify.lexicon.register(id).as(()=>subject)
+				}
+				return subject.configure({number:ishml.lang.number.singular,proper:false})
+			})
+			
+		}
+		return subjects
+	})
+	.register("some").as((operations,subjects)=>
+	{
+		var operator=operations.next()
+		if (operator.done) return subjects
+		else 
+		{
+			subjects=operator.value(operations,subjects).map(subject=>
+			{
+				if (typeof subject === "string")
+				{
+					id =subject
+					subject=new ishml.Knot(id)
+					ishml.reify.lexicon.register(id).as(()=>subject)
+				}
+				return subject.configure({number:ishml.lang.number.plural,proper:false})
+			})
+			operator=operations.next()
+			if (operator.done){return subjects}
+			else {return operator.value(operations,subjects)}
+		}
+	})
+	.register("the").as((operations,subjects)=>
+	{
+		var operator=operations.next()
+		if (operator.done) return subjects
+		else 
+		{
+			subjects=operator.value(operations,subjects).map(subject=>
+			{
+				if (typeof subject === "string")
+				{
+					id =subject
+					subject=new ishml.Knot(id)
+					ishml.reify.lexicon.register(id).as(()=>subject)
+				}
+				return subject.configure({proper:false})
+			})
+			operator=operations.next()
+			if (operator.done){return subjects}
+			else {return operator.value(operations,subjects)}
+		}
 	})
 	.register("is north of", "are north of").as((operations,subjects)=> ishml.reify.isDirectionOf(operations,subjects,"north","south"))
 	.register("is south of", "are south of").as((operations,subjects)=> ishml.reify.isDirectionOf(operations,subjects,"south","north"))
@@ -253,16 +326,16 @@ ishml.reify.lexicon
 	.register("is above", "are above").as((operations,subjects)=> ishml.reify.isDirectionOf(operations,subjects,"up","down"))
 	.register("is below", "are below").as((operations,subjects)=> ishml.reify.isDirectionOf(operations,subjects,"down","up"))
 
-	.register("north of").as((operations)=>ishml.reify.directionOf(operations,"north","south"))
-	.register("south of").as((operations)=>ishml.reify.directionOf(operations,"south","north"))
-	.register("east of").as((operations)=>ishml.reify.directionOf(operations,"east","west"))
-	.register("west of").as((operations)=>ishml.reify.directionOf(operations,"west","east"))
-	.register("northeast of").as((operations)=>ishml.reify.directionOf(operations,"northeast","southwest"))
-	.register("northwest of").as((operations)=>ishml.reify.directionOf(operations,"northwest","southeast"))
-	.register("southeast of").as((operations)=>ishml.reify.directionOf(operations,"southeast","northwest"))
-	.register("southwest of").as((operations)=>ishml.reify.directionOf(operations,"southwest","northeast"))
-	.register("above").as((operations)=>ishml.reify.directionOf(operations,"above","below"))
-	.register("below").as((operations)=>ishml.reify.directionOf(operations,"below","above"))
+	.register("north of","north is", "north are").as((operations)=>ishml.reify.directionOf(operations,"north","south"))
+	.register("south of","south is","south are").as((operations)=>ishml.reify.directionOf(operations,"south","north"))
+	.register("east of","east is", "east are").as((operations)=>ishml.reify.directionOf(operations,"east","west"))
+	.register("west of","west is","west are").as((operations)=>ishml.reify.directionOf(operations,"west","east"))
+	.register("northeast of","northeast of","northeast are").as((operations)=>ishml.reify.directionOf(operations,"northeast","southwest"))
+	.register("northwest of", "northwest is","northwest are").as((operations)=>ishml.reify.directionOf(operations,"northwest","southeast"))
+	.register("southeast of","southeast is", "southeast are").as((operations)=>ishml.reify.directionOf(operations,"southeast","northwest"))
+	.register("southwest of","southwest is","southwest are").as((operations)=>ishml.reify.directionOf(operations,"southwest","northeast"))
+	.register("above","above is","above are").as((operations)=>ishml.reify.directionOf(operations,"above","below"))
+	.register("below","below is","below are").as((operations)=>ishml.reify.directionOf(operations,"below","above"))
 	
 
 

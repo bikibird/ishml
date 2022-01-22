@@ -27,8 +27,8 @@ ishml.util.formatId=function(id)
 {
 	if(id)
 	{ 
-		if (typeof(id)==="string"){return id.toLowerCase().replace(/\s+/g, '_')}
-		else{return id.id.toLowerCase().replace(/\s+/g, '_')}
+		if (typeof(id)==="string"){return id.trim().toLowerCase().replace(/\s+/g, '_')}
+		else{return id.id.trim().toLowerCase().replace(/\s+/g, '_')}
 	}	
 	else 
 	{
@@ -465,15 +465,13 @@ Cords only no other user defined properties.  twists are a set of plotpoints tha
 */ 
 ishml.Knot= class Knot
 {
-	constructor(id, name, description) //,uid)
+	constructor(id, name, description,proper) //,uid)
 	{
 		this.id=ishml.util.formatId(id)
 		this.name=name??this.id.replace("_"," ")
 		this.description=description??this.name
+		this.proper=proper??true
 		Object.defineProperty(this, "lexeme", {value:"",writable: true})
-		/*Object.defineProperty(this, "id", {value:id,writable: true}) //
-		Object.defineProperty(this, "name", {value:id.replace("_"," "),writable: true}) //local name
-		Object.defineProperty(this, "description", {value:this.name,writable: true}) */
 		return this 
 	}
 	get cord()
@@ -1930,25 +1928,8 @@ ishml.Lexicon.prototype.register = function (...someLexemes)
 	}	
 	return {as:_as.bind(this)}	
 }
-/*ishml.Lexicon.prototype.define = function (definition,...someLexemes) 
-{
-	someLexemes.forEach((lexeme)=>
-	{
-		var _trie = this.trie
-		for (let i = 0, length =lexeme.length; i < length; i++)
-		{
-			var character = lexeme.charAt(i)
-			_trie = (_trie[character] =_trie[character] || {})
-		}
-		if (!_trie.definitions)
-		{
-			_trie.definitions= []
-		}
-		_trie.definitions.push(definition)
-	})	
-	return this
-}*/
-ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^\s+/, caseSensitive=false, longest=false, full=false, lax=false}={}) 
+
+ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^\s+/, caseSensitive=false, full=false, longest=false, lax=false}={}) 
 {
 	var _trie = this.trie
 	var _results = []
@@ -2057,7 +2038,40 @@ ishml.Lexicon.prototype.search = function (searchText, {regex=false,separator=/^
 	}
 	return _results
 }
-
+ishml.Lexicon.prototype.split = function (searchText, ...settings) 
+{
+	var result
+	var results=[]
+	var fuzzyText=""
+	var remainder=searchText
+	while(remainder.length>0)
+	{
+		result=this.search(remainder,...settings)
+		if (result.length===0)
+		{
+			fuzzyText+=remainder[0]
+			remainder=remainder.slice(1)
+		}
+		else
+		{
+			
+			if (fuzzyText.length>0)
+			{
+				results.push({token:new ishml.Token(fuzzyText,{fuzzy:true, match:fuzzyText,}),remainder:remainder})
+				fuzzyText=""
+			}
+			results=results.concat(result[0])
+			remainder=result[0].remainder
+			
+		}
+		
+	}
+	if (fuzzyText.length>0)
+	{
+		results.push({token:new ishml.Token(fuzzyText,{fuzzy:true, match:fuzzyText}),remainder:""})
+	}
+	return results
+}
 ishml.Lexicon.prototype.unregister=function(lexeme,definition)
 {
 	var _lexeme=lexeme
@@ -2257,7 +2271,6 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 				{
 					for (let key of keys)
 					{
-						console.log("All "+key)
 						revisedCandidates.forEach(candidate=>
 						{	
 							var {gist,remainder,valid}=candidate
@@ -2328,7 +2341,6 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 					{
 						var counter = 0
 						var phrases=[]
-						console.log("Any "+key)
 						while (counter<this.maximum)
 						{
 							revisedCandidates.forEach(candidate=>
@@ -2386,7 +2398,6 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 				{
 					var counter = 0
 					var phrases=[]
-					console.log("Apt "+key)
 					while (counter<this.maximum)
 					{
 						revisedCandidates.forEach(candidate=>
@@ -2467,7 +2478,6 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 					{
 						if (this.filter(snippet.token.definition))
 						{
-							console.log(snippet)
 							var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid,
 								candidate.lexeme+remainder.slice(0,remainder.length-snippet.remainder.length))
 								//remainder.slice(0,remainder.length-snippet.remainder.length))
@@ -4370,16 +4380,12 @@ ishml.say=function(aText)
 
 ishml.recite=function(literals, ...expressions)
 {
-
-		
-		let string = ``
-		for (const [i, val] of expressions.entries()) {
-			string += literals[i] + val
-		}
-		string += literals[literals.length - 1]
-		console.log(string)
-		return string+ "test"
-
+	let string = ``
+	for (const [i, val] of expressions.entries()) {
+		string += literals[i] + val
+	}
+	string += literals[literals.length - 1]
+	return string+ "test"
 }
 
 ishml.restore=function(key)
@@ -4675,22 +4681,43 @@ ishml.reintroduce=function()
 	//redo the undo
 	
 }
-ishml.reify=function(source)
+ishml.reify=function(literals,...expressions)
 {
-	//var source = new ishml.Phrase(...sources)
-
-	var statements=ishml.reify.parser.analyze(source).interpretations[0].gist.map(item=>item.statement)
-	statements.forEach(statement =>
+	var subjects=[]
+	var operations=[]
+	var statements=[]
+	var index=0
+	literals.forEach(literal=>
 	{
-		var operations=statement.operations.map(operation=>operation.operation.definition).values()
-		var subjects=[]
-		var operator=operations.next()
-		while (operator.value)
+		statements=statements.concat(ishml.reify.lexicon.split(literal,{longest:true}).map(interpretation=>
 		{
-			subjects=operator.value(operations,subjects)
-			operator=operations.next()
+			var definition=interpretation.token.definition
+			if (typeof definition === "function" ){return definition}
+			if (definition.fuzzy){return ()=>[definition.match.trim()]}
+			else
+			{
+				return definition=>[definition]
+			}
+		}))
+		if (index<expressions.length)
+		{
+			var expression=expressions[index]
+			if (typeof definition === "function" ){statements.push(expression)}
+			else
+			{
+				return statements.push(expression=>[expression])
+			}
+			index++
 		}
-	})	
+	})
+	
+	var operations=statements.values()
+	var operator=operations.next()
+
+	subjects=operator.value(operations,subjects)
+
+	return this
+	
 }
 ishml.reify.lexicon=new ishml.Lexicon()
 ishml.reify.cache={subect:null, object:null}
