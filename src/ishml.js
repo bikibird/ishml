@@ -152,6 +152,34 @@ ishml.Plotpoint.prototype.heed = function (aDocumentSelector)
 		})
 	}
 }
+ishml.bid=function(subject)
+//bid an actor to do something.
+//ishml.bid(subject).via(subject).to("Look.")
+//ishml.bid(subject).to("Look.")
+//{plot: 'main', actor: 'player', timeline: 'player'}
+{
+	var agent=subject
+	var via= a=>
+	{
+		agent=a
+		return {to:to}
+	}
+	var to=command=>
+	{
+		var twist=Object.assign(
+			{
+				input:command,
+				moment:ishml.clock,
+				plot:"main",
+				actor:subject
+			})
+
+		this.history.push(twist)
+		ishml.plot.main.dialog.input.unfold(twist)
+		return ishml
+	}
+	return {via:via,to:to}
+}
 ishml.Plotpoint.prototype.toString=function()
 {
 	return this.unfold.name.replaceAll("_"," ")
@@ -177,20 +205,21 @@ ishml.Plotpoint.prototype.verbs=function(...verbs)
 		},
 		register:(options)=>
 		{
-			if (options)
+			if (options || options===0)
 			{
 				if (typeof options==="number")
 				{
-					var entry={select:thisPlotpoint,part:"verb", valence:options}
+					var entry={select:{plotpoint:thisPlotpoint},part:"verb", valence:options}
 				}
 				else 
 				{
-					var entry = Object.assign({select:thisPlotpoint,part:"verb"},options)
+					var entry = {part:"verb"}
+					entry.select=Object.assign({plotpoint:thisPlotpoint},options)
 				}
 			}
 			else
 			{
-				var entry={select:thisPlotpoint,part:"verb", valence:1}
+				var entry={select:{plotpoint:thisPlotpoint},part:"verb", valence:1}
 			}
 			if (particle){entry.particle=particle}
 			if (preposition){entry.preposition=preposition}
@@ -261,7 +290,7 @@ resolve episode 3 :
 
 
 */
-ishml.Episode=function Episode(/*plot*/) 
+ishml.Episode=function Episode(twist) 
 {
 	
 	if (this instanceof Episode)
@@ -273,16 +302,17 @@ ishml.Episode=function Episode(/*plot*/)
 		Object.defineProperty(this, "_narration", {value:()=>_``.say().append("#story"),writable: true})
 		Object.defineProperty(this, "_resolution", {value:()=>true,writable: true})
 		Object.defineProperty(this, "_timeline", {value:null,writable: true})
+		Object.defineProperty(this, "_viewpoint", {value:ishml._viewpoint,writable: true})
 		Object.defineProperty(this, "stock", {value:null,writable: true})
 
 		Object.defineProperty(this, "told", {value:false,writable: true})
-		//Object.defineProperty(this, "twist", {value:plot?.twist,writable: true})
+		Object.defineProperty(this, "twist", {value:twist,writable: true})
 		Object.defineProperty(this, "lexeme", {value:"",writable: true})
 		return this
 	}
 	else
 	{
-		return new Episode(plot)
+		return new Episode(twist)
 	}	
 }
 /* The abridge method returns the most salient episode generated from the subplot of the plotpoint.  The abridged property is set to true, which causes all future revise method calls on the evaluation chain to be ignored.  Append method calls are NOT ignored.*/
@@ -449,6 +479,14 @@ ishml.Episode.prototype.timeline=function(timeline)
 		return this
 	}
 }
+ishml.Episode.prototype.viewpoint=function(actor)
+{
+	if(actor===undefined){return this._viewpoint}
+	this._viewpoint=actor
+	return this
+
+}
+
 // #endregion
 // #region Knot 
 /*
@@ -1741,7 +1779,7 @@ ishml.Cord.handler=
 		$.thing.ring.worn_by.player.converse
 
 		*/
-		if (target._select){return target._select(cords)}
+		if (target._select){return target._select(...cords)}
 		var cord=new ishml.Cord()
 
 		if (cords.length>0)
@@ -2043,14 +2081,16 @@ ishml.Lexicon.prototype.split = function (searchText, ...settings)
 	var result
 	var results=[]
 	var fuzzyText=""
+	var {fuzzySeparator}=settings[0]
 	var remainder=searchText
 	while(remainder.length>0)
 	{
 		result=this.search(remainder,...settings)
 		if (result.length===0)
 		{
-			fuzzyText+=remainder[0]
-			remainder=remainder.slice(1)
+			var word =remainder.split(fuzzySeparator,1)[0]
+			fuzzyText+=word+" "
+			remainder=remainder.slice(word.length+1)
 		}
 		else
 		{
@@ -2068,7 +2108,7 @@ ishml.Lexicon.prototype.split = function (searchText, ...settings)
 	}
 	if (fuzzyText.length>0)
 	{
-		results.push({token:new ishml.Token(fuzzyText,{fuzzy:true, match:fuzzyText}),remainder:""})
+		results.push({token:new ishml.Token(fuzzyText.trim(),{fuzzy:true, match:fuzzyText}),remainder:""})
 	}
 	return results
 }
@@ -2836,10 +2876,13 @@ ishml.Phrase =class Phrase
 		},ishml.template.__handler)
 	}
 
-	append(documentSelector="#story")
+	append(documentSelector)
 	{
-		var targetNodes = document.querySelectorAll(documentSelector)
-		targetNodes.forEach(node=>node.append(this.htmlTemplate().content))
+		if (documentSelector)
+		{
+			var targetNodes = document.querySelectorAll(documentSelector)
+			targetNodes.forEach(node=>node.append(this.htmlTemplate().content))
+		}	
 		return this
 	}
 	catalog()
@@ -3325,20 +3368,27 @@ ishml.Phrase =class Phrase
 		}*/
 		return this
 	}
-	prepend(documentSelector="#story")
+	prepend(documentSelector)
 	{
-		var targetNodes = document.querySelectorAll(documentSelector)
-		targetNodes.forEach(node=>node.prepend(this.htmlTemplate().content))
+		if (documentSelector)
+		{
+			var targetNodes = document.querySelectorAll(documentSelector)
+			targetNodes.forEach(node=>node.prepend(this.htmlTemplate().content))
+		}	
+		return this
 	}
 	
-	replace(documentSelector="#story")
+	replace(documentSelector)
 	{
-		var targetNodes = document.querySelectorAll(documentSelector)
-		targetNodes.forEach(node=>
+		if (documentSelector)
 		{
-			while(node.firstChild){node.removeChild(node.firstChild)}
-			node.append(this.htmlTemplate().content)
-		})
+			var targetNodes = document.querySelectorAll(documentSelector)
+			targetNodes.forEach(node=>
+			{
+				while(node.firstChild){node.removeChild(node.firstChild)}
+				node.append(this.htmlTemplate().content)
+			})
+		}	
 		return this
 	}	
 	reset()
@@ -4141,6 +4191,16 @@ ishml.Token.prototype.clone=function()
 }
 // #endregion
 // #endregion
+// #region viewpoint
+ishml.viewpoint=function(actor)
+{
+	if(actor)
+	{
+		this._viewpoint=actor
+	}	
+	return this._viewpoint
+}
+// #endregion
 ishml.storyline={}  //Episode queue
 ishml.history=[] //list of executed commands
 ishml.clock=new Date()
@@ -4151,7 +4211,7 @@ ishml.lexicon=new ishml.Lexicon()
 ishml.grammar=new ishml.Rule()
 ishml.parser=null
 ishml.net=new ishml.Knot("$")
-
+ishml._viewpoint=null
 ishml.undoLength=10
 ishml.lang={}
 ishml.phrasebook_handler=
@@ -4228,6 +4288,9 @@ ishml.keyup=function(e)
 		}
 	}
 }
+
+
+
 ishml.mousedown=function(e,state)
 {
 	if (e.target.matches('.ishml-draggable'))
@@ -4681,142 +4744,3 @@ ishml.reintroduce=function()
 	//redo the undo
 	
 }
-ishml.reify=function(literals,...expressions)
-{
-	var subjects=[]
-	var operations=[]
-	var statements=[]
-	var index=0
-	literals.forEach(literal=>
-	{
-		statements=statements.concat(ishml.reify.lexicon.split(literal,{longest:true}).map(interpretation=>
-		{
-			var definition=interpretation.token.definition
-			if (typeof definition === "function" ){return definition}
-			if (definition.fuzzy){return ()=>[definition.match.trim()]}
-			else
-			{
-				return definition=>[definition]
-			}
-		}))
-		if (index<expressions.length)
-		{
-			var expression=expressions[index]
-			if (typeof definition === "function" ){statements.push(expression)}
-			else
-			{
-				return statements.push(expression=>[expression])
-			}
-			index++
-		}
-	})
-	
-	var operations=statements.values()
-	var operator=operations.next()
-
-	subjects=operator.value(operations,subjects)
-
-	return this
-	
-}
-ishml.reify.lexicon=new ishml.Lexicon()
-ishml.reify.cache={subect:null, object:null}
-/*ishml.reify.knot(item)
-{
-	if (typeof item === "string" ){return ishml.Knot(item)}
-	else {return item.knot}
-}*/
-
-/*
-The garden is east of the gazebo  -- subject copula complement (relation ojbect)
-East of the Garden is the Gazebo. -- complement (relation object) subject
-Above is the Treehouse.  -- relation copula subject
-A billiards table is in the Gazebo. -- subject copula complement (relation ojbect)
-On it is a trophy cup. 	-- 
-A starting pistol is in the trophy cup.
-
-statment =>	subject copula complement | 
-			complement copula subject 
-
-subject => nounPhrase
-
-complement =>	prepositionalPhrase | 
-				nounPhrase 
-
-nounPhrase => adjective* noun
-
-noun in subject's nounPhrase indicates an instance of something.
-noun in complement's nounPhrase indicate a class, variety, or toggle.  boat is a vehicle => new ishml.Knot.Vehicle()
-
-pickle flavor is either sweet or sour  //Toggle because only two choices
-pickle flavor may be either sweet or sour 
-
-
-ice cream flavor may be chocolate, vanilla, or strawberry  //Variety 
-ice cream flavor is either chocolate, vanilla, or strawberry
-ice cream flavor is chocolate, vanilla, or strawberry.
-ice cream flavor is usually vanilla  --sets default selection.  Otherwise first item
-
-capacity is the number 150.
-now capicity is the number 250.
-
-greeting is "Hello world".
-
-foyer is a place
-
-animal is a kind of actor.
-
-water is a kind of knot.
-
-lake is water.  The condition of the lake is usually calm.  The condition of the lake may be calm or choppy
-
-
-The lake is water. Water is a kind of liquid. Liquid is a kind of knot. The potability of the lake is potable. Water may be either potable or not.  Water is usually not potable.
-
-{lake:water}
-{water:{kind:liquid}}
-{liquid:{kind:knot}}
-{knot:ishml.Knot}
-
-output:
- operation, subject, complement
-
-operation=> definition | instantiate | class
-
-
-
-
-operation
-The garden is east of the gazebo  -- subject copula complement (relation ojbect)
-East of the Garden is the Gazebo. -- complement (relation object) subject
-Above is the Treehouse.  -- relation copula subject
-A billiards table is in the Gazebo. -- subject copula complement (relation ojbect)
-On it is a trophy cup. 	-- 
-A starting pistol is in the trophy cup.
-
-{garden:{east:gazebo}}
-{garden:{above:treehouse}}
-{billiards table{in:gazebo}}
-{trophy cup:{on:billiards table}}
-{starting pistol:{in: trophy cup}}
-
-
- it may be a noun or noun phrase, an adjective or adjective phrase, a prepositional phrase (as above) 
-
-
- [
-    {
-        "token": {
-            "lexeme": "lake",
-            "definition": [
-                {
-                    "fuzzy": true
-                }
-            ]
-        },
-        "remainder": "is"
-    }
-]
-
-*/
-
