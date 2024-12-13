@@ -2,7 +2,7 @@
 /*
 ISC License
 
-Copyright 2019-2022, Jennifer L Schmidt
+Copyright 2019-2024, Jennifer L Schmidt
 
 Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
 
@@ -13,7 +13,7 @@ https://whitewhalestories.com
 @bikibird
 */
 
-var ishml = ishml || {}
+const ishml = {}
 // #region utility functions
 ishml.util={_seed:undefined}
 
@@ -62,7 +62,6 @@ ishml.util.shuffle=function(anArray,{length=null,seed=Math.floor(Math.random() *
 }
 // #endregion
 // #region enumerations
-ishml.lighting={dark:1,dim:2,bright:3}
 
 // #endregion
 // #region regex
@@ -72,1787 +71,6 @@ ishml.regex.whitespace=/^\s+/
 ishml.regex.word=/^\w*/
 // #endregion
 // #region Factories and Classes
-// #region Plotpoint 
-
-ishml.Plotpoint = function Plotpoint(id,summary)
-{
-	if (this instanceof ishml.Plotpoint)
-	{
-		Object.defineProperty(this, "id", {value:ishml.util.formatId(id),writable: true})
-		Object.defineProperty(this, "unfold", {value:ishml.Plotpoint.prototype.unfoldSubplot ,writable: true})
-
-		Object.defineProperty(this, "uid", {value:ishml.util.formatId(),writable: true})
-		Object.defineProperty(this, "twist", {value:{},writable: true})
-		Object.defineProperty(this, "lexeme", {value:"",writable: true})
-		this.points[this.uid]=this
-
-		return new Proxy(this,ishml.Plotpoint.handler)
-	}
-	else 
-	{
-		return new Plotpoint(id,summary)
-	}
-}
-Object.defineProperty(ishml.Plotpoint.prototype, "points", {value:{},writable: true})
-ishml.Plotpoint.prototype[Symbol.iterator]=function(){return Object.values(this)[Symbol.iterator]()}
-ishml.Plotpoint.prototype.add = function (id,summary)
-{
-	if (id instanceof ishml.Plotpoint)
-	{
-		var plotpoint = id
-	}
-	else 
-	{
-		var plotpoint = new ishml.Plotpoint(id,summary)
-	}
-	this[id] = plotpoint
-	return this
-}
-ishml.Plotpoint.prototype.Episode=function(){return new ishml.Episode(this)}
-ishml.Plotpoint.prototype.heed = function (aDocumentSelector)
-{
-	var element = document.querySelector(aDocumentSelector)
-	var eventString = "click"
-	if (element)
-	{
-		if (element.classList.contains("ishml-input"))
-		{
-			eventString = "keyup"
-		}
-		return new Promise((resolve) =>
-		{
-			if (ishml.util._harkenings[aDocumentSelector])
-			{
-				var harkeningHandler = ishml.util._harkenings[aDocumentSelector][eventString]
-				if (harkeningHandler)
-				{
-					element.removeEventListener(eventString, harkeningHandler)
-				}
-			}
-			element.addEventListener(eventString, function handler(e)
-			{
-				if (e.key === "Enter")
-				{
-					var input = 
-					{
-						text: e.target.value,
-						agent: (e.target.dataset.agent || "player"),
-						target: e.target,
-						grammar: ishml.grammar[e.target.dataset.grammar] || ishml.grammar.input
-					}
-					e.target.value = ""
-					e.target.removeEventListener(eventString, handler)
-					if (harkeningHandler)
-					{
-						e.target.addEventListener(eventString, harkeningHandler)
-					}
-					resolve(input)
-				}
-			})
-		})
-	}
-}
-ishml.bid=function(subject)
-//bid an actor to do something.
-//ishml.bid(subject).via(subject).to("Look.")
-//ishml.bid(subject).to("Look.")
-//{plot: 'main', actor: 'player', timeline: 'player'}
-{
-	var agent=subject
-	var via= a=>
-	{
-		agent=a
-		return {to:to}
-	}
-	var to=command=>
-	{
-		var twist=Object.assign(
-			{
-				input:command,
-				moment:ishml.clock,
-				plot:"main",
-				actor:subject
-			})
-
-		this.history.push(twist)
-		ishml.plot.main.dialog.input.unfold(twist)
-		return ishml
-	}
-	return {via:via,to:to}
-}
-ishml.Plotpoint.prototype.toString=function()
-{
-	return this.unfold.name.replaceAll("_"," ")
-}
-ishml.Plotpoint.prototype.generate=function()
-{
-	return [{value:this.toString()}]
-}
-ishml.Plotpoint.prototype.verbs=function(...verbs)
-{
-	var particle, preposition
-	var thisPlotpoint=this
-	var result={
-		particle:p=>
-		{
-			particle=p
-			return result
-		},
-		preposition:p=>
-		{
-			preposition=p
-			return result
-		},
-		register:(options)=>
-		{
-			if (options || options===0)
-			{
-				if (typeof options==="number")
-				{
-					var entry={select:{plotpoint:thisPlotpoint},part:"verb", valence:options}
-				}
-				else 
-				{
-					var entry = {part:"verb"}
-					entry.select=Object.assign({plotpoint:thisPlotpoint},options)
-				}
-			}
-			else
-			{
-				var entry={select:{plotpoint:thisPlotpoint},part:"verb", valence:1}
-			}
-			if (particle){entry.particle=particle}
-			if (preposition){entry.preposition=preposition}
-			ishml.lexicon.register(...verbs).as(entry)
-			return thisPlotpoint
-		}
-	}
-	return result
-}
-
-	
-//DOCUMENTATION:  unfold should return false if twist not handled to allow siblings to have a chance at resolving. Return truthy value if plotpoint resolves twist. Returned object may return information to parent plotpoint, which the parent can use to determine whether it is successful. Twist may be modified, which also conveys info back to the parent.
-
-
-ishml.Plotpoint.prototype.unfoldSubplot = function (twist) 
-{
-	var episodes=[]
-	var episode
-	for (const plotpoint of this)
-	{
-		episode=plotpoint.unfold(twist)
-		if (episode){episodes=episodes.concat(episode)}
-	}
-	episodes=episodes.sort((a,b)=>b.salience()-a.salience())
-	if (episodes.length>0){return episodes[0]}
-	else {return undefined}
-}
-ishml.Plotpoint.handler=
-{
-	get: function(target, property,receiver) 
-	{ 
-		if (Reflect.has(target,property)){return Reflect.get(target,property,receiver)}
-		else 
-		{
-			//magic plotpoints
-			target[property]=new ishml.Plotpoint(property,property)
-			return target[property]
-		}
-	}
-}
-// #endregion
-// #region Episode 
-//Episodes are added to the storyline through ishml.introduce.  
-//
-/*
-	configuration={salience,start,stop,etc}
-*/
-
-/*
-	ishml tells and episode in the following order
-	resolve prolog
-	resolve episode
-	resolve epilog
-	narrate prolog
-	narrate episode
-	narrate epilog
-
-Abridge and revise REPLACE the prior episode in the evaluation change with the most salient episode returned from the episode generator provided. The new episode has the stock property set to the prior episode in the evaluation chain, which the new epsisode may use in its narration or resolution.	
-
-1.2.3
-
-Before sets new episode's prolog to prior episode in the evaluation chain
-episode2.prolog=episode1
-episode3.prolog=episode2
-
-resolve episode 3 :
-
-
-
-*/
-ishml.Episode=function Episode(twist) 
-{
-	
-	if (this instanceof Episode)
-	{
-		Object.defineProperty(this, "abridged", {value:false,writable: true})
-		Object.defineProperty(this, "epilog", {value:false, writable: true})
-		Object.defineProperty(this, "prolog", {value:false, writable: true})
-		//Object.defineProperty(this, "retracted", {value:false, writable: true})
-		Object.defineProperty(this, "_narration", {value:()=>_``.say().append("#story"),writable: true})
-		Object.defineProperty(this, "_resolution", {value:()=>true,writable: true})
-		Object.defineProperty(this, "_timeline", {value:null,writable: true})
-		Object.defineProperty(this, "_viewpoint", {value:ishml._viewpoint,writable: true})
-		Object.defineProperty(this, "stock", {value:null,writable: true})
-
-		Object.defineProperty(this, "told", {value:false,writable: true})
-		Object.defineProperty(this, "twist", {value:twist,writable: true})
-		Object.defineProperty(this, "lexeme", {value:"",writable: true})
-		return this
-	}
-	else
-	{
-		return new Episode(twist)
-	}	
-}
-/* The abridge method returns the most salient episode generated from the subplot of the plotpoint.  The abridged property is set to true, which causes all future revise method calls on the evaluation chain to be ignored.  Append method calls are NOT ignored.*/
-ishml.Episode.prototype.abridge = function (createEpisode)
-{
-	if (this.abridged){return this}
-	
-	var episode=createEpisode()
-
- 	if (!episode)
-	{
-		this.abridged=false
-		return this
-	}
-    else 
-	{
-		//episode.twist=this.twist
-		episode.stock=this
-		episode.abridged=true
-		return episode.timeline(episode._timeline ?? this._timeline).salience(episode._salience ?? this._salience)
-	}
-}
-
-/* The revise method returns the most salient episode generated from the subplot of the plotpoint or returns this if the current episode in the evaluation chain is an abridged episode or no episode is generated from the subplot.*/
-ishml.Episode.prototype.revise = function (createEpisode)
-{
-	if (this.abridged){return this}
-	if (createEpisode)
-	{
-		var episode=createEpisode()
-		if (!episode)
-		{
-			return this
-		}
-			episode.stock=this
-			//episode.twist=this.twist
-			return episode.timeline(episode._timeline ?? this._timeline).salience(episode._salience ?? this._salience)
-
-	}
-	else { return this}
-}
-
-/* The append method returns the most salient episode generated from the subplot of the plotpoint or a new,empty, episode if no plotpoint.  The new episode's prolog property is set to the prior episode in the evaluation chain. */
-ishml.Episode.prototype.append = function (createEpisode)
-{
-	if (createEpisode)
-	{
-		var episode=createEpisode()
-		if (!episode){return  this}
-		
-	}
-	else
-	{
-		var episode=new ishml.Episode()
-		
-	}
-	//episode.twist=this.twist
-	episode.stock=this
-	episode.prolog=this
-	return episode.timeline(episode._timeline ?? this._timeline).salience(episode._salience ?? this._salience)
-}
-
-ishml.Episode.prototype.prepend = function (createEpisode)
-{
-	if (createEpisode)
-	{
-		var episode=createEpisode()
-		if (!episode){return  this}
-		
-	}
-	else
-	{
-		var episode=new ishml.Episode()
-		
-	}
-	//episode.twist=this.twist
-	episode.stock=this
-	episode.epilog=this
-	return episode.timeline(episode._timeline ?? this._timeline).salience(episode._salience ?? this._salience)
-}
-
-
-
-/*
-// add code here for narration that occurs before stock narration 
-
-this.stock()?.episode.narrate()  // comment out for instead of stock narration
-
-//add code here for behavior that occurs before or instead of stock episode.
-
-this.stock()?.episode.resolve()  //comment out for instead of stock behavior
-
-// add code here for behavior that occurs after stock behavior
-
-// add code here for narration that occurs 
-return this
-*/
-ishml.Episode.prototype.narrate=function narrate()
-{
-	if (!this.twist?.silently)
-	{
-		if (this.prolog){this.prolog.narrate()}
-		this._narration(this)
-		if (this.epilog){this.epilog.narrate()}
-	}	
-	return this
-}
-ishml.Episode.prototype.narration=function(narration)
-{
-	if (narration!==undefined)
-	{
-		this._narration=narration
-		return this
-	}
-	else {return this._narration}
-	
-}
-ishml.Episode.prototype.resolution=function(resolution)
-{
-	
-	this._resolution=resolution
-	return this
-}
-ishml.Episode.prototype.resolve=function resolve(time)
-{
-
-	if (this.prolog){this.prolog.resolve(time)}
-	this.told=this._resolution(this,time)??true
-	if (this.epilog){this.epilog.resolve(time)}
-	return this
-}
-
-
-ishml.Episode.prototype.salience=function(salience)
-{
-	if(salience===undefined){return this._salience}
-	{
-		this._salience=salience
-		return this
-	}
-}
-ishml.Episode.prototype.start=function(...start)
-{
-	if(start.length===0){return this._start}
-	{
-		this._start=start[0]
-		return this
-	}
-}
-
-ishml.Episode.prototype.stop=function(...stop)
-{
-	if(stop.length===0){return this._stop}
-	{
-		this._stop=stop[0]
-		return this
-	}
-}
-ishml.Episode.prototype.timeline=function(timeline)
-{
-	if(timeline===undefined){return this._timeline}
-	{
-		this._timeline=timeline
-		return this
-	}
-}
-ishml.Episode.prototype.viewpoint=function(actor)
-{
-	if(actor===undefined){return this._viewpoint}
-	this._viewpoint=actor
-	return this
-
-}
-
-// #endregion
-// #region Knot 
-/*
-A knot has
-non-enumerable properties
-id
-uid
-and user defined enumerable properties
-
-enumerable cords
-	each cord has a ply:
-
-Cords only no other user defined properties.  twists are a set of plotpoints that apply to the ply.
-*/ 
-ishml.Knot= class Knot
-{
-	constructor(id, name, description,proper) //,uid)
-	{
-		this.id=ishml.util.formatId(id)
-		this.name=name??this.id.replace("_"," ")
-		this.description=description??this.name
-		this.proper=proper??true
-		Object.defineProperty(this, "lexeme", {value:"",writable: true})
-		return this 
-	}
-	get cord()
-	{
-		//Returns cord with ply representing this knot.
-		return new ishml.Cord(this)
-	}
-	get knot(){return this}
-	get ply()
-	{
-		//Turns bare knot into a ply.
-		return new ishml.Ply(this.id,this)
-		
-	}
-
-	get cords()
-	{
-		
-		return Object.values(this).filter(cord=>cord instanceof ishml.Cord) 	
-	}
-	configure(...configuration)
-	{
-		configuration.flat().forEach(item=>
-			{
-				Object.assign(this,item)		
-			})
-		return this
-	}	
-/*	defineCord(name)
-	{
-		return {as:(aFunction)=>
-		{
-			Object.defineProperty(this, "name", 
-			{
-				value:new Proxy(new ishml.Cord(),{get:aFunction}),
-				writable: true,
-				enumerable:true
-			})
-		}}
-		
-	}
-	*/
-
-	nearby(hops)
-	{
-		return new ishml.Cord(this).nearby(hops)
-	}
-	plural(...nouns)
-	{
-		this.configure({number:ishml.lang.number.plural})
-		ishml.lexicon.register(...nouns).as({part:"noun", select:this.cord})
-		return this
-	}
-	realm(hops)
-	{
-		return new ishml.Cord(this).realm(hops)
-	}
-	singular(...nouns)
-	{
-		this.configure({number:ishml.lang.number.singular})
-		ishml.lexicon.register(...nouns).as({part:"noun", number:ishml.lang.number.singular, select:this.cord})
-
-		return this
-	}
-	tie(...someCordage)
-	{
-/*$.thing.cup.tie("cord:ply").to(otherKnot/otherPly) --one-way relation converse===null
-$.thing.cup.tie("cord:ply=otherCord:otherPly").to(otherKnot/otherPly) --converse relation converse === another ply
-$.thing.cup.tie("cord:ply-otherCord:otherPly").to(otherKnot/otherPly) --mutual relation converse === another ply, but when ply properties updated, other ply is updated automatically because both share the same properties object.
-$.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexive relation converse=== this ply.
-
-*/
-
-//DEFECT why are we dealing with cordage that aren't strings or arrays of strings
-		var cordages=someCordage.filter(cordage=>
-			{
-				if (cordage?.cord instanceof ishml.Cord)
-				{
-					if (cordage?.id){this[cordage.id]=cordage.cord}
-					else (this[cordage.cord.id]=cordage.cord)
-					return false
-				}
-				else
-				{
-					if (cordage instanceof ishml.Cord)
-					{
-						this[cord.id]=cord
-					}
-				}
-				return true
-			})
-//END DEFECt			
-		cordages=cordages.flat(Infinity).map(cordage=>ishml.Cord.cordage[ishml.util.formatId(cordage)]??cordage).flat(Infinity)
-		var thisKnot=this
-		var tie=(from,to)=>
-		{
-			if (from instanceof ishml.Knot)
-			{
-				var fromKnot=from
-			}
-			else
-			{
-				if (from instanceof ishml.Ply)
-				{
-					var fromKnot=from.knot
-				}
-				else
-				{
-					var fromKnot=new ishml.Knot(from)
-				}	
-			}
-			if (to instanceof ishml.Knot)
-			{
-				var toKnot=to
-			}
-			else
-			{
-				if (to instanceof ishml.Ply)
-				{
-					var toKnot=to.knot
-				}
-				else
-				{
-					var toKnot=new ishml.Knot(to)
-				}	
-			}
-			cordages.forEach((cordage)=>
-			{
-				//parse the cordage
-				var [fore,aft]=cordage.split(/[-=@]/)
-				var mutual=cordage.includes("-")
-				var reflexive=cordage.includes("@")
-				var converse=cordage.includes("=")
-				var [foreCordId,forePlyId]=fore.split(":").map(id=>ishml.util.formatId(id.trim()))
-				if (foreCordId)
-				{
-					if (!forePlyId){forePlyId=toKnot.id}
-					//create the new fore ply
-					var forePly=new ishml.Ply(forePlyId,toKnot)
-					forePly.from=fromKnot
-					forePly.cordId=foreCordId
-					if (fromKnot.hasOwnProperty(foreCordId))
-					{
-						fromKnot[foreCordId][forePlyId]=forePly
-					}	
-					else
-					{
-						var cord = new ishml.Cord()
-						cord.id=foreCordId
-						cord[forePlyId]=forePly
-						fromKnot[foreCordId]=cord
-					}
-				}	
-	//exit:north=entrance:south
-	//foyer.exit.north points to kitchen
-	//foyer.exit.north.converse equivalent to foyer.exit.north.entrance.south which points back to foyer
-	//kitchen.entrance.south points to foyer
-	//kitchen.entrance.south.converse equivalent to  kitchen.entrance.south.exit.north which points back to foyer				
-				if (mutual || converse || reflexive)
-				{
-					//create the new aft ply
-					var [aftCordId,aftPlyId]=aft.split(":").map(id=>ishml.util.formatId(id.trim()))	
-					if (!aftCordId){aftCordId=foreCordId}
-					if (!aftPlyId){aftPlyId=fromKnot.id}
-
-					if (reflexive)
-					{
-						if (!aftPlyId){aftPlyId=foreCordId}
-						var aftPly=new ishml.Ply(aftPlyId,toKnot)
-					}
-					else 
-					{
-						if (!aftPlyId){aftPlyId=toKnot.id}
-						var aftPly=new ishml.Ply(aftPlyId,fromKnot)
-					}                                                                      
-
-					aftPly.from=toKnot
-					aftPly.cordId=aftCordId
-
-					if (toKnot.hasOwnProperty(aftCordId))
-					{
-						toKnot[aftCordId][aftPlyId]=aftPly
-					}	
-					else
-					{
-						var cord = new ishml.Cord()
-						cord.id=aftCordId
-						cord[aftPlyId]=aftPly
-						toKnot[aftCordId]=cord
-					}
-					if (foreCordId){forePly.converse=aftPly}
-					aftPly.converse=forePly
-				}
-			})
-		}		
-		
-		var from =(...someKnots)=>
-		{
-			someKnots.forEach(knot=>tie(knot,thisKnot))	
-			return thisKnot
-		}
-
-		var to = (...someKnots)=>
-		{
-			someKnots.forEach(knot=>tie(thisKnot,knot))
-			return thisKnot
-		}
-
-		var back = ()=>
-		{
-			tie(thisKnot,thisKnot)
-			return thisKnot
-		}
-		return {to:to, from:from, back:back}
-	}
-	where(condition)
-	{
-		if (condition(this)){return this}
-		else {return null}
-	}
-
-
-}
-// #endregion
-// #region Ply 
-/*
-The purpose of a knot is to hold data.
-A Knot has cords.
-A Cord is is made up of plies.
-	Set operations may be performed on cords to return a new set of plies in cord.
-A Ply is a connection between two knots.
-	A ply has a from knot and to knot. The ply may have a weight and other user defined properties.
-
-
-
-
-$.thing.cup.tie("cord:ply").to(otherKnot/otherPly) --one-way relation converse===null
-$.thing.cup.tie("cord:ply=otherCord:otherPly").to(otherKnot/otherPly) --converse relation converse === another ply
-$.thing.cup.tie("cord:ply-otherCord:otherPly").to(otherKnot/otherPly) --mutual relation converse === another ply, but when ply properties updated, other ply is updated automatically because both share the same properties object.
-$.thing.cup.tie("cord:ply@otherCord:otherPly").to(otherKnot/otherPly) --reflexive relation converse=== this ply.
-
-//$.place.kitchen.tie("exit:north-entrance:south").to($.place.foyer)
-//$.person.Lizzy.tie("friendship=friendship").to($.person.Charlotte)
-
-*/ 
-ishml.Ply= class Ply
-{
-	constructor(id,knot)
-	{
-		if (id)
-		{
-			this.id=id
-
-			if (knot instanceof ishml.Knot)
-			{
-				var k=knot
-			}
-			else
-			{
-				if (knot){var k=new ishml.Knot(knot)}
-				else{var k=new ishml.Knot(id)}
-
-			}
-			this.knot=k //destination
-			//this.twists={}
-			this.ply={weight:1}
-		}
-		else
-		{
-			this.id=null
-			this.knot=null
-			this.ply=null
-		}	
-		Object.defineProperty(this, "lexeme", {value:"",writable: true})
-		this.hop=0
-		this.cost=0
-		/*this.adjunct=null //for adjunctive cording  What???? probably meant cord hopping*/
-		this.advance=null //a ply created during entwining
-		this.retreat=null //a ply created during entwining
-		this.converse=null // a ply created during tying for reflexive, mutual and converse
-		this.cordId="" // name of thie from knot cord where this ply lives
-		this.from=null //the knot where this ply lives
-		//this.mutual=false -- not needed just share this.ply mutually
-		return new Proxy(this, ishml.Ply.handler)
-	}
-	get aft()
-	{
-		var ply=this
-		while (ply.retreat){ply=ply.retreat}
-		return ply
-	}
-	check(condition)
-	{
-		if (condition(this)){return this}
-		else return null
-	}
-	get cord()
-	{
-		
-		return new ishml.Cord(this) 	
-	}
-
-	entwine({ply,via=null,condition=()=>true})
-	{
-
-		//Duplicate two plies and connect advance and retreat
-		if (ply instanceof ishml.Knot){var otherPly=knot.toPly()}
-		else {var otherPly=ply}
-		if (via)
-		{
-			if(this.knot.hasOwnProperty(via) && this.knot[via] instanceof ishml.Cord)
-			{
-				if(this.knot[via].hasOwnProperty(otherPly.id))
-				{
-					if (condition(this,otherPly))
-					{
-
-						var tail=this.plait()
-						var head=otherPly.plait()
-					
-						tail.via=via
-						tail.advance=head
-						tail.retreat=this.retreat
-
-						head.advance=null
-						head.retreat=tail
-						head.advance=tail
-						
-						return {tail:tail,head:head}
-					}
-				}
-
-			}
-			return {aft:null,fore:null}
-		}	
-
-		var tail=this.plait()
-		var head=otherPly.plait()
-	
-		tail.advance=head
-		tail.retreat=this.retreat
-
-		head.advance=null
-		head.retreat=tail
-		head.advance=tail
-		
-		return {aft:tail,fore:head}
-	}	
-	get fore()
-	{
-		var ply=this
-		while (ply.advance){ply=ply.advance}
-		return ply
-	}
-	//get knots(){return new ishml.Tangle(this.knot)}
-	plait()
-	{
-		//create a new ply from this ply.  shallow copy of members.
-		var plait=new Ply(this.id,this.knot)
-		plait.cost=this.cost
-		plait.ply=this.ply
-		plait.hop=this.hop
-		plait.cost=this.cost
-		plait.converse=this.converse // a ply created during tying
-		plait.cordId=this.cordId // name of of from knot cord where this ply lives
-		plait.from=this.from
-
-		return plait
-	}
-	//$.thing.ring.nearby(1).via("in","over","under").contains(player,{via})
-	nearby(hops)
-	{
-		return new ishml.Cord(this).nearby(hops)
-	}
-	path(destination,{filter=(ply)=>true,minimum=1,maximum=Infinity,via,cost=(ply,leg)=>ply.cost+leg.ply.weight}={})
-	{
-		function insert (ply)
-		{
-
-			heap.push(ply)
-
-			/* Bubble Up */
-
-			if (heap.length > 1)
-			{
-				let current = heap.length - 1
-
-				/* Traversing up the parent node until the current node (current) is greater than the parent (current/2)*/
-				while (current > 1 && heap[Math.floor(current/2)].cost > heap[current].cost)
-				{
-
-					/* Swapping the two nodes by using the ES6 destructuring syntax*/
-					[heap[Math.floor(current/2)], heap[current]] = [heap[current], heap[Math.floor(current/2)]]
-					current = Math.floor(current/2)
-				}
-			}
-			
-		}
-		
-		function remove()
-		{
-			let smallest = heap[1]
-
-			/* When there are more than two elements in the array, we put the right most element at the first position
-				and start comparing nodes with the child nodes
-			*/
-			if (heap.length > 2)
-			{
-				heap[1] = heap[heap.length-1]
-				heap.splice(heap.length - 1)
-
-				if (heap.length === 3)
-				{
-					if (heap[1].cost > heap[2].cost)
-					{
-						[heap[1], heap[2]] = [heap[2], heap[1]]
-					}
-					return smallest
-				}
-
-				let current = 1
-				let leftChildIndex = current * 2
-				let rightChildIndex = current * 2 + 1
-
-				while (heap[leftChildIndex] && heap[rightChildIndex] && (heap[current].cost < heap[leftChildIndex].cost || heap[current].cost < heap[rightChildIndex].cost))
-				{
-					if (heap[leftChildIndex].cost < heap[rightChildIndex].cost)
-					{
-						[heap[current], heap[leftChildIndex]] = [heap[leftChildIndex], heap[current]]
-						current = leftChildIndex
-					}
-					else
-					{
-						[heap[current], heap[rightChildIndex]] = [heap[rightChildIndex], heap[current]]
-						current = rightChildIndex
-					}
-
-					leftChildIndex = current * 2
-					rightChildIndex = current * 2 + 1
-				}
-			}
-
-			/* If there are only two elements in the array, we directly splice out the first element */
-
-			else if (heap.length === 2) 
-			{
-				heap.splice(1, 1)
-			} 
-			else
-			{
-				return null
-			}
-
-			return smallest
-		}
-		
-		if (destination instanceof ishml.Knot){var target=destination.toPly()}
-		else {var target=destination}
-		if (via)
-		{
-			var way=new Set([].concat(via))
-			var anyway=false
-		}
-		else
-		{
-			var anyway=true
-		}	
-		this.retreat=null
-		this.hop=0
-		this.cost=0
-		var heap=[null]
-		insert(this.plait())
-		
-		var visited = new Set()
-		var path= []
-		while (heap.length>1)
-		{
-			var ply=remove(heap)
-			
-			if (ply.cost<=maximum)
-			{
-				if (ply.knot===target.knot && ply.cost>=minimum)
-				{
-					
-					//found! ply.retreat already set. we new just need to retreat all the way back to find the ply in the path and return that. 
-					var head=null  //destination knot
-					while (ply) //walk retreat path of destination and set advance path.
-					{
-						ply.advance=head //advance
-						path.unshift(ply) //add ply to path list to be returned
-						head=ply //retreat one hop
-						ply=ply.retreat //retreat one hop
-						//exit loop once ply is null.  last retreat points to null.
-					}	
-					return {aft:path[0],fore:path[path.length-1]}
-				}
-				else
-				{
-					if (!visited.has(ply.knot) && filter(ply))
-					{
-						visited.add(ply.knot)
-						ply.knot.cords.forEach(cord => 
-						{
-							if (anyway || way.has(cord.id) )
-							{
-								Object.values(cord).forEach((child)=>
-								{
-									if (!visited.has(child.knot))
-									{
-										var leg=child.plait()
-										leg.hop=ply.hop+1
-										leg.cost=cost(ply,leg)
-										leg.retreat=ply
-										leg.via=cord.id
-
-										insert(leg)
-									}
-								})
-							}	
-						})
-					}
-				}
-			}		
-		}
-		return {aft:null,fore:null}  //not found
-	}
-	realm(hops)
-	{
-		return new ishml.Cord(this).realm(hops)
-	}
-	retie(...knots)
-	{
-		//forePly.converse=aftPly
-		//			aftPly.converse=forePly
-		var id
-		var forePly=this  //player.in.foyer  //player.in.foyer.from === player knot
-		var aftPly=this?.converse ?? null  //foyer.contains.player
-		forePly.from[forePly.cordId].delete(forePly)  //remove foyer ply from player
-		aftPly?.from[aftPly.cordId].delete(aftPly)  //remove player from foyer
-		
-		var cord=new ishml.Cord(...knots)
-		cord.forEach(ply=>  //$.place.cloakroom
-		{
-			id=forePly.id===forePly.knot.id?ply.knot.id:forePly.id
-			forePly.from[forePly.cordId]=forePly.from[forePly.cordId] ?? new ishml.Cord()
-			forePly.id=id
-			forePly.from[forePly.cordId].add(forePly)
-			forePly.knot=ply.knot
-			
-			if (aftPly)
-			{
-				id=aftPly.id===aftPly.knot.id?this.from.id:aftPly.id
-				ply.knot[aftPly.cordId]=ply.knot[aftPly.cordId] ?? new ishml.Cord()
-				aftPly.id=id
-				ply.knot[aftPly.cordId].add(aftPly)
-				aftPly.from=ply.knot
-				forePly.converse=aftPly
-				aftPly.converse=forePly
-			}	
-		})
-	
-		return this
-
-		//return this.knot.tie(...cordage)
-	}
-
-	subtract(...cordage)
-	{
-		return this.cord.subtract(...cordage)
-	}
-	untie()
-	{
-/*Knot must have been reached by traveling along a tie.
-$.room.kitchen.untie() removes the room tie for kitchen and returns kitchen.knot.
-$.room.kitchen.exit.north removes the exit north tie to foyer and returns north.knot, the bare foyer knot.
-
-$.room.kitchen.exit.north.untie()
-*/
-		this.from[this.cordId]._plies.delete(this)
-		delete this.from[this.cordId][this.id]
-		var converse=this.converse
-		if (converse)
-		{
-			converse.from[converse.cordId]._plies.delete(converse)
-			delete converse.from[converse.cordId][converse.id]
-		}
-		return this
-	}
-
-	where(condition)
-	{
-		if (condition(this)){return this}
-		else {return null}
-	}
-}
-
-
-//custom properties are returned from .ply.  if not found on .ply, then returned from .knot.  Example, description.
-ishml.Ply.handler=
-{
-
-	get: function(target, property, receiver) 
-	{
-		if (Reflect.has(target,property)){return Reflect.get(target,property, receiver)}
-		var ply=Reflect.get(target,"ply")
-		if(ply.hasOwnProperty(property))
-		{
-			
-			return ply[property]
-		}
-		var knot=Reflect.get(target,"knot")
-		if (knot)
-		{
-			if(Reflect.has(knot,property))
-			{
-				if (!(knot[property] instanceof ishml.Cord)  && typeof knot[property]==="function" )
-				{
-					return function(...args){return knot[property](args)}
-				}
-				else {return knot[property]}
-			}	
-		}
-		else {return new ishml.Cord()}	
-	},
-	set: function(target, property, value, receiver)
-	{
-		if (Reflect.has(target,property)){return Reflect.set(target,property,value,receiver)}
-		var ply=Reflect.get(target,"ply")
-		if(ply.hasOwnProperty(property))
-		{
-			ply[property]=value
-			return true
-		}
-		var knot=Reflect.get(target,"knot")
-		
-		if(knot.hasOwnProperty(property))
-		{
-			knot[property]=value
-			return true
-		}
-		else
-		{
-			ply[property]=value
-			return true
-		}
-	}	
-}
-
-
-//$.place.kitchen.tie("exit:north<entrance:south").to($.place.foyer)
-//$.person.Lizzy.tie("friendship<friendship").to($.person.Charlotte)
-//$.tie("select").to("green")
-
-//$.thing.cup(is<describes).to($.select.green)
-
-//$.select.green.tie("describes:is").to($.thing.cup)
-//$.select.green.tie("describes:is").to($.thing.ball)
-
-//$.select.green.describes.cup
-//$.cup.is.green
-
-// #endregion
-// #region Cord 
-ishml.Cord =class Cord extends Function //(function Cord(){})
-{
-	//a cord is a collection of unrelated plies
-	constructor(...members) 
-	{
-		super()
-		Object.setPrototypeOf(this, ishml.Cord.prototype)
-		Object.defineProperty(this,"id",{writable:true})
-		Object.defineProperty(this,"__plies",{value:new Set(),writable:true})
-		Object.defineProperty(this,"_select",{value:null,writable:true})
-		Object.defineProperty(this, "lexeme", {value:"",writable: true})
-		members.forEach(member=>
-		{
-			if (member instanceof Set ||member instanceof ishml.Cord ||member instanceof Array)
-			{
-				member.forEach((item)=>
-				{
-					if (item instanceof ishml.Ply)
-					{
-						this._plies.add(item)
-						this[item.id]=item
-					}
-					else
-					{
-						if (item instanceof ishml.Knot)
-						{
-							this._plies.add(item.ply)
-							this[item.id]=item.ply
-						}
-					}
-					
-				})
-			}
-			else
-			{
-				if (member instanceof ishml.Ply)
-				{
-					this._plies.add(member)
-					this[member.id]=member
-				}
-				else
-				{
-					if (member instanceof ishml.Knot)
-					{
-						this._plies.add(member.ply)
-						this[member.id]=member.ply
-					}
-					else
-					{
-						if (typeof member === "function")
-						{
-							this._select=member
-						}
-					}
-				}
-				
-			}
-		})	
-		return new Proxy(this,ishml.Cord.handler)
-	}
-	[Symbol.iterator](){return this._plies.values()[Symbol.iterator]()}
-	get _plies()
-	{
-		if(this._select){return this._select()._plies}
-		else{return this.__plies}
-	}
-	add(...members)
-	{
-		members.forEach(member=>
-		{
-			if (member instanceof Cord || member instanceof Set || member instanceof Array)
-			{
-				member.forEach((item)=>
-				{
-					if (item instanceof ishml.Ply)
-					{
-						this._plies.add(item)
-						this[item.id]=item
-					}
-					else
-					{
-						if (item instanceof ishml.Knot)
-						{
-							this._plies.add(item.ply)
-							this[item.id]=item.ply
-						}
-					}
-				})
-			}
-			else
-			{
-				if (member instanceof ishml.Ply)
-				{
-					this._plies.add(member)
-					this[member.id]=member
-				}
-				else
-				{
-					if (member instanceof ishml.Knot)
-					{
-						this._plies.add(member.ply)
-						this[member.id]=member.ply
-					}
-				}
-			}
-		})	
-		return this	
-	}
-	get converse()
-	{
-		var cord = new ishml.Cord()
-		/*if (cordId)
-		{
-			for ( const ply of this[cordId]._plies){cord.add(ply.converse)}
-		}
-		else
-		{*/	
-			for ( const ply of this._plies){cord.add(ply.converse)}
-		//}	
-		return cord
-	}
-	get cord(){return this}
-	cross(other)
-	{
-		
-		var per=crossing=>
-		{
-			var cord = new ishml.Cord()
-			for (const a of this)
-			{
-				for (const b of other)
-				{
-					var result=crossing(a,b)
-					try
-					{
-						if (result===true)
-						{
-							cord.add(a)
-						}
-						else 
-						{
-							if (result instanceof ishml.Ply || result instanceof ishml.Cord)
-							{
-								cord.add(result)
-							}
-							
-						}
-					}
-					catch 
-					{
-						
-					}	
-				}
-			}
-			return cord
-		}
-		return {per:per}
-	}
-	generate(property="name")
-	{
-		return this.map(ply=>
-		{
-			var knot=ply.knot
-			var data={}
-			Object.keys(ply).forEach(key=>
-			{
-				data["ply_"+key]=ply[key]
-			})
-			Object.assign(data,ply.knot)
-			if (property===undefined){data.value=knot.name}
-			else
-			{
-				if (property===""){data.value=""}
-				else{data.value=knot[property]}
-			}
-			return data
-		})
-	}
-	delete(...plies)
-	{
-		var cord=new ishml.Cord(...plies)
-		cord.forEach((ply)=>
-		{
-			if(ply instanceof ishml.Ply)
-			{
-				//DEFECT deleting key when there may be more than one ply with the same id
-				delete this[ply.id]
-				this._plies.delete(ply)
-			}
-			else
-			{
-				
-				if (ply)
-				{
-					ply.forEach((ply)=>
-					{
-						if(ply instanceof ishml.Ply)
-						{
-							//DEFECT deleting key when there may be more than one ply with the same id
-							delete this[ply.id]
-							this._plies.delete(ply)
-						}
-					})
-				}	
-				
-			}
-		})
-		return this
-	}
-	get disjoint()
-	{
-		var knots=new Set()
-		var cord=new ishml.Cord()
-		this._plies.forEach(ply=>
-		{
-			if (!knots.has(ply.knot))
-			{
-				knots.add(ply.knot)
-				cord.add(ply)
-			}
-		})
-		return cord
-	}
-	akin(...someCord)
-	{
-		var knots=this.knots.toSet
-		var otherKnots = (new ishml.Cord(...someCord)).knots.toSet
-		if (knots.size===otherKnots.size)
-		{
-			return [...knots].every(knot=>otherKnots.has(knot))
-		}
-		else {return false}
-	}
-	filter(condition)
-	{
-		return new ishml.Cord([...this._plies].filter(condition))
-	}
-	get isEmpty()
-	{
-		return this.size===0
-	}
-	slice(start=0,end=1)
-	{
-		return new ishml.Cord([...this._plies].slice(0,1))
-	}
-	forEach(f)
-	{
-		this.plies.toArray.forEach(f)
-	}
-	has(ply)
-	{
-		if (ply instanceof ishml.Ply)
-		{
-			if (this._plies.has(ply)){return true}
-			return false
-		}	
-		else {return [...this._plies].some(ply=>ply.knot===ply)}
-	}
-	intersect (cord)
-	{
-		var otherCord=new ishml.Cord(cord)
-		var cord=new ishml.Cord()
-		this.forEach(ply=>
-		{
-			if (otherCord.has(ply.knot))
-			{
-				cord.add(ply)
-			}
-		})
-		return cord
-	}
-	get knot(){return[...this._plies][0].knot}
-	get knots()
-	{
-		var thisCord=this
-		return new Proxy({},
-		{
-			get: function(target, property, receiver) 
-			{
-				if (property==="toArray"){return 	[...thisCord._plies].map(ply=>ply.knot)}
-				if (property==="toSet"){return new Set([...thisCord._plies].map(ply=>ply.knot))}
-				return [...thisCord._plies].map(ply=>ply.knot[property])
-			}			
-		})	
-	}
-	last(count=1)
-	{
-		return new ishml.Cord([...this._plies].slice(-1,-count))
-	}
-	map(map)
-	{
-		return [...this._plies].map(map)
-	}
-	middle(count=1)
-	{
-		return new ishml.Cord([...this._plies].slice(count,-count))
-	}
-	most(count=1)
-	{
-		return new ishml.Cord([...this._plies].slice(count-1,-1))
-	}
-	//$.thing.ring.nearby(1).via("in","over","under").contains(player,{via})
-	nearby(hops)
-	{
-		var visited
-		var result
-		var neighbors 
-		var thisCord = this
-		var adjacencies=(cord,keys)=>
-		{
-			var adjacent=new ishml.Cord()
-			if (keys)
-			{
-				keys.forEach((key)=>
-				{	
-					cord.forEach(ply=>{adjacent.add(ply.knot[key])})
-				})
-			}
-			else
-			{
-				cord.forEach(ply=>{adjacent.add(ply.knot.cords)})
-			}
-			
-			return adjacent
-		}
-		return {
-			via:(...cordage)=>
-			{
-				var i=hops?hops-1:Infinity
-				result=adjacencies(this, cordage)
-				visited = new ishml.Cord(result)
-				while (i>0)
-				{
-					neighbors=adjacencies(result, cordage).subtract(visited)
-					if (neighbors.size===0){return new ishml.Cord()}
-					visited.add(neighbors)
-					result= new ishml.Cord(neighbors)
-					i--
-				}
-				return result
-			}
-		}	
-	}
-	path(destination,{filter=(knot)=>true,minimum=1,maximum=Infinity,via,cost=(ply,leg)=>ply.cost+leg.ply.weight}={})
-	{
-		var fore=new ishml.Cord()
-		var aft=new ishml.Cord()
-		var path
-		this.cross(destination).per(
-		(a,b)=>
-		{
-			path=a.path(b,{filter:filter,minimum:minimum,maximum:maximum,via:via,cost:cost})
-			fore.add(path.fore)
-			aft.add(path.aft)
-		})
-		return {fore:fore,aft:aft}
-	}
-	get text()
-	{
-		var cord=this
-		return new Proxy(()=>{},
-		{
-			apply:function(target,thisArg,args)
-			{
-				if(args.length===0)
-				{
-					return ishml.Template.list(cord.knots.name).say().text
-				}
-			},
-			get: function(target,property)
-			{
-
-				return ishml.Template.list(cord.knots[property]).say().text
-			}
-			
-		})
-
-	}
-	get ply(){return[...this._plies][0]}
-	orient(property,plies)
-	{
-		/*
-		 $.thing.ring.worn_by($.actor.player)
-
-		 $.actor.player.wears.ring
-
-		 $.thing.ring.worn_by.player.converse
-
-		*/
-		var otherCord=new ishml.Cord(plies)
-		var cord=new ishml.Cord()
-
-		if (plies)
-		{
-
-			for (const thisPly of this ) //$.thing.ring
-			{
-				var targetCord=thisPly.knot[property]//$.thing.ring.worn_by
-			
-
-				for (const targetPly of targetCord) //$.thing.ring.worn_by  aka player
-				{
-					for (const otherPly of otherCord) //$.actor.player
-					{
-						if (targetPly.knot===otherPly.knot)
-						{
-							cord.add(targetPly.converse) //$.thing.ring.worn_by.converse aka ring
-							break
-						}
-					}
-				}	
-			}
-		}
-		else
-		{
-			for (const thisPly of this ) //$.thing.ring
-			{
-				var targetCord=thisPly.knot[property]//$.thing.ring.worn_by
-				for (const targetPly of targetCord) //$.thing.ring.worn_by  aka player
-				{
-					cord.add(targetPly.converse) //$.thing.ring.worn_by.converse aka ring
-				}	
-			}
-		}
-		return cord
-	}
-	get plies()
-	{
-		var thisCord=this
-		return new Proxy({},
-		{
-			get: function(target, property) 
-			{
-				if (property==="toArray"){return 	[...thisCord._plies]}
-				if (property==="toSet"){return thisCord._plies}
-				return [...thisCord._plies].map(ply=>ply[property])
-			}			
-		})	
-	}
-	//portable.reachable($.actor.player.in, {via:"in"})
-	reachable(destination,{filter=(knot)=>true,minimum=1,maximum=Infinity,via,cost=(ply,leg)=>ply.cost+leg.ply.weight}={})
-	{
-		return this.cross(destination).per(
-		(a,b)=>
-		{
-			var {aft}=a.path(b,{filter:filter,minimum:minimum,maximum:maximum,via:via,cost:cost})
-			if (aft) {return true}
-			else {return false}
-		})
-	}
-	realm(hops)
-	{
-		var visited
-		var result
-		var neighbors 
-		var size
-		var thisCord=this
-		var adjacencies=(cord,keys)=>
-		{
-			var adjacent=new ishml.Cord()
-			if (keys)
-			{
-				keys.forEach((key)=>
-				{	
-					cord.forEach(ply=>{adjacent.add(ply.knot[key])})
-				})
-			}
-			else
-			{
-				cord.forEach(ply=>{adjacent.add(ply.knot.cords)})
-			}
-			
-			return adjacent
-		}
-		return {
-			via:(...cordage)=>
-			{
-				var i=hops?hops-1:Infinity
-				result=adjacencies(thisCord, cordage)
-				visited=new ishml.Cord(thisCord).add(result)
-				while (i>0)
-				{
-					neighbors=adjacencies(result, cordage).subtract(visited)
-					if (neighbors.size===0){break}
-					visited.add(neighbors)
-					result.add(neighbors)
-					i--
-				}
-				return result
-			}
-		}	
-	}
-	recite(recitation=(ply)=>ply.knot.id)
-	{
-		var result=[]
-		this._plies.forEach((ply)=>
-		{
-			result.push(recitation(ply))
-		})
-		return result
-	}
-	retie(...knots)
-	{
-		if(this.size)
-		{
-			this.forEach(ply=>
-			{
-				ply.retie(...knots)
-			})
-		}
-		else
-		{
-			this.add(...knots)
-		}	
-		return this
-	}
-	reduce(f){return [...this.__plies].reduce(f)}
-	shuffle(quantity)
-	{
-		var count=quantity||this.size
-		return new ishml.Cord(ishml.util.shuffle([...this._plies],count))
-	}
-	get size()
-	{
-		//if(_select){return this._select().size}
-
-		return this._plies.size
-	}
-	sort(sorting)
-	{
-		return new Cord([...this._plies].sort(sorting))
-	}
-	subtract(...someKnots)
-	{
-		var a=new ishml.Cord(this)
-		var b=new ishml.Cord(...someKnots).knots.toSet
-		a.forEach(ply=>
-		{
-			if(b.has(ply.knot))
-			{
-				delete a[ply.id]
-				a._plies.delete(ply)
-			}
-		})
-		return a
-	}
-	tie(...someCordage)
-	{
-		var from =(...fromCords)=>
-		{
-			var fromCord= new ishml.Cord(...fromCords)
-
-			fromCord.forEach(ply=>
-			{
-				this.forEach((toPly)=>
-				{
-					ply.knot.tie(...someCordage).to(toPly.knot)
-				})	
-			})
-			return this	
-		}
-
-		var to = (...toCords)=>
-		{
-			var toCord=new ishml.Cord(...toCords)
-			this.forEach((ply)=>
-			{
-				toCord.forEach(toPly=>
-					{
-						ply.knot.tie(...someCordage).to(toPly.knot)
-					})
-			})
-			
-			return this
-		}
-		return {to:to, from:from}
-	}
-	untie(cordId)
-	{
-		var cord=cordId?this[cordId].converse:this
-
-		cord._plies.forEach(ply=>
-		{
-			ply.untie()
-		})
-		return this
-	}
-	where(condition)
-	{
-		if (condition(this)){return this}
-		else return new Cord()
-	}
-}
-ishml.Cord.cordage={}
-ishml.Cord.handler=
-{	
-	apply: function(target, thisArg, cords)
-	{
-		/*
-		$.thing.ring.worn_by($.actor.player)
-
-		$.actor.player.wears.ring
-
-		$.thing.ring.worn_by.player.converse
-
-		*/
-		if (target._select){return target._select(...cords)}
-		var cord=new ishml.Cord()
-
-		if (cords.length>0)
-		{
-			cords.forEach((c)=>
-			{
-				if (typeof c === "string")  //$.actor.player.in("cloakroom") $.place.foyer.exit("cloakroom") $.place.foyer.exit("west")
-				{
-					target.forEach(targetPly=>
-					{
-						if (targetPly.id===c ||targetPly.knot.id===c)cord.add(targetPly)
-					})	
-				}
-				else
-				{
-					var otherCord=new ishml.Cord(c)
-					target.forEach(targetPly=>
-					{
-						otherCord.forEach(otherPly=>
-						{
-							if (targetPly.knot===otherPly.knot){cord.add(targetPly)}
-						})
-					})
-				}	
-			})
-		}
-		else
-		{
-			cord.add(target) //Called cord without parameters.  Need to return the orignal cord. Can't just return target, because not wrapped in proxy. 
-		}
-		return cord
-
-	},
-	set: function(target, property, value, receiver)
-	{
-		if (value instanceof ishml.Ply)
-		{
-			target[property]=value
-			target._plies.add(value)
-			return true
-		}
-		else{return Reflect.set(target,property,value,receiver)}
-	},
-	get: function(target, property, receiver) 
-	{
-		//if cord contains ply, return the ply
-		//$.room.kitchen.exit.north
-		if (target._select){return target._select()[property]}
-		if (Reflect.has(target,property,receiver))  //return the ply 
-		{
-			return Reflect.get(target,property,receiver)
-		}
-		else 
-		{
-			// Return  the ply where the knot id matches the property name.
-			//$.kitchen.exit.foyer 
-			target._plies.forEach(ply=>
-			{
-				if (ply.knot?.id===property){return ply}
-			})
-			//if some plies in the cord point to knots which point cords matching the property, return a cord of the plies of matching cords.  Fast travel along cords
-			//$.actor.lizzy.friend.friend
-			var cord=new ishml.Cord()
-			target._plies.forEach(ply=>
-			{
-					cord.add(ply.knot[property])	
-			})
-			return cord
-
-		}
-	}
-}
-// #endregion
 // #region Interpretation 
 ishml.Interpretation=function Interpretation(gist={},remainder="",valid=true,lexeme)
 {
@@ -2952,11 +1170,7 @@ ishml.Phrase =class Phrase
 			}
 		}(this)
 	}
-	/*get data()
-	{
-		if (this.results.length>0){return this.results[0]}
-		else{return {}}
-	}*/
+
 	first(count=1)
 	{
 		return new class firstPhrase extends ishml.Phrase
@@ -3299,23 +1513,12 @@ ishml.Phrase =class Phrase
 						if(literals)
 						{	
 							data=[literals]
-						//	if (literals instanceof ishml.Cord){data=literals.data()} //convert cord to array
-						//	else
-						//	{
-								//if (literals instanceof Object && !(literals instanceof ishml.Phrase) && !(literals //instanceof Function) ){data = literals} // leave object as object Why?
-								//else {
-								//	if (literals.data){data=literals.data()}
-								//	else{data=[literals]}
-								//} //convert argument to array
-						//	}
 						}
-						//else {data=[]}
 					}
 				}
 			}
 		}				
-//		if (data instanceof Array) //normalize array and replace phrases
-//		{
+
 		if (data.length===0){this.phrases=data}
 		else
 		{
@@ -3327,45 +1530,9 @@ ishml.Phrase =class Phrase
 				{return phrase}
 
 				return phrase.toString()
-				
-				/*
-				if (phraseType ==="object")
-				{
-					if (phrase instanceof ishml.Phrase)
-					{
-						return {value:phrase}
-					}
-					else
-					{
-						if (phrase.hasOwnProperty("value")){return phrase}
-						else 
-						{
-							var revisedPhrase=Object.assign({},phrase)
-							
-							revisedPhrase.value=Object.values(phrase)[0]
-							return revisedPhrase
-						}
-					}
-				}
-				else
-				{
-					if (phraseType==="function")
-					{
-						return {value:phrase}
-					}
-					if (phraseType === "string"){return {value:phrase}}
-					else{return{value:phrase.toString()}}
-				}*/
+
 			})
 		}	
-	//	}
-		/*else  //POJO
-		{
-			if (data instanceof ishml.Cord){this.phrases[0]={value:data.data()}}
-			else {
-				this.phrases[0]={value:data}
-			}
-		}*/
 		return this
 	}
 	prepend(documentSelector)
@@ -4201,16 +2368,13 @@ ishml.viewpoint=function(actor)
 	return this._viewpoint
 }
 // #endregion
-ishml.storyline={}  //Episode queue
-ishml.history=[] //list of executed commands
 ishml.clock=new Date()
 ishml.interval= 60000  //1 minute
 ishml.turn=1
-ishml.plot=new ishml.Plotpoint()
 ishml.lexicon=new ishml.Lexicon()
 ishml.grammar=new ishml.Rule()
 ishml.parser=null
-ishml.net=new ishml.Knot("$")
+ishml.tense={present:0, past:1, perfect:2}
 ishml._viewpoint=null
 ishml.undoLength=10
 ishml.lang={}
@@ -4233,304 +2397,7 @@ ishml.configure=function(options)
 {
 	//DEFECT TO DO seed, name, author, etc.
 }
-// #region Interactivity
-ishml.harken=function()
-{
-	var state={dragging:false}
-	document.addEventListener('click', (e)=>this.click(e))
-	document.addEventListener('keyup', (e)=> this.keyup(e))
-	document.addEventListener('mousedown', (e)=> this.mousedown(e,state))
-	document.addEventListener('mouseup', (e)=> this.mouseup(e,state))
-	document.addEventListener('mousemove', (e)=> this.mousemove(e,state))
-	document.addEventListener('transitionend', (e)=> this.transitionend(e,state))
 
-}
-ishml.click=function(e)
-{
-	if (e.target.matches('.ishml-choice'))
-	{
-		//var episode =ishml.Episode(e.target.dataset,this)()
-		//episode.input=e.target.value
-		//episode.narrate()
-		var twist=Object.assign(
-			{
-				input:e.target.value,
-				moment:ishml.clock
-			},e.target.dataset)
-
-		this.history.push(twist)
-		
-		var plotpoint=twist.plotpiont??ishml.plot.points[twist.plot]??ishml.plot[twist.plot]	
-		plotpoint.unfold(twist)
-	}
-}
-ishml.keyup=function(e)
-{
-
-	if (e.target.matches('.ishml-input'))
-	{
-		if (e.keyCode===13)
-		{
-			//var episode =ishml.Episode(e.target.dataset,this)
-			//episode.input=e.target.value
-			//episode.narrate()
-			var twist=Object.assign(
-				{
-					input:e.target.value,
-					moment:ishml.clock
-				},e.target.dataset)
-	
-			this.history.push(twist)
-			
-			var plotpoint=twist.plotpiont??ishml.plot.points[twist.plot]??ishml.plot[twist.plot]	
-			plotpoint.unfold(twist)
-
-		}
-	}
-}
-
-
-
-ishml.mousedown=function(e,state)
-{
-	if (e.target.matches('.ishml-draggable'))
-	{
-		e.preventDefault()
-		if(!state.dragging)
-		{
-			var {top,left}=e.target.getBoundingClientRect()
-			state.dragging={}
-			state.dragging.clone=e.target.cloneNode(true)
-			state.dragging.offset={left:e.clientX-left,top:e.clientY-top}
-			state.dragging.originalPosition={left:`${left}px`,top:`${top}px`}
-			state.dragging.clone.style.position="fixed"
-			state.dragging.clone.style.left=`${e.clientX - state.dragging.offset.left}px`
-			state.dragging.clone.style.top=`${e.clientY -state.dragging.offset.top}px`
-			state.dragging.original=e.target
-			e.target.classList.add("ishml-disappear")
-			state.dragging.clone.classList.add("ishml-draggable-dragging")
-			document.body.appendChild(state.dragging.clone)
-		}
-	}
-}
-ishml.mouseup=function(e,state)
-{
-	if (state.dragging && !state.dragging.transitioning)
-	{
-
-		e.preventDefault()
-		if(state.dragging.dropbox)
-		{
-			this.dropHoverStop({draggable:state.dragging.clone,dropbox:state.dragging.dropbox})
-		}
-		state.dragging.clone.classList.remove("ishml-draggable-dragging")
-		state.dragging.clone.classList.add("ishml-draggable-rejected")
-		state.dragging.clone.style.left=state.dragging.originalPosition.left
-		state.dragging.clone.style.top=state.dragging.originalPosition.top
-		state.dragging.transitions=0
-		state.dragging.transitioning=true
-	}
-}
-ishml.mousemove=function(e,state)
-{
-	if (state.dragging && !state.dragging.clone.matches(".ishml-draggable-rejected"))
-	{
-		e.preventDefault()
-		var left=`${e.clientX - state.dragging.offset.left}px`
-		var right=`${e.clientY - state.dragging.offset.top}px`
-		state.dragging.clone.style.left="-10000px"
-		state.dragging.clone.style.top="-10000px"
-		let dropbox = document.elementFromPoint(e.clientX, e.clientY)
-		if(dropbox){dropbox=dropbox.closest(".ishml-dropbox")}
-		if (state.dragging.dropbox != dropbox) 
-		{
-			if (state.dragging.dropbox)
-			{
-				this.dropHoverStop({draggable:state.dragging.clone,dropbox:state.dragging.dropbox })
-			}
- 			state.dragging.dropbox = dropbox;
-			if (state.dragging.dropbox) 
-			{ 
-				this.dropHoverStart({draggable:state.dragging.clone,dropbox:state.dragging.dropbox})
-			}
-		}
-		state.dragging.clone.style.left=left
-		state.dragging.clone.style.top=right
-	}
-}
-ishml.transitionend=function(e,state)
-{
-	if(e.target===state.dragging.clone && state.dragging.transitioning )
-	{
-		state.dragging.transitions++
-
-		if (state.dragging.transitions==getComputedStyle(state.dragging.clone).getPropertyValue('--transitions'))
-		{
-			state.dragging.original.classList.remove("ishml-disappear")
-			
-			document.body.removeChild(state.dragging.clone)
-			state.dragging=false
-		}
-		//DEFECT missing plotpoint.unfold etc ...
-	}
-}
-
-ishml.dropHoverStart=function({draggable,dropbox})
-{
-	draggable.dataset.originalText=draggable.innerText
-	draggable.innerText=draggable.innerText + " " +dropbox.innerText
-	draggable.classList.add("ishml-draggable-hover")
-	dropbox.classList.add("ishml-dropbox-hover")
-}
-ishml.dropHoverStop=function({draggable,dropbox})
-{
-	draggable.classList.remove("ishml-draggable-hover")
-	draggable.innerText=draggable.dataset.originalText
-	dropbox.classList.remove("ishml-dropbox-hover")
-}
-ishml.dropCheck=function({draggable,dropbox})
-{
-	var plot=this.plot.points[draggable.dataset.plot]
-	if (plot)
-	{
-		var subplot=this.plot.points[dropbox.dataset.plot]||this.plot[dropbox.dataset.plot]
-		var plotpoints=Object.values(plot)
-		return plotpoints.includes(subplot)
-	}
-	return false
-}
-		
-ishml.say=function(aText)
-{	
-	if (typeof aText === 'string' || aText instanceof String)
-	{
-		var fragment = document.createElement('template')
-    	fragment.innerHTML = aText
-    	fragment= fragment.content
-	}
-	else if(aText instanceof ishml.Passage)
-	{
-		var fragment=aText.documentFragment()
-	}
-	else
-	{
-		var fragment=aText
-	}
-	var _first = (aDocumentSelector)=>
-	{
-		var targetNodes=document.querySelectorAll(aDocumentSelector)
-		targetNodes.forEach((aNode)=>{aNode.prepend(fragment)})
-		return this
-	}
-	var _last = (aDocumentSelector)=>
-	{
-		var targetNodes=document.querySelectorAll(aDocumentSelector)
-		targetNodes.forEach((aNode)=>{aNode.append(fragment)})
-		return this
-	}
-	var _instead = (aDocumentSelector)=>
-	{
-		document.querySelectorAll(aDocumentSelector).forEach((aNode) =>
-		{
-			while(aNode.firstChild){aNode.removeChild(aNode.firstChild)}
-			aNode.append(fragment)
-		})
-		return this
-	}
-	return {first:_first,last:_last,instead:_instead}
-}
-
-
-ishml.recite=function(literals, ...expressions)
-{
-	let string = ``
-	for (const [i, val] of expressions.entries()) {
-		string += literals[i] + val
-	}
-	string += literals[literals.length - 1]
-	return string+ "test"
-}
-
-ishml.restore=function(key)
-{
-	var yarn = this
-	return new Promise(function(resolve, reject)
-	{
-		
-		var db = indexedDB.open("ishml", 1)
-		db.onupgradeneeded = function(e)
-		{
-			this.result.createObjectStore("games", { keyPath: "key" });
-			
-		}
-		db.onerror = function(e)
-		{
-			console.log("indexedDB: Could not open ishml save game database.")
-			reject(e)
-		}
-		db.onsuccess = function(e)
-		{
-			var request=this.result.transaction("games").objectStore("games").get(key)
-			request.onsuccess= function(e) 
-			{
-				var game=e.target.result
-				if (game)
-				{
-					yarn.yarnify(game.yarn)
-					resolve(game)
-				}
-				else
-				{
-					reject(e)
-				}
-			}
-
-			request.onerror = function(e)
-			{
-				console.log("indexedDB: Could not retrieve ishml saved game from database.")
-				reject(e)
-			}
-			this.result.close()		
-		}	
-	})
-}	
-
-ishml.save=function(key)
-{
-	var yarn =this
-	
-	return new Promise(function(resolve,reject)
-	{
-		var db = indexedDB.open("ishml", 1)
-		db.onupgradeneeded = function(e)
-		{
-			this.result.createObjectStore("games", { keyPath: "key" });
-		}
-		db.onerror = function(e)
-		{
-			console.log(`indexedDB: Could not save ${key} to the database.`)
-			failure(e)
-		}
-		db.onsuccess = function(e)
-		{
-			var request = this.result.transaction(["games"], "readwrite")
-				.objectStore("games")
-				.put({key:key,yarn:yarn.stringify()})
-				
-			request.onsuccess = function(e)
-			{
-				resolve(e)
-			} 
-			request.onerror = function(e)
-			{
-				reject(e)
-			}
-
-			this.result.close()
-		}	 
-	})	
-}
-// #endregion
 // #region storytelling
 ishml.tell=function(timeline="player") 
 {
@@ -4568,179 +2435,194 @@ ishml.introduce=function(episode)
 
 /* A turn is a processing of all the episodes on the the storyline.  An episode is a plotpoint.narrate with bound arguments.*/ 
 
-ishml.stringify=function()
-{
-	var plies=new Map()
-	var plyPlies=new Map()
-	var knots=new Map()
-	var episodes=new Map()	//DEFECT not implemented.
-	var index=0
-	
-	var mapPly=(ply)=>
-	{
-		if(ply)
-		{
-			if (!plies.has(ply))
-			{
-				plies.set(ply, index++)
-				plyPlies.set(ply.ply,index++)
-				mapKnot(ply.knot)
-				mapPly(ply.advance)
-				mapPly(ply.retreat)
-				mapPly(ply.converse)
-				mapKnot(ply.from)	
-			}
-		}
-	}
-
-	var mapKnot=(knot)=>
-	{
-		if(knot)
-		{
-			if (!knots.has(knot))
-			{
-			
-				knots.set(knot, index++)
-				knot.cords.forEach((cord)=>
-				{
-					cord.forEach((ply)=>mapPly(ply))
-				})
-			}
-		}
-	}
-
-	mapPly(this.net)
-	var plyArray=[]
-	plies.forEach((uid,ply)=>
-	{	
-		var safePly={uid:uid}
-		safePly.id=ply.id?ply.id:null
-		safePly.knot=ply.knot?knots.get(ply.knot):null
-		safePly.ply={uid:plyPlies.get(ply.ply), properties:ply.ply}
-		safePly.hop=ply.hop
-		safePly.cost=ply.cost
-		safePly.advance=ply.advance?plies.get(ply.advance):null
-		safePly.retreat=ply.retreat?plies.get(ply.retreat):null
-		safePly.converse=ply.converse?plies.get(ply.converse):null
-		safePly.cord=ply.cord
-		safePly.from=ply.from?knots.get(ply.from):null
-		plyArray.push(safePly)
-	})
-	var knotArray=[]
-	knots.forEach((uid,knot)=>
-	{
-		var safeKnot={uid:uid, id:knot.id, cords:{}, properties:{}}
-		Object.keys(knot).forEach((key)=>
-		{
-			if (knot[key] instanceof ishml.Cord)
-			{
-				safeKnot.cords[key]={}
-				Object.keys(knot[key]).forEach((plyKey)=>
-				{
-					safeKnot.cords[key][plyKey]=plies.get(knot[key][plyKey])
-				})
-			}
-			else
-			{
-				safeKnot.properties[key]=knot[key]
-			}
-		})
-		knotArray.push(safeKnot)
-	})
-	return JSON.stringify({knots:knotArray,plies:plyArray,seed:ishml.util._seed})
-}
 ishml.tick=function(ticks=1)
 {
 	this.clock.setTime(this.clock.getTime() + (this.interval*ticks))
 }
-ishml.yarnify=function(savedGame)
+
+
+// #region semantics 
+ishml.plot={}
+ishml.net={predicate:{},noun1:{},noun2:{}}  
+ishml.Predicate=class Predicate
 {
-	var plies={}
-	var plyPlies={}
-	var knots={}
-	var game=JSON.parse(savedGame)
-	game.knots.forEach(savedKnot=>
+	constructor(id)
 	{
-		var knot=new ishml.Knot(savedKnot.id)
-		Object.assign(knot,savedKnot.properties)
-		knot.id=savedKnot.id
-		knots[savedKnot.uid]=knot
+		this.id=id
+		this.tense={present:{},past:{},perfect:{}}
+		this._preposition={}
+		ishml.net[id]=this
+		return this
+
+	}
+	arity()
+	{
 		
-	})
-	game.plies.forEach(savedPly=>
+		return this._preposition.length()+1
+	}
+	past(...verbs)
 	{
-		var ply=new ishml.Ply(savedPly.id,knots[savedPly.knot])
-		ply.from=savedPly.from?knots[savedPly.from]:null
-		if (!plyPlies.hasOwnProperty(ply.ply.uid))
+		if (verbs.length>0)
 		{
-			ply.ply=savedPly.ply.properties
-			plyPlies[savedPly.ply.uid]=ply.ply
+			verbs.forEach(verb=>
+			{
+				this.tense.past.push(verb)
+				//documentation: entry.predicate.tense[entry.tense[entry.verb]]  returns text of verb.
+				ishml.register("verb").as({ predicate:this, tense:ishml.tense.past, verb:this.tense.past.length})
+
+
+			})
+			for (const verb of verbs)
+			{
+				ishml.register("verb").as({ predicate:this, tense:ishml.tense.past, verb:verb})
+				
+			}
 		}
 		else
 		{
-			ply.ply=plyPlies[savedPly.ply.uid]
+			return this.tense.past  //list of past tense verbs
 		}
-
-		ply.hop=savedPly.hop
-		ply.cost=savedPly.cost
-		ply.cord=savedPly.cord
-		plies[savedPly.uid]=ply
-
-	})
-	game.plies.forEach(savedPly=>
+		return this
+	}
+	perfect(...verbs)
 	{
-		var ply=plies[savedPly.uid]
-		ply.advance=savedPly.advance?plies[savedPly.advance]:null
-		ply.retreat=savedPly.retreat?plies[savedPly.retreat]:null
-		ply.converse=savedPly.converse?plies[savedPly.converse]:null
-
-	})
-	game.knots.forEach(savedKnot=>
-	{
-		var knot=knots[savedKnot.uid]
-		Object.keys(savedKnot.cords).forEach(cordKey=>
-		{
-			knot[cordKey]={}
-			Object.keys(savedKnot.cords[cordKey]).forEach(plyKey=>
+		if (verbs.length>0)
 			{
-				ply=plies[savedKnot.cords[cordKey][plyKey]]
-				knot[cordKey][plyKey]=ply
+				verbs.forEach(verb=>
+				{
+					this.tense.perfect.push(verb)
+					//documentation: entry.predicate.tense[entry.tense[entry.verb]]  returns text of verb.
+					ishml.register("verb").as({ predicate:this, tense:ishml.tense.perfect, verb:this.tense.perfect.length})
+	
+	
+				})
+				for (const verb of verbs)
+				{
+					ishml.register("verb").as({ predicate:this, tense:ishml.tense.perfect, verb:verb})
+					
+				}
+			}
+		else
+		{
+			return this.tense.perfect
+		}
+		return this
+	}
+	preposition(...prepositions)
+	{
+		if (prepositions.length>0)
+		{
+			prepositions.forEach(preposition=>
+			{
+				ishml.register("preposition").as({ predicate:this, tense:ishml.tense.perfect})
+				this.tense.perfect.push(verb)
+
 			})
-		})
+			
+				
+			
+		}
+		else
+		{
+			return this._preposition
+		}
+		return this
 
-	})
-	ishml.util._seed=game.seed
-	this.net=plies[0]
-	
-	return true
-}
-ishml.retraction=function({seed,undo=()=>true,episode})
-{
-	var retraction={seed:seed||ishml.util._seed,undo:undo,redo:episode}
-	if (!this.undo[this.turn])
-	{
-		this.undo[this.turn]=new Set()	
-	}
-	this.undo[this.turn].add(retraction)
-	if(undo.length>this.undoLength)
-	{
-		this.undo.shift()
 	}
 
-}
-ishml.recant=function()
-{
-	[...Object.values(this.undo).shift()].reverse.forEach(retraction=>
+	present(...verbs)
 	{
-		ishml.util._seed=retraction.seed
-		retraction.undo()
+		if (verbs.length>0)
+			{
+				verbs.forEach(verb=>
+				{
+					this.tense.present.push(verb)
+					//documentation: entry.predicate.tense[entry.tense[entry.verb]]  returns text of verb.
+					ishml.register("verb").as({ predicate:this, tense:ishml.tense.present, verb:this.tense.present.length})
+	
+	
+				})
+				for (const verb of verbs)
+				{
+					ishml.register("verb").as({ predicate:this, tense:ishml.tense.present, verb:verb})
+					
+				}
+			}
+		else
+		{
+			return this.tense.present
+		}
+		return this
+	}
+	
 
-	})
 	
-		
+
 }
-ishml.reintroduce=function()
+
+
+ishml.Fact =class Fact
 {
-	//redo the undo
-	
+	constructor(noun1,role1,predicate,noun2,role2)
+	{
+		this.noun1=noun1
+		this.noun2=noun2
+		this.role1=role1
+		this.role2=role2
+		this.predicate=predicate
+		this.startTurn=ishml.turn
+		this.startTick=ishml.tick
+		this.endTurn=null
+		this.endTick=null
+		this.history=[]
+		predicate.bestow(noun1,role1,noun2,role2)
+		return this
+	}
+	expire()
+	{
+		this.endTurn=ishml.turn
+		this.endTick=ishml.tick
+		this.history.push({startTurn:this.startTurn,startTick:this.startTick,endTurn:this.endTurn,endTick:this.endTick})
+		return this
+	}
+	revive()
+	{
+		this.startTurn=ishml.turn
+		this.startTick=ishml.tick
+		this.endTurn=null
+		this.endTick=null
+		return this
+	}
 }
+
+ishml.reify=function()
+{
+
+}
+ishml.nullify=function()
+{
+
+}
+ishml.select=function()
+{
+
+}
+ishml.check=function()
+{
+
+}
+ishml.storyline=function()  //triggers upon fact creation
+{
+
+}
+ishml.beforeTurn=function()
+{
+
+}
+ishml.afterTurn=function()
+{
+
+}
+
+
+// #end region
