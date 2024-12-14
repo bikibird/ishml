@@ -2442,164 +2442,150 @@ ishml.tick=function(ticks=1)
 
 
 // #region semantics 
-ishml.plot={}
-ishml.net={predicate:{},noun1:{},noun2:{}}  
-ishml.Predicate=class Predicate
+
+ishml.net={}  
+ishml.Predicate=function Predicate(id)
 {
-	constructor(id)
+	if (this instanceof ishml.Predicate)
 	{
 		this.id=id
 		this.tense={present:{},past:{},perfect:{}}
 		this._preposition={}
 		ishml.net[id]=this
 		return this
+	}
+	else
+	{
+		return new ishml.Predicate(id)
+	}
 
-	}
-	arity()
+}
+Object.defineProperty(ishml.Predicate.prototype, "arity", { get: function() { return this._preposition.length()} })
+ishml.Predicate.prototype.past=function past(...verbs)
+{
+	if (verbs.length>0)
 	{
-		
-		return this._preposition.length()+1
+		verbs.forEach(verb=>
+		{
+			this.tense.past.push(verb)
+			//documentation: entry.predicate.tense[entry.tense[entry.verb]]  returns text of verb.
+			ishml.register("verb").as({ predicate:this, tense:ishml.tense.past, verb:this.tense.past.length})
+
+
+		})
+		for (const verb of verbs)
+		{
+			ishml.register("verb").as({ predicate:this, tense:ishml.tense.past, verb:verb})
+			
+		}
 	}
-	past(...verbs)
+	else
 	{
-		if (verbs.length>0)
+		return this.tense.past  //list of past tense verbs
+	}
+	return this
+}
+ishml.Predicate.prototype.perfect=function perfect(...verbs)
+{
+	if (verbs.length>0)
 		{
 			verbs.forEach(verb=>
 			{
-				this.tense.past.push(verb)
+				this.tense.perfect.push(verb)
 				//documentation: entry.predicate.tense[entry.tense[entry.verb]]  returns text of verb.
-				ishml.register("verb").as({ predicate:this, tense:ishml.tense.past, verb:this.tense.past.length})
+				ishml.register("verb").as({ predicate:this, tense:ishml.tense.perfect, verb:this.tense.perfect.length})
 
 
 			})
 			for (const verb of verbs)
 			{
-				ishml.register("verb").as({ predicate:this, tense:ishml.tense.past, verb:verb})
+				ishml.register("verb").as({ predicate:this, tense:ishml.tense.perfect, verb:verb})
 				
 			}
 		}
-		else
-		{
-			return this.tense.past  //list of past tense verbs
-		}
-		return this
-	}
-	perfect(...verbs)
+	else
 	{
-		if (verbs.length>0)
-			{
-				verbs.forEach(verb=>
-				{
-					this.tense.perfect.push(verb)
-					//documentation: entry.predicate.tense[entry.tense[entry.verb]]  returns text of verb.
-					ishml.register("verb").as({ predicate:this, tense:ishml.tense.perfect, verb:this.tense.perfect.length})
-	
-	
-				})
-				for (const verb of verbs)
-				{
-					ishml.register("verb").as({ predicate:this, tense:ishml.tense.perfect, verb:verb})
-					
-				}
-			}
-		else
-		{
-			return this.tense.perfect
-		}
-		return this
+		return this.tense.perfect
 	}
-	preposition(...prepositions)
+	return this
+}
+ishml.Predicate.prototype.preposition=function preposition(...prepositions)
+{
+	if (prepositions.length>0)
 	{
-		if (prepositions.length>0)
+		prepositions.forEach(preposition=>
 		{
-			prepositions.forEach(preposition=>
-			{
-				ishml.register("preposition").as({ predicate:this, tense:ishml.tense.perfect})
-				this.tense.perfect.push(verb)
+			ishml.register("preposition").as({ predicate:this, tense:ishml.tense.perfect})
+			this.tense.perfect.push(verb)
 
-			})
+		})
+		
 			
-				
-			
-		}
-		else
-		{
-			return this._preposition
-		}
-		return this
-
+		
 	}
-
-	present(...verbs)
+	else
 	{
-		if (verbs.length>0)
-			{
-				verbs.forEach(verb=>
-				{
-					this.tense.present.push(verb)
-					//documentation: entry.predicate.tense[entry.tense[entry.verb]]  returns text of verb.
-					ishml.register("verb").as({ predicate:this, tense:ishml.tense.present, verb:this.tense.present.length})
-	
-	
-				})
-				for (const verb of verbs)
-				{
-					ishml.register("verb").as({ predicate:this, tense:ishml.tense.present, verb:verb})
-					
-				}
-			}
-		else
-		{
-			return this.tense.present
-		}
-		return this
+		return this._preposition
 	}
-	
-
-	
+	return this
 
 }
-
-
-ishml.Fact =class Fact
+ishml.Predicate.prototype.present=function present(...verbs)
 {
-	constructor(noun1,role1,predicate,noun2,role2)
+	if (verbs.length>0)
+		{
+			verbs.forEach(verb=>
+			{
+				this.tense.present.push(verb)
+				//documentation: entry.predicate.tense[entry.tense[entry.verb]]  returns text of verb.
+				ishml.register("verb").as({ predicate:this, tense:ishml.tense.present, verb:this.tense.present.length})
+
+
+			})
+			for (const verb of verbs)
+			{
+				ishml.register("verb").as({ predicate:this, tense:ishml.tense.present, verb:verb})
+				
+			}
+		}
+	else
 	{
-		this.noun1=noun1
-		this.noun2=noun2
-		this.role1=role1
-		this.role2=role2
-		this.predicate=predicate
-		this.startTurn=ishml.turn
-		this.startTick=ishml.tick
-		this.endTurn=null
-		this.endTick=null
-		this.history=[]
-		predicate.bestow(noun1,role1,noun2,role2)
+		return this.tense.present
+	}
+	return this
+}
+
+ishml.Fact=function Fact({predicate,noun}={})
+{
+	if (this instanceof ishml.Fact)
+	{
+		if (predicate && noun)
+		{
+			if (noun.length == predicate.arity)
+			{
+				var id=`(${noun[0]}_${predicate.id}}`
+				predicate._preposition.forEach((preposition,index)=>
+				{
+					id=`${id}_${preposition}_${noun[index+1]}`
+				})
+				id=`${id})`
+				this.predicate=predicate
+				this.noun=noun
+				this.history=[]
+				this.net[id]=this
+			}
+			else {throw new Error("Error 0001: Unable to create fact. Arity of predicate does not match noun count.")}
+		}
+		else {throw new Error("Error 0002: Unable to create fact. Predicate or noun missing.")}
 		return this
 	}
-	expire()
+	else
 	{
-		this.endTurn=ishml.turn
-		this.endTick=ishml.tick
-		this.history.push({startTurn:this.startTurn,startTick:this.startTick,endTurn:this.endTurn,endTick:this.endTick})
-		return this
-	}
-	revive()
-	{
-		this.startTurn=ishml.turn
-		this.startTick=ishml.tick
-		this.endTurn=null
-		this.endTick=null
-		return this
+		return new ishml.Fact({predicate:predicate,noun:noun})
 	}
 }
 
 ishml.reify=function()
-{
-
-}
-ishml.nullify=function()
 {
 
 }
@@ -2611,6 +2597,10 @@ ishml.check=function()
 {
 
 }
+// #region plot
+
+ishml.plot={}
+
 ishml.storyline=function()  //triggers upon fact creation
 {
 
