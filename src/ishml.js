@@ -23,17 +23,28 @@ ishml.util.enumerator=function* (aStart =1)
   while (true) yield i++
 }
 
-ishml.util.formatId=function(id)
+ishml.formatId=function(id)
 {
 	if(id)
 	{ 
-		if (typeof(id)==="string"){return id.trim().toLowerCase().replace(/\s+/g, '_')}
-		else{return id.id.trim().toLowerCase().replace(/\s+/g, '_')}
+		return id.trim().toLowerCase().replace(/\s+/g, '_')
 	}	
 	else 
 	{
-		return "auto" + ishml.util.autoid.next().value.toString()
+		throw new Error("ERROR 0003: Unable to format id.")
 	}
+}
+ishml.formatName=function(name)
+{
+	if(name)
+	{ 
+		return name.trim().replace("_"," ")
+	}	
+	else 
+	{
+		throw new Error("ERROR 0004: Unable to format name .")
+	}
+
 }
 ishml.util.autoid=ishml.util.enumerator()
 ishml.util.random = function(seed=Math.floor(Math.random() * 2147483648)) 
@@ -2440,17 +2451,89 @@ ishml.tick=function(ticks=1)
 	this.clock.setTime(this.clock.getTime() + (this.interval*ticks))
 }
 
+// #region dsl
+/* EBNF:
+	dsl=>facts
+	facts=>fact"."+
+	fact=>subject predicate
+	subject=>"("fact")"|nounPhrase
+	predicate=>verb verbComplement
+	verbComplement=>target prepositionalPhrase*
+	target=>"("fact")"|nounPhrase
+	prepositionalPhrase=>preposition complement
+	complement=>"("fact")"|nounPhrase
+	nounPhrase=>[article] noun
+	noun=>lexiconNoun|wildcard|identifier
+	verb=>lexiconVerb|wildcard|identifier
+	wildcard=>/^_[a-zA-Z_]\w*_/
+	identifier=>/^[a-zA-Z_]\w* /
+	
+
+
+
+
+	
+	Test:
+
+	player carries ring.  foyer exits north to bar via oak_door. the oak door is unlocked.
+	
+	the foyer ${{description:"",name":"",etc}} exits north to bar ${{}} via the oak_door.
+
+
+
+	 
+*/
+
+ishml.dsl={}
+ishml.dsl.nounPhrase=ishml.Rule()
+	.snip("article").snip("noun")
+ishml.dsl.nounPhrase.article.configure({minimum:0,filter:(definition)=>definition?.part==="article"})
+ishml.dsl.nounPhrase.noun.configure({ filter:(definition)=>definition?.part==="noun",separator:/^\s*|\./})
+
+ishml.dsl.fact=ishml.Rule()
+	.snip("subject",ishml.dsl).snip("predicate")
+
+ishml.dsl.fact.subject.configure({mode:ishml.Rule.any})
+	.snip(1,ishml.dsl.nounPhrase)
+	.snip(2)
+ishml.dsl.fact.subject[2].snip("(").snip("fact",ishml.dsl.fact).snip(")")
+ishml.dsl.fact.subject[2]["("].configure({regex:/^\(/})
+ishml.dsl.fact.subject[2][")"].configure({regex:/^\)/})
+
+ishml.dsl.fact.predicate
+	.snip("verb").snip("verbComplement")
+
+ishml.dsl.fact.predicate.verb.configure({filter:(definition)=>definition?.part==="verb"})
+
+ishml.dsl.fact.predicate.verbComplement
+	.configure({minimum:0})
+	.snip("target",ishml.dsl.fact.subject).snip("prepositionalPhrase")
+
+ishml.dsl.fact.predicate.verbComplement.prepositionalPhrase
+	.configure({minimum:0,maximum:Infinity})
+	.snip("preposition").snip("target",ishml.dsl.fact.subject)
+
+ishml.dsl.facts=ishml.Rule().configure({maximum:Infinity})
+	.snip("fact",ishml.dsl.fact).snip("period")
+ishml.dsl.facts.period.configure({regex:/^\./})
+
+ishml.dslParser=ishml.Parser({ lexicon: ishml.lexicon, grammar: ishml.dsl.facts})
 
 // #region semantics 
 
 ishml.net={}  
+
+/*
+ishml.Predicate("carrying").present("carry","carries")
+ishml.Predicate("carrying_by").present("carried_by")
+*/
 ishml.Predicate=function Predicate(id)
 {
 	if (this instanceof ishml.Predicate)
 	{
 		this.id=id
-		this.tense={present:{},past:{},perfect:{}}
-		this._preposition={}
+		this.tense={present:[],past:[],perfect:[]}
+		this.prepositions=[]
 		ishml.net[id]=this
 		return this
 	}
@@ -2460,7 +2543,7 @@ ishml.Predicate=function Predicate(id)
 	}
 
 }
-Object.defineProperty(ishml.Predicate.prototype, "arity", { get: function() { return this._preposition.length()} })
+Object.defineProperty(ishml.Predicate.prototype, "arity", { get: function() { return this.prepositions.length()} })
 ishml.Predicate.prototype.past=function past(...verbs)
 {
 	if (verbs.length>0)
@@ -2469,15 +2552,11 @@ ishml.Predicate.prototype.past=function past(...verbs)
 		{
 			this.tense.past.push(verb)
 			//documentation: entry.predicate.tense[entry.tense[entry.verb]]  returns text of verb.
-			ishml.register("verb").as({ predicate:this, tense:ishml.tense.past, verb:this.tense.past.length})
+			//verb is index into verb
+			ishml.lexicon.register(verb).as({ predicate:this, tense:ishml.tense.past, verb:this.tense.past.length,part:"verb"})
 
 
 		})
-		for (const verb of verbs)
-		{
-			ishml.register("verb").as({ predicate:this, tense:ishml.tense.past, verb:verb})
-			
-		}
 	}
 	else
 	{
@@ -2493,15 +2572,11 @@ ishml.Predicate.prototype.perfect=function perfect(...verbs)
 			{
 				this.tense.perfect.push(verb)
 				//documentation: entry.predicate.tense[entry.tense[entry.verb]]  returns text of verb.
-				ishml.register("verb").as({ predicate:this, tense:ishml.tense.perfect, verb:this.tense.perfect.length})
+				ishml.lexicon.register(verb).as({ predicate:this, tense:ishml.tense.perfect, verbIndex:this.tense.perfect.length,part:"verb"})
 
 
 			})
-			for (const verb of verbs)
-			{
-				ishml.register("verb").as({ predicate:this, tense:ishml.tense.perfect, verb:verb})
-				
-			}
+			
 		}
 	else
 	{
@@ -2515,17 +2590,15 @@ ishml.Predicate.prototype.preposition=function preposition(...prepositions)
 	{
 		prepositions.forEach(preposition=>
 		{
-			ishml.register("preposition").as({ predicate:this, tense:ishml.tense.perfect})
-			this.tense.perfect.push(verb)
-
+			this.prepositions.push(preposition)
+			ishml.lexicon.register("preposition").as({ predicate:this,prepositionIndex:this.prepositions.length,part:"preposition",verb:this.id })
 		})
-		
 			
 		
 	}
 	else
 	{
-		return this._preposition
+		return this.prepositions
 	}
 	return this
 
@@ -2538,15 +2611,10 @@ ishml.Predicate.prototype.present=function present(...verbs)
 			{
 				this.tense.present.push(verb)
 				//documentation: entry.predicate.tense[entry.tense[entry.verb]]  returns text of verb.
-				ishml.register("verb").as({ predicate:this, tense:ishml.tense.present, verb:this.tense.present.length})
+				ishml.lexicon.register(verb).as({ predicate:this, tense:ishml.tense.present, verbIndex:this.tense.present.length,part:"verb"})
 
 
 			})
-			for (const verb of verbs)
-			{
-				ishml.register("verb").as({ predicate:this, tense:ishml.tense.present, verb:verb})
-				
-			}
 		}
 	else
 	{
@@ -2574,9 +2642,9 @@ ishml.Fact=function Fact({predicate,noun}={})
 				this.history=[]
 				this.net[id]=this
 			}
-			else {throw new Error("Error 0001: Unable to create fact. Arity of predicate does not match noun count.")}
+			else {throw new Error("ERROR 0001: Unable to create fact. Arity of predicate does not match noun count.")}
 		}
-		else {throw new Error("Error 0002: Unable to create fact. Predicate or noun missing.")}
+		else {throw new Error("ERROR 0002: Unable to create fact. Predicate or noun missing.")}
 		return this
 	}
 	else
@@ -2585,8 +2653,75 @@ ishml.Fact=function Fact({predicate,noun}={})
 	}
 }
 
-ishml.reify=function()
+ishml.reify=function(passages, ...nouns)
 {
+	nouns.forEach((noun,index) => 
+	{
+		let identifier= passages[index].match(/(?<identifier>[a-zA-Z]\w*)\s*$/).groups.identifier
+		if (identifier)
+		{
+
+		noun.id=noun.id ?? ishml.formatId(identifier)
+		let name=ishml.formatName(identifier)
+		noun.name=noun.name ?? name
+		noun.description=noun.description ?? name
+		
+		ishml.lexicon.register(name).as({ id:identifier,part:"noun", name:name })
+		
+		ishml.net[identifier]=noun
+
+
+		}
+
+		
+	})
+	let interpretations=ishml.dslParser.analyze(passages.join(""))
+	if (interpretations.success)
+	{
+		
+		if (interpretations.length==0)
+		{
+			throw new Error("ERROR 0006: Unable to parse reify source code-- no interpretations.")
+		} 
+		else if (interpretations.length>1) 
+		{
+			throw new Error("ERROR 0007: Unable to parse reify source code-- more than one interpretation.")
+		}
+		else
+		{
+			interpretations[0].gist.forEach((fact,index)=>
+			{
+				if (fact.subject.wildcard)
+				{
+					throw new Error(`ERROR 0008: Wildcard not permitted for subject. Fact ${index+1}:"${fact.lexeme}."`)
+				}
+				if (fact.predicate.verb.wildcard)
+				{
+					throw new Error(`ERROR 0009: Wildcard not permitted for verb. Fact ${index+1}:"${fact.lexeme}."`)
+				}
+				if (fact.predicate.verbComplement?.target.wildcard)
+				{
+					throw new Error(`ERROR 0010: Wildcard not permitted for target. Fact ${index+1}:"${fact.lexeme}."`)
+				}
+				if (fact.predicate.verbComplement?.wildcard)
+					{
+						throw new Error(`ERROR 0011: Wildcard not permitted. Fact ${index+1}:"${fact.lexeme}."`)
+					}
+
+				var subject=fact.subject.noun.definition ?? fact.subject.fact.definition
+				
+
+			})
+		}
+
+	}
+	else
+	{
+		throw new Error("ERROR 0005: Unable to parse reify source code.")
+
+		
+
+	}
 
 }
 ishml.select=function()
