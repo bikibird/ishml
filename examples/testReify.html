@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    </head>
+    <body>
+        <p>test reify</p>
+       
+       <script src="../src/ishml.js"></script>
+       <script src="..\src\en-us.js"></script>
+       <script>
+        ishml.defineVerb("connect on through","connect to")
+        ishml.reify`foyer ${{description:"foyer"}} connects bar ${{description:"bar"}} on north ${{description:"north"}} through door ${{description:"door"}}.`
+       </script>
+    </body>
+</html>

@@ -1,16 +1,18 @@
 "use strict"
 // #region lexicon
+/*
 ishml.lexicon
-    //adjectives
+   //adjectives
     .register("all").as({part:"adjective",select:()=>$.thing})
-
+	
     //articles
-    .register("the", "a", "an").as({ part: "article" })
+    .register("the", "a", "an","some").as({ part: "article" })
 
     //conjunctions
     .register("and",",").as({ part: "conjunction" })
 
     //particles
+	.register("off").as({ select: "up", part: "particle" })
     .register("up").as({ select: "up", part: "particle" })
 
     //prepositions
@@ -35,6 +37,41 @@ ishml.lexicon
     .register("west","w").as({part: "noun",  select:subject=>subject.in.exit.southwest.cord})
 	.register("up","u").as({part: "noun",  select:subject=>subject.in.exit.up.cord})
 	.register("down","d").as({part: "noun",  select:subject=>subject.in.exit.down.cord})
+*/
+
+	ishml.defineVerb=function defineVerb(...verbs) //defineVerb("connect on through","connect to") -- "connect to" is verb + particle
+	{
+		if (verbs.length>0)
+		{
+			let predicate={}
+			let p =verbs[0].split(/\s+/)
+			p.forEach(word=>{predicate[word]=null}) //predicate prototype for building facts.
+			p.slice(1).forEach(preposition=>{ishml.lexicon.register(preposition).as({id:preposition, part:"preposition"})})
+			let root=ishml.formatId(p[0]) 
+			verbs[0]=ishml.formatName(p[0]) 
+			verbs.forEach((verb)=>
+			{
+				let particle
+				[verb,particle]=verb.split(/\s+/)
+				particle=particle?" "+particle:""
+				ishml.lexicon.register(verb+particle).as({id:root, tense:ishml.tense.imperative, predicate:predicate, part:"verb"})
+				ishml.lexicon.register(verb+particle).as({id:root, tense:ishml.tense.present, predicate:predicate, part:"verb"})
+				ishml.lexicon.register(ishml.lang.es(verb)+particle).as({id:root, tense:ishml.tense.present, predicate:predicate, part:"verb"})
+				ishml.lexicon.register(ishml.lang.ed(verb)+particle).as({id:root, tense:ishml.tense.past, predicate:predicate, part:"verb"})
+				ishml.lexicon.register(ishml.lang.en(verb)+particle).as({id:root, tense:ishml.tense.perfect, predicate:predicate, part:"verb"})
+			})
+		}
+		return this
+	}
+/*	ishml.definePreposition=function definePreposition(...prepositions)
+	{
+		prepositions.forEach((preposition)=>
+		{
+			ishml.lexicon.register(preposition).as({id:preposition, part:"preposition"})
+		})
+		return this
+	}*/
+
 //#endregion
 
 // #region grammar
@@ -466,6 +503,7 @@ ishml.lang.modalVerbs=
 	"will",
 	"would"
 ]
+
 ishml.lang.s=function(word)
 {
 	var words = word.split(" ")
@@ -558,7 +596,7 @@ ishml.lang.est=function(word)
 ishml.lang.est.superlatives={bad:"worst",far:"farthest",good:"best"}
 // #endregion
 
-// ishml.Plotpoint.prototype.verbs defaults to english
+
 
 // #region Templates Prefixes and phrase suffixes/infixes
 
@@ -617,13 +655,7 @@ ishml.Phrase.define("est").as (precursor =>
 })
 ishml.Phrase.define("ing").as( precursor => precursor.modify(item=>ishml.lang.ing(item.value)))
 
-/*ishml.template.define("list").as((...data)=>
-{
-	return ishml.Phrase.prototype.transform(results=>
-	{
-		return ishml.template._`${ishml.template._.ITEM.cycle.items()}${ishml.template._.item().modify(t=>t.rank < t.total && t.total>2?", ":"")}${ishml.template._.item().modify(t=>t.rank===1 && t.total===2?" and ":"")}${ishml.template._.item().modify(t=>t.index===t.total-2 && t.total>2?"and ":"")}`.per.ITEMS.cull(results).join().generate()
-	},...data)	
-})*/
+
 ishml.template.define("list").as((...data)=>
 {
 	return ishml.template._`${ishml.template._.ITEM.cycle.items()}${ishml.template._.item().modify(t=>t.rank < t.total && t.total>2?", ":"")}${ishml.template._.item().modify(t=>t.rank===1 && t.total===2?" and ":"")}${ishml.template._.item().modify(t=>t.index===t.total-2 && t.total>2?"and ":"")}`.per.ITEMS.cull(...data)
@@ -956,7 +988,7 @@ ishml.Phrase.prototype.inflect=function (...verb)
 		}
 	}
 }
-ishml.phrase
+
 // #endregion
 // #endregion
 
