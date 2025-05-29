@@ -9,21 +9,192 @@
 
 https://en.wikipedia.org/wiki/Semantic_network
 
-ishml.net represents the story world by storing facts about it.  A fact is a predicate plus n nouns. Nouns and predicates are also stored separate from the fact for ease of retrieval and ease of reifying by id.
+
+ishml.net represents the story world by storing facts about it.  A fact is a predicate plus n nouns. Nouns and predicates are also stored separately from the fact for ease of retrieval and ease of reifying by id.
+
+Nouns must be defined separately prior to facts:
+
+ishml.noun(id).name().aka()._().assign(id of noun already defined used for types).property1().property2().etc
+.noun(id of next noun).etc
+// Name and aliases are added to lexicon as nouns. Names must be unique, but aliases may dupe.
+// Yarn means narrative and/or description
+
+ishml.noun`place`
+.place(true)
+
+.noun`room`
+	.kind`place`
+	.room(true)
+
+.noun`portal`
+	.portal(true)
+
+.noun`thing`
+	.thing(true)
+	.portable(true)
+
+.noun`foyer` 
+	._`This is the description` \\description is called a yarn and is an instance of a phrase/template
+	.aka`alias1`.aka`alias2` \\alternate names
+	.kind`room`
+	.lighting(.8) //lighting is a fuzzy logic value?
+.noun`bar`
+	.kind`room`  //adds place 
+	.lighting(.2)
+.noun`oak_door`
+	.kind`portal`
+
+
+
+//adjectives are enums if more than two elements and boolean if two. an enum with two values works sorta like a boolean.  
+
+.adjective`locked,unlocked`.describes`security` //creates enum property locked, define locked as 0, unlocked as 1
+.adjective`pass,fail`.describes`exam` 
+.adjective`dark,dim,bright`.describes`lighting` //creates adjective for property lighting: 0,1,2
+
+//If only one adjective is listed and opposite is provided it creates a boolean adjective.
+
+.adjective`locked`.opposite`unlocked`.describes`security`
+
+if only one adjective is listed and a value is provided it creates a value boolean.  value may be a function or 
+
+adjective`tall`.value(72).describes`height`
+
+
+
+.adjective`tall`.value((noun)->{}).premise(noun=>noun.height>70) // noun.height>70 inches.  
+
+.adjective`very tall`.value((noun)->{}).premise(noun=>noun.height>70) // noun.height>74 inches.  
+
+.adjective`tallest`.premise(nounList=>nounList.sort(a,b=>a.height>b.height)[0])
+
+//a premise functions as a filter which is used for check and select.
+
+
+
+.check`room contains tall NPC.`
+.check`player is tall`
+.check`NPC who is tall has ring`
+.check`tall NPC has ring`
+
+//default premise for enums and booleans:
+
+noun=>noun.property===adjective.value
+noun=>noun.security===adjective.locked
+noun=>noun.lighting===adjective.dim
+
+net.foyer.toggle`lighting`  //increments property value with wrapping to beginning of enum.
+
+
+
+
+
+//reify for noun properties
+reify`A padlock secures the strongbox. `
+reify`A key operates the padlock.
+reify`The padlock is locked.`  //ishml.net.padlock.lock=true
+reify`The padlock is unlocked.` //ishml.net.strong_box.locked=false
+reify`The bar is dim.` //ishml.net.bar.lighting=1
+reify`The bar is dark.`//ishml.net.bar.lighting=0
+reify`The player has a temperature.`
+reify`The strongbox contains treasure.`
+ishml.net.treasure.worth=100
+ishml.net.player.temperature=98.6
+
+//adjective locked used before noun strongbox
+//check returns true or false
+if (check`locked strongbox contains ring and player does not have key.`)
+{
+	this._`You'll have to take the strongbox with you.`
+}
+//check returns yes, no functions
+check`locked strongbox contains ring and player does not have key.`
+	.yes(_`You'll have to take the strongbox with you.`)
+		.check(`player is strong`)
+			.yes(_`You hoist it with ease.`)
+			.no(_`The box is too heavy to lift`)
+	.no(()=>{_`The box is not locked.  It would be so easy...`; now`player takes ring.`})
+
+
+
+
+
+//twisty passages 
+
+//use  but to provide instructions to the fact class's reify method. 
+ishml.reify`A door connects bar to foyer on east, but the door connects nowhere on west. `
+
+ishml.reify`A twisty_passage connects bar to foyer on east, but the twist_passage connects foyer to bar on north.`
+
+//Use copula form to assign an adjective's value to a property:
+
+.reify`The ring is dull.`
+
+
+//use adjectives as noun list modifiers:
+
+ishml.reify`the magic portal connects opulent _rooms_ to the bar.`  //the magic portal only connects rooms that are opulent
+
+WRONG: .reify`player carries ring that is dull.`  Cannot use copula form with that clause. 
+CORRECT: .reify`player carries the dull ring.`
+
+
+Correct: .reify`ring that player carries is shiny` Changes ring to shiny if the player is carrying it.
+
+
+.noun`fountain`
+	.place(true) //not a room, open air
+
+.noun`niche`
+	.place(true)
+
+
 
 nouns are wrapped in a proxy that exposes the episode method: noun.episode("quantity").situation((quantity)=>true).implies(()=>)
 predicates are wrapped in a proxy ????? To what purpose
 
-A fact is an instance of ishml.Fact and has members{id,predicate,noun[], start, end, history}.
+A fact is an instance of ishml.Fact and has members {id,subject, verb:directObject,preposition1:indirectObject, prep2:etc, _start, _end, _history}.
 Facts are temporal.  They have a start and end measured both in turns and ticks. fact.expire puts an end time on the fact copies the start and end times to fact.history.
 
 
 A fact's predicate is an instance of ishml.Predicate.  
-Predicates have tenses:
+Predicates have tenses and prepositions
+
+Predicates should not be confused with verbs.  Verbs are commands given by the player, which are translating into facts: `player tries_going north.`
+
+ishml.predicate`verb_stem prep1 prep2 etc` // `connect through` `carry` `give to` `take from`
+	.present`verb tense` //wake, wake_up
+	.past.`verb tense` //woke, awoke, woke_up, awaked
+	.perfect`verb tense` //awoken, woken, awakened
+	.passive`verb tense` //carried by
+	.adverb`adverb` //provides hint to functions. 
+	.adverb`etc`
+	???.mutual(true) //foyer abuts bar.  --Implies bar abuts foyer
+	???.exclusive(true) // jack is married to jill.   --Implies that if jill marries someone else, the marriage between jack and jill is nullified.
+	.reify((reality returned from parsing)=>{return reality})  //other relations implied by predicate  connect on north through door1 implies abuts north and south and connects south through door.
+	.nullify((reality)=>{this.nullify(reality)})
+	.select() //for virtual predicates  .select`player has ring.` selects player carries or wears ring
+	.check() //for virtual predicates .check`player has ring.` checks player carries or wears ring
+
+if no function is passed to reify and nullify
+
+//oak door connects bar to foyer on north.  
+//magic portal connects bar to foyer on north one-way. -- adverbs may appear at end
+//magic portal one-way connects bar to foyer on north. -- adverbs may appear before verb
+//twisty passage one-way connects bar to foyer on north. twisty passage one-way connects foyer to bar on east.
+
+ishml.predicate`connect to through on` 
+	.reify((reality,hints)=>{this.reify(fact
+	)})  //other relations implied by predicate  connect implies abuts connects 
+	.onNullify((fact) =>{})
 
 
 
-ishml.Predicate("carrying").present("carry","carries").past("carried")
+
+select`player who knows tony carries _thing_ which is shiny.`
+select`_someone_ carries _thing_ which is shiny.`
+
+ishml.Predicate("carry").present("carry","carries").past("carried")
 
 ishml.Predicate("taking_from").present("takes", "take").past("took","taken").prepositions("from")
 
@@ -34,7 +205,7 @@ ishml.Predicate("waking").present("wake","wakes", "wake_up","wakes_up").past("wo
 
 https://www.thesaurus.com/e/grammar/what-are-the-basic-verb-tenses/
 
-Present tense indicates that the action is currently ongoing.  Past tense indicates the action happened in the past, but says nothing about whether it is happening now. Perfect tense indicates the action happened in the past, but is not happening
+Present tense indicates that the action is currently ongoing.  Past tense indicates the action happened in the past, but says nothing about whether it is happening now. Perfect tense indicates the action happened in the past, but is not happening now
 
 Auxiliary verbs may be supplied in statements to help clarify the tense: is/are/was/been/had/has/have  They are otherwise ignored by the parser. 
 
@@ -60,29 +231,25 @@ nouns are wrapped in proxies which can trigger an episode when a property change
 noun.upon("health").episode((noun)=>{if (noun.health <2 and noun.heath>0) { return `player faints.`}})
 
 ishml.reify adds facts to the net.
-ishml.tell adds facts to the net, just like reify, but also displays narratives for the affected storylines.
 
 Use reify for the initial set up.  Use tell during game play.
 
-Reify/Tell DSL:
-Statements describe facts and decompose as follows:
-statements=>([no longer ]fact[ explicitly hint*]".")+
-fact=>noun_phrase (predicate noun_phrase)+.  
-noun_phrase=>"("fact")"|noun
+Reify DSL:
 
-"that" and "who" create restrictive clause for the noun it is nearest.  Parens may be used 
-tell.`_item_ that is valuable, that is carried_by player is stolen_by pickpocket.  `
-check`player carries _item_ that is shiny.`
-check`player carries _item_ that is shiny and is inscribed.`
-check`player carries _item_ that is shiny or is inscribed.`
-check`player carries _item_ that is shiny and not is inscribed.`
+Always present tense.
 
-parens may be used to nest and, or, not.  Parens may also be used to group compound facts?
+`player carries ring.`  \\fact is created and run through plot, but no narrative generated.
+`now, player carries ring.` \\fact is created, run through plot with narrative generated.
+
+
 
 
 
 
 check`jamie who likes player who likes jamie knows player carries _item_ that is shiny and not is inscribed. `
+
+check`jamie knows (player carries _item_. _item_ is shiny. _item_ is not inscribed). jamie likes player. player likes jamie`
+check`
 
 reify`foyer exits north to bar.` creates:
 
@@ -155,13 +322,41 @@ retrieve facts for first noun from reverse index checking for noun position matc
 
 
 
+ishml.select retrieves a pojo whose members are arrays corresponding the blanks provided in the criteria. 
+
+When select query is in fact form (complete sentence) a reality of facts are returned:
+
+ishml.select`_what_ contains ring?` //returns reality of facts {fact members, _what_:$.box}
+ishml.select`box contains _what_?` // returns reality of facts{ fact members,_what_:$.ring,}{fm,  $.coin}
+select`_what_ contains _something_`//returns  reality of facts. each fact has _what_ and _something_ property
+suspects=ishml.select`_who_ ate the cake?` //returns reality of facts each fact has a _who_ property
+
+When select query only contains a subject and its restrictive clauses, an array of nouns are returned
+
+select`tall _people_ who carry a ring that is not iron` [$.tony, $.jane]
 
 
 
 
-ishml.select retrieves facts from the net using a fill in the blanks query language.
 
-Internally, riefy places facts into a Set to weed out duplicates then writes them out to an array with au
+
+suspects.forEach(suspect=>
+{
+	fact=suspect.fact.who
+	noun=suspect.who
+	ishml.reify`Parker arrested ${suspect.who.id}.`
+})
+
+suspects=ishml.select`_suspect_ ate the cake.`
+suspects.reify`parker arrested suspect.`
+
+ishml
+	.select`_suspect_ ate the cake.`
+	.reify`parker arrested suspect.`
+
+
+
+Internally, reify places facts into a Reality, a class based on Set, to weed out duplicates then writes them out to an array with au
 
 ishml.check returns a boolean representing whether the query returned any facts or not. 
 
@@ -195,7 +390,7 @@ compound facts are facts about facts
 
 
 
-Reify creates facts.  Nullify ends them. Check returns boolean.  Select returns facts
+Reify creates facts.  Nullify ends them. Check returns boolean.  Select returns facts or subjects meeting the specified criteria
 
 
 ishml.reify`${{id:"bar",description:"a dank and dusty den",name:"Dimby's Bar"}} exits north to ${{id:"foyer",description:"a cheerful and welcoming place"}}.`
@@ -203,10 +398,14 @@ ishml.reify`${{id:"locket",description:"a beautiful locket"}} is thing. Bar cont
 ishml.select`_noun1_ contains locket.`  //Returns all facts where noun1 contains locket.
 ishml.check`bar contains locket.` //Return true if at least one fact matches the pattern.
 
-Each successive fact further restricts the selection. 
+ishml.reify``._`` //narrates without going through plot. 
+ishml.reify`` //reifies silently
+ishml.now`reify statement` //reifies and checks plot for implications.
 
 
-ishml.select`player carries _item_. _item_ is shiny.`  \\returns a fact only player carries an item that is shiny.
+
+
+
 
 
 
@@ -214,36 +413,54 @@ ishml.select`player carries _item_. _item_ is shiny.`  \\returns a fact only pla
 -------4. Event creation------- 
 The semantic network handles non-numeric facts, but sometimes we want to trigger storylines based on numeric relationships that can't be captured with the semantic network.
 
-Episodes generate events for the plot, just like user input 
+Episodes generate events for the plot, just like user input.  Episodes wrap each variable in a proxy that checks context and executes implies.
 
-ishml.episode("turn").context((turn)=>turn===10).implies`telephone rings.` 
-ishml.episode("turn").context((turn)=>turn===20).implies`pizza delivered.` 
+ishml.episode(variable_to_track, another_var, ...).context((arguments)=>{}).imply((arguments)=>{}).
 
-ishml.episode.score //returns value of score
+implies can also be a reify
+
+ishml.episode(ishml.turn).context((turn)=>turn===10).reify`telephone rings.`._`narrative` 
+ishml.episode(ishml.turn).context((turn)=>turn===20).now`pizza delivered.` 
+ 
+ n
 
 
 -------5. Event Handling (plot queue)-------
 
-ishml.plot=[] an array of storylines
-ishml.storyline(reify select statement to be matched)  
 
-ishml.plot.storyline`___ tried going`.action((event)=>{})
-ishml.plot.storyline`sally tried going`.action((event)=>
+ishml.plot={} //members are storylines.
+
+ishml.storyline`select statement`.unfolding((reality)=>{})._`` // adds a storyline to the plot. It includes a select statement to match to a reality, an unfolding function and a narration.
+
+
+ishml.storyline`___ tries going`.unfolding((reality)=>{//update world model})._`narrative`
+
+storyline`statement` is parsed as a reify select statement and then compared to the incoming reality from now.
+
+ishml.plot["order pizza"].unfold(reality)  //
+
+
+
+
+ishml.storyline().onReify`sally tried going.`.unfolding((reality)=> //storyline is assigned an id.
 {
-	this.unfold(event)
+	plot.going.unfold(reality)
 	blah blah...
-})  //before
-ishml.plot.storyline`sally tried going`.action((event)=>{
-	blah blah...
-	this.unfold(event)
 })  //after
-ishml.plot.storyline`sally tried going`.action((event)=>{})  //instead
-
-ishml.plot.storyline`___ tried going`.action((facts)=>
+ishml.plot.storyline().on `sally tried going`.unfolding((reality)=>{
+	blah blah...
+	plot.going.unfold(reality)
+})  //before
+ishml.plot.storyline`sally tried going`.unfolding((reality)=>
 {
-	facts.forEach((fact)=>
+
+})  //instead
+
+ishml.plot.storyline`___ tried going`.action((reality)=>
+{
+	reality.forEach((fact)=>
 	{
-		$.now.`${fact.noun1} in ${fact.noun2}`.event()
+		ishml.reify.`now, ${fact.noun1} in ${fact.noun2}`
 	})
 })
 
@@ -252,14 +469,14 @@ ishml.storyline`player tried ordering_dinner`
 						<a onClick=reify`player tried ordering salad`>salad/<a>.`
 ishml.storyline`player tried ordering_soup`
 	._`Very good, one soup.`
-	.implies`player ordered soup.`
+	.unfolding`player ordered soup.`
 
 ishml.storyline`_room1_ exits _direction_ to _room2_`
-	.implies`ROOM1 is place. ROOM2 is place. ROOM2 exits ${oppositeDirection[DIRECTION]} to ROOM1.`
+	.unfolding`ROOM1 is place. ROOM2 is place. ROOM2 exits ${oppositeDirection[DIRECTION]} to ROOM1.`
 ishml.storyline`_room1_ exitsOneWay _direction_ to _room2_`
-	.implies`ROOM1 is place. ROOM2 is place.`
+	.unfolding`ROOM1 is place. ROOM2 is place.`
 
-ishml.storyline`_room1_ exits _direction_ to _room2_`.implies((_room1_,_direction_,_room2_)=>{})
+ishml.storyline`_room1_ exits _direction_ to _room2_`.unfolding((_room1_,_direction_,_room2_)=>{})
 
 Instead of ishml.plot 
 
@@ -278,15 +495,73 @@ ishml.storyline(ishml.turn>9)`
 
 built-in predicates:
 
-bar adjoins foyer on north.
+bar abuts foyer on north.
+ring abuts on (left, right, behind, front)
 bar contains ring.
 table supports ring.
 table covers ring.  // ring is underneath the table
-ring abuts on (left, right, behind, front)
+
 player carries ring.
 player wears ring.
-bar exits foyer on north.  //implies a portal implies adjoining
-bar exits foyer on north through door1.  //portal is door1 implies adjoining
+bar connects foyer on north.  //implies a portal. implies abutting. implies two-way passage.  Can we get away with not implying a portal. How does missing nouns affect querying?
+bar connects foyer through door1 on north.
+
+  //portal is door1. implies adjoining. implies two-way passage
+bar connects foyer on north through door.  //Order of prepositions shouldn't matter, but it does because of indexing facts.  Do facts need to be indexed?
+
+bar one-way_exits_to foyer on north //implies a portal. Does not apply abutting. Does not imply two-way connection
+
+reify`the bar connects the foyer to the north.`
+//non-enumerable
+
+fact.id="bar_connects_foyer_to_north_through_portalN"  //non-enumerable
+fact.predicate="connects_to_through" //non-enumerable
+
+//enumerable
+fact.subject={bar}
+fact.connects={foyer}
+fact.to={north}
+fact.through={portalN}
+
+ishml.net.bar={bar}
+ishml.net.foyer={foyer}
+ishml.net.bar_connects_foyer_to_north_through_portalN={bar_connects_foyer_to_north_through_portalN}
+ishml.net.noun1.bar={bar_connects_foyer_to_north_through_portalN}
+ishml.net.noun2.foyer={bar_connects_foyer_to_north_through_portalN}
+ishml.net.noun3.portalN={bar_connects_foyer_to_north_through_portalN}
+ishml.net.verb.connects={bar_connects_foyer_to_north_through_portalN}
+ishml.net.predicate={connects_to_through}
+
+reify`player carries ring.`
+
+fact.id="player_carries_ring"
+fact.predicate="carries"
+
+fact.subject={player}
+fact.carries={ring}
+
+ishml.net.player={player}
+ishml.net.ring={ring}
+ishml.net.player_carries_ring={player_carries_ring}
+
+ishml.net.noun1.player={player_carries_ring}
+ishml.net.noun2.ring={player_carries_ring}
+ishml.net.verb.carries={player_carries_ring}
+ishml.net.predicate.carries={player_carries_ring}
+
+
+ERROR 0001: Adjective ${this.id} describes undefined.
+ERROR 0002: Unable to assign kind ${kind} to ${target.displayName}.
+ERROR 0003: Unable to format id.
+ERROR 0004: Unable to format name.
+ERROR 0005: Unable to parse reify source code.
+ERROR 0006: Unable to parse reify source code-- no interpretations.
+ERROR 0007: Unable to parse reify source code-- more than one interpretation.
+ERROR 0008: Wildcard not permitted for subject. Fact ${index+1}:"${fact.lexeme}."
+ERROR 0009: Wildcard not permitted for verb. Fact ${index+1}:"${fact.lexeme}."
+ERROR 0010: Wildcard not permitted for target. Fact ${index+1}:"${fact.lexeme}."
+ERROR 0011: Wildcard not permitted. Fact ${index+1}:"${fact.lexeme}."
+
 
 
 

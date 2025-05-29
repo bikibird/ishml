@@ -1,7 +1,7 @@
 "use strict"
-// #region lexicon
+// #region glossary
 /*
-ishml.lexicon
+ishml.glossary
    //adjectives
     .register("all").as({part:"adjective",select:()=>$.thing})
 	
@@ -46,7 +46,7 @@ ishml.lexicon
 			let predicate={}
 			let p =verbs[0].split(/\s+/)
 			p.forEach(word=>{predicate[word]=null}) //predicate prototype for building facts.
-			p.slice(1).forEach(preposition=>{ishml.lexicon.register(preposition).as({id:preposition, part:"preposition"})})
+			p.slice(1).forEach(preposition=>{ishml.glossary.register(preposition).as({id:preposition, part:"preposition"})})
 			let root=ishml.formatId(p[0]) 
 			verbs[0]=ishml.formatName(p[0]) 
 			verbs.forEach((verb)=>
@@ -54,11 +54,11 @@ ishml.lexicon
 				let particle
 				[verb,particle]=verb.split(/\s+/)
 				particle=particle?" "+particle:""
-				ishml.lexicon.register(verb+particle).as({id:root, tense:ishml.tense.imperative, predicate:predicate, part:"verb"})
-				ishml.lexicon.register(verb+particle).as({id:root, tense:ishml.tense.present, predicate:predicate, part:"verb"})
-				ishml.lexicon.register(ishml.lang.es(verb)+particle).as({id:root, tense:ishml.tense.present, predicate:predicate, part:"verb"})
-				ishml.lexicon.register(ishml.lang.ed(verb)+particle).as({id:root, tense:ishml.tense.past, predicate:predicate, part:"verb"})
-				ishml.lexicon.register(ishml.lang.en(verb)+particle).as({id:root, tense:ishml.tense.perfect, predicate:predicate, part:"verb"})
+				ishml.glossary.register(verb+particle).as({id:root, tense:ishml.tense.imperative, predicate:predicate, part:"verb"})
+				ishml.glossary.register(verb+particle).as({id:root, tense:ishml.tense.present, predicate:predicate, part:"verb"})
+				ishml.glossary.register(ishml.lang.es(verb)+particle).as({id:root, tense:ishml.tense.present, predicate:predicate, part:"verb"})
+				ishml.glossary.register(ishml.lang.ed(verb)+particle).as({id:root, tense:ishml.tense.past, predicate:predicate, part:"verb"})
+				ishml.glossary.register(ishml.lang.en(verb)+particle).as({id:root, tense:ishml.tense.perfect, predicate:predicate, part:"verb"})
 			})
 		}
 		return this
@@ -67,7 +67,7 @@ ishml.lexicon
 	{
 		prepositions.forEach((preposition)=>
 		{
-			ishml.lexicon.register(preposition).as({id:preposition, part:"preposition"})
+			ishml.glossary.register(preposition).as({id:preposition, part:"preposition"})
 		})
 		return this
 	}*/
@@ -220,7 +220,7 @@ ishml.grammar.command.semantics=(interpretation)=>
 	return true
 }
 
-ishml.parser=ishml.Parser({ lexicon: ishml.lexicon, grammar: ishml.grammar.command})
+ishml.parser=ishml.Parser({ lexicon: ishml.glossary, grammar: ishml.grammar.command})
 // #endregion
 // #region enumerations
 ishml.lang.degree={positive:0,comparative:1,superlative:2}
@@ -623,6 +623,9 @@ ishml.Phrase.define("er").as (precursor =>
 		else {return ishml.lang.er(item.value)}
 	})
 })
+//old: ishml.Phrase.define("es").as( precursor => precursor.modify(item=>ishml.lang.es(item.value)))
+
+
 
 ishml.Phrase.prototype.es= function(subject)
 {	

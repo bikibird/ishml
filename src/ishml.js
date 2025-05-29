@@ -34,17 +34,21 @@ ishml.formatId=function(id)
 		throw new Error("ERROR 0003: Unable to format id.")
 	}
 }
-ishml.formatName=function(name)
+ishml.formatName=function(literals, ...expressions)
 {
-	if(name)
+	if(literals)
 	{ 
-		return name.trim().replace("_"," ")
+		return ishml.toString(literals, ...expressions).trim().replace("_"," ")
 	}	
 	else 
 	{
 		throw new Error("ERROR 0004: Unable to format name .")
 	}
-
+}
+ishml.toString=(literals, ...expressions) => 
+{
+	if (literals.raw) return String.raw({ raw:literals }, ...expressions) //identity transform for template literals
+	else return literals.toString() 	
 }
 ishml.util.autoId=ishml.util.enumerator()
 ishml.util.random = function(seed=Math.floor(Math.random() * 2147483648)) 
@@ -385,6 +389,16 @@ ishml.Lexicon.prototype.unregister=function(lexeme,definition)
 		delete _trie.definitions
 	}
 	return this	
+}
+// #endregion
+// #region Narrative
+// This function is assigned to objects like nouns and plot points to add narrative functionality
+// example: {id:"my_noun", _:ishml.narrative}
+ishml.narrative=function narrative(literals, ...expressions)  
+{
+	if (literals){this.narrative=ishml.template(literals, ...expressions)}
+	else {return this.narrative}
+	return this
 }
 // #endregion
 // #region Parser
@@ -1164,10 +1178,10 @@ ishml.Phrase =class Phrase
 //Concur should work like then  _.hobby.concur.person.interest
 	concur(tag,condition)
 	{
-		if (typeof condition ==="function"){var rule=condition}
+		if (typeof condition ==="function"){var rule=condition} //rule defined by function that returns boolean
 		else 
 		{
-			if (condition){var rule = (a,b)=>b.map(item=>item[condition]).includes(a[condition])}
+			if (condition){var rule = (a,b)=>b.map(item=>item[condition]).includes(a[condition])} 
 			else {var rule = (a,b)=>b.map(item=>item.value).includes(a.value)}
 		}
 		return new class concurPhrase extends ishml.Phrase
@@ -2346,9 +2360,9 @@ ishml.template.define("next").as(function next(precursor)
 	return precursor
 })
 
-
-
 // #endregion
+// #region narrative
+
 // #region Token
 ishml.Token=function Token(lexeme="",definition)
 {
@@ -2382,7 +2396,7 @@ ishml.viewpoint=function(actor)
 ishml.clock=new Date()
 ishml.interval= 60000  //1 minute
 ishml.turn=1
-ishml.lexicon=new ishml.Lexicon()
+ishml.glossary=new ishml.Lexicon()
 ishml.grammar=new ishml.Rule()
 ishml.parser=null
 ishml.tense={imperative:0,present:1, past:2, perfect:3}
@@ -2451,6 +2465,228 @@ ishml.tick=function(ticks=1)
 	this.clock.setTime(this.clock.getTime() + (this.interval*ticks))
 }
 
+// #region semantics
+ishml.net={}  //index of nouns and facts
+
+
+
+ishml.adjective=function(literals, ...expressions)
+//adjective`locked`.opposite`unlocked`.describes`security`  -- boolean adjective
+//adjective`dark,dim,bright`.describes`lighting`  -- enum
+//adjective`tall`.value(72).describes`height` -- numbers and strings
+
+//select`tall _people_ who carry a ring that is not iron` --"tall" and "who" filter the _people_ noun list
+{
+	var names=ishml.formatName(literals, ...expressions).split(",")
+		
+	if (names.length>1){var type="enum"}
+	else{ var type="boolean"}	//may be overridden by value()
+	var adjOpposite=null
+	var adjValue=null
+	var describes=(literals, ...expressions)=>
+	{
+		if(literals===undefined) throw new Error(`ERROR 0001: Adjective ${names.toString} describes undefined property.`)
+		let property=ishml.formatName(literals, ...expressions)
+		let length=names.length
+		names.forEach((name,index) => 
+		{
+			if (type==="enum")
+			{
+				ishml.glossary.register(name).as({part: "adjective", value:index, filter:noun=>noun[property]===index,
+					toggle:noun=>noun[property]=(noun[property]+1)%length , property:property})
+			}
+			else if(type=="boolean")
+			{
+				ishml.glossary.register(name).as({part: "adjective", value:true, filter:noun=>noun[property]===true, 
+					toggle:noun => noun[property]=!noun[property], property:property})
+				if (adjOpposite)
+				{
+					ishml.glossary.register(adjOpposite).as({part: "adjective", value:false, filter:noun=>noun[property]===false, 
+						toggle:noun => noun[property]=!noun[property],property:property})
+				}
+			}
+			else  //value
+			{
+				ishml.glossary.register(name).as({part: "adjective",value:adjValue,filter:noun=>noun[property]===adjValue,
+					toggle:noun=>{},property:property})
+			}
+		})
+		return ishml
+	}
+	var opposite=(literals, ...expressions)=>
+	{
+		type="boolean"
+		adjOpposite=ishml.formatName(literals, ...expressions)
+		return {describes:describes}
+	}
+	
+	var value=(v)=> //some other value that isn't an enum or boolean
+	{
+		type="value"
+		adjValue=v
+		return {describes:describes}
+	}
+
+	if (type==="enum") return {describes:describes}
+	else return {describes:describes, opposite:opposite, value:value}
+}
+
+
+ishml.noun=new Proxy
+(
+	class Noun
+	{
+		constructor(literals, ...expressions) // maybe template literal notation or function notation
+		{
+			Object.defineProperty(this, "id",{value:ishml.formatId(ishml.toString(literals, ...expressions)),enumerable:false})
+			Object.defineProperty(this, "description",{value:ishml.template._,enumerable:false,writable:true})
+			Object.defineProperty(this, "name",{value:ishml.formatName(this.id),enumerable:false,writable:true})
+			let noun=new Proxy(this,ishml.proxies.noun)
+			ishml.net[this.id]=noun
+			ishml.glossary.register(this.name).as({part: "noun",  key:this.id})
+			return noun
+		}
+		
+	},
+	{
+		apply: function (target, thisArg, args)  //temporary proxy for creating new-less class instances
+		{
+			return new target(...args)
+		}
+	}
+)
+
+ishml.predicate=function(literals, ...expressions)
+//predicate`connect to on north`.adverb`one-way`.reify(reality=>{}).select(reality||nounList=>{}).check(reality||nounList=>{})
+
+//oak door connects bar to foyer on north.  
+//adverbs supply hints for processing reify and select
+//magic portal connects bar to foyer on north one-way. -- adverbs may appear at end
+//magic portal one-way connects bar to foyer on north. -- adverbs may appear before verb
+//twisty passage one-way connects bar to foyer on north. twisty passage one-way connects foyer to bar on east. 
+{
+	var names=ishml.formatName(literals, ...expressions).split(",")
+		
+	if (names.length>1){var type="enum"}
+	else{ var type="boolean"}	//may be overridden by value()
+	var adjOpposite=null
+	var adjValue=null
+	var describes=(literals, ...expressions)=>
+	{
+		if(literals===undefined) throw new Error(`ERROR 0001: Adjective ${names.toString} describes undefined property.`)
+		let property=ishml.formatName(literals, ...expressions)
+		let length=names.length
+		names.forEach((name,index) => 
+		{
+			if (type==="enum")
+			{
+				ishml.glossary.register(name).as({part: "adjective", value:index, filter:noun=>noun[property]===index,
+					toggle:noun=>noun[property]=(noun[property]+1)%length , property:property})
+			}
+			else if(type=="boolean")
+			{
+				ishml.glossary.register(name).as({part: "adjective", value:true, filter:noun=>noun[property]===true, 
+					toggle:noun => noun[property]=!noun[property], property:property})
+				if (adjOpposite)
+				{
+					ishml.glossary.register(adjOpposite).as({part: "adjective", value:false, filter:noun=>noun[property]===false, 
+						toggle:noun => noun[property]=!noun[property],property:property})
+				}
+			}
+			else  //value
+			{
+				ishml.glossary.register(name).as({part: "adjective",value:adjValue,filter:noun=>noun[property]===adjValue,
+					toggle:noun=>{},property:property})
+			}
+		})
+		return ishml
+	}
+	var opposite=(literals, ...expressions)=>
+	{
+		type="boolean"
+		adjOpposite=ishml.formatName(literals, ...expressions)
+		return {describes:describes}
+	}
+	
+	var value=(v)=> //some other value that isn't an enum or boolean
+	{
+		type="value"
+		adjValue=v
+		return {describes:describes}
+	}
+
+	if (type==="enum") return {describes:describes}
+	else return {describes:describes, opposite:opposite, value:value}
+}
+
+
+
+ishml.proxies={}
+ishml.proxies.noun=
+{	
+	//noun.property(value) sets value of property and returns noun
+	//noun.property() returns value of property
+
+	get: function(target, property, receiver) //receiver is proxy.
+	{
+		var methods=
+		{
+			aka:(literals, ...expressions)=>
+			{
+				ishml.glossary.register(ishml.formatName(ishml.toString(literals, ...expressions))).as({part: "noun", key:target.id})	
+				return receiver
+			},
+			description:(literals, ...expressions)=>
+			{
+				if(literals===undefined) return target.description
+				target.description=ishml.template._(literals,...expressions)
+				return receiver
+			},
+			kind: (literals, ...expressions)=>
+			{
+				let kind=ishml.net[ishml.formatName(literals, ...expressions)]
+				if (kind)
+				{
+					Object.keys(kind).forEach((key)=>
+					{
+						target[key]=kind[key]()
+					})
+				}
+				else throw new Error("ERROR 0002: Unable to assign kind ${kind} to ${target.displayName}.")
+				return receiver
+			},
+			name:(literals, ...expressions)=>
+			{
+				if(literals===undefined) return target.name
+				let name=ishml.formatName(literals, ...expressions)
+				target.name=name
+				ishml.glossary.register(name).as({part: "noun", key:target.id})
+				return receiver
+			},
+			
+			
+
+
+		}
+		if(methods.hasOwnProperty(property)) return methods[property]
+		if (property==="id") return target[property]
+
+		return function(value)
+		{
+			if (value===undefined){return target[property]}
+
+			//DEFECT to do: dispatch proposed change to plot
+			target[property]=value
+
+			//DEFECT to do: dispatch change to plot
+
+			return receiver
+		}
+
+	},
+	
+}
+
 // #region dsl
 
 
@@ -2458,7 +2694,7 @@ ishml.tick=function(ticks=1)
 	dsl=>facts
 	facts=>fact"."+
 	fact=>[directive] subject predicate
-	directive=>"now" //, may be used as separator
+	directive=>"implying nothing" //, may be used as separator
 	subject=>"("fact")"|nounPhrase
 	predicate=>verbPhrase verbComplement
 	verbComplement=>target prepositionalPhrase*
@@ -2476,21 +2712,22 @@ ishml.tick=function(ticks=1)
 
 
 
-
 	
 	Test:
 
 	player carries ring.
-	now player carries ring.
+	player carries ring.
 
 
-	
-	foyer exits bar o via oak_door. the oak door is unlocked.
-	
-	the foyer ${{description:"",name":"",etc}} exits north to bar ${{}} via the oak_door.
+//two-way, abutting	
+Foyer connects bar on north through oak_door
 
+//two-way, non-abutting
+Without implications, foyer connects to bar on north through secret_tunnel. Without implications, bar connects to foyer through secret tunnel on south. 
 
-
+//two-way, 
+Without implications, foyer connects to bar on north through magic_portal.  magic portal is locked on south.  //one-way
+Without implications, foyer connects to bar on north through magic_portal.  magic portal is locked on south
 	 
 */
 
@@ -2499,28 +2736,46 @@ ishml.dsl.wildcard=ishml.Rule().configure({regex:/^_\w*_/,separator:/^\s*|\.|\,/
 ishml.dsl.nounPhrase=ishml.Rule()
 	.snip("article").snip("noun")
 ishml.dsl.nounPhrase.article.configure({minimum:0,filter:(definition)=>definition?.part==="article"})
-ishml.dsl.nounPhrase.noun.configure({mode:ishml.Rule.apt})
+ishml.dsl.nounPhrase.noun.configure({mode:ishml.Rule.apt,semantics:interpretation=>
+	{
+		let definition=interpretation.gist.definition
+		if (definition.fuzzy) 
+		{
+			interpretation.gist=[].concat(ishml.index[definition.match])  //DEFECT missing code for wildcards
+		}
+		else if (definition.part)
+		{
+			interpretation.gist=[].concat(definition)
+		}
+		
+		return true
+	}})
+	.snip(0)
 	.snip(1)
-	.snip(2)
-	.snip(3,ishml.dsl.wildcard)
-ishml.dsl.nounPhrase.noun[1].configure({ filter:(definition)=>definition?.part==="noun",separator:/^\s*|\.|\,/})
-ishml.dsl.nounPhrase.noun[2].configure({regex:/^[a-zA-Z]\w*[a-zA-Z]/,separator:/^\s*|\.|\,/}) //noun names must be at least two characters
-ishml.dsl.ject=ishml.Rule().configure({mode:ishml.Rule.apt})
-	.snip(1)
-	.snip(2,ishml.dsl.nounPhrase)
+	.snip(2,ishml.dsl.wildcard)
+ishml.dsl.nounPhrase.noun[0].configure({filter:(definition)=>definition?.part==="preposition"})	
+ishml.dsl.nounPhrase.noun[1].configure({regex:/^[a-zA-Z]\w*[a-zA-Z]/,separator:/^\s*|\.|\,/}) //noun names must be at least two characters
 
-ishml.dsl.ject[1].snip("(").snip("fact",ishml.dsl.fact).snip(")")
-ishml.dsl.ject[1]["("].configure({regex:/^\(/})
-ishml.dsl.ject[1][")"].configure({regex:/^\)/})
+
+
+
+ishml.dsl.ject=ishml.Rule().configure({mode:ishml.Rule.apt})
+	.snip(0)
+	.snip(1,ishml.dsl.nounPhrase)
+
+ishml.dsl.ject[0].snip("(").snip("fact",ishml.dsl.fact).snip(")")
+ishml.dsl.ject[0]["("].configure({regex:/^\(/})
+ishml.dsl.ject[0][")"].configure({regex:/^\)/})
 
 ishml.dsl.fact=ishml.Rule().configure({semantics:interpretation=>
 	{
 		let gist=interpretation.gist
+		console.log (gist)
 		let predicate=gist.predicate
-		let directObject=ishml.net[predicate.directObject.noun.definition.match]
+		let directObject=ishml.index[predicate.directObject.noun.definition.match]
 		let verbDefinition=predicate.verb.definition
 		let root=verbDefinition.id
-		let fact=Object.assign({subject:ishml.net[gist.subject.noun.definition.match]},verbDefinition.predicate)
+		let fact=Object.assign({subject:ishml.index[gist.subject.noun.definition.match]},verbDefinition.predicate)
 		let prepositionalPhrases=predicate.prepositionalPhrases ?? []
 		
 		if (fact.hasOwnProperty(root)){fact[root]=directObject}
@@ -2533,7 +2788,7 @@ ishml.dsl.fact=ishml.Rule().configure({semantics:interpretation=>
 		{
 			let {preposition,target}=prepositionalPhrase
 			let prepositionId=preposition.definition.id
-			if (fact.hasOwnProperty(prepositionId)){fact[prepositionId]=ishml.net[target.noun.definition.match]}
+			if (fact.hasOwnProperty(prepositionId)){fact[prepositionId]=ishml.index[target.noun.definition.match]}
 			else 
 			{
 				return false
@@ -2566,11 +2821,59 @@ ishml.dsl.facts=ishml.Rule().configure({maximum:Infinity})
 	.snip("fact",ishml.dsl.fact).snip("period")
 ishml.dsl.facts.period.configure({regex:/^\./})
 
-ishml.dslParser=ishml.Parser({ lexicon: ishml.lexicon, grammar: ishml.dsl.facts})
+ishml.dslParser=ishml.Parser({ lexicon: ishml.glossary, grammar: ishml.dsl.facts})
 
 // #region semantics 
 
-ishml.net={}  
+/*index:
+nouns (key=id), subjects (key=subject.id), directObjects (key=verb.id), indirectObjects (key=preposition.id)
+
+reify`foyer contains rng.`
+
+index.foyer=foyer, a noun (POJO)
+index.ring=ring, a noun (POJO)
+index.subject.foyer.facts=reality of facts with foyer as subject
+index.subject.foyer.contain.facts=reality matching `foyer contains _item_`
+index.subject.foyer.contain.ring.facts=reality matching `foyer contains ring`
+index.verb.contain.facts=reality matching `_container_ contains _item_`
+index.directObject.ring.facts=reality matching `_subject_ _verb_ ring`
+
+reify`foyer connects to bar on north through oak_door.`
+
+index.foyer=foyer, a noun (POJO)
+index.north=north, a noun (POJO)
+index.north=bar, a noun (POJO)
+
+index.subject.foyer.facts=reality of facts with foyer as subject
+index.subject.foyer.connect.facts=reality matching `foyer connects _room_`
+index.subject.foyer.connect.bar.facts=reality matching `foyer connects bar`
+index.subject.foyer.connect.bar.on.facts=reality matching `foyer connects bar on _direction_`
+index.subject.foyer.connect.bar.on.north.facts=reality matching `foyer connects bar on north`
+index.subject.foyer.connect.bar.on.north.through.facts=reality matching `foyer connects bar on north through _portal_.`
+index.subject.foyer.connect.bar.on.north.through.oak_door.facts=reality matching `foyer connects bar on north through oak_door.`
+
+index.verb.connect.facts=reality matching `_room_ connects _room_`
+index.verb.connect.bar.facts=reality matching `_room_ connects bar`
+index.verb.connect.bar.on.facts=reality matching `_room_ connects bar on _direction_`
+index.verb.connect.bar.on.north.facts=reality matching `_room_ connects bar on north`
+index.verb.connect.bar.on.north.through.facts=reality matching `_room_ connects bar on north through _portal_.`
+index.verb.connect.bar.on.north.through.oak_door.facts=reality matching `_room_ connects bar on north through oak_door.`
+
+index.directObject.bar.facts=reality matching `_subject_ _verb_ bar`
+index.directObject.bar.on.facts=reality matching `_subject_ _verb_ bar on _direction_`
+index.directObject.bar.on.north.facts=reality matching `_subject_ _verb_ bar on north`
+index.directObject.bar.on.north.through.facts=reality matching `_subject_ _verb_ bar on north through _portal_.`
+index.directObject.bar.on.north.through.oak_door.facts=reality matching `_subject_ _verb_ bar on north through oak_door.`
+
+index.indirectObject.on.facts=reality matching `_subject_ _verb_ _directObject_ on`
+index.indirectObject.on.north.facts=reality matching `_subject_ _verb_  _directObject_ on north _preposition_ _target_`
+index.indirectObject.on.north.through.facts=reality matching `_subject_ _verb_  _directObject_ on north through _portal_.`
+index.indirectObject.on.north.through.oak_door.facts=reality matching `_subject_ _verb_ bar on north through oak_door.`
+
+
+*/
+
+ishml.index={subject:{},verb:{},directObject:{},indirectObject:{}}  
 
 ishml.Fact=class Fact
 {
@@ -2628,10 +2931,11 @@ ishml.reify=function(passages, ...nouns)
 			let name=ishml.formatName(identifier)
 			noun.name=noun.name ?? name
 			noun.description=noun.description ?? name
-			ishml.net[identifier]=noun
+			ishml.index[identifier]=noun
+			ishml.glossary.register(noun.id).as({definition:noun, part:"noun"})
+			ishml.glossary.register(name).as({definition:noun, part:"noun"})
+			noun.synonyms?.forEach(synonym=>ishml.glossary.register(synonym).as({definition:noun, part:"noun"}))
 		}
-
-		
 	})
 	let {success,interpretations}=ishml.dslParser.analyze(passages.join(""))
 	if (success)
@@ -2709,4 +3013,10 @@ ishml.storyline=function()  //triggers upon fact creations
 
 
 
+// #end region
+// #region error messages
+var errors=
+{
+
+}
 // #end region
