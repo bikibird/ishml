@@ -2530,11 +2530,9 @@ ishml.adjective=function(literals, ...expressions)
 	if (type==="enum") return {describes:describes}
 	else return {describes:describes, opposite:opposite, value:value}
 }
-
-
-ishml.noun=new Proxy
-(
-	class Noun
+ishml.classes=
+{
+	Noun:class Noun
 	{
 		constructor(literals, ...expressions) // maybe template literal notation or function notation
 		{
@@ -2548,6 +2546,85 @@ ishml.noun=new Proxy
 		}
 		
 	},
+	Predicate:class Predicate
+	{
+		constructor(literals, ...expressions) // maybe template literal notation or function notation
+		{
+			let name=ishml.toString(literals, ...expressions)
+			let p_strings=name.split(" ")
+			Object.defineProperty(this, "id",{value:ishml.formatId(name),enumerable:false})
+			//Object.defineProperty(this, "name",{value:ishml.formatName(this.id),enumerable:false,writable:true})
+			Object.defineProperty(this, "verb",{value:ishml.formatName(p_strings[0]),enumerable:false,writable:false})
+			Object.defineProperty(this, "prepositions",{value:p_strings.splice(1),enumerable:false,writable:false})
+			Object.defineProperty(this, "mutual",{value:false,enumerable:false})
+			Object.defineProperty(this, "exclusive",{value:false,enumerable:false})
+
+
+			ishml.lang.conjugations(this.verb,"active","affirmative")
+				.concat(ishml.lang.conjugations(this.verb,"active","negative"))
+				.concat(ishml.lang.conjugations(this.verb,"passive","affirmative"))
+				.concat(ishml.lang.conjugations(this.verb,"passive","negative"))
+				.forEach(conjugation=>
+				{
+					let name=conjugation.name
+					delete conjugation.name
+					conjugation.predicate=this
+					ishml.glossary.register(name).as(c)
+				})
+			this.prepositions.forEach(preposition=>
+			{
+				ishml.glossary.register(preposition).as({part:preposition, predicate:this})
+			})	
+			return new Proxy(this,ishml.proxies.predicate)
+		}
+		reify(reality)
+		{
+			reality.forEach(fact=>
+			{
+				ishml.net[fact.id]=fact
+			})
+			return(reality)
+		}
+		select(reality)
+		{
+			//TO DO: use reality to find facts in ishml.net that match 
+			return reality
+		}
+		check(reality)
+		{
+			//TO DO: use reality to find facts in ishml.net that match 
+
+			if (reality.size>0) return true
+			return false
+		}
+
+	}
+}
+ishml.noun=new Proxy
+(
+	ishml.classes.Noun,
+	{
+		apply: function (target, thisArg, args)  //temporary proxy for creating new-less class instances
+		{
+			return new target(...args)
+		}
+	}
+	
+)
+
+//predicate`connect to on north`.adverb`one-way`.reify(reality=>reality).select(reality||nounList=>reality).check(reality||nounList=>proposition)
+
+//oak door connects bar to foyer on north.  
+//adverbs supply hints for processing reify and select
+//magic portal connects bar to foyer on north one-way. -- adverbs may appear at end
+//magic portal one-way connects bar to foyer on north. -- adverbs may appear before verb
+//twisty passage one-way connects bar to foyer on north. twisty passage one-way connects foyer to bar on east. 
+
+//ishml.lang.es("verb") --third person present tense: she leaps.
+
+ishml.predicate=new Proxy
+(
+	ishml.classes.Predicate,
 	{
 		apply: function (target, thisArg, args)  //temporary proxy for creating new-less class instances
 		{
@@ -2556,68 +2633,48 @@ ishml.noun=new Proxy
 	}
 )
 
+
 ishml.predicate=function(literals, ...expressions)
-//predicate`connect to on north`.adverb`one-way`.reify(reality=>{}).select(reality||nounList=>{}).check(reality||nounList=>{})
-
-//oak door connects bar to foyer on north.  
-//adverbs supply hints for processing reify and select
-//magic portal connects bar to foyer on north one-way. -- adverbs may appear at end
-//magic portal one-way connects bar to foyer on north. -- adverbs may appear before verb
-//twisty passage one-way connects bar to foyer on north. twisty passage one-way connects foyer to bar on east. 
 {
-	var names=ishml.formatName(literals, ...expressions).split(",")
-		
-	if (names.length>1){var type="enum"}
-	else{ var type="boolean"}	//may be overridden by value()
-	var adjOpposite=null
-	var adjValue=null
-	var describes=(literals, ...expressions)=>
-	{
-		if(literals===undefined) throw new Error(`ERROR 0001: Adjective ${names.toString} describes undefined property.`)
-		let property=ishml.formatName(literals, ...expressions)
-		let length=names.length
-		names.forEach((name,index) => 
-		{
-			if (type==="enum")
-			{
-				ishml.glossary.register(name).as({part: "adjective", value:index, filter:noun=>noun[property]===index,
-					toggle:noun=>noun[property]=(noun[property]+1)%length , property:property})
-			}
-			else if(type=="boolean")
-			{
-				ishml.glossary.register(name).as({part: "adjective", value:true, filter:noun=>noun[property]===true, 
-					toggle:noun => noun[property]=!noun[property], property:property})
-				if (adjOpposite)
-				{
-					ishml.glossary.register(adjOpposite).as({part: "adjective", value:false, filter:noun=>noun[property]===false, 
-						toggle:noun => noun[property]=!noun[property],property:property})
-				}
-			}
-			else  //value
-			{
-				ishml.glossary.register(name).as({part: "adjective",value:adjValue,filter:noun=>noun[property]===adjValue,
-					toggle:noun=>{},property:property})
-			}
-		})
-		return ishml
-	}
-	var opposite=(literals, ...expressions)=>
-	{
-		type="boolean"
-		adjOpposite=ishml.formatName(literals, ...expressions)
-		return {describes:describes}
-	}
+	let p = new ishml.classes.Predicate(literals, ...expressions)
+	ishml.predicates[p.id]=p
 	
-	var value=(v)=> //some other value that isn't an enum or boolean
+	let adverb=(literals, ...expressions)=>
 	{
-		type="value"
-		adjValue=v
-		return {describes:describes}
+		ishml.glossary.register(ishml.toString(literals, ...expressions)).as({part: "adverb",  predicate:p})
+		return options
+
+	}
+	let reify=(f)=> //assign custom function to property
+	{
+		p.reify=f
+
+		delete options.reify
+		return options
+
+	}
+	let select=(f)=> //assign custom function to property
+	{
+		p.select=f 
+
+		delete options.select
+		return options
+
+	}
+	let check=(f)=> //assign custom function to property
+	{
+		p.check=f
+
+		delete options.check
+		return options
+
 	}
 
-	if (type==="enum") return {describes:describes}
-	else return {describes:describes, opposite:opposite, value:value}
+	let options={adverb:adverb,reify:reify,select:select,check:check}
+
 }
+
+
 
 
 
@@ -2683,8 +2740,45 @@ ishml.proxies.noun=
 			return receiver
 		}
 
-	},
+	}
 	
+}
+ishml.proxies.predicate=
+{	
+	//use setter/getter for properties
+	//predicate.property() returns value of property predicate.property(value) sets property with value
+	get: function(target, property, receiver) //receiver is proxy.
+	{
+		var methods=
+		{
+			aka:(literals, ...expressions)=>
+			{
+				ishml.glossary.register(ishml.formatName(ishml.toString(literals, ...expressions))).as({part: "verb", predicate:receiver})	
+				return receiver
+			},
+			adverb:(literals, ...expressions)=>
+			{
+				ishml.glossary.register(ishml.toString(literals, ...expressions)).as({part: "adverb",  predicate:p})
+				return options
+
+			},
+			passive:(literals, ...expression){}
+
+		}
+		if(methods.hasOwnProperty(property)) return methods[property]
+		if (property==="id") return target[property]
+
+		return function(target, property, receiver) //receiver is proxy.
+		{
+			if (property==="id") return target[property]
+			return function(value)
+			{
+				if (value===undefined){return target[property]}
+				target[property]=value
+				return receiver
+			}
+		}
+	}	
 }
 
 // #region dsl
