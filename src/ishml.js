@@ -572,8 +572,7 @@ ishml.Rule.prototype.parse =function(text,lexicon)
 								snippets.forEach((snippet)=>
 								{
 									var phrase=new ishml.Interpretation(gist,snippet.remainder,snippet.valid && valid,
-										candidate.lexeme+remainder.slice(0,remainder.length-snippet.remainder.length))
-										//remainder.slice(0,remainder.length-snippet.remainder.length))
+										candidate.lexeme+remainder.slice(0,remainder.length-snippet.remainder.length))										
 									if (this.maximum ===1 )
 									{
 										if(this[key].keep || !phrase.valid){phrase.gist[key]=snippet.gist}
@@ -2475,7 +2474,7 @@ ishml.tick=function(ticks=1)
 // #region semantics
 
 ishml.net={}  //semantic network, where nouns and facts live.
-ishml.index=[]  // indexes for semantic network
+ishml.index={}  // indexes for semantic network
 ishml.classes={}  //Classes that users might want to extend
 ishml.proxies={}
 ishml.proxies.newless= //instantiate a class without new operator
@@ -2556,30 +2555,35 @@ ishml.fact=new Proxy
 (
 	class Fact
 	{
-		constructor(fact={tense:0,mood:0,voice:0,polarity:0}) //ishml.fact({predicate:{},tense:1,mood:0,voice:0,polarity:0,arguments:{subject:{},carry:{}},nouns:[]}
+		constructor(statement={tense:0,mood:0,voice:0,polarity:0}) //ishml.fact({predicate:{},tense:1,mood:0,voice:0,polarity:0,arguments:{subject:{},carry:{}},nouns:[]}
 		{
-			let keys=Object.keys(fact.arguments)
-			let id=fact.nouns[0].id //+"_"+fact.predicate.verb
-			for (let index = 1; index < keys.length; index++) {id=id+"_"+keys[index]+"_"+fact.arguments[keys[index]].id}
-
+			let keys=Object.keys(statement.arguments)
+			let id=statement.nouns[0] //+"_"+fact.predicate.verb
+			for (let index = 1; index < keys.length; index++) {id=id+"_"+keys[index]+"_"+statement.arguments[keys[index]]}
+			statement.nouns=statement.nouns.map(noun=>ishml.net[noun]?ishml.net[noun]:ishml.noun`${noun}`)
+			keys.forEach(key=>{statement.arguments[key]=ishml.net[statement.arguments[key]]}) //subject:"player" to subject:player
 			Object.defineProperty(this, "id",{value:id,enumerable:false})
-			Object.defineProperty(this, "predicate",{value:fact.predicate,enumerable:false})
-			Object.defineProperty(this, "tense",{value:fact.tense,enumerable:false})
-			Object.defineProperty(this, "mood",{value:fact.mood,enumerable:false})
-			Object.defineProperty(this, "voice",{value:fact.voice,enumerable:false})
-			Object.defineProperty(this, "polarity",{value:fact.polarity,enumerable:false})
-			Object.defineProperty(this, "nouns",{value:fact.nouns,enumerable:false})
+			Object.defineProperty(this, "predicate",{value:statement.predicate,enumerable:false})
+			Object.defineProperty(this, "tense",{value:statement.tense,enumerable:false})
+			Object.defineProperty(this, "mood",{value:statement.mood,enumerable:false})
+			//Object.defineProperty(this, "voice",{value:statement.voice,enumerable:false})  //all facts in network are active voice
+			Object.defineProperty(this, "polarity",{value:statement.polarity,enumerable:false})
+			Object.defineProperty(this, "nouns",{value:statement.nouns,enumerable:false})
 			Object.defineProperty(this, "history",{value:[],enumerable:false})
-			Object.assign(this,fact.arguments)
+			Object.assign(this,statement.arguments)
+
+			//ishml.net[id]=this
+
+
 		}
 
 		get prepositions(){return Object.keys(this).slice(2)}
 		get verb(){return Object.keys(this)[1]}
 
-		reify()
+	/*	reify()
 		{
 			this.predicate.reify(this)
-		}
+		}*/
 	},
 	ishml.proxies.newless
 )
@@ -2749,26 +2753,50 @@ ishml.classes.Predicate=class Predicate
 				ishml.glossary.register(name).as(conjugation)
 			})
 	}
-	reify(fact)
+	reify(statement) //{predicate, tense, mood, voice, polarity, arguments, nouns}
 	{
-		
+		let fact=ishml.fact(statement)
 		ishml.net[fact.id]=fact
-		fact.nouns.forEach((noun,index)=>
+		statement.nouns.forEach((noun,index)=>
 		{
-			if (ishml.index[index])
+			let indicator =ishml.index[this.id]
+			if (!indicator)indicator=ishml.index[this.id]=[]
+			if (indicator[index])
 			{
-				ishml.index[index][noun.id]=fact
+				if(indicator[index][noun.id])indicator[index][noun.id].add(fact)
+				else indicator[index][noun.id]=ishml.reality().add(fact)
 			}
-			else
-			{
-				ishml.index[index]={[noun.id]:fact}
-			}
+			else indicator[index]={[noun.id]:ishml.reality().add(fact)}
 		})
 		return this
 	}
-	select(reality)
+	select(statement)
 	{
-		//TO DO: use reality to find facts in ishml.net that match 
+		//TO DO: use statement to find facts in ishml.net that match 
+		
+		let reality=ishml.reality()
+	
+		statement.nouns.every((noun,nounIndex)=>
+		{
+			let entry=ishml.index[this.id][nounIndex][noun]
+			if (entry)
+			{
+				if (nounIndex===0)
+				{
+					reality=reality.union(entry)
+				}
+				else 
+				{
+					reality=reality.intersection(index[nounIndex][entry])
+				}
+				return true
+			}
+			else
+			{
+				reality.clear()
+				return false
+			}
+		})
 		return reality
 	}
 }
@@ -2796,7 +2824,12 @@ ishml.reality=new Proxy
 (
 	class Reality extends Set 
 	{
-		reify(){this.forEach(fact=>{fact.predicate.reify(fact)})}
+		
+		constructor(placeholder)
+		{
+			super()
+			Object.defineProperty(this, "placehoder",{value:placeholder,enumerable:false,writable:false})
+		}
 		filter(filter)
 		{
 			var reality = new Reality()
@@ -2845,11 +2878,13 @@ ishml.reality=new Proxy
 	prepositionalPhrase=>preposition complement
 	complement=>"("fact")"|nounPhrase
 	nounPhrase=>[article] adjectives* noun
-	noun=>lexiconNoun|wildcard
-	wildcard=>/^_[a-zA-Z_]\w*_/
-	
+	noun=>lexiconNoun|placeholder
+	wildcard=>/^_[a-zA-Z]\w*[a-zA-Z _]_/
+	placeholder=>/^#[a-zA-Z]\w*[a-zA-Z _]#/
 	
 Test:
+
+A wildcard is used for matching in select statements.  A placeholder is used for creating nouns on the fly.
 
 oak door connects bar to foyer on north.  -- implies abuttal implies reciprocal connection foyer to bar on south
 exit connects bar to foyer on north. -- generic exit.
@@ -2862,56 +2897,31 @@ chute one-way connects bar to foyer.  bar abuts foyer on bottom
 */
 
 ishml.dsl={}
-ishml.dsl.wildcard=ishml.Rule().configure({regex:/^_[a-zA-Z]\w*[a-zA-Z]_/})
+ishml.dsl.placeholder=ishml.Rule().configure({separator:/^\s*|\.|\,/,regex:/^#[a-zA-Z][\w ]*#/})
+ishml.dsl.wildcard=ishml.Rule().configure({separator:/^\s*|\.|\,/,regex:/^\_[a-zA-Z][\w ]*\_/})
 ishml.dsl.nounPhrase=ishml.Rule()
 	.snip("article").snip("adjectives").snip("noun")
 
 ishml.dsl.nounPhrase.configure({semantics:interpretation=>
 {
-	let noun=ishml.net[interpretation.gist.noun.definition.key]
-	let adjectives=interpretation.gist.adjectives
-
-	adjectives?.map(adjective=>adjective.definition).forEach(adjective=>
-	{
-		if (noun[adjective.property]()!==adjective.value) return false
-	})	
-	
-	interpretation.gist=[noun]
+	const definition=interpretation.gist.noun.definition
+	const key=definition.key??definition.match
+	const adjectives=interpretation.gist.adjectives?.map(adjective=>adjective.definition)//.forEach(adjective=>ishml.net[key]?.[adjective.property]()===adjective.value)
+	interpretation.gist={adjectives:adjectives, nouns:[key]}
 
 	return true
 }})
-ishml.dsl.nounPhrase.article.configure({separator:/^\s*|\.|\,/,minimum:0,filter:(definition)=>definition?.part==="article",semantics:interpretation=>
-{
-		let definition=interpretation.gist.definition
-		return true
-}})
-ishml.dsl.nounPhrase.adjectives.configure({separator:/^\s*|\.|\,/,minimum:0,maximum:Infinity,filter:(definition)=>definition?.part==="adjective",semantics:interpretation=>
-	{
-		let definition=interpretation.gist.definition
-		return true
-	}})
+ishml.dsl.nounPhrase.article.configure({separator:/^\s*|\.|\,/,minimum:0,filter:(definition)=>definition?.part==="article"})
+ishml.dsl.nounPhrase.adjectives.configure({separator:/^\s*|\.|\,/,minimum:0,maximum:Infinity,filter:(definition)=>definition?.part==="adjective"})
 ishml.dsl.nounPhrase.noun.configure({mode:ishml.Rule.apt,semantics:interpretation=>
 	{
-		let definition=interpretation.gist
-	/*	if (definition.fuzzy) 
-		{
-			interpretation.gist=[].concat(ishml.index[definition.match])  //DEFECT missing code for wildcards
-		}
-		else if (definition.part)
-		{
-			interpretation.gist=[].concat(definition)
-		}*/
-		
+		console.log(interpretation)
 		return true
 	}})
 	.snip(0)
-	.snip(1,ishml.dsl.wildcard)
-	ishml.dsl.nounPhrase.noun[0].configure({separator:/^\s*|\.|\,/,filter:(definition)=>definition?.part==="noun",semantics:interpretation=>
-	{
-		let definition=interpretation.gist.definition
-		return true
-	}})	
-ishml.dsl.nounPhrase.noun[1].configure({separator:/^\s*|\.|\,/,regex:/^_[a-zA-Z]\w*[a-zA-Z]_/}) //noun names must be at least two characters
+	.snip(1,ishml.dsl.placeholder)
+	.snip(2,ishml.dsl.wildcard)
+ishml.dsl.nounPhrase.noun[0].configure({separator:/^\s*|\.|\,/,filter:(definition)=>definition?.part==="noun",})	
 
 ishml.dsl.argument=ishml.Rule().configure({mode:ishml.Rule.apt,semantics:interpretation=>
 {
@@ -2926,16 +2936,63 @@ ishml.dsl.argument[0].snip("(").snip("statement",ishml.dsl.statement).snip(")")
 ishml.dsl.argument[0]["("].configure({regex:/^\(/})
 ishml.dsl.argument[0][")"].configure({regex:/^\)/})
 
-ishml.dsl.statement=ishml.Rule().configure({semantics:interpretation=> //Due to wildcards, each statement may be multiple facts.  Therefore a statement must be a reality.
+ishml.dsl.statement=ishml.Rule().configure({semantics:interpretation=> //Due to wildcards, each statement may involve multiple facts.  
 {
 	let verb=interpretation.gist.predicate.verb.definition
-	let argumentSets=[]
-	let gist=ishml.reality()	
-	argumentSets.push({key:"subject", value:interpretation.gist.subject},{key:verb.predicate.verb,value:interpretation.gist.predicate.directObject})
+	let argumentList=[]
+	let gist=[]	
+	argumentList.push({key:"subject", value:interpretation.gist.subject},{key:verb.predicate.verb,value:interpretation.gist.predicate.directObject})
 	interpretation.gist.predicate.prepositionalPhrases?.forEach(phrase=>nouns.push({key:phrase.preposition.definition.key,value:phrase.target}))
-	
-	argumentSets.map(noun=>noun.value.map(value=>({[noun.key]:value})))
-	.reduce((a,b)=> //create a list of all possible argument combinations.
+
+	argumentList.forEach((argument,argumentIndex)=> 
+	{
+
+/*
+{	
+    "key": "subject",
+    "value": {
+        "adjectives": [
+            {
+                "part": "adjective",
+                "value": 72,
+                "property": "height"
+            }
+        ],
+        "nouns": [
+            "_person_"
+        ]
+    }
+}
+ */
+		
+		argument.value.wildcard={}
+		argument.value.nouns=argument.value.nouns.reduce((accumulator,noun,index)=>  //resolve wildcards
+		{
+			if (noun.startsWith("_"))
+			{
+				accumulator=accumulator.concat(Object.keys(ishml.index[verb.predicate.id]?.[index]??{}))
+				argument.value.wildcard[noun.slice(1,-1)]=argumentIndex
+			}
+			else accumulator.push(noun)
+			return accumulator
+		},[])
+		argument.value.adjectives?.forEach(adjective=>  //apply adjectives to nouns
+		{
+			argument.value.nouns=argument.value.nouns.filter(noun=>
+			{
+				if (noun.startsWith("#")) return true
+				else return ishml.net[noun][adjective.property]()===adjective.value
+				
+			})
+		})	
+	})
+	const wildcard={}
+	argumentList.forEach(argument=> //collect all wildcards across all arguments.
+	{
+		Object.assign(wildcard,argument.value.wildcard)
+	})
+	argumentList.map(argument=>argument.value.nouns.map(value=>({[argument.key]:value})))
+	.reduce((a,b)=> //create array of all possible argumentSets.
 	{ 
 		let result=[]
 		a.forEach(x=>{b.forEach(y=>{result.push(Object.assign({},x,y))})})
@@ -2958,10 +3015,10 @@ ishml.dsl.statement=ishml.Rule().configure({semantics:interpretation=> //Due to 
 			argumentSet[keys[1]]=subject
 		}
 
-		let fact={predicate:verb.predicate,tense:verb.tense,mood:verb.mood,voice:verb.voice,polarity:verb.polarity,arguments:argumentSet}
-		
-		fact.nouns=nouns
-		gist.add(ishml.fact(fact))
+		let statement={predicate:verb.predicate,tense:verb.tense,mood:verb.mood,voice:verb.voice,polarity:verb.polarity,arguments:argumentSet}
+		statement.wildcard=wildcard
+		statement.nouns=nouns
+		gist.push(statement)
 	})
 
 	interpretation.gist=gist
@@ -3002,12 +3059,12 @@ ishml.dsl.statement.predicate.prepositionalPhrases.preposition.configure({filter
 
 ishml.dsl.statements=ishml.Rule().configure({maximum:Infinity, semantics:interpretation=>
 {
-	interpretation.gist=interpretation.gist.map(s=>s.statement)
+	interpretation.gist=interpretation.gist.reduce((a,b)=>a.concat(b.statement),[])
 	return true
 }})
 .snip("statement",ishml.dsl.statement).snip("period")
 
-ishml.dsl.statements.period.configure({regex:/^\./ ,semantics:interpretation=>{return true}})
+ishml.dsl.statements.period.configure({regex:/^\./ })
 
 ishml.dslParser=ishml.Parser({ lexicon: ishml.glossary, grammar: ishml.dsl.statements})
 
@@ -3033,7 +3090,23 @@ ishml.reify=function(literals, ...expressions)
 		}
 		else
 		{
-			interpretations[0].gist.forEach((reality)=>{reality.reify()})
+			interpretations[0].gist.forEach(statement=>
+			{
+				const keys=Object.keys(statement.arguments)
+				
+				statement.nouns.forEach((noun,index)=>
+				{
+					if (noun.startsWith("#") ) //add ad-hoc nouns to semantic network.
+					{
+						const nounId=noun.slice(1,-1)
+						
+						if (!ishml.net[nounId]) ishml.noun(nounId)
+						statement.nouns[index]=nounId
+						statement.arguments[keys[index]]=nounId
+					}
+				})
+				statement.predicate.reify(statement)
+			})
 		}
 	}
 	else
@@ -3044,7 +3117,7 @@ ishml.reify=function(literals, ...expressions)
 	}
 
 }
-ishml.select=function()
+ishml.select=function(literals, ...expressions)
 {
 	var source=ishml.toString(literals, ...expressions)
 	
@@ -3062,12 +3135,38 @@ ishml.select=function()
 		}
 		else
 		{
-			return interpretations[0].gist.forEach(
-				(reality)=>{reality.forEach(fact=> //{predicate:"id",nouns:["id","id","id"],tense:tense}
-				{
-					//match fact against ishml.net
+/*
+[
+   
+    {
+        "predicate": {},
+        "tense": 1,
+        "mood": 0,
+        "voice": 0,
+        "polarity": 0,
+        "arguments": {
+            "subject": "charlotte",
+            "carry": "#scissors#"
+        },
+        "wildcard": {
+            "person": 0
+        },
+        "nouns": [
+            "charlotte",
+            "#scissors#"
+        ]
+    }
+] */
+			
+			const statements= interpretations[0].gist
+			let reality=ishml.reality(statements.reduce((placeholder,statement)=>Object.assign(placeholder,statement.wildcard),{}))
+			statements.forEach(statement=> //select facts that match statement
+			{
+				reality=reality.union(statement.predicate.select(statement))
 
-				})})
+			})
+			return reality
+
 		}
 	}
 	else
